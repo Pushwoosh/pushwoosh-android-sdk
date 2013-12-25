@@ -44,7 +44,7 @@ public class RequestHelper
 			data.put("device_type", "3");
 		}
 
-		data.put("v", "2.0");
+		data.put("v", "2.1");
 		data.put("language", Locale.getDefault().getLanguage());
 		data.put("timezone", Calendar.getInstance().getTimeZone().getRawOffset() / 1000); // converting from milliseconds to seconds
 
