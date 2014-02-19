@@ -7,13 +7,8 @@
 // MIT Licensed
 package com.arellomobile.android.push.request;
 
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Map;
-
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 
 import com.arellomobile.android.push.data.PushZoneLocation;
@@ -22,6 +17,12 @@ import com.arellomobile.android.push.utils.PreferenceUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
 
 public class RequestHelper
 {
@@ -44,13 +45,21 @@ public class RequestHelper
 			data.put("device_type", "3");
 		}
 
-		data.put("v", "2.1");
+		data.put("v", "2.2");
 		data.put("language", Locale.getDefault().getLanguage());
 		data.put("timezone", Calendar.getInstance().getTimeZone().getRawOffset() / 1000); // converting from milliseconds to seconds
 
 		String packageName = context.getApplicationContext().getPackageName();
 		data.put("android_package", packageName);
 		data.put("push_token", deviceRegistrationID);
+		try
+		{
+			data.put("app_version", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName);
+		}
+		catch (PackageManager.NameNotFoundException e)
+		{
+			// pass
+		}
 
 		return data;
 	}

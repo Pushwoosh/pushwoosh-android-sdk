@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Pushwoosh.makejar" default="makejar" basedir=".">
+
+	<property name="src" location="src" />
+	<property name="build" location="out" />
+	<property name="dist" location="build" />
+	<property name="android" location="/opt/android-sdk-latest/platforms/android-19/android.jar" />
+	<property name="android2" location="/Users/Max/android-sdk-mac_x86/platforms/android-19/android.jar" />
+	<property name="amazon" location="ext-libs/amazon-device-messaging-1.0.1.jar" />
+
+	<target name="clean">
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+	</target>
+
+	<target name="compile" depends="clean">
+		<mkdir dir="${build}" />
+		<javac srcdir="${src}" destdir="${build}" includeantruntime="false">
+			<classpath>
+				<pathelement location="${android}" />
+				<pathelement location="${android2}" />
+				<pathelement location="${amazon}" />
+			</classpath>
+		</javac>
+
+	</target>
+
+	<target name="makejar" depends="compile">
+		<mkdir dir="${dist}" />
+		<jar jarfile="${dist}/Pushwoosh.jar" includes="**/**.class" basedir="${build}" />
+	</target>
+</project>
