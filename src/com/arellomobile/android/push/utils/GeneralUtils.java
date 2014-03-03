@@ -134,11 +134,15 @@ public class GeneralUtils
 	
 	public static boolean isAmazonDevice()
 	{
-		if(android.os.Build.MANUFACTURER.equals("Amazon"))
+		try
 		{
+			Class.forName("com.amazon.device.messaging.ADM");
 			return true;
 		}
-		
+		catch (ClassNotFoundException e)
+		{
+		    // Ignore
+		}
 		return false;
 	}
 }
