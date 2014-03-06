@@ -181,6 +181,11 @@ public class PushManager
 		mContext.startService(new Intent(mContext, GeoLocationService.class));
 	}
 
+	static public void startTrackingGeoPushes(Context context)
+	{
+		context.startService(new Intent(context, GeoLocationService.class));
+	}
+
 	/**
 	 * Stop tracking Geo Push Notifications
 	 */
@@ -188,6 +193,12 @@ public class PushManager
 	{
 		mContext.stopService(new Intent(mContext, GeoLocationService.class));
 	}
+
+	static public void stopTrackingGeoPushes(Context context)
+	{
+		context.stopService(new Intent(context, GeoLocationService.class));
+	}
+
 
 	/**
 	 * Unregister from push notifications
