@@ -160,4 +160,19 @@ public class PreferenceUtils
 		boolean ledOn = prefs.getBoolean("dm_ledon", false);
 		return ledOn;
 	}
+	
+	public static String getBaseUrl(Context context)
+	{
+		final SharedPreferences prefs = context.getSharedPreferences(PREFERENCE, Context.MODE_PRIVATE);
+		return prefs.getString("pw_base_url", "");
+	}
+
+	public static void setBaseUrl(Context context, String baseUrl)
+	{
+		final SharedPreferences prefs = context.getSharedPreferences(PREFERENCE, Context.MODE_PRIVATE);
+		final SharedPreferences.Editor editor = prefs.edit();
+		editor.putString("pw_base_url", baseUrl);
+		editor.commit();
+	}
+
 }

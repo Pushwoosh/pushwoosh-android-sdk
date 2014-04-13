@@ -2,6 +2,7 @@ package com.arellomobile.android.push;
 
 import java.util.Set;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -19,7 +20,8 @@ import com.arellomobile.android.push.utils.notification.BannerNotificationFactor
 import com.arellomobile.android.push.utils.notification.BaseNotificationFactory;
 import com.arellomobile.android.push.utils.notification.SimpleNotificationFactory;
 
-public class PushServiceHelper {
+public class PushServiceHelper
+{
 	public static void generateNotification(Context context, Intent intent)
 	{
 		Bundle extras = intent.getExtras();
@@ -52,7 +54,7 @@ public class PushServiceHelper {
 			notifyIntent.putExtra("pushBundle", extras);
 		}
 
-		if(header == null)
+		if (header == null)
 		{
 			CharSequence appName = context.getPackageManager().getApplicationLabel(context.getApplicationInfo());
 			if (null == appName)
@@ -71,26 +73,24 @@ public class PushServiceHelper {
 		String bannerUrl = (String) extras.get("b");
 
 		//also check that notification layout has been placed in layout folder
-		int layoutId =
-				context.getResources().getIdentifier(BannerNotificationFactory.sNotificationLayout, "layout", context.getPackageName());
+		int layoutId = context.getResources().getIdentifier(BannerNotificationFactory.sNotificationLayout, "layout", context.getPackageName());
 
 		if (layoutId != 0 && bannerUrl != null)
 		{
-			notificationFactory =
-					new BannerNotificationFactory(context, extras, header, message, PreferenceUtils.getSoundType(context), PreferenceUtils.getVibrateType(context));
+			notificationFactory = new BannerNotificationFactory(context, extras, header, message, PreferenceUtils.getSoundType(context), PreferenceUtils.getVibrateType(context));
 		}
 		else
 		{
-			notificationFactory =
-					new SimpleNotificationFactory(context, extras, header, message, PreferenceUtils.getSoundType(context),
-							PreferenceUtils.getVibrateType(context));
+			notificationFactory = new SimpleNotificationFactory(context, extras, header, message, PreferenceUtils.getSoundType(context), PreferenceUtils.getVibrateType(context));
 		}
 		notificationFactory.generateNotification();
 		notificationFactory.addSoundAndVibrate();
 		notificationFactory.addCancel();
 
-		if(PreferenceUtils.getEnableLED(context))
+		if (PreferenceUtils.getEnableLED(context))
+		{
 			notificationFactory.addLED(true);
+		}
 
 		Notification notification = notificationFactory.getNotification();
 
@@ -100,14 +100,19 @@ public class PushServiceHelper {
 			PreferenceUtils.setMessageId(context, ++messageId);
 		}
 
-		notification.contentIntent =
-				PendingIntent.getActivity(context, messageId, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		notification.contentIntent = PendingIntent.getActivity(context, messageId, notifyIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
 		manager.notify(messageId, notification);
 
 		generateBroadcast(context, extras);
 
-		DeviceFeature2_5.sendMessageDeliveryEvent(context, extras.getString("p"));
+		try
+		{
+			DeviceFeature2_5.sendMessageDeliveryEvent(context, extras.getString("p"));
+		}
+		catch (Exception e)
+		{
+		}
 	}
 
 	public static void generateBroadcast(Context context, Bundle extras)
@@ -119,13 +124,26 @@ public class PushServiceHelper {
 		JSONObject dataObject = new JSONObject();
 
 		Set<String> keys = extras.keySet();
-		for (String key : keys) {
+		for (String key : keys)
+		{
 			//backward compatibility
-			if(key.equals("u"))
+			if (key.equals("u"))
 			{
 				try
 				{
-					dataObject.put("userdata", extras.get("u"));
+					Object userData = extras.get("u");
+					if (userData != null && userData instanceof String)
+					{
+						if (((String) userData).startsWith("{"))
+						{
+							userData = new JSONObject((String) userData);
+						}
+						else if (((String) userData).startsWith("["))
+						{
+							userData = new JSONArray((String) userData);
+						}
+						dataObject.put("userdata", userData);
+					}
 				}
 				catch (JSONException e)
 				{
@@ -145,7 +163,7 @@ public class PushServiceHelper {
 
 		broadcastIntent.putExtra(BasePushMessageReceiver.JSON_DATA_KEY, dataObject.toString());
 
-		if(GeneralUtils.isAmazonDevice())
+		if (GeneralUtils.isAmazonDevice())
 		{
 			context.sendBroadcast(broadcastIntent, context.getPackageName() + ".permission.RECEIVE_ADM_MESSAGE");
 		}

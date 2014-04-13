@@ -1,16 +1,16 @@
 package com.arellomobile.android.push;
 
-import java.util.Calendar;
-
-import com.arellomobile.android.push.utils.GeneralUtils;
-import com.google.android.gcm.GCMConstants;
-
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+
+import com.arellomobile.android.push.utils.GeneralUtils;
+import com.google.android.gcm.GCMConstants;
+
+import java.util.Calendar;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
@@ -20,13 +20,15 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent)
     {
-    	Intent msgIntent = new Intent(context, PushGCMIntentService.class);
+    	Intent msgIntent;
     	if(GeneralUtils.isAmazonDevice())
     	{
+    		msgIntent = new Intent(context, PushAmazonIntentService.class);
     		msgIntent.setAction("com.amazon.device.messaging.intent.RECEIVE");
     	}
     	else
     	{
+    		msgIntent = new Intent(context, PushGCMIntentService.class);
         	msgIntent.setAction(GCMConstants.INTENT_FROM_GCM_MESSAGE);
     	}
     	

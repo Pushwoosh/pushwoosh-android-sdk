@@ -18,7 +18,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,12 +37,6 @@ import com.google.android.gcm.GCMRegistrar;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Push notifications manager
@@ -319,7 +312,11 @@ public class PushManager
 		if (GCMRegistrar.isRegisteredOnServer(context) == false)
 			return null;
 		
-		return DeviceFeature2_5.getTags(context);
+		try {
+			return DeviceFeature2_5.getTags(context);
+		} catch (Exception e) {
+			return new HashMap<String, Object>();
+		}
 	}
 
 	/**
@@ -526,8 +523,8 @@ public class PushManager
 		}
 		
 		//temporary disable this code until the server supports it
-		String packageName = (String) pushBundle.get("l");
-		if(false && packageName != null)
+		String packageName = (String) pushBundle.get("launch");
+		if(packageName != null)
 		{
 			Intent launchIntent = null;
 			try
@@ -542,16 +539,6 @@ public class PushManager
 			if(launchIntent != null)
 			{
 				activity.startActivity(launchIntent);
-			}
-			else
-			{
-				url = (String) pushBundle.get("al");
-				if (url != null)
-				{
-					launchIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-					launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					activity.startActivity(launchIntent);
-				}
 			}
 		}
 
@@ -626,7 +613,10 @@ public class PushManager
 					@Override
 					protected void doWork(Context context)
 					{
-						DeviceFeature2_5.sendPushStat(context, hash);
+						try {
+							DeviceFeature2_5.sendPushStat(context, hash);
+						} catch (Exception e) {
+						}
 					}
 				};
 
@@ -650,7 +640,10 @@ public class PushManager
 					@Override
 					protected void doWork(Context context)
 					{
-						DeviceFeature2_5.sendAppOpen(context);
+						try {
+							DeviceFeature2_5.sendAppOpen(context);
+						} catch (Exception e) {
+						}
 					}
 				};
 
@@ -676,7 +669,10 @@ public class PushManager
 					@Override
 					protected void doWork(Context context)
 					{
-						DeviceFeature2_5.sendGoalAchieved(context, goal, count);
+						try {
+							DeviceFeature2_5.sendGoalAchieved(context, goal, count);
+						} catch (Exception e) {
+						}
 					}
 				};
 
