@@ -1,3 +1,6 @@
+Current version: 2.6.2
+=========================
+IMPORTANT: Fixed possible crashes in Android SDK when Pushwoosh server is not available!
 Current version: 2.6.1
 =========================
 Rebuilt Android with 1.6 Java
