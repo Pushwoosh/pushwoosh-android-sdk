@@ -1,3 +1,6 @@
+Current version: 2.7.2
+=========================
+SDK with new default tags supported!
 Current version: 2.6.2
 =========================
 IMPORTANT: Fixed possible crashes in Android SDK when Pushwoosh server is not available!
