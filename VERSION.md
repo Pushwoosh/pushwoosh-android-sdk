@@ -1,3 +1,6 @@
+Current version: 2.7.3
+=========================
+update to set small icon for notification
 Current version: 2.7.2
 =========================
 SDK with new default tags supported!
