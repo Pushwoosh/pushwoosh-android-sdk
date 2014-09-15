@@ -1,3 +1,6 @@
+Current version: 2.7.5
+=========================
+Batching for multiple setTags requests
 Current version: 2.7.3
 =========================
 update to set small icon for notification
