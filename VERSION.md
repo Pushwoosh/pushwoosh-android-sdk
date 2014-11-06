@@ -1,3 +1,6 @@
+Current version: 2.8.0
+=========================
+IAP tracking support in Android SDK
 Current version: 2.7.5
 =========================
 Batching for multiple setTags requests
