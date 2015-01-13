@@ -1,3 +1,6 @@
+Current version: 2.8.1
+=========================
+Silent push support for Android.
 Current version: 2.8.0
 =========================
 IAP tracking support in Android SDK
