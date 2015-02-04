@@ -1,3 +1,6 @@
+Current version: 2.8.2
+=========================
+geozone precision improved
 Current version: 2.8.1
 =========================
 Silent push support for Android.
