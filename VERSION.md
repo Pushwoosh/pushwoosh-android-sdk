@@ -1,3 +1,6 @@
+Current version: 2.9.0
+=========================
+SDK is based on com.google.android.gms now
 Current version: 2.8.2
 =========================
 geozone precision improved
