@@ -1,3 +1,6 @@
+Current version: 2.9.1
+=========================
+Xamarin hotfix
 Current version: 2.9.0
 =========================
 SDK is based on com.google.android.gms now
