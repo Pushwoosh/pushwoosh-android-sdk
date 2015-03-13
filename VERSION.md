@@ -1,3 +1,6 @@
+Current version: 2.9.3
+=========================
+Interaction with third-party push message libraries
 Current version: 2.9.2
 =========================
 Custom intent service support for Amazon.
