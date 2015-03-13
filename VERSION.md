@@ -1,3 +1,6 @@
+Current version: 2.9.2
+=========================
+Custom intent service support for Amazon.
 Current version: 2.9.1
 =========================
 Xamarin hotfix
