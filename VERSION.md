@@ -1,3 +1,7 @@
+Current version: 2.9.4
+=========================
+Fix for https://github.com/Pushwoosh/pushwoosh-phonegap-3.0-plugin/issues/52
+Android: Fragment integration added
 Current version: 2.9.3
 =========================
 Interaction with third-party push message libraries
