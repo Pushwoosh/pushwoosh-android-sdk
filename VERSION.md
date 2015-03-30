@@ -1,3 +1,7 @@
+Current version: 2.9.5
+=========================
+reschedule local alerts after system restart,
+detect Google ProjectID change,
 Current version: 2.9.4
 =========================
 Fix for https://github.com/Pushwoosh/pushwoosh-phonegap-3.0-plugin/issues/52
