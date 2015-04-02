@@ -1,3 +1,6 @@
+Current version: 2.9.6
+=========================
+Local notification fix
 Current version: 2.9.5
 =========================
 reschedule local alerts after system restart,
