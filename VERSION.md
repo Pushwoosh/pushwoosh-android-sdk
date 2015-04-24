@@ -1,3 +1,6 @@
+Current version: 2.9.7
+=========================
+push beacon service fixes
 Current version: 2.9.6
 =========================
 Local notification fix
