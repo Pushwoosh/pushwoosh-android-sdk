@@ -1,3 +1,6 @@
+Current version: 2.9.8
+=========================
+fixed crash getting sound resources on Amazon Kindle Fire
 Current version: 2.9.7
 =========================
 push beacon service fixes
