@@ -4,14 +4,16 @@ Pushwoosh Android SDK
 Pushwoosh.jar - compiled version of Pushwoosh Android SDK
 The SDK includes Amazon support as well.  
 
-Maven integration:  
+Maven integration:
+
 	<dependency>
   		<groupId>com.pushwoosh</groupId>
   		<artifactId>pushwoosh</artifactId>
   		<version>LATEST</version>
 	</dependency>
 
-Gradle integration:  
+Gradle integration:
+
 	compile 'com.pushwoosh:pushwoosh:+'
 
 
