@@ -1,3 +1,6 @@
+Current version: 2.9.9
+=========================
+Android push icon background color supported, custom IntentReceiver supported
 Current version: 2.9.8
 =========================
 fixed crash getting sound resources on Amazon Kindle Fire
