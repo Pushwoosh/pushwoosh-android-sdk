@@ -1,3 +1,6 @@
+Current version: 2.9.10
+=========================
+Updating SDK, Publishing SDK to sonatype
 Current version: 2.9.9
 =========================
 Android push icon background color supported, custom IntentReceiver supported
