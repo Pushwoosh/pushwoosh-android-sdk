@@ -1,3 +1,8 @@
+Current version: 2.9.11
+=========================
+non-ordered broadcasts fixes,
+fix for https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/12,
+improved logs handling and configurable verbose levels
 Current version: 2.9.10
 =========================
 Updating SDK, Publishing SDK to sonatype
