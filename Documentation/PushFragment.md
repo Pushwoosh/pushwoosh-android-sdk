@@ -37,7 +37,7 @@ public class PushFragmentActivity extends FragmentActivity implements PushEventL
 [public void register()](#register)  
 [public void unregister()](#unregister)  
 [public static void init(FragmentActivity activity)](#init)  
-[public static void onNewIntent(FragmentActivity activity, Intent intent)](#onNewIntent)  
+[public static void onNewIntent(FragmentActivity activity, Intent intent)](#onnewintent)  
 
 ---
 ### register

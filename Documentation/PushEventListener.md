@@ -6,11 +6,11 @@ Interface for Pushwoosh Android SDK integration via Fragments.
 
 
 ## Method Summary
-[void doOnRegistered(java.lang.String pushToken)](#doOnRegistered)  
-[void doOnMessageReceive(java.lang.String pushPayload)](#doOnMessageReceive)  
-[void doOnUnregistered(java.lang.String prevToken)](#doOnUnregistered)  
-[void doOnUnregisteredError(java.lang.String error)](#doOnUnregisteredError)  
-[void doOnRegisteredError(java.lang.String error)](#doOnRegisteredError)  
+[void doOnRegistered(java.lang.String pushToken)](#doonregistered)  
+[void doOnMessageReceive(java.lang.String pushPayload)](#doonmessagereceive)  
+[void doOnUnregistered(java.lang.String prevToken)](#doonunregistered)  
+[void doOnUnregisteredError(java.lang.String error)](#doonunregisterederror)  
+[void doOnRegisteredError(java.lang.String error)](#doonregisterederror)  
 
 ---
 ### doOnRegistered
