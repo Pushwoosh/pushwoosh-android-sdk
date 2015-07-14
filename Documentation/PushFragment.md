@@ -34,11 +34,12 @@ public class PushFragmentActivity extends FragmentActivity implements PushEventL
 
 
 ## Method Summary
-[public void register()](#initializewithappcodeappname)  
-[public void unregister()](#initializewithappcodeappname)  
-[public static void init(FragmentActivity activity)](#initializewithappcodeappname)  
-[public static void onNewIntent(FragmentActivity activity, Intent intent)](#initializewithappcodeappname)  
+[public void register()](#register)  
+[public void unregister()](#unregister)  
+[public static void init(FragmentActivity activity)](#init)  
+[public static void onNewIntent(FragmentActivity activity, Intent intent)](#onNewIntent)  
 
+---
 ### register
 
 Registers for push notification.
@@ -48,7 +49,7 @@ public void register()
 ```
 * **pushToken** - push token
 
-
+---
 ### unregister
 
 Unregisters from push notifications.
@@ -57,6 +58,7 @@ Unregisters from push notifications.
 public void unregister()
 ```
 
+---
 ### init
 
 Initializes PushFragment.
@@ -66,7 +68,7 @@ public static void init(FragmentActivity activity)
 ```
 * **activity** - main activity which implemented PushEvenListener
 
-
+---
 ### onNewIntent
 
 Call this when main activity receives onNewIntent.

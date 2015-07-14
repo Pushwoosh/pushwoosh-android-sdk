@@ -1,15 +1,18 @@
 # Interface PushEventListener #
 
-Interface for Pushwoosh Android SDK integration via Fragments.  
 Package `com.arellomobile.android.push.fragment`
 
-## Method Summary
-[void doOnRegistered(java.lang.String pushToken)](#initializewithappcodeappname)  
-[void doOnMessageReceive(java.lang.String pushPayload)](#initializewithappcodeappname)  
-[void doOnUnregistered(java.lang.String prevToken)](#initializewithappcodeappname)  
-[void doOnUnregisteredError(java.lang.String error)](#initializewithappcodeappname)  
-[void doOnUnregisteredError(java.lang.String error)](#initializewithappcodeappname)  
+Interface for Pushwoosh Android SDK integration via Fragments.  
 
+
+## Method Summary
+[void doOnRegistered(java.lang.String pushToken)](#doOnRegistered)  
+[void doOnMessageReceive(java.lang.String pushPayload)](#doOnMessageReceive)  
+[void doOnUnregistered(java.lang.String prevToken)](#doOnUnregistered)  
+[void doOnUnregisteredError(java.lang.String error)](#doOnUnregisteredError)  
+[void doOnRegisteredError(java.lang.String error)](#doOnRegisteredError)  
+
+---
 ### doOnRegistered
 
 Registered for push notifications.
@@ -19,7 +22,7 @@ void doOnRegistered(java.lang.String pushToken)
 ```
 * **pushToken** - push token
 
-
+---
 ### doOnMessageReceive
 
 Push notification has been received.
@@ -29,7 +32,7 @@ void doOnMessageReceive(java.lang.String pushPayload)
 ```
 * **pushPayload** - push notifications payload (JSON object as String)
 
-
+---
 ### doOnUnregistered
 
 Unregistration successful.
@@ -39,7 +42,7 @@ void doOnUnregistered(java.lang.String prevToken)
 ```
 * **prevToken** - unregistered push token
 
-
+---
 ### doOnUnregisteredError
 
 Error during unregistration.
@@ -49,7 +52,7 @@ void doOnUnregisteredError(java.lang.String error)
 ```
 * **error** - error description
 
-
+---
 ### doOnRegisteredError
 
 Error during registration.

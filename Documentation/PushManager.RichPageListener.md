@@ -4,6 +4,7 @@ Package `com.arellomobile.android.push`
 
 Rich page listener.
 
+---
 ### onRichPageAction
 
 Called when rich page button has been tapped
