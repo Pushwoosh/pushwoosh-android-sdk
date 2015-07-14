@@ -31,9 +31,9 @@ Push notifications manager.
 [scheduleLocalNotification](#schedulelocalnotification)  
 [clearLocalNotifications](#clearlocalnotifications)  
 [clearNotificationCenter](#clearnotificationcenter)  
+[startTrackingGeoPushes](#starttrackinggeopushes)  
 [stopTrackingGeoPushes](#stoptrackinggeopushes)  
 [startTrackingBeaconPushes](#starttrackingbeaconpushes)  
-[stopTrackingBeaconPushes](#stoptrackingbeaconpushes)  
 [stopTrackingBeaconPushes](#stoptrackingbeaconpushes)  
 
 ---
@@ -326,6 +326,15 @@ public static void clearNotificationCenter(Context context)
 ```
 
 ---
+### startTrackingGeoPushes
+
+Start tracking Geo Push Notifications.
+
+```java
+public void startTrackingGeoPushes()
+```
+
+---
 ### stopTrackingGeoPushes
 
 Stop tracking Geo Push Notifications.
@@ -341,15 +350,6 @@ Starts tracking Beacon Push Notifications.
 
 ```java
 public void startTrackingBeaconPushes()
-```
-
----
-### stopTrackingBeaconPushes
-
-Stop tracking Beacon Push Notifications.
-
-```java
-public void stopTrackingBeaconPushes()
 ```
 
 ---
