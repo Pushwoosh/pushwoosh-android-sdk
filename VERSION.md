@@ -1,3 +1,6 @@
+Current version: 2.9.12
+=========================
+Rich pages bug fixes and back button handler
 Current version: 2.9.11
 =========================
 non-ordered broadcasts fixes,
