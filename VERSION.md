@@ -1,3 +1,6 @@
+Current version: 2.9.13
+=========================
+Fixed rescheduling local notifications after system restart
 Current version: 2.9.12
 =========================
 Rich pages bug fixes and back button handler
