@@ -1,3 +1,6 @@
+Current version: 2.9.14
+=========================
+clearLaunchNotification method, https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/13 fix
 Current version: 2.9.13
 =========================
 Fixed rescheduling local notifications after system restart
