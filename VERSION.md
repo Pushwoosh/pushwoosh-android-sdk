@@ -1,3 +1,6 @@
+Current version: 2.9.15
+=========================
+GeoLocationService stability fixes
 Current version: 2.9.14
 =========================
 clearLaunchNotification method, https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/13 fix
