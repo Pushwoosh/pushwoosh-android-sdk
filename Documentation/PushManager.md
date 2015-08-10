@@ -16,6 +16,7 @@ Push notifications manager.
 [getCustomData](#getcustomdata)  
 [sendTags](#sendtags)  
 [getLaunchNotification](#getlaunchnotification)  
+[clearLaunchNotification](#clearlaunchnotification)  
 [setRichPageListener](#setrichpagelistener)  
 [getTagsAsync](#gettagsasync)  
 [setUserId](#setuserid)  
@@ -138,6 +139,15 @@ Returns launch notification if the app was started in response to push notificat
 public java.lang.String getLaunchNotification()
 ```
 * **Returns** - string-formatted JSON payload of launch push notification
+
+---
+### clearLaunchNotification
+
+Clears launch notification. `getLaunchNotification()` will return null after;
+
+```java
+public void clearLaunchNotification()
+```
 
 ---
 ### setRichPageListener
