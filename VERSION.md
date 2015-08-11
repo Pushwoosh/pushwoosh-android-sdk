@@ -1,3 +1,7 @@
+Current version: 3.0.0
+=========================
+Android Priority implemented, https://github.com/Pushwoosh/pushwoosh-phonegap-3.0-plugin/issues/113
+InApps and Events published
 Current version: 2.9.15
 =========================
 GeoLocationService stability fixes
