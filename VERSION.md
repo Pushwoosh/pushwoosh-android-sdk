@@ -1,3 +1,6 @@
+Current version: 3.0.1
+=========================
+Fixed rich pages crash on Anroid 4.0.x
 Current version: 3.0.0
 =========================
 Android Priority implemented, https://github.com/Pushwoosh/pushwoosh-phonegap-3.0-plugin/issues/113
