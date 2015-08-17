@@ -1,3 +1,6 @@
+Current version: 3.1.0
+=========================
+Migrating to new GCM library
 Current version: 3.0.1
 =========================
 Fixed rich pages crash on Anroid 4.0.x
