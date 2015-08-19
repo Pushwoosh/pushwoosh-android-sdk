@@ -1,3 +1,6 @@
+Current version: 3.1.1
+=========================
+Using Google Play services library
 Current version: 3.1.0
 =========================
 Migrating to new GCM library
