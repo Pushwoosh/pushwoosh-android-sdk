@@ -1,3 +1,6 @@
+Current version: 3.1.2
+=========================
+Enforsing ssl conneciton
 Current version: 3.1.1
 =========================
 Using Google Play services library
