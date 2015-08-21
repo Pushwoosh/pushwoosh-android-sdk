@@ -1,3 +1,6 @@
+Current version: 3.1.3
+=========================
+Fixed versioning
 Current version: 3.1.2
 =========================
 Enforsing ssl conneciton
