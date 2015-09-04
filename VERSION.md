@@ -1,3 +1,7 @@
+Current version: 3.1.4
+=========================
+Remote notification actions
+Platform statistics
 Current version: 3.1.3
 =========================
 Fixed versioning
