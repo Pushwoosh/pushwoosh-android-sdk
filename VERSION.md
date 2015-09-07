@@ -1,3 +1,6 @@
+Current version: 3.1.5
+=========================
+Silent push receiver
 Current version: 3.1.4
 =========================
 Remote notification actions
