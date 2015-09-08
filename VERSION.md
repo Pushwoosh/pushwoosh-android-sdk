@@ -1,3 +1,6 @@
+Current version: 3.1.6
+=========================
+Clear app data stability fix
 Current version: 3.1.5
 =========================
 Silent push receiver
