@@ -16,7 +16,7 @@ Push notifications manager.
 [getCustomData](#getcustomdata)  
 [sendTags](#sendtags)  
 [getLaunchNotification](#getlaunchnotification)  
-[clearLaunchNotification](#clearLaunchNotification)  
+[clearLaunchNotification](#clearlaunchnotification)  
 [setRichPageListener](#setrichpagelistener)  
 [getTagsAsync](#gettagsasync)  
 [setUserId](#setuserid)  
