@@ -314,7 +314,7 @@ Schedules a local notification with extras Extras parameters:
 
 Returns local notification id.
 ```java
-public static void scheduleLocalNotification(Context context,
+public static int scheduleLocalNotification(Context context,
                                              java.lang.String message,
                                              Bundle extras,
                                              int seconds)
