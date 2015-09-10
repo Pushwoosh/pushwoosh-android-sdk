@@ -1,6 +1,6 @@
 # Interface PushManager.RichPageListener #
 
-Package `com.arellomobile.android.push`
+Package `com.pushwoosh`
 
 Rich page listener.
 
