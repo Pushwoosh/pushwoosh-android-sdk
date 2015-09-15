@@ -17,11 +17,11 @@ Gradle integration:
 	compile 'com.pushwoosh:pushwoosh:+'
 
 
-The guilde for SDK integration is available on Pushwoosh website:  
+The guide for SDK integration is available on Pushwoosh website:  
 http://www.pushwoosh.com/programming-push-notification/android/native-android-sdk-integration/
 
 The sample project is available here:  
-https://github.com/shaders/pushwoosh-sdk-samples/tree/master/Android
+https://github.com/Pushwoosh/pushwoosh-native-samples/tree/master/Android
 
 Documentation:
 https://rawgit.com/Pushwoosh/pushwoosh-android-sdk/master/Documentation/index.html
