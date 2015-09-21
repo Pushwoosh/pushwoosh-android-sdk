@@ -1,6 +1,6 @@
 # Class PushManager #
 
-Package `com.arellomobile.android.push`
+Package `com.pushwoosh`
 
 Push notifications manager.
 
@@ -16,6 +16,7 @@ Push notifications manager.
 [getCustomData](#getcustomdata)  
 [sendTags](#sendtags)  
 [getLaunchNotification](#getlaunchnotification)  
+[clearLaunchNotification](#clearlaunchnotification)  
 [setRichPageListener](#setrichpagelistener)  
 [getTagsAsync](#gettagsasync)  
 [setUserId](#setuserid)  
@@ -35,6 +36,12 @@ Push notifications manager.
 [stopTrackingGeoPushes](#stoptrackinggeopushes)  
 [startTrackingBeaconPushes](#starttrackingbeaconpushes)  
 [stopTrackingBeaconPushes](#stoptrackingbeaconpushes)  
+[getPushHistory](#getpushhistory)  
+[clearPushHistory](#clearpushhistory)  
+[setBadgeNumber](#setbadgenumber)  
+[addBadgeNumber](#addbadgenumber)  
+[getBadgeNumber](#getbadgenumber)  
+[setNotificationFactory](#setnotificationfactory)
 
 ---
 ### initializePushManager
@@ -138,6 +145,15 @@ Returns launch notification if the app was started in response to push notificat
 public java.lang.String getLaunchNotification()
 ```
 * **Returns** - string-formatted JSON payload of launch push notification
+
+---
+### clearLaunchNotification
+
+Clears launch notifiation, getLaunchNotification() will return null after this call.
+
+```java
+public void clearLaunchNotification()
+```
 
 ---
 ### setRichPageListener
@@ -276,10 +292,10 @@ public static void trackInAppRequest(Context context,
 ---
 ### scheduleLocalNotification
 
-Schedules a local notification.
+Schedules a local notification. Returns local notification id.
 
 ```java
-public static void scheduleLocalNotification(Context context,
+public static int scheduleLocalNotification(Context context,
                                              java.lang.String message,
                                              int seconds)
 ```
@@ -297,8 +313,9 @@ Schedules a local notification with extras Extras parameters:
 * i - identifier string of the image from the app to use as the icon in the notification 
 * ci - URL of the icon to use in the notification
 
+Returns local notification id.
 ```java
-public static void scheduleLocalNotification(Context context,
+public static int scheduleLocalNotification(Context context,
                                              java.lang.String message,
                                              Bundle extras,
                                              int seconds)
@@ -306,6 +323,15 @@ public static void scheduleLocalNotification(Context context,
 * **message** - notification message
 * **extras** - notification extra parameters
 * **seconds** - delay (in seconds) until the message will be sent
+
+---
+### clearLocalNotification
+
+Removes scheduled local notification with given id
+
+```java
+public static void clearLocalNotification(Context context, int id) 
+```
 
 ---
 ### clearLocalNotifications
@@ -359,4 +385,60 @@ Stop tracking Beacon Push Notifications.
 
 ```java
 public void stopTrackingBeaconPushes()
+```
+
+---
+### getPushHistory
+
+Returns push history stored locally. Only last **PushManager.PUSH_HISTORY_CAPACITY** pushes are stored.
+
+```java
+public ArrayList<String> getPushHistory() 
+```
+
+---
+### clearPushHistory
+
+Clears all stored push history.
+
+```java
+public void clearPushHistory() 
+```
+
+---
+### setBadgeNumber
+
+Sets application icon badge number.
+
+```java
+public void setBadgeNumber(int badgeNumber)
+```
+
+---
+### addBadgeNumber
+
+Increments application icon badge number.
+
+```java
+public void addBadgeNumber(int deltaBadgeNumber)
+```
+
+---
+### getBadgeNumber
+
+Returns current application icon badge number.
+
+```java
+public int getBadgeNumber()
+```
+
+---
+### setNotificationFactory
+
+Sets notification factory for customizing push notifications. **notificationFactory** class name is stored in preferences so that notificationFactory can be recreated again using reflection when closed application receives push notification. **DefaultNotificatoinFactory** will be used to create notifications if no custom notification factory is set.
+
+*See [Android FAQ](http://docs.pushwoosh.com/docs/android-faq#customizing-push-notifications) for more information.*
+
+```java
+public void setNotificationFactory(AbsNotificationFactory notificationFactory)
 ```

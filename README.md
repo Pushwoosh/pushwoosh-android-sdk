@@ -24,7 +24,7 @@ The sample project is available here:
 https://github.com/Pushwoosh/pushwoosh-native-samples/tree/master/Android
 
 Documentation:
-https://rawgit.com/Pushwoosh/pushwoosh-android-sdk/master/Documentation/index.html
+https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Documentation
 
 Pushwoosh team
 http://www.pushwoosh.com
