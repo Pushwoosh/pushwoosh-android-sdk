@@ -1,6 +1,6 @@
 # Class PushFragment #
 
-Package `com.pushwoosh.fragment`
+Package `com.arellomobile.android.push.fragment`
 
 PushFragment encapsulates the Pushwoosh logic for Fragment integration.
 In order to set up Pushwoosh via PushFragment you should follow these steps:

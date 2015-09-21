@@ -1,6 +1,6 @@
 # Interface PushEventListener #
 
-Package `com.pushwoosh.fragment`
+Package `com.arellomobile.android.push.fragment`
 
 Interface for Pushwoosh Android SDK integration via Fragments.  
 

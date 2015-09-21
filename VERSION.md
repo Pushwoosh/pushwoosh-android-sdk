@@ -1,3 +1,7 @@
+Current version: 3.1.7
+=========================
+Notification factory refactoring
+Potential memory leak fixes
 Current version: 3.1.6
 =========================
 Clear app data stability fix
