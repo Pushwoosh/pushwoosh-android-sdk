@@ -1,6 +1,6 @@
 # Interface PushManager.GetTagsListener #
 
-Package `com.pushwoosh`
+Package `com.arellomobile.android.push`
 
 Listener for `getTags` method.
 

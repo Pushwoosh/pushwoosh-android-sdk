@@ -1,3 +1,6 @@
+Current version: 3.1.8
+=========================
+Remote notification tags
 Current version: 3.1.7
 =========================
 Notification factory refactoring
