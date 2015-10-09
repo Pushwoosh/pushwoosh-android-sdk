@@ -1,3 +1,7 @@
+Current version: 3.1.9
+=========================
+Handle push actions in foreground by setting PW_HANDLE_BROADCAST_PUSH meta-data
+Restore notification factory documentation
 Current version: 3.1.8
 =========================
 Remote notification tags
