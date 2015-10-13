@@ -1,3 +1,6 @@
+Current version: 3.1.10
+=========================
+Local cache for tags
 Current version: 3.1.9
 =========================
 Handle push actions in foreground by setting PW_HANDLE_BROADCAST_PUSH meta-data
