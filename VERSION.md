@@ -1,3 +1,6 @@
+Current version: 3.1.11
+=========================
+GCMRegistrationService stability fix
 Current version: 3.1.10
 =========================
 Local cache for tags
