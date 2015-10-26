@@ -1,5 +1,8 @@
 Current version: 3.1.12
 =========================
+Use cached tags by default
+Current version: 3.1.12
+=========================
 mergeUserId method for In-App Messages
 Current version: 3.1.11
 =========================
