@@ -1,3 +1,6 @@
+Current version: 3.1.13
+=========================
+Fixed playing default sound when remote notification sound is disabled
 Current version: 3.1.12
 =========================
 Use cached tags by default
