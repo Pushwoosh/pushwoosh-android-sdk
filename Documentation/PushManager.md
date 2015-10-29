@@ -19,7 +19,6 @@ Push notifications manager.
 [clearLaunchNotification](#clearlaunchnotification)  
 [setRichPageListener](#setrichpagelistener)  
 [getTagsAsync](#gettagsasync)  
-[getTagsSync](#gettagssync)  
 [setUserId](#setuserid)  
 [setMultiNotificationMode](#setmultinotificationmode)  
 [setSimpleNotificationMode](#setsimplenotificationmode)  
@@ -173,15 +172,6 @@ Get tags from Pushwoosh service asynchronously.
 ```java
 public static void getTagsAsync(Context context,
                                 PushManager.GetTagsListener listener)
-```
-
----
-### getTagsSync
-
-Get tags from Pushwoosh service synchronously. Returns tags or null.
-
-```java
-public static Map<String, Object> getTagsSync(Context context)
 ```
 
 ---

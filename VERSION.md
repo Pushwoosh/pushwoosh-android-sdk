@@ -1,3 +1,8 @@
+Current version: 3.1.14
+=========================
+Sync logs for RequestManager
+AndroidManifest documentation
+Documentation update
 Current version: 3.1.13
 =========================
 Fixed playing default sound when remote notification sound is disabled
