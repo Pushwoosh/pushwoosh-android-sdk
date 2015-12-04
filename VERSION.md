@@ -1,3 +1,7 @@
+Current version: 3.1.15
+=========================
+Wakelock stability fix
+Memory leak fixes
 Current version: 3.1.14
 =========================
 Sync logs for RequestManager
