@@ -1,3 +1,6 @@
+Current version: 3.2.0
+=========================
+Using geofencing for location tracking
 Current version: 3.1.15
 =========================
 Wakelock stability fix
