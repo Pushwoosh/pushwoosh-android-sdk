@@ -1,3 +1,6 @@
+Current version: 3.2.2
+=========================
+Fixed crash on unsupported url schemes
 Current version: 3.2.1
 =========================
 Fixed https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/24
