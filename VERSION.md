@@ -1,3 +1,9 @@
+Current version: 3.2.1
+=========================
+Fixed https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/24
+Fixed https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/25
+Fixed rescheduling multiple local notificaitons after system restart
+
 Current version: 3.2.0
 =========================
 Using geofencing for location tracking
