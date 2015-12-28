@@ -1,3 +1,8 @@
+Current version: 3.2.3
+=========================
+Local notification stability
+Optional foreground push handling in PushFragment
+
 Current version: 3.2.2
 =========================
 Fixed crash on unsupported url schemes
