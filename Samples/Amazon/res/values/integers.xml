@@ -1,0 +1,9 @@
+<!-- 
+    [ADMMessenger]
+
+    (c) 2012, Amazon.com, Inc. or its affiliates. All Rights Reserved.
+-->
+<resources>
+    <!-- sample_app_notification_id is used by Android to identify your application. It should be unique to this application. --> 
+    <integer name="sample_app_notification_id">12345678</integer>
+</resources>

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.pushwoosh.test.tags.sample.app"
+    android:versionCode="10"
+    android:versionName="1.5.0">
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- <badges> -->
+    	<!--for Samsung-->
+	    <uses-permission android:name="com.sec.android.provider.badge.permission.READ"/>
+	    <uses-permission android:name="com.sec.android.provider.badge.permission.WRITE"/>
+	
+	    <!--for htc-->
+	    <uses-permission android:name="com.htc.launcher.permission.READ_SETTINGS"/>
+	    <uses-permission android:name="com.htc.launcher.permission.UPDATE_SHORTCUT"/>
+	
+	    <!--for sony-->
+	    <uses-permission android:name="com.sonyericsson.home.permission.BROADCAST_BADGE"/>
+	
+	    <!--for apex-->
+	    <uses-permission android:name="com.anddoes.launcher.permission.UPDATE_COUNT"/>
+	
+	    <!--for solid-->
+	    <uses-permission android:name="com.majeur.launcher.permission.UPDATE_BADGE"/>
+    <!-- </badges> -->
+    
+    <supports-screens android:anyDensity="true" />
+
+    <!--library-->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <!-- Keeps the processor from sleeping when a message is received. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!--
+     Creates a custom permission so only this app can receive its messages.
+
+     NOTE: the permission *must* be called PACKAGE.permission.C2D_MESSAGE,
+           where PACKAGE is the application's package name.
+    -->
+    <permission
+        android:name="com.pushwoosh.test.tags.sample.app.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.pushwoosh.test.tags.sample.app.permission.C2D_MESSAGE" />
+
+    <!-- This app has permission to register and receive data message. -->
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+    <!-- GCM requires Android SDK version 2.2 (API level 8) or above. -->
+    <!-- The targetSdkVersion is optional, but it's always a good practice
+         to target higher versions. -->
+    <uses-sdk
+        android:minSdkVersion="11"
+        android:targetSdkVersion="16" />
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@drawable/ic_launcher"
+        android:theme="@android:style/Theme.Light">
+
+        <meta-data
+            android:name="PW_APPID"
+            android:value="4FC89B6D14A655.46488481" />
+        
+        <meta-data
+            android:name="PW_PROJECT_ID"
+            android:value="A60756016005" />
+        
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
+
+		<receiver android:name="com.pushwoosh.local.BootReceiver" android:permission="android.permission.RECEIVE_BOOT_COMPLETED" android:enabled="true">
+		    <intent-filter>
+		        <action android:name="android.intent.action.BOOT_COMPLETED" />
+		        <category android:name="android.intent.category.DEFAULT" />
+		    </intent-filter>
+		</receiver>
+
+        <activity
+            android:name="MainActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize|stateUnchanged">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="com.pushwoosh.test.tags.sample.app.MESSAGE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+        </activity>
+
+        <activity
+            android:name=".SecondActivity"
+            android:label="@string/second_activity" />
+        
+         <activity
+            android:name=".DeepLinkActivity"
+            android:label="DeepLinkActivity">
+            <intent-filter>
+		        <action android:name="android.intent.action.VIEW" />
+		        <category android:name="android.intent.category.DEFAULT" />
+		        <category android:name="android.intent.category.BROWSABLE" />
+		        <!-- Accepts URIs that begin with "pwsample://activity/deeplinkactivity” -->
+		        <data android:scheme="pwsample"
+		              android:host="activity"
+		              android:pathPrefix="/deeplinkactivity" />
+		    </intent-filter>
+    	</activity>
+
+        <activity android:name="com.pushwoosh.richpages.RichPageActivity" />
+
+        <activity android:name="com.pushwoosh.MessageActivity" />
+
+        <activity android:name="com.pushwoosh.PushHandlerActivity" />
+
+
+        <receiver
+            android:name="com.google.android.gms.gcm.GcmReceiver"
+            android:exported="true"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <category android:name="com.pushwoosh.test.tags.sample.app" />
+            </intent-filter>
+        </receiver>
+        
+        <receiver
+            android:name="com.pushwoosh.test.tags.sample.app.SilentPushReceiver"
+            android:permission=".permission.C2D_MESSAGE" >
+            <intent-filter>
+                <action android:name="com.pushwoosh.test.tags.sample.app.action.SILENT_PUSH_RECEIVE" />
+            </intent-filter>
+        </receiver>
+		
+		<service
+		    android:name="com.pushwoosh.GCMListenerService"
+		    android:exported="false">
+		    <intent-filter>
+		        <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+		    </intent-filter>
+		</service>
+		
+		<service
+		    android:name="com.pushwoosh.GCMInstanceIDListenerService"
+		    android:exported="false">
+		    <intent-filter>
+		        <action android:name="com.google.android.gms.iid.InstanceID"/>
+		    </intent-filter>
+		</service>
+		
+		<service
+		    android:name="com.pushwoosh.GCMRegistrationService"
+		    android:exported="false">
+		</service>
+
+        <!--
+          Service for sending location updates
+        -->
+        <service android:name="com.pushwoosh.location.GeoLocationService" />
+
+        <receiver android:name="com.pushwoosh.local.AlarmReceiver" />
+
+        <service
+            android:enabled="true"
+            android:exported="true"
+            android:isolatedProcess="false"
+            android:label="iBeacon"
+            android:name="com.pushwoosh.thirdparty.radiusnetworks.ibeacon.service.IBeaconService" />
+        <service
+            android:enabled="true"
+            android:name="com.pushwoosh.thirdparty.radiusnetworks.ibeacon.IBeaconIntentProcessor" />
+        <service android:name="com.pushwoosh.beacon.PushBeaconService" />
+
+    </application>
+</manifest>

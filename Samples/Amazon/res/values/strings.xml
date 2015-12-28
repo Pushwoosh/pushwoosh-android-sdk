@@ -1,0 +1,22 @@
+<!-- 
+    [ADMMessenger]
+
+    (c) 2012, Amazon.com, Inc. or its affiliates. All Rights Reserved.
+-->
+<resources>
+    <string name="app_name">ADMMessenger</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="json_data_msg_key">message</string>
+    <string name="json_data_time_key">timeStamp</string>
+    <string name="json_data_consolidation_key">collapse_key</string>
+    <string name="intent_msg_action">com.arellomobile.sample.admmessenger.ON_MESSAGE</string>
+    <string name="intent_msg_category">com.arellomobile.sample.admmessenger.MSG_CATEGORY</string>
+
+    <!--
+        NOTE: Developer's must replace the following resource strings with their server 
+        address and server port. 
+    -->
+    <string name="server_address">INSERT_SERVER_ADDRESS_HERE</string>
+    <string name="server_port">INSERT_SERVER_PORT_HERE</string>
+</resources>

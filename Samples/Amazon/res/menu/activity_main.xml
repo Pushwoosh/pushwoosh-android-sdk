@@ -1,0 +1,15 @@
+<!-- 
+    [ADMMessenger]
+
+    (c) 2012, Amazon.com, Inc. or its affiliates. All Rights Reserved.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_register"
+        android:title="Register"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
+    <item android:id="@+id/menu_unregister"
+        android:title="Unregister"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
+</menu>

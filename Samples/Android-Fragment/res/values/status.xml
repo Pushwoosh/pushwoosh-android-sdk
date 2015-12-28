@@ -1,0 +1,10 @@
+<resources>
+
+    <string name="status_init_error">Please enter tag values</string>
+    <string name="status_started">Send tags started</string>
+    <string name="status_success">Send tags ends successful</string>
+    <string name="status_error">Send tags ends with error</string>
+    <string name="status_int_parse_error">Int tag parse error</string>
+    <string name="status_ready">Ready</string>
+
+</resources>

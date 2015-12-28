@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Android" default="build">
+
+	<property environment="env"/>
+	<property name="sdk.dir" value="${env.ANDROID_SDK}"/>
+	<property name="target" value="android-17"/>
+
+	<property name="key.store" value="${env.WORKSPACE}/etc/pushwoosh_keystore.keystore"/>
+	<property name="key.store.password" value="123qwe"/>
+	<property name="key.alias" value="pushwoosh"/>
+	<property name="key.alias.password" value="123qwe"/>
+
+	<target name="clean">
+		<delete dir="bin"/>
+		<delete dir="gen"/>
+	</target>
+
+	<target name="build" depends="clean, release">
+		<move file="bin/${ant.project.name}-release.apk" tofile="Pushwoosh.apk"/>
+	</target>
+
+	<import file="${sdk.dir}/tools/ant/build.xml"/>
+</project>

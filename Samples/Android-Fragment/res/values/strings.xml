@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Pushwoosh Sample</string>
+
+    <string name="pw_logo">PushWoosh logo</string>
+
+    <string name="tag_int">Favourite number</string>
+    <string name="tag_string">Alias</string>
+
+    <string name="tag_int_hint">Tap to add int tag</string>
+    <string name="tag_string_hint">Tap to add alias</string>
+
+    <string name="submit_tags">Submit tags</string>
+
+    <string name="tags_status">Tags status</string>
+    <string name="general_status">General status</string>
+
+    <string name="registered">Registered %s</string>
+    <string name="unregistered">Unregistered %s</string>
+    <string name="registered_error">Registration error: %s</string>
+    <string name="unregistered_error">Unregistration error: %s</string>
+
+    <string name="on_message">On message: %s</string>
+    <string name="second_activity">Second activity</string>
+
+    <string name="start_geo_pushes">Start geo pushes</string>
+    <string name="stop_geo_pushes">Stop geo pushes</string>
+
+</resources>

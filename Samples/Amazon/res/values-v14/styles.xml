@@ -1,0 +1,8 @@
+<!-- 
+    [ADMMessenger]
+
+    (c) 2012, Amazon.com, Inc. or its affiliates. All Rights Reserved.
+-->
+<resources>
+    <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar" />
+</resources>
