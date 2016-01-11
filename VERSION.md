@@ -1,3 +1,6 @@
+Current version: 3.3.0
+=========================
+Send default tags with applicationOpen request
 Current version: 3.2.3
 =========================
 Local notification stability
