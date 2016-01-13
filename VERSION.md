@@ -1,3 +1,6 @@
+Current version: 3.3.1
+=========================
+Fixed PushFragment required API level 23
 Current version: 3.3.0
 =========================
 Send default tags with applicationOpen request
