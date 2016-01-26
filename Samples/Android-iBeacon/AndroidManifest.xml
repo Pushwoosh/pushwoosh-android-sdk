@@ -68,6 +68,8 @@
             android:icon="@android:drawable/ic_dialog_map"
             android:label="HELLO WORLD" />
 
+        <activity android:name="com.pushwoosh.richpages.RichPageActivity" />
+        
         <activity android:name="com.pushwoosh.MessageActivity" />
 
         <activity android:name="com.pushwoosh.PushHandlerActivity" />
