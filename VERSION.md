@@ -1,3 +1,6 @@
+Current version: 3.3.3
+=========================
+Automatically start location tracking after system reboot
 Current version: 3.3.2
 =========================
 Fixed https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/26
