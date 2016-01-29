@@ -1,3 +1,6 @@
+Current version: 3.4.0
+=========================
+Custom javascript interface support for In-Apps
 Current version: 3.3.3
 =========================
 Automatically start location tracking after system reboot
