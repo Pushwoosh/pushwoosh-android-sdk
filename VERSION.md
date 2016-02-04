@@ -1,3 +1,6 @@
+Current version: 3.4.1
+=========================
+onRichPageAction callback fixes
 Current version: 3.4.0
 =========================
 Custom javascript interface support for In-Apps
