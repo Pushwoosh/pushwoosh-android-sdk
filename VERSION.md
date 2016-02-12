@@ -1,3 +1,6 @@
+Current version: 3.4.3
+=========================
+Fixing custom Wakelock issues
 Current version: 3.4.2
 =========================
 https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/28 fix
