@@ -1,3 +1,6 @@
+Current version: 3.5.0
+=========================
+Methods for sending pushes from Android device
 Current version: 3.4.3
 =========================
 Fixing custom Wakelock issues
