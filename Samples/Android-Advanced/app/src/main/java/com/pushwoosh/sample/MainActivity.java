@@ -1,59 +1,33 @@
 package com.pushwoosh.sample;
 
-import java.util.Map;
-
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.pushwoosh.PushManager;
-import com.pushwoosh.PushManager.GetTagsListener;
 import com.pushwoosh.PushManager.RichPageListener;
 import com.pushwoosh.BasePushMessageReceiver;
 import com.pushwoosh.BaseRegistrationReceiver;
-import com.pushwoosh.sample.R;
 
-public class MainActivity extends FragmentActivity implements SendTagsCallBack
+public class MainActivity extends Activity
 {
-	private static final String SEND_TAGS_STATUS_FRAGMENT_TAG = "send_tags_status_fragment_tag";
-
-	private TextView mTagsStatus;
-	private EditText mIntTags;
-	private EditText mStringTags;
-	private Button mSubmitTagsButton;
 	private TextView mGeneralStatus;
-
-	boolean broadcastPush = true;
-
-	public class GetTagsListenerImpl implements GetTagsListener
-	{
-		@Override
-		public void onTagsReceived(Map<String, Object> tags)
-		{
-			Log.e("Pushwoosh", "Success: get Tags " + tags.toString());
-		}
-
-		@Override
-		public void onError(Exception e)
-		{
-			Log.e("Pushwoosh", "ERROR: get Tags " + e.getMessage());
-		}
-	}
-
-	GetTagsListenerImpl tagsListener = new GetTagsListenerImpl();
+	private Button mSendPushButton;
+	private ToggleButton mGeoPushButton;
+	private ToggleButton mBeaconPushButton;
 
 	/**
 	 * Called when the activity is first created.
@@ -65,13 +39,40 @@ public class MainActivity extends FragmentActivity implements SendTagsCallBack
 
 		setContentView(R.layout.main);
 
-		//NetworkUtils.useSSL = true;
+		mGeneralStatus = (TextView) findViewById(R.id.general_status);
+		mGeoPushButton = (ToggleButton) findViewById(R.id.butt_geo_pushes);
+		mBeaconPushButton = (ToggleButton) findViewById(R.id.butt_beacon_pushes);
+		mSendPushButton = (Button) findViewById(R.id.butt_send_push);
+		mSendPushButton.setEnabled(false);
 
+		findViewById(R.id.butt_set_tags).setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				Intent intent = new Intent(MainActivity.this, SetTagsActivity.class);
+				startActivity(intent);
+			}
+		});
+
+		mSendPushButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(MainActivity.this, SendPushActivity.class);
+				startActivity(intent);
+			}
+		});
+
+		initPushwoosh();
+	}
+
+	private void initPushwoosh()
+	{
 		//Register receivers for push notifications
 		registerReceivers();
 
 		final PushManager pushManager = PushManager.getInstance(this);
-		
+
 		class RichPageListenerImpl implements RichPageListener
 		{
 			@Override
@@ -79,7 +80,7 @@ public class MainActivity extends FragmentActivity implements SendTagsCallBack
 			{
 				Log.d("Pushwoosh", "Rich page action: " + actionParams);
 			}
-			
+
 			@Override
 			public void onRichPageClosed()
 			{
@@ -88,7 +89,7 @@ public class MainActivity extends FragmentActivity implements SendTagsCallBack
 		}
 
 		pushManager.setRichPageListener(new RichPageListenerImpl());
-		
+
 		//pushManager.setNotificationFactory(new NotificationFactorySample());
 
 		//Start push manager, this will count app open for Pushwoosh stats as well
@@ -114,9 +115,9 @@ public class MainActivity extends FragmentActivity implements SendTagsCallBack
 		{
 			Log.d("Pushwoosh", "No launch notification received");
 		}
-		
-		// send local notification
-		PushManager.scheduleLocalNotification(getApplicationContext(), "PushwooshSample started", 5);
+
+		//Check for start push notification in the Intent payload
+		checkMessage(getIntent());
 
 		//The commented code below shows how to use geo pushes
 		//pushManager.startTrackingGeoPushes();
@@ -133,51 +134,30 @@ public class MainActivity extends FragmentActivity implements SendTagsCallBack
 		//extras.putString("u", "50");
 		//PushManager.scheduleLocalNotification(this, "Your pumpkins are ready!", extras, 30);
 
-		mGeneralStatus = (TextView) findViewById(R.id.general_status);
-		mTagsStatus = (TextView) findViewById(R.id.status);
-		mIntTags = (EditText) findViewById(R.id.tag_int);
-		mStringTags = (EditText) findViewById(R.id.tag_string);
-
-		//Check for start push notification in the Intent payload
-		checkMessage(getIntent());
-
-		mSubmitTagsButton = (Button) findViewById(R.id.submit_tags);
-		mSubmitTagsButton.setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v)
-			{
-				//PushManager.getTagsAsync(MainActivity.this, tagsListener);
-				checkAndSendTagsIfWeCan();
-			}
-		});
-
-		SendTagsFragment sendTagsFragment = getSendTagsFragment();
-		mTagsStatus.setText(sendTagsFragment.getSendTagsStatus());
-		mSubmitTagsButton.setEnabled(sendTagsFragment.canSendTags());
-
-		// Start/stop geo pushes
-		findViewById(R.id.butt_start_goe_pushes).setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v)
-			{
-				pushManager.startTrackingGeoPushes();
-				pushManager.startTrackingBeaconPushes();
-			}
-		});
-		findViewById(R.id.butt_stop_goe_pushes).setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v)
-			{
-				pushManager.stopTrackingGeoPushes();
-				pushManager.stopTrackingBeaconPushes();
-			}
-		});
-		
 		//Clear application badge number
 		//pushManager.setBadgeNumber(0);
+
+		// Start/stop geo pushes
+		mGeoPushButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (isChecked) {
+					pushManager.startTrackingGeoPushes();
+				} else {
+					pushManager.stopTrackingGeoPushes();
+				}
+			}
+		});
+
+		// Start/stop beacon pushes
+		mBeaconPushButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (isChecked) {
+					pushManager.startTrackingBeaconPushes();
+				} else {
+					pushManager.stopTrackingBeaconPushes();
+				}
+			}
+		});
 	}
 
 	/**
@@ -216,10 +196,7 @@ public class MainActivity extends FragmentActivity implements SendTagsCallBack
 	public void registerReceivers()
 	{
 		IntentFilter intentFilter = new IntentFilter(getPackageName() + ".action.PUSH_MESSAGE_RECEIVE");
-
-		if (broadcastPush)
-			registerReceiver(mReceiver, intentFilter, getPackageName() +".permission.C2D_MESSAGE", null);
-
+		registerReceiver(mReceiver, intentFilter, getPackageName() +".permission.C2D_MESSAGE", null);
 		registerReceiver(mBroadcastReceiver, new IntentFilter(getPackageName() + "." + PushManager.REGISTER_BROAD_CAST_ACTION));
 	}
 
@@ -263,34 +240,6 @@ public class MainActivity extends FragmentActivity implements SendTagsCallBack
 		unregisterReceivers();
 	}
 
-	@Override
-	public void onStatusChange(int sendTagsStatus)
-	{
-		mTagsStatus.setText(sendTagsStatus);
-	}
-
-	@Override
-	public void onTaskEnds()
-	{
-		mSubmitTagsButton.setEnabled(true);
-	}
-
-	@Override
-	public void onTaskStarts()
-	{
-		mSubmitTagsButton.setEnabled(false);
-	}
-
-	private void checkAndSendTagsIfWeCan()
-	{
-		SendTagsFragment sendTagsFragment = getSendTagsFragment();
-
-		if (sendTagsFragment.canSendTags())
-		{
-			sendTagsFragment.submitTags(this, mIntTags.getText().toString().trim(), mStringTags.getText().toString().trim());
-		}
-	}
-
 	/**
 	 * Will check PushWoosh extras in this intent, and fire actual method
 	 *
@@ -328,6 +277,7 @@ public class MainActivity extends FragmentActivity implements SendTagsCallBack
 	public void doOnRegistered(String registrationId)
 	{
 		mGeneralStatus.setText(getString(R.string.registered, registrationId));
+		mSendPushButton.setEnabled(true);
 	}
 
 	public void doOnRegisteredError(String errorId)
@@ -407,33 +357,5 @@ public class MainActivity extends FragmentActivity implements SendTagsCallBack
 		}
 
 		setIntent(mainAppIntent);
-	}
-
-	private SendTagsFragment getSendTagsFragment()
-	{
-		FragmentManager fragmentManager = getSupportFragmentManager();
-		SendTagsFragment sendTagsFragment =
-				(SendTagsFragment) fragmentManager.findFragmentByTag(SEND_TAGS_STATUS_FRAGMENT_TAG);
-
-		if (null == sendTagsFragment)
-		{
-			sendTagsFragment = new SendTagsFragment();
-			sendTagsFragment.setRetainInstance(true);
-			fragmentManager.beginTransaction().add(sendTagsFragment, SEND_TAGS_STATUS_FRAGMENT_TAG).commit();
-			fragmentManager.executePendingTransactions();
-		}
-
-		return sendTagsFragment;
-	}
-
-	@Override
-	protected void onDestroy()
-	{
-		super.onDestroy();
-
-		mIntTags = null;
-		mStringTags = null;
-		mTagsStatus = null;
-		mSubmitTagsButton = null;
 	}
 }
