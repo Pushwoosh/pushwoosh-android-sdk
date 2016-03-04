@@ -10,6 +10,8 @@
 [PushManager](PushManager.md)  
 [AbsNotificationFactory](AbsNotificationFactory.md)  
 [PushData](PushData.md)  
+[PushSender](PushSender.md)  
+[PushMessage](PushMessage.md)  
 
 ## AndroidManifest
 [AndroidManifest](AndroidManifest.md)  
