@@ -1,3 +1,6 @@
+Current version: 3.5.2
+=========================
+AlarmReceiver stability fix
 Current version: 3.5.1
 =========================
 fix https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/31
