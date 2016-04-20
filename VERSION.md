@@ -1,3 +1,6 @@
+Current version: 3.5.3
+=========================
+Start links with clear_top flag
 Current version: 3.5.2
 =========================
 AlarmReceiver stability fix
