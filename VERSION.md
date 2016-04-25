@@ -1,3 +1,6 @@
+Current version: 4.0.0
+=========================
+Rich Media support
 Current version: 3.5.3
 =========================
 Start links with clear_top flag
