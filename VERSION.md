@@ -1,3 +1,6 @@
+Current version: 4.0.2
+=========================
+Remove google play classes from Pushwoosh.jar
 Current version: 4.0.1
 =========================
 Pushwoosh requests versioning fix
