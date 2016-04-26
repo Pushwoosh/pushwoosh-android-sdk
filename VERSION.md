@@ -1,3 +1,6 @@
+Current version: 4.0.1
+=========================
+Pushwoosh requests versioning fix
 Current version: 4.0.0
 =========================
 Rich Media support
