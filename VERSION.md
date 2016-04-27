@@ -1,3 +1,7 @@
+Current version: 4.0.3
+=========================
+Synchronize push notification generation
+https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/33
 Current version: 4.0.2
 =========================
 Remove google play classes from Pushwoosh.jar
