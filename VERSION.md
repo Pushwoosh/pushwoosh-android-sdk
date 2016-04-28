@@ -1,3 +1,6 @@
+Current version: 4.0.4
+=========================
+Start Rich Media with new_task flag
 Current version: 4.0.3
 =========================
 Synchronize push notification generation
