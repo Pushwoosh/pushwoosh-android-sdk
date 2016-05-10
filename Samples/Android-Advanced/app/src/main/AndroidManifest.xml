@@ -136,6 +136,11 @@
             android:exported="false" >
         </service>
 
+        <!-- Rich Media and In-App Messages -->
+        <activity android:name="com.pushwoosh.inapp.WebActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <service android:name="com.pushwoosh.inapp.InAppRetrieverService" />
+
         <!-- Geo Pushes -->
         <service android:name="com.pushwoosh.location.GeoLocationService" />
 

@@ -93,6 +93,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name="com.pushwoosh.inapp.WebActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <service android:name="com.pushwoosh.inapp.InAppRetrieverService" />
     </application>
 
 </manifest>
