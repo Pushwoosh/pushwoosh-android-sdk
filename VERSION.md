@@ -1,3 +1,6 @@
+Current version: 4.1.2
+=========================
+Remove targetSdkVersion and resources from Pushwoosh.aar
 Current version: 4.1.1
 =========================
 Pushwoosh aar package
