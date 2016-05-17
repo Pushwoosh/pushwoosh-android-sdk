@@ -1,3 +1,6 @@
+Current version: 4.1.1
+=========================
+Pushwoosh aar package
 Current version: 4.1.0
 =========================
 Pushwoosh aar package
