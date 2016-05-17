@@ -1,3 +1,6 @@
+Current version: 4.1.0
+=========================
+Pushwoosh aar package
 Current version: 4.0.4
 =========================
 Start Rich Media with new_task flag
