@@ -9,12 +9,12 @@ Maven integration:
 	<dependency>
   		<groupId>com.pushwoosh</groupId>
   		<artifactId>pushwoosh</artifactId>
-  		<version>LATEST</version>
+  		<version>4.1.2</version>
 	</dependency>
 
 Gradle integration:
 
-	compile 'com.pushwoosh:pushwoosh:+'
+	compile 'com.pushwoosh:pushwoosh:4.1.2'
 
 
 The guide for SDK integration is available on Pushwoosh website:  
