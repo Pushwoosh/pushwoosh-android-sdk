@@ -1,3 +1,6 @@
+Current version: 4.1.4
+=========================
+iBeacon tracking fixes
 Current version: 4.1.3
 =========================
 Push handling stability fixes
