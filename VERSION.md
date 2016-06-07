@@ -1,3 +1,6 @@
+Current version: 4.1.5
+=========================
+Pushwoosh response parsing stability fixes
 Current version: 4.1.4
 =========================
 iBeacon tracking fixes
