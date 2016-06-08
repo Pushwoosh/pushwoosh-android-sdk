@@ -1,3 +1,6 @@
+Current version: 4.1.6
+=========================
+Fix for setLightScreenOnNotification method
 Current version: 4.1.5
 =========================
 Pushwoosh response parsing stability fixes
