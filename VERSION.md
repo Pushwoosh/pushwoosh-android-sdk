@@ -1,3 +1,6 @@
+Current version: 4.2.0
+=========================
+Send application attributes
 Current version: 4.1.6
 =========================
 Fix for setLightScreenOnNotification method
