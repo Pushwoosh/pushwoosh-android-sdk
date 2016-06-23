@@ -1,0 +1,1 @@
+Put your Amazon API key here as per https://developer.amazon.com/appsandservices/apis/engage/device-messaging/tech-docs/02-obtaining-adm-credentials

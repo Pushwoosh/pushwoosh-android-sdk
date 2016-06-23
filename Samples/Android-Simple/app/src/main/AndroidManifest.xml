@@ -2,44 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.pushwoosh.sample.quickstart" >
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-
-    <!-- Permission to get DeviceId -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-
-    <!-- GCM connects to Google Services. -->
-    <uses-permission android:name="android.permission.INTERNET"/>
-
-    <!-- GCM requires a Google account. -->
-    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
-
-    <!-- Keeps the processor from sleeping when a message is received. -->
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-
-    <!-- Enables vibration permission for notification. -->
-    <uses-permission android:name="android.permission.VIBRATE" />
-
-    <!--
-     Creates a custom permission so only this app can receive its messages.
-
-     NOTE: the permission *must* be called PACKAGE.permission.C2D_MESSAGE,
-           where PACKAGE is the application's package name.
-    -->
-    <permission
-        android:name="${applicationId}.permission.C2D_MESSAGE"
-        android:protectionLevel="signature"/>
-    <uses-permission
-        android:name="${applicationId}.permission.C2D_MESSAGE"/>
-
-    <!-- This app has permission to register and receive data message. -->
-    <uses-permission
-        android:name="com.google.android.c2dm.permission.RECEIVE"/>
-
-    <!-- GCM requires Android SDK version 2.3 (API level 9) or above. -->
-    <!-- The targetSdkVersion is optional, but it's always a good practice
-         to target higher versions. -->
-    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="23"/>
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -49,25 +11,13 @@
         <meta-data android:name="PW_APPID" android:value="4FC89B6D14A655.46488481" />
         <meta-data android:name="PW_PROJECT_ID" android:value="A60756016005" />
 
-        <receiver
-            android:name="com.google.android.gms.gcm.GcmReceiver"
-            android:exported="true"
-            android:permission="com.google.android.c2dm.permission.SEND" >
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <category android:name="${applicationId}" />
-            </intent-filter>
-        </receiver>
-
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
-
 </manifest>
