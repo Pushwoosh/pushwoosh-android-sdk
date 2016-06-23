@@ -1,3 +1,6 @@
+Current version: 4.3.0
+=========================
+Encapsulate Amazon manifest changes, GcmReceiver and push permissions; fix proguard warnings
 Current version: 4.2.0
 =========================
 Send application attributes
