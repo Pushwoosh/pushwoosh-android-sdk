@@ -1,3 +1,6 @@
+Current version: 4.3.1
+=========================
+Geolocation tracking fixes for Android 6; InAppRetrieverService stability fix
 Current version: 4.3.0
 =========================
 Encapsulate Amazon manifest changes, GcmReceiver and push permissions; fix proguard warnings
