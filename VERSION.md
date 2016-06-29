@@ -1,3 +1,6 @@
+Current version: 4.3.2
+=========================
+Minor fixes
 Current version: 4.3.1
 =========================
 Geolocation tracking fixes for Android 6; InAppRetrieverService stability fix
