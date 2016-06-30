@@ -1,3 +1,7 @@
+Current version: 4.3.3
+=========================
+RequestManager stability fix
+https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/37
 Current version: 4.3.2
 =========================
 Minor fixes
