@@ -1,3 +1,6 @@
+Current version: 4.4.0
+=========================
+setNotificationIconBackgroundColor method for Android L
 Current version: 4.3.3
 =========================
 RequestManager stability fix
