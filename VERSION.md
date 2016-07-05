@@ -1,3 +1,7 @@
+Current version: 4.4.1
+=========================
+Remove unnecessary GET_ACCOUNTS and READ_PHONE_STATE permissions
+https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/39
 Current version: 4.4.0
 =========================
 setNotificationIconBackgroundColor method for Android L
