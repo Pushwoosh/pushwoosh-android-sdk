@@ -1,3 +1,6 @@
+Current version: 4.5.0
+=========================
+Customizable led blinking rate
 Current version: 4.4.1
 =========================
 Remove unnecessary GET_ACCOUNTS and READ_PHONE_STATE permissions
