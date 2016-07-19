@@ -1,3 +1,6 @@
+Current version: 4.6.0
+=========================
+isNotificationEnabled method
 Current version: 4.5.0
 =========================
 Customizable led blinking rate

@@ -1421,6 +1421,7 @@ com.pushwoosh.PushManager -> com.pushwoosh.PushManager:
     void setNotificationFactory(com.pushwoosh.notification.AbsNotificationFactory) -> setNotificationFactory
     java.util.ArrayList getPushHistory() -> getPushHistory
     void clearPushHistory() -> clearPushHistory
+    boolean isNotificationEnabled(android.content.Context) -> isNotificationEnabled
     void access$000(android.content.Context,java.lang.String) -> a
     void <clinit>() -> <clinit>
 com.pushwoosh.PushManager$1 -> com.pushwoosh.PushManager$1:
@@ -2378,6 +2379,7 @@ com.pushwoosh.internal.utils.NotificationUtils -> com.pushwoosh.internal.utils.e
     boolean phoneHaveVibratePermission(android.content.Context) -> a
     void copyFile(java.io.InputStream,java.io.OutputStream) -> a
     android.net.Uri getUriForAssetPath(android.content.Context,java.lang.String) -> a
+    boolean isNotificationEnabled(android.content.Context) -> b
 com.pushwoosh.internal.utils.ObjectSerializer -> com.pushwoosh.internal.utils.f:
     java.lang.String serialize(java.lang.Object) -> a
     java.lang.Object deserialize(java.lang.String) -> a
