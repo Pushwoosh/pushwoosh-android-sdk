@@ -1,3 +1,7 @@
+Current version: 4.6.1
+=========================
+isNotificationEnabled stability fix
+https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/40
 Current version: 4.6.0
 =========================
 isNotificationEnabled method
