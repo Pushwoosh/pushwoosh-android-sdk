@@ -1,3 +1,6 @@
+Current version: 4.6.2
+=========================
+Geolocation stability fixes
 Current version: 4.6.1
 =========================
 isNotificationEnabled stability fix

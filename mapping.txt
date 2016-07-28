@@ -2270,16 +2270,15 @@ com.pushwoosh.internal.utils.DeviceUtils -> com.pushwoosh.internal.utils.b:
     boolean isTablet(android.content.Context) -> b
     boolean isAmazonDevice() -> a
     boolean isNetworkAvailable(android.content.Context) -> c
-    java.lang.String getPhoneNumber(android.content.Context) -> d
-    float getBatteryLevel(android.content.Context) -> e
+    float getBatteryLevel(android.content.Context) -> d
     long getAvailableInternalSpaceMB() -> b
     long getTotalInternalSpaceMB() -> c
     long getAvailableExternalSpaceMB() -> d
     long getTotalExternalSpaceMB() -> e
-    int getScreenWidth(android.content.Context) -> f
-    int getScreenHeight(android.content.Context) -> g
-    java.lang.String getInstaller(android.content.Context) -> h
-    java.util.List getInstalledStores(android.content.Context) -> i
+    int getScreenWidth(android.content.Context) -> e
+    int getScreenHeight(android.content.Context) -> f
+    java.lang.String getInstaller(android.content.Context) -> g
+    java.util.List getInstalledStores(android.content.Context) -> h
     java.lang.String getDeviceName() -> f
     java.lang.String capitalize(java.lang.String) -> a
     void <clinit>() -> <clinit>
