@@ -1,3 +1,6 @@
+Current version: 4.6.3
+=========================
+Disable sending application attributes
 Current version: 4.6.2
 =========================
 Geolocation stability fixes

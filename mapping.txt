@@ -1407,10 +1407,8 @@ com.pushwoosh.PushManager -> com.pushwoosh.PushManager:
     void setNotificationIconBackgroundColor(android.content.Context,int) -> setNotificationIconBackgroundColor
     void setBeaconBackgroundMode(android.content.Context,boolean) -> setBeaconBackgroundMode
     boolean neededToRequestPushWooshServer(android.content.Context) -> a
-    boolean needToSetAttributes(android.content.Context) -> b
     void registerOnPushWoosh(android.content.Context,java.lang.String) -> c
-    void sendAppOpen(android.content.Context) -> c
-    void sendAttributes(android.content.Context) -> d
+    void sendAppOpen(android.content.Context) -> b
     void trackInAppRequest(android.content.Context,java.lang.String,java.math.BigDecimal,java.lang.String,java.util.Date) -> trackInAppRequest
     int scheduleLocalNotification(android.content.Context,java.lang.String,int) -> scheduleLocalNotification
     int scheduleLocalNotification(android.content.Context,java.lang.String,android.os.Bundle,int) -> scheduleLocalNotification
@@ -1445,12 +1443,6 @@ com.pushwoosh.PushManager$2 -> com.pushwoosh.PushManager$2:
     com.pushwoosh.PushManager$MergeUserCallback val$callback -> a
     com.pushwoosh.PushManager this$0 -> b
     void <init>(com.pushwoosh.PushManager,com.pushwoosh.PushManager$MergeUserCallback) -> <init>
-    void onRequestFinished(com.pushwoosh.internal.request.PushRequest) -> a
-    void onError(java.lang.Exception) -> a
-com.pushwoosh.PushManager$3 -> com.pushwoosh.PushManager$3:
-    android.content.Context val$context -> a
-    com.pushwoosh.PushManager this$0 -> b
-    void <init>(com.pushwoosh.PushManager,android.content.Context) -> <init>
     void onRequestFinished(com.pushwoosh.internal.request.PushRequest) -> a
     void onError(java.lang.Exception) -> a
 com.pushwoosh.PushManager$GetTagsListener -> com.pushwoosh.PushManager$GetTagsListener:
@@ -2471,17 +2463,15 @@ com.pushwoosh.internal.utils.RegistrationPrefs -> com.pushwoosh.internal.utils.h
     java.lang.String getApplicationId(android.content.Context) -> e
     long getLastRegistration(android.content.Context) -> f
     void setLastRegistration(android.content.Context,long) -> a
-    long getLastAttributesRegistration(android.content.Context) -> g
-    void setLastAttributesRegistration(android.content.Context,long) -> b
-    void resetLastRegistration(android.content.Context) -> h
+    void resetLastRegistration(android.content.Context) -> g
     void setForceRegister(android.content.Context,boolean) -> b
-    boolean getForceRegister(android.content.Context) -> i
-    java.lang.String getUserId(android.content.Context) -> j
+    boolean getForceRegister(android.content.Context) -> h
+    java.lang.String getUserId(android.content.Context) -> i
     void setUserId(android.content.Context,java.lang.String) -> d
-    java.lang.String getDeviceId(android.content.Context) -> k
+    java.lang.String getDeviceId(android.content.Context) -> j
     void setDeviceId(android.content.Context,java.lang.String) -> e
-    int getAppVersion(android.content.Context) -> l
-    android.content.SharedPreferences getPreferences(android.content.Context) -> m
+    int getAppVersion(android.content.Context) -> k
+    android.content.SharedPreferences getPreferences(android.content.Context) -> l
 com.pushwoosh.local.AlarmReceiver -> com.pushwoosh.local.AlarmReceiver:
     int counter -> a
     void <init>() -> <init>
