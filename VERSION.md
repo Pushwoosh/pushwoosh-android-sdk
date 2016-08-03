@@ -1,3 +1,6 @@
+Current version: 4.6.4
+=========================
+Fixed notification pending intent conflicts
 Current version: 4.6.3
 =========================
 Disable sending application attributes
