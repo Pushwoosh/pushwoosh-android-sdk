@@ -12,7 +12,8 @@ import android.text.TextUtils;
 import com.pushwoosh.PushManager;
 import com.pushwoosh.notification.DefaultNotificationFactory;
 import com.pushwoosh.notification.PushData;
-import com.pushwoosh.sample.R;
+import com.pushwoosh.sample.inbox.Message;
+import com.pushwoosh.sample.inbox.MessageStorage;
 
 import org.json.JSONObject;
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.pushwoosh.sample.messenger;
+package com.pushwoosh.sample.inbox;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

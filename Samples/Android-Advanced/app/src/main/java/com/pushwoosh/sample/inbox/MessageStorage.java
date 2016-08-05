@@ -1,4 +1,4 @@
-package com.pushwoosh.sample.messenger;
+package com.pushwoosh.sample.inbox;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -27,6 +27,14 @@ public class MessageStorage
         {
             e.printStackTrace();
         }
+    }
+
+    public static void clear(Context context)
+    {
+        SharedPreferences prefs = context.getSharedPreferences(PREFERENCE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(PROPERTY_MESSAGE_HISTORY, null);
+        editor.commit();
     }
 
     @SuppressWarnings("unchecked")
