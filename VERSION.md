@@ -1,3 +1,6 @@
+Current version: 4.7.0
+=========================
+Remote pushwoosh commands
 Current version: 4.6.4
 =========================
 Fixed notification pending intent conflicts
