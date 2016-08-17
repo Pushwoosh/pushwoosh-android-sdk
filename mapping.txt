@@ -1316,6 +1316,17 @@ com.pushwoosh.BuildConfig -> com.pushwoosh.BuildConfig:
     int VERSION_CODE -> VERSION_CODE
     java.lang.String VERSION_NAME -> VERSION_NAME
     void <init>() -> <init>
+com.pushwoosh.DeepLinkActivity -> com.pushwoosh.DeepLinkActivity:
+    void <init>() -> <init>
+    void onCreate(android.os.Bundle) -> onCreate
+    void openUrl(android.net.Uri) -> a
+    void createTestDevice(android.content.Context) -> a
+com.pushwoosh.DeepLinkActivity$1 -> com.pushwoosh.DeepLinkActivity$1:
+    android.content.Context val$context -> a
+    com.pushwoosh.DeepLinkActivity this$0 -> b
+    void <init>(com.pushwoosh.DeepLinkActivity,android.content.Context) -> <init>
+    void onRequestFinished(com.pushwoosh.internal.request.PushRequest) -> a
+    void onError(java.lang.Exception) -> a
 com.pushwoosh.GCMInstanceIDListenerService -> com.pushwoosh.GCMInstanceIDListenerService:
     void <init>() -> <init>
     void onTokenRefresh() -> onTokenRefresh
@@ -2127,8 +2138,14 @@ com.pushwoosh.internal.request.AppRemovedRequest -> com.pushwoosh.internal.b.b:
     void <init>(java.lang.String) -> <init>
     java.lang.String getMethod() -> getMethod
     void buildParams(android.content.Context,java.util.Map) -> buildParams
-com.pushwoosh.internal.request.ForceRequest -> com.pushwoosh.internal.b.c:
-com.pushwoosh.internal.request.GetPageRequest -> com.pushwoosh.internal.b.d:
+com.pushwoosh.internal.request.CreateTestDeviceRequest -> com.pushwoosh.internal.b.c:
+    java.lang.String mName -> b
+    java.lang.String mDesc -> c
+    void <init>(java.lang.String,java.lang.String) -> <init>
+    java.lang.String getMethod() -> getMethod
+    void buildParams(android.content.Context,java.util.Map) -> buildParams
+com.pushwoosh.internal.request.ForceRequest -> com.pushwoosh.internal.b.d:
+com.pushwoosh.internal.request.GetPageRequest -> com.pushwoosh.internal.b.e:
     java.lang.String pageId -> b
     java.lang.String pageDesc -> c
     java.lang.String templateId -> d
@@ -2138,18 +2155,18 @@ com.pushwoosh.internal.request.GetPageRequest -> com.pushwoosh.internal.b.d:
     void parseResponse(org.json.JSONObject) -> parseResponse
     java.lang.String getPageDesc() -> a
     java.lang.String getTemplateId() -> b
-com.pushwoosh.internal.request.GetTagsRequest -> com.pushwoosh.internal.b.e:
+com.pushwoosh.internal.request.GetTagsRequest -> com.pushwoosh.internal.b.f:
     java.util.Map tags -> b
     void <init>() -> <init>
     java.lang.String getMethod() -> getMethod
     void parseResponse(org.json.JSONObject) -> parseResponse
     java.util.Map getTags() -> a
-com.pushwoosh.internal.request.MessageDeliveredRequest -> com.pushwoosh.internal.b.f:
+com.pushwoosh.internal.request.MessageDeliveredRequest -> com.pushwoosh.internal.b.g:
     java.lang.String hash -> b
     void <init>(java.lang.String) -> <init>
     java.lang.String getMethod() -> getMethod
     void buildParams(android.content.Context,java.util.Map) -> buildParams
-com.pushwoosh.internal.request.PushRequest -> com.pushwoosh.internal.b.g:
+com.pushwoosh.internal.request.PushRequest -> com.pushwoosh.internal.b.h:
     java.lang.String response -> a
     java.lang.Exception exception -> b
     com.pushwoosh.internal.request.PushRequestListener listener -> c
@@ -2163,20 +2180,20 @@ com.pushwoosh.internal.request.PushRequest -> com.pushwoosh.internal.b.g:
     void setException(java.lang.Exception) -> setException
     java.lang.Exception getException() -> getException
     void setListener(com.pushwoosh.internal.request.PushRequestListener) -> setListener
-com.pushwoosh.internal.request.PushRequestListener -> com.pushwoosh.internal.b.h:
+com.pushwoosh.internal.request.PushRequestListener -> com.pushwoosh.internal.b.i:
     void onRequestFinished(com.pushwoosh.internal.request.PushRequest) -> a
     void onError(java.lang.Exception) -> a
-com.pushwoosh.internal.request.PushStatRequest -> com.pushwoosh.internal.b.i:
+com.pushwoosh.internal.request.PushStatRequest -> com.pushwoosh.internal.b.j:
     java.lang.String hash -> b
     void <init>(java.lang.String) -> <init>
     java.lang.String getMethod() -> getMethod
     void buildParams(android.content.Context,java.util.Map) -> buildParams
-com.pushwoosh.internal.request.RegisterDeviceRequest -> com.pushwoosh.internal.b.j:
+com.pushwoosh.internal.request.RegisterDeviceRequest -> com.pushwoosh.internal.b.k:
     java.lang.String pushToken -> b
     void <init>(java.lang.String) -> <init>
     java.lang.String getMethod() -> getMethod
     void buildParams(android.content.Context,java.util.Map) -> buildParams
-com.pushwoosh.internal.request.RequestManager -> com.pushwoosh.internal.b.k:
+com.pushwoosh.internal.request.RequestManager -> com.pushwoosh.internal.b.l:
     java.lang.Thread thread -> a
     java.util.concurrent.BlockingQueue requests -> b
     java.util.Map mergeRequests(android.content.Context,java.util.Map,com.pushwoosh.internal.request.PushRequest) -> c
@@ -2190,16 +2207,16 @@ com.pushwoosh.internal.request.RequestManager -> com.pushwoosh.internal.b.k:
     java.util.Map access$100(android.content.Context,java.util.Map,com.pushwoosh.internal.request.PushRequest) -> b
     java.lang.Thread access$202(java.lang.Thread) -> a
     void <clinit>() -> <clinit>
-com.pushwoosh.internal.request.RequestManager$1 -> com.pushwoosh.internal.b.k$1:
+com.pushwoosh.internal.request.RequestManager$1 -> com.pushwoosh.internal.b.l$1:
     android.content.Context val$context -> a
     void <init>(android.content.Context) -> <init>
     void run() -> run
-com.pushwoosh.internal.request.RequestManager$1$1 -> com.pushwoosh.internal.b.k$1$1:
+com.pushwoosh.internal.request.RequestManager$1$1 -> com.pushwoosh.internal.b.l$1$1:
     java.util.ArrayList val$processingRequests -> a
     com.pushwoosh.internal.request.RequestManager$1 this$0 -> b
     void <init>(com.pushwoosh.internal.request.RequestManager$1,java.util.ArrayList) -> <init>
     void run() -> run
-com.pushwoosh.internal.request.RequestManager$NetworkResult -> com.pushwoosh.internal.b.k$a:
+com.pushwoosh.internal.request.RequestManager$NetworkResult -> com.pushwoosh.internal.b.l$a:
     int mPushwooshCode -> a
     int mResultCode -> b
     org.json.JSONObject mResultData -> c
@@ -2210,24 +2227,24 @@ com.pushwoosh.internal.request.RequestManager$NetworkResult -> com.pushwoosh.int
     int getResultCode() -> a
     int getPushwooshCode() -> b
     org.json.JSONObject getResultData() -> c
-com.pushwoosh.internal.request.SetAttributesRequest -> com.pushwoosh.internal.b.l:
+com.pushwoosh.internal.request.SetAttributesRequest -> com.pushwoosh.internal.b.m:
     java.util.List mBundles -> b
     void <init>(java.util.List) -> <init>
     java.lang.String getMethod() -> getMethod
     void buildParams(android.content.Context,java.util.Map) -> buildParams
-com.pushwoosh.internal.request.SetBadgeRequest -> com.pushwoosh.internal.b.m:
+com.pushwoosh.internal.request.SetBadgeRequest -> com.pushwoosh.internal.b.n:
     int badges -> b
     void <init>(int) -> <init>
     java.lang.String getMethod() -> getMethod
     void buildParams(android.content.Context,java.util.Map) -> buildParams
-com.pushwoosh.internal.request.SetTagsRequest -> com.pushwoosh.internal.b.n:
+com.pushwoosh.internal.request.SetTagsRequest -> com.pushwoosh.internal.b.o:
     java.util.Map tags -> b
     org.json.JSONArray skippedTags -> c
     void <init>(java.util.Map) -> <init>
     java.lang.String getMethod() -> getMethod
     void buildParams(android.content.Context,java.util.Map) -> buildParams
     void parseResponse(org.json.JSONObject) -> parseResponse
-com.pushwoosh.internal.request.TrackInAppRequest -> com.pushwoosh.internal.b.o:
+com.pushwoosh.internal.request.TrackInAppRequest -> com.pushwoosh.internal.b.p:
     java.lang.String mSku -> b
     java.util.Date mPurchaseTime -> c
     long mQuantity -> d
@@ -2236,7 +2253,7 @@ com.pushwoosh.internal.request.TrackInAppRequest -> com.pushwoosh.internal.b.o:
     void <init>(java.lang.String,java.math.BigDecimal,java.lang.String,java.util.Date) -> <init>
     java.lang.String getMethod() -> getMethod
     void buildParams(android.content.Context,java.util.Map) -> buildParams
-com.pushwoosh.internal.request.UnregisterDeviceRequest -> com.pushwoosh.internal.b.p:
+com.pushwoosh.internal.request.UnregisterDeviceRequest -> com.pushwoosh.internal.b.q:
     void <init>() -> <init>
     java.lang.String getMethod() -> getMethod
 com.pushwoosh.internal.utils.Config -> com.pushwoosh.internal.utils.a:

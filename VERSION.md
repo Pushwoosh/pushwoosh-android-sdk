@@ -1,3 +1,6 @@
+Current version: 4.8.0
+=========================
+Register test deivce using QR code
 Current version: 4.7.0
 =========================
 Remote pushwoosh commands
