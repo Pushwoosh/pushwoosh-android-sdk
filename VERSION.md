@@ -1,3 +1,6 @@
+Current version: 4.8.1
+=========================
+Support getLaunchNotification with custom push receiver
 Current version: 4.8.0
 =========================
 Register test deivce using QR code
