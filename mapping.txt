@@ -1381,7 +1381,6 @@ com.pushwoosh.PushManager -> com.pushwoosh.PushManager:
     android.content.Context mContext -> a
     com.pushwoosh.internal.registrar.PushRegistrar pushRegistrar -> b
     com.pushwoosh.PushManager instance -> c
-    java.lang.String currentUserId -> d
     void <init>(android.content.Context) -> <init>
     void initializePushManager(android.content.Context,java.lang.String,java.lang.String) -> initializePushManager
     com.pushwoosh.PushManager getInstance(android.content.Context) -> getInstance
@@ -1405,7 +1404,6 @@ com.pushwoosh.PushManager -> com.pushwoosh.PushManager:
     void clearLaunchNotification() -> clearLaunchNotification
     void setRichPageListener(com.pushwoosh.PushManager$RichPageListener) -> setRichPageListener
     void getTagsAsync(android.content.Context,com.pushwoosh.PushManager$GetTagsListener) -> getTagsAsync
-    void registerUserInternal(android.content.Context,java.lang.String) -> b
     void setUserId(android.content.Context,java.lang.String) -> setUserId
     void mergeUserId(java.lang.String,java.lang.String,boolean,com.pushwoosh.PushManager$MergeUserCallback) -> mergeUserId
     void setMultiNotificationMode(android.content.Context) -> setMultiNotificationMode
@@ -1419,7 +1417,7 @@ com.pushwoosh.PushManager -> com.pushwoosh.PushManager:
     void setBeaconBackgroundMode(android.content.Context,boolean) -> setBeaconBackgroundMode
     boolean neededToRequestPushWooshServer(android.content.Context) -> a
     boolean needToSetAttributes(android.content.Context) -> b
-    void registerOnPushWoosh(android.content.Context,java.lang.String) -> c
+    void registerOnPushWoosh(android.content.Context,java.lang.String) -> a
     void sendAppOpen(android.content.Context) -> c
     void sendAttributes(android.content.Context) -> d
     void trackInAppRequest(android.content.Context,java.lang.String,java.math.BigDecimal,java.lang.String,java.util.Date) -> trackInAppRequest
@@ -1433,14 +1431,13 @@ com.pushwoosh.PushManager -> com.pushwoosh.PushManager:
     java.util.ArrayList getPushHistory() -> getPushHistory
     void clearPushHistory() -> clearPushHistory
     boolean isNotificationEnabled(android.content.Context) -> isNotificationEnabled
-    void access$000(android.content.Context,java.lang.String) -> a
     void <clinit>() -> <clinit>
 com.pushwoosh.PushManager$1 -> com.pushwoosh.PushManager$1:
-    android.content.Context val$context -> a
-    java.lang.String val$userId -> b
-    com.pushwoosh.PushManager this$0 -> c
-    void <init>(com.pushwoosh.PushManager,android.content.Context,java.lang.String) -> <init>
-    void run() -> run
+    com.pushwoosh.PushManager$MergeUserCallback val$callback -> a
+    com.pushwoosh.PushManager this$0 -> b
+    void <init>(com.pushwoosh.PushManager,com.pushwoosh.PushManager$MergeUserCallback) -> <init>
+    void onRequestFinished(com.pushwoosh.internal.request.PushRequest) -> a
+    void onError(java.lang.Exception) -> a
 com.pushwoosh.PushManager$1InnerSendTagsListener -> com.pushwoosh.PushManager$a:
     com.pushwoosh.SendPushTagsCallBack val$listener -> a
     void <init>(com.pushwoosh.SendPushTagsCallBack) -> <init>
@@ -1453,12 +1450,6 @@ com.pushwoosh.PushManager$1InnerTagsListener -> com.pushwoosh.PushManager$b:
     void onRequestFinished(com.pushwoosh.internal.request.PushRequest) -> a
     void onError(java.lang.Exception) -> a
 com.pushwoosh.PushManager$2 -> com.pushwoosh.PushManager$2:
-    com.pushwoosh.PushManager$MergeUserCallback val$callback -> a
-    com.pushwoosh.PushManager this$0 -> b
-    void <init>(com.pushwoosh.PushManager,com.pushwoosh.PushManager$MergeUserCallback) -> <init>
-    void onRequestFinished(com.pushwoosh.internal.request.PushRequest) -> a
-    void onError(java.lang.Exception) -> a
-com.pushwoosh.PushManager$3 -> com.pushwoosh.PushManager$3:
     android.content.Context val$context -> a
     com.pushwoosh.PushManager this$0 -> b
     void <init>(com.pushwoosh.PushManager,android.content.Context) -> <init>
@@ -1826,6 +1817,7 @@ com.pushwoosh.inapp.InAppDownloader -> com.pushwoosh.inapp.InAppDownloader:
     java.io.File mCacheDir -> b
     android.content.Context mContext -> c
     void <init>(android.content.Context,java.util.List) -> <init>
+    boolean downloadOrUpdate(android.content.Context,java.util.List) -> a
     com.pushwoosh.inapp.InAppDownloader$DownloadResult downloadAndDeploy() -> a
     boolean downloadAndDeployResource(com.pushwoosh.inapp.Resource) -> a
 com.pushwoosh.inapp.InAppDownloader$DownloadResult -> com.pushwoosh.inapp.InAppDownloader$DownloadResult:
@@ -1880,10 +1872,10 @@ com.pushwoosh.inapp.InAppFragment -> com.pushwoosh.inapp.InAppFragment:
     com.pushwoosh.inapp.InAppFragment$State access$102(com.pushwoosh.inapp.InAppFragment,com.pushwoosh.inapp.InAppFragment$State) -> a
     com.pushwoosh.inapp.InAppFragment$PreparationCallback access$200(com.pushwoosh.inapp.InAppFragment) -> a
 com.pushwoosh.inapp.InAppFragment$1 -> com.pushwoosh.inapp.InAppFragment$1:
-    android.content.Context val$context -> a
-    com.pushwoosh.inapp.Resource val$inapp -> b
+    com.pushwoosh.inapp.Resource val$inapp -> a
+    android.content.Context val$context -> b
     com.pushwoosh.inapp.InAppFragment this$0 -> c
-    void <init>(com.pushwoosh.inapp.InAppFragment,android.content.Context,com.pushwoosh.inapp.Resource) -> <init>
+    void <init>(com.pushwoosh.inapp.InAppFragment,com.pushwoosh.inapp.Resource,android.content.Context) -> <init>
     java.lang.Boolean doInBackground(java.lang.Void[]) -> a
     void onPostExecute(java.lang.Boolean) -> a
     void onPostExecute(java.lang.Object) -> onPostExecute
@@ -1930,6 +1922,7 @@ com.pushwoosh.inapp.InAppLayout -> com.pushwoosh.inapp.InAppLayout:
     void <clinit>() -> <clinit>
 com.pushwoosh.inapp.InAppRetrieverService -> com.pushwoosh.inapp.InAppRetrieverService:
     void <init>() -> <init>
+    void prefetchRichMedia(android.content.Context,java.lang.String) -> prefetchRichMedia
     void onHandleIntent(android.content.Intent) -> onHandleIntent
     void startService(android.content.Context) -> a
 com.pushwoosh.inapp.InAppTagFormatModifier -> com.pushwoosh.inapp.d:
@@ -1989,6 +1982,7 @@ com.pushwoosh.inapp.Resource -> com.pushwoosh.inapp.f:
     void <init>(org.json.JSONObject) -> <init>
     void setTags(java.util.Map) -> a
     void <init>(java.lang.String,java.lang.String,long,com.pushwoosh.inapp.InAppLayout,java.util.Map) -> <init>
+    com.pushwoosh.inapp.Resource parseRichMedia(java.lang.String) -> a
     java.util.Map convertTags(java.util.Map) -> b
     java.io.File getFolder(android.content.Context) -> a
     java.lang.String getCode() -> a

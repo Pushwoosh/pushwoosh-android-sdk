@@ -1,3 +1,7 @@
+Current version: 4.8.2
+=========================
+Prefetch Rich Media on push receive
+Send registerUser request only on userId change
 Current version: 4.8.1
 =========================
 Support getLaunchNotification with custom push receiver
