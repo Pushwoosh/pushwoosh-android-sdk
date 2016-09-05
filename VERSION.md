@@ -1,3 +1,6 @@
+Current version: 4.8.3
+=========================
+Change Pushwoosh API url to https://APP_CODE.api.pushwoosh.com/json/1.3
 Current version: 4.8.2
 =========================
 Prefetch Rich Media on push receive
