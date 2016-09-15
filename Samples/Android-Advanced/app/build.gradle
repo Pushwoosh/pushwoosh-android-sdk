@@ -10,6 +10,7 @@ android {
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
+        manifestPlaceholders = [pw_appid: "4FC89B6D14A655.46488481", gcm_project_number: "A60756016005"]
     }
     buildTypes {
         release {

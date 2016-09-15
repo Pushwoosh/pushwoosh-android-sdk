@@ -41,10 +41,22 @@
         android:theme="@android:style/Theme.Light" >
         <meta-data
             android:name="PW_APPID"
-            android:value="4FC89B6D14A655.46488481" />
+            android:value="${pw_appid}" />
         <meta-data
             android:name="PW_PROJECT_ID"
-            android:value="A60756016005" />
+            android:value="${gcm_project_number}" />
+
+        <activity
+            android:name="com.pushwoosh.DeepLinkActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="pw-${pw_appid}" />
+            </intent-filter>
+        </activity>
 
         <!-- Application Activities -->
         <activity
