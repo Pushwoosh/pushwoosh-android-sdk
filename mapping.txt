@@ -2504,11 +2504,13 @@ com.pushwoosh.local.BootReceiver -> com.pushwoosh.local.BootReceiver:
     void <init>() -> <init>
     void onReceive(android.content.Context,android.content.Intent) -> onReceive
 com.pushwoosh.local.LocalScheduledUtils -> com.pushwoosh.local.a:
+    java.util.concurrent.atomic.AtomicBoolean sPushesRes?heduled -> a
     void saveLocalPush(android.content.Context,int,android.os.Bundle,long) -> a
     void restoreLocalPushes(android.content.Context) -> a
     void removeLocalPush(android.content.Context,int) -> a
-    void removeLocalPush(android.content.Context,java.lang.String,java.util.Set) -> a
+    void removeLocalPush(android.content.Context,java.lang.String) -> a
     java.util.Set getSavedIds(android.content.SharedPreferences) -> a
+    void <clinit>() -> <clinit>
 com.pushwoosh.location.GeoLocationService -> com.pushwoosh.location.GeoLocationService:
     long DELAY_MILLIS_OF_GETTING_ZONES -> a
     com.pushwoosh.location.IGeofenceTracker mGeofenceTracker -> b

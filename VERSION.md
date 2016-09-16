@@ -1,3 +1,7 @@
+Current version: 4.8.4
+=========================
+Fixed ConcurrentModificationException in BootReceiver.
+Fixed DeepLinkActivity ACTION_VIEW handling
 Current version: 4.8.3
 =========================
 Change Pushwoosh API url to https://APP_CODE.api.pushwoosh.com/json/1.3
