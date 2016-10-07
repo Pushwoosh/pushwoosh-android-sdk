@@ -1,3 +1,6 @@
+Current version: 4.9.0
+=========================
+Rich Media notifications on Lockscreen (http://docs.pushwoosh.com/v1.0/docs/android-lockscreen-push)
 Current version: 4.8.4
 =========================
 Fixed ConcurrentModificationException in BootReceiver.

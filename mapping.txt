@@ -1994,13 +1994,20 @@ com.pushwoosh.inapp.Resource -> com.pushwoosh.inapp.f:
     java.io.File getConfigFile(android.content.Context) -> d
     java.lang.String postProcessHtml(java.lang.String,java.lang.String,java.util.Map) -> a
 com.pushwoosh.inapp.WebActivity -> com.pushwoosh.inapp.WebActivity:
+    java.lang.String EXTRA_MODE -> EXTRA_MODE
+    java.lang.String EXTRA_SOUND -> EXTRA_SOUND
+    int MODE_DEFAULT -> MODE_DEFAULT
+    int MODE_LOCKSCREEN -> MODE_LOCKSCREEN
     com.pushwoosh.inapp.Resource mInapp -> a
-    android.webkit.WebView mWebView -> b
-    android.widget.ProgressBar mProgress -> c
-    boolean mMeasuring -> d
-    boolean mActivityRecreated -> e
-    android.os.Handler mHandler -> f
-    java.lang.Runnable mWaitTask -> g
+    int mMode -> b
+    android.webkit.WebView mWebView -> c
+    android.widget.ProgressBar mProgress -> d
+    boolean mMeasuring -> e
+    boolean mActivityRecreated -> f
+    boolean mShowProgress -> g
+    java.lang.String mSound -> h
+    android.os.Handler mHandler -> i
+    java.lang.Runnable mWaitTask -> j
     void <init>() -> <init>
     android.content.Intent getInAppIntent(android.content.Context,java.lang.String) -> getInAppIntent
     android.content.Intent getRichMediaIntent(android.content.Context,java.lang.String) -> getRichMediaIntent
@@ -2022,6 +2029,7 @@ com.pushwoosh.inapp.WebActivity -> com.pushwoosh.inapp.WebActivity:
     android.widget.ProgressBar access$500(com.pushwoosh.inapp.WebActivity) -> d
     boolean access$600(com.pushwoosh.inapp.WebActivity) -> e
     boolean access$602(com.pushwoosh.inapp.WebActivity,boolean) -> a
+    int access$700(com.pushwoosh.inapp.WebActivity) -> f
 com.pushwoosh.inapp.WebActivity$1 -> com.pushwoosh.inapp.WebActivity$1:
     com.pushwoosh.inapp.WebActivity this$0 -> a
     void <init>(com.pushwoosh.inapp.WebActivity) -> <init>
@@ -2044,8 +2052,14 @@ com.pushwoosh.inapp.WebActivity$WebClient -> com.pushwoosh.inapp.WebActivity$a:
     void onPageFinished(android.webkit.WebView,java.lang.String) -> onPageFinished
     void onPageStarted(android.webkit.WebView,java.lang.String,android.graphics.Bitmap) -> onPageStarted
     boolean shouldOverrideUrlLoading(android.webkit.WebView,java.lang.String) -> shouldOverrideUrlLoading
+    void launchDefaultActivity() -> a
     boolean applyPushwooshUrlScheme(java.lang.String) -> a
     void <init>(com.pushwoosh.inapp.WebActivity,com.pushwoosh.inapp.WebActivity$1) -> <init>
+com.pushwoosh.inapp.WebActivity$WebClient$1 -> com.pushwoosh.inapp.WebActivity$a$1:
+    java.lang.String val$url -> a
+    com.pushwoosh.inapp.WebActivity$WebClient this$1 -> b
+    void <init>(com.pushwoosh.inapp.WebActivity$WebClient,java.lang.String) -> <init>
+    void run() -> run
 com.pushwoosh.internal.PushEventsTransmitter -> com.pushwoosh.internal.a:
     void <init>() -> <init>
     boolean getUseBroadcast(android.content.Context) -> a
@@ -2347,6 +2361,22 @@ com.pushwoosh.internal.utils.JsonUtils -> com.pushwoosh.internal.utils.JsonUtils
     org.json.JSONArray collectionToJson(java.util.Collection) -> collectionToJson
     org.json.JSONArray arrayToJson(java.lang.Object) -> arrayToJson
     java.lang.Object wrap(java.lang.Object) -> a
+com.pushwoosh.internal.utils.LockScreenReceiver -> com.pushwoosh.internal.utils.LockScreenReceiver:
+    void <init>() -> <init>
+    void onReceive(android.content.Context,android.content.Intent) -> onReceive
+com.pushwoosh.internal.utils.LockScreenService -> com.pushwoosh.internal.utils.LockScreenService:
+    android.content.BroadcastReceiver mReceiver -> a
+    java.util.List screenOffCallbacks -> b
+    java.util.List screenOnCallbacks -> c
+    void <init>() -> <init>
+    void doOnScreenLocked(android.content.Context,java.lang.Runnable) -> a
+    void doOnScreenUnLocked(android.content.Context,java.lang.Runnable) -> b
+    boolean isScreenLocked(android.content.Context) -> a
+    void onCreate() -> onCreate
+    void onDestroy() -> onDestroy
+    int onStartCommand(android.content.Intent,int,int) -> onStartCommand
+    android.os.IBinder onBind(android.content.Intent) -> onBind
+    void <clinit>() -> <clinit>
 com.pushwoosh.internal.utils.NotificationPrefs -> com.pushwoosh.internal.utils.d:
     void setMultiMode(android.content.Context,boolean) -> a
     boolean getMultiMode(android.content.Context) -> a
@@ -2385,10 +2415,12 @@ com.pushwoosh.internal.utils.NotificationPrefs -> com.pushwoosh.internal.utils.d
 com.pushwoosh.internal.utils.NotificationUtils -> com.pushwoosh.internal.utils.e:
     int tryToGetIconFormStringOrGetFromApplication(java.lang.String,android.content.Context) -> a
     android.graphics.Bitmap tryToGetBitmapFromInternet(java.lang.String,android.content.Context,int) -> a
+    android.net.Uri getSoundUri(android.content.Context,java.lang.String) -> a
     boolean phoneHaveVibratePermission(android.content.Context) -> a
     void copyFile(java.io.InputStream,java.io.OutputStream) -> a
-    android.net.Uri getUriForAssetPath(android.content.Context,java.lang.String) -> a
+    android.net.Uri getUriForAssetPath(android.content.Context,java.lang.String) -> b
     boolean isNotificationEnabled(android.content.Context) -> b
+    void tryTurnScreenOn(android.content.Context) -> c
 com.pushwoosh.internal.utils.ObjectSerializer -> com.pushwoosh.internal.utils.f:
     java.lang.String serialize(java.lang.Object) -> a
     java.lang.Object deserialize(java.lang.String) -> a
@@ -2690,6 +2722,13 @@ com.pushwoosh.notification.AbsNotificationFactory -> com.pushwoosh.notification.
     void onPushReceived(com.pushwoosh.notification.PushData) -> onPushReceived
     void onPushHandle(android.app.Activity) -> onPushHandle
     void <clinit>() -> <clinit>
+com.pushwoosh.notification.AbsNotificationFactory$1 -> com.pushwoosh.notification.AbsNotificationFactory$1:
+    java.lang.String val$richMedia -> a
+    android.content.Context val$context1 -> b
+    java.lang.String val$sound -> c
+    com.pushwoosh.notification.AbsNotificationFactory this$0 -> d
+    void <init>(com.pushwoosh.notification.AbsNotificationFactory,java.lang.String,android.content.Context,java.lang.String) -> <init>
+    void run() -> run
 com.pushwoosh.notification.Action -> com.pushwoosh.notification.Action:
     com.pushwoosh.notification.Action$Type mType -> a
     java.lang.String mIntentAction -> b
@@ -2761,6 +2800,7 @@ com.pushwoosh.notification.PushData -> com.pushwoosh.notification.PushData:
     int mLedOffMS -> v
     java.util.ArrayList mActions -> w
     java.lang.String mMsgTag -> x
+    boolean mLockScreen -> y
     void <init>(android.content.Context,android.os.Bundle) -> <init>
     java.lang.Integer loadIconBackgroundColor(android.content.Context,android.os.Bundle) -> a
     java.lang.Integer loadLedColor(android.os.Bundle) -> a
@@ -2799,6 +2839,7 @@ com.pushwoosh.notification.PushData -> com.pushwoosh.notification.PushData:
     int getLedOffMS() -> getLedOffMS
     com.pushwoosh.notification.Action[] getActions() -> getActions
     java.lang.String getMessageTag() -> getMessageTag
+    boolean isLockScreen() -> isLockScreen
 com.pushwoosh.notification.PushData$BadPushBundleException -> com.pushwoosh.notification.PushData$BadPushBundleException:
     void <init>() -> <init>
 com.pushwoosh.notification.SoundType -> com.pushwoosh.notification.SoundType:
