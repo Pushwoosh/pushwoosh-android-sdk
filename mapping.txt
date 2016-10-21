@@ -2247,11 +2247,9 @@ com.pushwoosh.internal.request.SetBadgeRequest -> com.pushwoosh.internal.b.n:
     void buildParams(android.content.Context,java.util.Map) -> buildParams
 com.pushwoosh.internal.request.SetTagsRequest -> com.pushwoosh.internal.b.o:
     java.util.Map tags -> b
-    org.json.JSONArray skippedTags -> c
     void <init>(java.util.Map) -> <init>
     java.lang.String getMethod() -> getMethod
     void buildParams(android.content.Context,java.util.Map) -> buildParams
-    void parseResponse(org.json.JSONObject) -> parseResponse
 com.pushwoosh.internal.request.TrackInAppRequest -> com.pushwoosh.internal.b.p:
     java.lang.String mSku -> b
     java.util.Date mPurchaseTime -> c

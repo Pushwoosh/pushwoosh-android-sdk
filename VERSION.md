@@ -1,3 +1,10 @@
+Current version: 4.9.1
+=========================
+Pushwoosh Android SDK 4.9.1
+
+Fixed:
+    Incorrect base url for html pages [ISSUE47](https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/47)
+    /setTags respose parsing error [ISSUE46] (https://github.com/Pushwoosh/pushwoosh-android-sdk/issues/46)
 Current version: 4.9.0
 =========================
 Rich Media notifications on Lockscreen (http://docs.pushwoosh.com/v1.0/docs/android-lockscreen-push)
