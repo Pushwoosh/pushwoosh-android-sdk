@@ -1,3 +1,9 @@
+Current version: 4.10.1
+=========================
+Pushwoosh Android SDK 4.10.1
+
+Fixed:
+    [scheduleLocalNotification](https://github.com/Pushwoosh/pushwoosh-android-sdk/blob/master/Documentation/PushManager.md#schedulelocalnotification) stability fix for possible ConcurrentModificationException
 Current version: 4.10.0
 =========================
 Pushwoosh Android SDK 4.10.0
