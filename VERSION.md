@@ -1,3 +1,9 @@
+Current version: 4.10.0
+=========================
+Pushwoosh Android SDK 4.10.0
+
+Added:
+    Application icon badge number support for Sony, HUAWEI, ZUK and OPPO
 Current version: 4.9.1
 =========================
 Pushwoosh Android SDK 4.9.1

@@ -3528,49 +3528,93 @@ com.pushwoosh.thirdparty.radiusnetworks.ibeacon.simulator.StaticBeaconSimulator 
     void <init>() -> <init>
     java.util.List getBeacons() -> getBeacons
     void setBeacons(java.util.List) -> setBeacons
-com.pushwoosh.thirdparty.shortcutbadger.ShortcutBadgeException -> com.pushwoosh.thirdparty.a.a:
-    void <init>(java.lang.String) -> <init>
-com.pushwoosh.thirdparty.shortcutbadger.ShortcutBadger -> com.pushwoosh.thirdparty.a.b:
-    java.lang.String LOG_TAG -> b
-    java.util.List BADGERS -> c
-    com.pushwoosh.thirdparty.shortcutbadger.ShortcutBadger mShortcutBadger -> d
-    android.content.Context mContext -> a
-    com.pushwoosh.thirdparty.shortcutbadger.ShortcutBadger with(android.content.Context) -> a
-    com.pushwoosh.thirdparty.shortcutbadger.ShortcutBadger getShortcutBadger(android.content.Context) -> b
-    void <init>() -> <init>
-    void <init>(android.content.Context) -> <init>
-    void executeBadge(int) -> a
+com.pushwoosh.thirdparty.shortcutbadger.Badger -> com.pushwoosh.thirdparty.a.a:
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
     java.util.List getSupportLaunchers() -> a
-    java.lang.String getEntryActivityName() -> b
-    java.lang.String getContextPackageName() -> c
-    void count(int) -> b
+com.pushwoosh.thirdparty.shortcutbadger.ShortcutBadgeException -> com.pushwoosh.thirdparty.a.b:
+    void <init>(java.lang.String) -> <init>
+    void <init>(java.lang.String,java.lang.Exception) -> <init>
+com.pushwoosh.thirdparty.shortcutbadger.ShortcutBadger -> com.pushwoosh.thirdparty.a.c:
+    java.util.List BADGERS -> a
+    com.pushwoosh.thirdparty.shortcutbadger.Badger sShortcutBadger -> b
+    android.content.ComponentName sComponentName -> c
+    boolean applyCount(android.content.Context,int) -> a
+    void applyCountOrThrow(android.content.Context,int) -> b
+    boolean initBadger(android.content.Context) -> a
     void <clinit>() -> <clinit>
 com.pushwoosh.thirdparty.shortcutbadger.impl.AdwHomeBadger -> com.pushwoosh.thirdparty.a.a.a:
-    void executeBadge(int) -> a
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
     java.util.List getSupportLaunchers() -> a
 com.pushwoosh.thirdparty.shortcutbadger.impl.ApexHomeBadger -> com.pushwoosh.thirdparty.a.a.b:
-    void executeBadge(int) -> a
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
     java.util.List getSupportLaunchers() -> a
 com.pushwoosh.thirdparty.shortcutbadger.impl.AsusHomeLauncher -> com.pushwoosh.thirdparty.a.a.c:
-    void executeBadge(int) -> a
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
     java.util.List getSupportLaunchers() -> a
 com.pushwoosh.thirdparty.shortcutbadger.impl.DefaultBadger -> com.pushwoosh.thirdparty.a.a.d:
-    void <init>(android.content.Context) -> <init>
-    void executeBadge(int) -> a
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
     java.util.List getSupportLaunchers() -> a
-com.pushwoosh.thirdparty.shortcutbadger.impl.NewHtcHomeBadger -> com.pushwoosh.thirdparty.a.a.e:
-    void executeBadge(int) -> a
+com.pushwoosh.thirdparty.shortcutbadger.impl.HuaweiHomeBadger -> com.pushwoosh.thirdparty.a.a.e:
+    java.lang.String LOG_TAG -> a
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
     java.util.List getSupportLaunchers() -> a
-com.pushwoosh.thirdparty.shortcutbadger.impl.NovaHomeBadger -> com.pushwoosh.thirdparty.a.a.f:
-    void executeBadge(int) -> a
+    void <clinit>() -> <clinit>
+com.pushwoosh.thirdparty.shortcutbadger.impl.NewHtcHomeBadger -> com.pushwoosh.thirdparty.a.a.f:
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
     java.util.List getSupportLaunchers() -> a
-com.pushwoosh.thirdparty.shortcutbadger.impl.SolidHomeBadger -> com.pushwoosh.thirdparty.a.a.g:
-    void executeBadge(int) -> a
+com.pushwoosh.thirdparty.shortcutbadger.impl.NovaHomeBadger -> com.pushwoosh.thirdparty.a.a.g:
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
     java.util.List getSupportLaunchers() -> a
-com.pushwoosh.thirdparty.shortcutbadger.impl.SonyHomeBadger -> com.pushwoosh.thirdparty.a.a.h:
-    void executeBadge(int) -> a
+com.pushwoosh.thirdparty.shortcutbadger.impl.OPPOHomeBader -> com.pushwoosh.thirdparty.a.a.h:
+    int ROMVERSION -> a
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
     java.util.List getSupportLaunchers() -> a
-com.pushwoosh.thirdparty.shortcutbadger.impl.XiaomiHomeBadger -> com.pushwoosh.thirdparty.a.a.i:
-    void <init>(android.content.Context) -> <init>
-    void executeBadge(int) -> a
+    int getSupportVersion() -> b
+    java.lang.Object executeClassLoad(java.lang.Class,java.lang.String,java.lang.Class[],java.lang.Object[]) -> a
+    java.lang.reflect.Method getMethod(java.lang.Class,java.lang.String,java.lang.Class[]) -> a
+    java.lang.Class getClass(java.lang.String) -> a
+    boolean checkObjExists(java.lang.Object) -> a
+    java.lang.String getSystemProperty(java.lang.String) -> b
+    void <clinit>() -> <clinit>
+com.pushwoosh.thirdparty.shortcutbadger.impl.SamsungHomeBadger -> com.pushwoosh.thirdparty.a.a.i:
+    java.lang.String[] CONTENT_PROJECTION -> a
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
+    android.content.ContentValues getContentValues(android.content.ComponentName,int,boolean) -> a
     java.util.List getSupportLaunchers() -> a
+    void <clinit>() -> <clinit>
+com.pushwoosh.thirdparty.shortcutbadger.impl.SonyHomeBadger -> com.pushwoosh.thirdparty.a.a.j:
+    android.net.Uri BADGE_CONTENT_URI -> a
+    android.content.AsyncQueryHandler mQueryHandler -> b
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
+    java.util.List getSupportLaunchers() -> a
+    void executeBadgeByBroadcast(android.content.Context,android.content.ComponentName,int) -> b
+    void executeBadgeByContentProvider(android.content.Context,android.content.ComponentName,int) -> c
+    void insertBadgeAsync(int,java.lang.String,java.lang.String) -> a
+    boolean sonyBadgeContentProviderExists(android.content.Context) -> a
+com.pushwoosh.thirdparty.shortcutbadger.impl.SonyHomeBadger$1 -> com.pushwoosh.thirdparty.a.a.j$1:
+    com.pushwoosh.thirdparty.shortcutbadger.impl.SonyHomeBadger this$0 -> a
+    void <init>(com.pushwoosh.thirdparty.shortcutbadger.impl.SonyHomeBadger,android.content.ContentResolver) -> <init>
+com.pushwoosh.thirdparty.shortcutbadger.impl.XiaomiHomeBadger -> com.pushwoosh.thirdparty.a.a.k:
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
+    java.util.List getSupportLaunchers() -> a
+com.pushwoosh.thirdparty.shortcutbadger.impl.ZukHomeBadger -> com.pushwoosh.thirdparty.a.a.l:
+    android.net.Uri CONTENT_URI -> a
+    void <init>() -> <init>
+    void executeBadge(android.content.Context,android.content.ComponentName,int) -> a
+    java.util.List getSupportLaunchers() -> a
+com.pushwoosh.thirdparty.shortcutbadger.util.BroadcastHelper -> com.pushwoosh.thirdparty.a.b.a:
+    boolean canResolveBroadcast(android.content.Context,android.content.Intent) -> a
+com.pushwoosh.thirdparty.shortcutbadger.util.CloseHelper -> com.pushwoosh.thirdparty.a.b.b:
+    void close(android.database.Cursor) -> a
+    void closeQuietly(java.io.Closeable) -> a
