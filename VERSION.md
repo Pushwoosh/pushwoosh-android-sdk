@@ -1,3 +1,12 @@
+Current version: 4.10.2
+=========================
+Pushwoosh Android SDK 4.10.2
+
+Added:
+    Tags prefetching for rich media pushes to increase performance
+
+Fixed:
+    Seding multiple /pushStat for same push
 Current version: 4.10.1
 =========================
 Pushwoosh Android SDK 4.10.1

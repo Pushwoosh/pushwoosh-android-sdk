@@ -2350,6 +2350,7 @@ com.pushwoosh.internal.utils.GeneralUtils -> com.pushwoosh.internal.utils.Genera
     int parseColor(java.lang.String) -> parseColor
     void mergeTags(java.util.Map,java.util.Map) -> mergeTags
     boolean isSound(java.lang.String) -> isSound
+    void prefetchTags(android.content.Context) -> prefetchTags
     void <clinit>() -> <clinit>
 com.pushwoosh.internal.utils.JsonUtils -> com.pushwoosh.internal.utils.JsonUtils:
     void <init>() -> <init>
@@ -2410,6 +2411,8 @@ com.pushwoosh.internal.utils.NotificationPrefs -> com.pushwoosh.internal.utils.d
     void setTags(android.content.Context,java.util.Map) -> a
     void addTags(android.content.Context,java.util.Map) -> b
     java.util.Map getTags(android.content.Context) -> q
+    void setLastNotificationHash(android.content.Context,java.lang.String) -> e
+    java.lang.String getLastNotificationHash(android.content.Context) -> r
 com.pushwoosh.internal.utils.NotificationUtils -> com.pushwoosh.internal.utils.e:
     int tryToGetIconFormStringOrGetFromApplication(java.lang.String,android.content.Context) -> a
     android.graphics.Bitmap tryToGetBitmapFromInternet(java.lang.String,android.content.Context,int) -> a
