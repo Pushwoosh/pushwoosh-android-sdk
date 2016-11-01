@@ -2523,8 +2523,10 @@ com.pushwoosh.internal.utils.RegistrationPrefs -> com.pushwoosh.internal.utils.h
     void setUserId(android.content.Context,java.lang.String) -> d
     java.lang.String getDeviceId(android.content.Context) -> k
     void setDeviceId(android.content.Context,java.lang.String) -> e
-    int getAppVersion(android.content.Context) -> l
-    android.content.SharedPreferences getPreferences(android.content.Context) -> m
+    java.lang.String getLogLevel(android.content.Context) -> l
+    void setLogLevel(android.content.Context,java.lang.String) -> f
+    int getAppVersion(android.content.Context) -> m
+    android.content.SharedPreferences getPreferences(android.content.Context) -> n
 com.pushwoosh.local.AlarmReceiver -> com.pushwoosh.local.AlarmReceiver:
     int counter -> a
     void <init>() -> <init>
