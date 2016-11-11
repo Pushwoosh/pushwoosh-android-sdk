@@ -2095,6 +2095,11 @@ com.pushwoosh.internal.PushManagerImpl$1 -> com.pushwoosh.internal.PushManagerIm
     android.content.Intent val$intent -> b
     void <init>(android.content.Context,android.content.Intent) -> <init>
     void run() -> run
+com.pushwoosh.internal.PushManagerImpl$2 -> com.pushwoosh.internal.PushManagerImpl$2:
+    android.content.Context val$context -> a
+    int val$newBadge -> b
+    void <init>(android.content.Context,int) -> <init>
+    void run() -> run
 com.pushwoosh.internal.PushServiceHelper -> com.pushwoosh.internal.b:
     void prehandleMessage(android.content.Context,android.os.Bundle) -> a
     void generateNotification(android.content.Context,android.os.Bundle) -> b
