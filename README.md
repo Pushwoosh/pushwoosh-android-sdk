@@ -8,12 +8,12 @@ Maven integration:
 	<dependency>
   		<groupId>com.pushwoosh</groupId>
   		<artifactId>pushwoosh</artifactId>
-  		<version>4.10.5</version>
+  		<version>4.10.6</version>
 	</dependency>
 
 Gradle integration:
 
-	compile 'com.pushwoosh:pushwoosh:4.10.5'
+	compile 'com.pushwoosh:pushwoosh:4.10.6'
 
 
 The guide for SDK integration is available on Pushwoosh website:  
