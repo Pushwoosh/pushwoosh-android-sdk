@@ -2370,12 +2370,15 @@ com.pushwoosh.internal.utils.LockScreenReceiver -> com.pushwoosh.internal.utils.
     void onReceive(android.content.Context,android.content.Intent) -> onReceive
 com.pushwoosh.internal.utils.LockScreenService -> com.pushwoosh.internal.utils.LockScreenService:
     android.content.BroadcastReceiver mReceiver -> a
-    java.util.List screenOffCallbacks -> b
-    java.util.List screenOnCallbacks -> c
+    java.lang.Object lock -> b
+    java.util.List screenOffCallbacks -> c
+    java.util.List screenOnCallbacks -> d
     void <init>() -> <init>
     void doOnScreenLocked(android.content.Context,java.lang.Runnable) -> a
     void doOnScreenUnLocked(android.content.Context,java.lang.Runnable) -> b
-    boolean isScreenLocked(android.content.Context) -> a
+    void setScreenOff(android.content.Context,boolean) -> a
+    void setScreenUnlocked(android.content.Context) -> a
+    boolean isScreenLocked(android.content.Context) -> b
     void onCreate() -> onCreate
     void onDestroy() -> onDestroy
     int onStartCommand(android.content.Intent,int,int) -> onStartCommand
