@@ -1349,10 +1349,6 @@ com.pushwoosh.Manifest -> com.pushwoosh.Manifest:
 com.pushwoosh.Manifest$permission -> com.pushwoosh.Manifest$permission:
     java.lang.String dollar_openBracket_applicationId_closeBracket -> dollar_openBracket_applicationId_closeBracket
     void <init>() -> <init>
-com.pushwoosh.MessageActivity -> com.pushwoosh.MessageActivity:
-    void <init>() -> <init>
-    void onCreate(android.os.Bundle) -> onCreate
-    void startPushMessageHandlerActivity() -> a
 com.pushwoosh.MessageAlertReceiver -> com.pushwoosh.MessageAlertReceiver:
     void <init>() -> <init>
 com.pushwoosh.PackageRemoveReceiver -> com.pushwoosh.PackageRemoveReceiver:
@@ -2060,7 +2056,9 @@ com.pushwoosh.inapp.WebActivity$WebClient$1 -> com.pushwoosh.inapp.WebActivity$a
     com.pushwoosh.inapp.WebActivity$WebClient this$1 -> b
     void <init>(com.pushwoosh.inapp.WebActivity$WebClient,java.lang.String) -> <init>
     void run() -> run
-com.pushwoosh.internal.PushEventsTransmitter -> com.pushwoosh.internal.a:
+com.pushwoosh.internal.PushActivityLauncher -> com.pushwoosh.internal.a:
+    void startPushMessageHandlerActivity(android.content.Context,android.content.Intent) -> a
+com.pushwoosh.internal.PushEventsTransmitter -> com.pushwoosh.internal.b:
     void <init>() -> <init>
     boolean getUseBroadcast(android.content.Context) -> a
     void transmit(android.content.Context,java.lang.String,java.lang.String) -> a
@@ -2076,6 +2074,7 @@ com.pushwoosh.internal.PushManagerImpl -> com.pushwoosh.internal.PushManagerImpl
     com.pushwoosh.PushManager$RichPageListener richPageListener -> b
     com.pushwoosh.notification.AbsNotificationFactory mNotificationFactory -> c
     void <init>() -> <init>
+    void setRichMediaDelayMs(android.content.Context,int) -> setRichMediaDelayMs
     void performRichPageAction(java.lang.String) -> performRichPageAction
     void performRichPageClose() -> performRichPageClose
     void setRichPageListener(com.pushwoosh.PushManager$RichPageListener) -> setRichPageListener
@@ -2100,7 +2099,7 @@ com.pushwoosh.internal.PushManagerImpl$2 -> com.pushwoosh.internal.PushManagerIm
     int val$newBadge -> b
     void <init>(android.content.Context,int) -> <init>
     void run() -> run
-com.pushwoosh.internal.PushServiceHelper -> com.pushwoosh.internal.b:
+com.pushwoosh.internal.PushServiceHelper -> com.pushwoosh.internal.c:
     void prehandleMessage(android.content.Context,android.os.Bundle) -> a
     void generateNotification(android.content.Context,android.os.Bundle) -> b
     com.pushwoosh.notification.AbsNotificationFactory getNotificationFactory(android.content.Context) -> a
@@ -2413,14 +2412,16 @@ com.pushwoosh.internal.utils.NotificationPrefs -> com.pushwoosh.internal.utils.d
     boolean getGeolocationStarted(android.content.Context) -> m
     void setNotificationIconBackgroundColor(android.content.Context,int) -> e
     int getNotificationIconBackgroundColor(android.content.Context) -> n
+    void setRichMediaDelayMs(android.content.Context,int) -> f
+    int getRichMediaDelayMs(android.content.Context) -> o
     void savePush(android.content.Context,java.lang.String) -> d
-    java.util.ArrayList getPushHistory(android.content.Context) -> o
-    void clearPushHistory(android.content.Context) -> p
+    java.util.ArrayList getPushHistory(android.content.Context) -> p
+    void clearPushHistory(android.content.Context) -> q
     void setTags(android.content.Context,java.util.Map) -> a
     void addTags(android.content.Context,java.util.Map) -> b
-    java.util.Map getTags(android.content.Context) -> q
+    java.util.Map getTags(android.content.Context) -> r
     void setLastNotificationHash(android.content.Context,java.lang.String) -> e
-    java.lang.String getLastNotificationHash(android.content.Context) -> r
+    java.lang.String getLastNotificationHash(android.content.Context) -> s
 com.pushwoosh.internal.utils.NotificationUtils -> com.pushwoosh.internal.utils.e:
     int tryToGetIconFormStringOrGetFromApplication(java.lang.String,android.content.Context) -> a
     android.graphics.Bitmap tryToGetBitmapFromInternet(java.lang.String,android.content.Context,int) -> a
