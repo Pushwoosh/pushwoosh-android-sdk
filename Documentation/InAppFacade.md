@@ -17,9 +17,9 @@ Post events for In-App Messages. This can trigger In-App message display as spec
  
 ```java
 public static void postEvent(Activity activity, 
-							 String event, 
-							 Map<String, Object> attributes, 
-							 PostEventCallback callback)
+                             String event, 
+                             Map<String, Object> attributes, 
+                             PostEventCallback callback)
 ```
 
 * **activity** - activity context
@@ -34,15 +34,15 @@ Map<String, Object> attributes = new HashMap<>();
 attributes.put("buttonNumber", 4);
 attributes.put("buttonLabel", "Banner");
 InAppFacade.postEvent(MainActivity.this, "buttonPressed", "buttonNumber", new InAppFacade.PostEventCallback() {
-	@Override
-	public void onSuccess() {
-		// Handle successful postEvent
-	}
+    @Override
+    public void onSuccess() {
+        // Handle successful postEvent
+    }
 
-	@Override
-	public void onError(String s) {
-		// Handle error
-	}
+    @Override
+    public void onError(String s) {
+        // Handle error
+    }
 });
 ```
 
@@ -64,10 +64,10 @@ Example:<br>
 **LoggerJS.java**
 ```java
 public class LoggerJS {
-	@JavascriptInterface
+    @JavascriptInterface
     public void log(String message) {
-    	android.util.Log.i("LoggerJS", message);
-	}
+        android.util.Log.i("LoggerJS", message);
+    }
 }
 ```
 
