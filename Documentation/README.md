@@ -8,6 +8,7 @@
 ## Classes
 [PushFragment](PushFragment.md)  
 [PushManager](PushManager.md)  
+[InAppFacade](InAppFacade.md)  
 [AbsNotificationFactory](AbsNotificationFactory.md)  
 [PushData](PushData.md)  
 [PushSender](PushSender.md)  
