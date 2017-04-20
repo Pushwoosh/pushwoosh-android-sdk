@@ -2307,6 +2307,7 @@ com.pushwoosh.internal.utils.DeviceUtils -> com.pushwoosh.internal.utils.b:
     java.util.List getInstalledApps(android.content.Context) -> h
     java.lang.String getDeviceName() -> f
     java.lang.String capitalize(java.lang.String) -> a
+    java.lang.String getAdvertisingId(android.content.Context) -> i
     void <clinit>() -> <clinit>
 com.pushwoosh.internal.utils.DeviceUtils$1 -> com.pushwoosh.internal.utils.b$1:
 com.pushwoosh.internal.utils.DeviceUtils$DeviceRandomUUID -> com.pushwoosh.internal.utils.b$a:
