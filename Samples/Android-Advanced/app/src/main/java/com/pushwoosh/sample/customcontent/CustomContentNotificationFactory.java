@@ -1,33 +1,26 @@
 package com.pushwoosh.sample.customcontent;
 
-import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Build;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.RemoteInput;
-import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.pushwoosh.notification.AbsNotificationFactory;
-import com.pushwoosh.notification.DefaultNotificationFactory;
-import com.pushwoosh.notification.PushData;
+import com.pushwoosh.notification.PushMessage;
+import com.pushwoosh.notification.PushwooshNotificationFactory;
 import com.pushwoosh.sample.R;
 
-public class CustomContentNotificationFactory extends DefaultNotificationFactory
+public class CustomContentNotificationFactory extends PushwooshNotificationFactory
 {
-    private RemoteViews buildContentView(PushData pushData)
+    private RemoteViews buildContentView(PushMessage pushData)
     {
-        RemoteViews contentView = new RemoteViews(getContext().getPackageName(), R.layout.notification);
+        Context context = getApplicationContext();
+        RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification);
 
         Intent intent = new Intent();
-        intent.setAction(getContext().getPackageName() + ".action.NOTIFICATION_BUTTON");
-        contentView.setOnClickPendingIntent(R.id.notification_button, PendingIntent.getBroadcast(getContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT));
+        intent.setAction(context.getPackageName() + ".action.NOTIFICATION_BUTTON");
+        contentView.setOnClickPendingIntent(R.id.notification_button, PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT));
         contentView.setImageViewResource(R.id.notification_button, R.drawable.ic_notification);
 
         contentView.setTextViewText(R.id.notification_text, pushData.getMessage());
@@ -36,7 +29,7 @@ public class CustomContentNotificationFactory extends DefaultNotificationFactory
     }
 
     @Override
-    public Notification onGenerateNotification(PushData pushData)
+    public Notification onGenerateNotification(PushMessage pushData)
     {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB)
         {
@@ -46,7 +39,7 @@ public class CustomContentNotificationFactory extends DefaultNotificationFactory
 
         RemoteViews contentView = buildContentView(pushData);
 
-        Notification.Builder notificationBuilder = new Notification.Builder(getContext())
+        Notification.Builder notificationBuilder = new Notification.Builder(getApplicationContext())
                 .setContentTitle(getContentFromHtml(pushData.getHeader()))
                 .setContentText(getContentFromHtml(pushData.getMessage()))
                 .setSmallIcon(pushData.getSmallIcon())

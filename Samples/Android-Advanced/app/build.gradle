@@ -1,16 +1,31 @@
 apply plugin: 'com.android.application'
+apply plugin: 'me.tatarka.retrolambda'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'me.tatarka:gradle-retrolambda:3.2.5'
+        classpath 'me.tatarka.retrolambda.projectlombok:lombok.ast:0.2.3.a2'
+    }
+}
+
+retrolambda {
+    javaVersion JavaVersion.VERSION_1_7
+}
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "22.0.1"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         applicationId "com.pushwoosh.sample"
-        minSdkVersion 9
-        targetSdkVersion 24
+        minSdkVersion 14
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
-        manifestPlaceholders = [pw_appid: "4FC89B6D14A655.46488481", gcm_project_number: "A60756016005"]
+        manifestPlaceholders = [pw_appid: "PUT_YOUR_APPLICATION_ID_HERE", gcm_project_number: "PUT_YOUR_FCM_SENDER_ID_HERE_PREFIXED_WITH_A"]
     }
     buildTypes {
         release {
@@ -22,9 +37,11 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:24.0.0'
-    compile 'com.android.support:support-v4:24.0.0'
-    compile 'com.google.android.gms:play-services-gcm:9.2.1'
-    compile 'com.google.android.gms:play-services-location:9.2.1'
-    compile project(':Pushwoosh')
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:support-v4:25.3.1'
+    compile 'com.google.android.gms:play-services-gcm:11.0.2'
+    compile 'com.google.android.gms:play-services-location:11.0.2'
+    compile 'com.pushwoosh:pushwoosh:5.0.0'
+    compile 'com.pushwoosh:pushwoosh-badge:5.0.0'
+    compile 'com.pushwoosh:pushwoosh-location:5.0.0'
 }

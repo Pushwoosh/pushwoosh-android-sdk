@@ -1,23 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pushwoosh.sample.quickstart" >
+          package="com.pushwoosh.sample.quickstart">
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
-        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
-        <meta-data android:name="PW_APPID" android:value="4FC89B6D14A655.46488481" />
-        <meta-data android:name="PW_PROJECT_ID" android:value="A60756016005" />
-
+        android:theme="@style/AppTheme">
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version"/>
+        <meta-data
+            android:name="com.pushwoosh.appid"
+            android:value="PUT_YOUR_APPLICATION_ID_HERE"/>
+        <meta-data
+            android:name="com.pushwoosh.senderid"
+            android:value="PUT_YOUR_FCM_SENDER_ID_HERE_PREFIXED_WITH_A"/>
+        <meta-data
+            android:name="com.pushwoosh.notification_icon"
+            android:value="@drawable/notification_small_icon" />
+        <meta-data
+            android:name="com.pushwoosh.notification_icon_color"
+            android:value="@color/notification_icon_color" />
+        <meta-data
+            android:name="com.pushwoosh.notification_service_extension"
+            android:value="com.pushwoosh.testingapp.TestNotificationServiceExtension"/>
+        <meta-data
+            android:name="com.pushwoosh.notification_factory"
+            android:value="com.pushwoosh.testingapp.TestingAppNotificationFactory"/>
+            
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
     </application>
+
 </manifest>

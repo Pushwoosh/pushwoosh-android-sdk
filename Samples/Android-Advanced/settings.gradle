@@ -1,1 +1,1 @@
-include ':app', ':Pushwoosh'
+include ':app'

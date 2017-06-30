@@ -6,11 +6,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
 
-public class DeepLinkActivity extends Activity
-{
+public class DeepLinkActivity extends Activity {
 	@Override
-	protected void onCreate(Bundle savedInstanceState)
-	{
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.deep_link);
@@ -26,8 +24,7 @@ public class DeepLinkActivity extends Activity
 	    }
 	}
 	
-	private void openUrl(Uri uri) 
-	{
+	private void openUrl(Uri uri) {
 		String path = uri.getPath();
 		Toast.makeText(getApplicationContext(), path, Toast.LENGTH_LONG).show();
 	}

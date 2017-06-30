@@ -1,9 +1,10 @@
 Pushwoosh Android SDK
 =====================
+[![GitHub release](https://img.shields.io/github/release/Pushwoosh/pushwoosh-andorid-sdk.svg?style=flat-square)](https://github.com/Pushwoosh/pushwoosh-android-sdk/releases) 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.pushwoosh/pushwoosh/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.pushwoosh/pushwoosh)
 
 
-[Pushwoosh.aar](https://github.com/Pushwoosh/pushwoosh-android-sdk/blob/master/Pushwoosh.aar) - compiled version of Pushwoosh Android SDK. Includes all necessary AndroidManifest.xml changes required for receiving Amazon and GCM push notifications.
+[Pushwoosh.aar](https://github.com/Pushwoosh/pushwoosh-android-sdk/blob/master/pushwoosh.aar) - compiled version of Pushwoosh Android SDK. Includes all necessary AndroidManifest.xml changes required for receiving Amazon and GCM push notifications.
 
 Maven integration:
 
@@ -19,10 +20,10 @@ Gradle integration:
 
 
 The guide for SDK integration is available on Pushwoosh website:  
-http://docs.pushwoosh.com/docs/android-sdk-fragments
+http://docs.pushwoosh.com/docs/android-sdk
 
 Documentation:
-https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Documentation
+file:///Users/arellomobile/workspace/Pushwoosh/SDK/Android/PublicSDK/Documentation/index.html
 
 Samples:
 https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Samples

@@ -1,145 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pushwoosh.sample" >
-
-    <!-- Geo Pushes -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <!-- <badges> -->
-    <!-- for Samsung -->
-    <uses-permission android:name="com.sec.android.provider.badge.permission.READ"/>
-    <uses-permission android:name="com.sec.android.provider.badge.permission.WRITE"/>
-
-    <!--for htc-->
-    <uses-permission android:name="com.htc.launcher.permission.READ_SETTINGS"/>
-    <uses-permission android:name="com.htc.launcher.permission.UPDATE_SHORTCUT"/>
-
-    <!--for sony-->
-    <uses-permission android:name="com.sonyericsson.home.permission.BROADCAST_BADGE"/>
-    <uses-permission android:name="com.sonymobile.home.permission.PROVIDER_INSERT_BADGE"/>
-
-    <!--for apex-->
-    <uses-permission android:name="com.anddoes.launcher.permission.UPDATE_COUNT"/>
-
-    <!--for solid-->
-    <uses-permission android:name="com.majeur.launcher.permission.UPDATE_BADGE"/>
-
-    <!--for huawei-->
-    <uses-permission android:name="com.huawei.android.launcher.permission.CHANGE_BADGE"/>
-    <uses-permission android:name="com.huawei.android.launcher.permission.READ_SETTINGS"/>
-    <uses-permission android:name="com.huawei.android.launcher.permission.WRITE_SETTINGS"/>
-
-    <!--for ZUK-->
-    <uses-permission android:name="android.permission.READ_APP_BADGE"/>
-
-    <!--for OPPO-->
-    <uses-permission android:name="com.oppo.launcher.permission.READ_SETTINGS"/>
-    <uses-permission android:name="com.oppo.launcher.permission.WRITE_SETTINGS"/>
-    <!-- </badges> -->
-
+          package="com.pushwoosh.sample">
 
     <!-- For rescheduling local notification and restarting location tracking after reboot -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
-    <!-- Beacon Pushes -->
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-
-    <supports-screens android:anyDensity="true" />
+    <supports-screens android:anyDensity="true"/>
 
     <application
+        android:name=".PushwooshSampleApp"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.Light" >
+        android:theme="@android:style/Theme.Light">
         <meta-data
             android:name="PW_APPID"
-            android:value="${pw_appid}" />
+            android:value="${pw_appid}"/>
         <meta-data
             android:name="PW_PROJECT_ID"
-            android:value="${gcm_project_number}" />
+            android:value="${gcm_project_number}"/>
+        <meta-data
+            android:name="com.pushwoosh.notification_icon"
+            android:value="@drawable/notification_small_icon" />
+        <meta-data
+            android:name="com.pushwoosh.notification_icon_color"
+            android:value="@color/notification_icon_color" />
+        <meta-data
+            android:name="com.pushwoosh.notification_service_extension"
+            android:value=".NotificationServiceSample"/>
+        <meta-data
+            android:name="com.pushwoosh.notification_factory"
+            android:value=".NotificationFactorySample"/>
 
         <activity
             android:name="com.pushwoosh.DeepLinkActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <data android:scheme="pw-${pw_appid}" />
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data android:scheme="pw-${pw_appid}"/>
             </intent-filter>
         </activity>
 
         <!-- Application Activities -->
-        <activity
-            android:name=".MainActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:windowSoftInputMode="adjustResize|stateUnchanged" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="${applicationId}.MESSAGE" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
         <activity
             android:name=".DeepLinkActivity"
-            android:label="DeepLinkActivity" >
+            android:label="DeepLinkActivity">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
                 <!-- Accepts URIs that begin with "pwsample://activity/deeplinkactivity” -->
                 <data
                     android:host="activity"
                     android:pathPrefix="/deeplinkactivity"
-                    android:scheme="pwsample" />
+                    android:scheme="pwsample"/>
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".SetTagsActivity"
-            android:label="@string/title_activity_set_tags" >
-        </activity>
-        <activity
-            android:name=".SendPushActivity"
-            android:label="@string/title_activity_send_push" >
-        </activity>
-        <activity
-            android:name=".SecondActivity"
-            android:label="@string/second_activity" >
         </activity>
 
         <!-- Application Receivers -->
         <receiver
-            android:name=".SilentPushReceiver"
-            android:permission=".permission.C2D_MESSAGE" >
-            <intent-filter>
-                <action android:name="${applicationId}.action.SILENT_PUSH_RECEIVE" />
-            </intent-filter>
-        </receiver>
-
-        <receiver
             android:name=".customcontent.NotificationButtonReceiver"
-            android:enabled="true" >
+            android:enabled="true">
             <intent-filter>
-                <action android:name="${applicationId}.action.NOTIFICATION_BUTTON" />
+                <action android:name="${applicationId}.action.NOTIFICATION_BUTTON"/>
             </intent-filter>
         </receiver>
 
-        <!-- Applicatoin Services -->
-        <service
-            android:name=".messenger.MessagingService"
-            android:enabled="true"
-            android:exported="false" >
-        </service>
-        
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
