@@ -23,7 +23,7 @@ The guide for SDK integration is available on Pushwoosh website:
 http://docs.pushwoosh.com/docs/android-sdk
 
 Documentation:
-file:///Users/arellomobile/workspace/Pushwoosh/SDK/Android/PublicSDK/Documentation/index.html
+https://rawgit.com/Pushwoosh/pushwoosh-android-sdk/master/Documentation/index.html
 
 Samples:
 https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Samples
