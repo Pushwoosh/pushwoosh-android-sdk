@@ -41,7 +41,7 @@ dependencies {
     compile 'com.android.support:support-v4:25.3.1'
     compile 'com.google.android.gms:play-services-gcm:11.0.2'
     compile 'com.google.android.gms:play-services-location:11.0.2'
-    compile 'com.pushwoosh:pushwoosh:5.0.2'
-    compile 'com.pushwoosh:pushwoosh-badge:5.0.2'
-    compile 'com.pushwoosh:pushwoosh-location:5.0.2'
+    compile 'com.pushwoosh:pushwoosh:5.0.3'
+    compile 'com.pushwoosh:pushwoosh-badge:5.0.3'
+    compile 'com.pushwoosh:pushwoosh-location:5.0.3'
 }
