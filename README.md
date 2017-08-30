@@ -3,11 +3,23 @@ Pushwoosh Android SDK
 [![GitHub release](https://img.shields.io/github/release/Pushwoosh/pushwoosh-andorid-sdk.svg?style=flat-square)](https://github.com/Pushwoosh/pushwoosh-android-sdk/releases) 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.pushwoosh/pushwoosh/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.pushwoosh/pushwoosh)
 
-SDK requires:  
+The SDK uses JobIntentService. You must include the following maven repository URL in build.gradle:
 
-	buildToolsVersion "26.0.1"  
-	compile 'com.android.support:appcompat-v7:26.+'  
-	compile 'com.android.support:support-v4:26.+  
+	allprojects {
+	    repositories {
+	        jcenter ()
+	        maven {
+	            url "https://maven.google.com"
+	         }
+	    } 
+	}
+	
+In addition, add the support-compat in dependencies.
+
+	dependencies {
+	   ...
+	   compile 'com.android.support:support-compat:26.+'
+	}
 
 [Pushwoosh.aar](https://github.com/Pushwoosh/pushwoosh-android-sdk/blob/master/pushwoosh.aar) - compiled version of Pushwoosh Android SDK. Includes all necessary AndroidManifest.xml changes required for receiving Amazon and GCM push notifications.
 
