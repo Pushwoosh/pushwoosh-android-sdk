@@ -14,7 +14,7 @@ The SDK uses JobIntentService. You must include the following maven repository U
 	    } 
 	}
 	
-In addition, add the support-compat in dependencies.
+In addition, add the following dependencies.
 
 	dependencies {
 	   ...
