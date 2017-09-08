@@ -19,6 +19,7 @@ In addition, add the support-compat in dependencies.
 	dependencies {
 	   ...
 	   compile 'com.android.support:support-compat:26.+'
+	   compile 'com.google.android.gms:play-services-gcm:11.+'
 	}
 
 [Pushwoosh.aar](https://github.com/Pushwoosh/pushwoosh-android-sdk/blob/master/pushwoosh.aar) - compiled version of Pushwoosh Android SDK. Includes all necessary AndroidManifest.xml changes required for receiving Amazon and GCM push notifications.
