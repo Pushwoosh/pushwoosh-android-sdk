@@ -1,8 +1,6 @@
 package com.pushwoosh.sample;
 
 import android.app.Application;
-import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.pushwoosh.Pushwoosh;

@@ -15,8 +15,11 @@ public class NotificationServiceSample extends NotificationServiceExtension {
 		// automatic foreground push handling
 		if (isAppOnForeground()) {
 			Handler mainHandler = new Handler(getApplicationContext().getMainLooper());
-			mainHandler.post(() -> {
-				handlePush(message);
+			mainHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					handlePush(message);
+				}
 			});
 
 			// this indicates that notification should not be displayed

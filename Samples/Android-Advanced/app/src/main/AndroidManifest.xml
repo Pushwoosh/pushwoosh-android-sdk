@@ -2,9 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.pushwoosh.sample">
 
-    <!-- For rescheduling local notification and restarting location tracking after reboot -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-
     <supports-screens android:anyDensity="true"/>
 
     <application
