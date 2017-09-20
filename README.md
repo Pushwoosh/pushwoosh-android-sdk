@@ -29,12 +29,12 @@ Maven integration:
 	<dependency>
   		<groupId>com.pushwoosh</groupId>
   		<artifactId>pushwoosh</artifactId>
-  		<version>5.1.0</version>
+  		<version>5.1.1</version>
 	</dependency>
 
 Gradle integration:
 
-	compile 'com.pushwoosh:pushwoosh:5.1.0'
+	compile 'com.pushwoosh:pushwoosh:5.1.1'
 
 
 The guide for SDK integration is available on Pushwoosh website:  

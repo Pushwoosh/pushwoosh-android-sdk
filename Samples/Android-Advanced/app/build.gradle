@@ -39,9 +39,9 @@ dependencies {
 
     compile 'com.google.android.gms:play-services-location:11.4.0'
 
-    compile 'com.pushwoosh:pushwoosh:5.1.0'
-    compile 'com.pushwoosh:pushwoosh-badge:5.1.0'
-    compile 'com.pushwoosh:pushwoosh-location:5.1.0'
+    compile 'com.pushwoosh:pushwoosh:5.1.1'
+    compile 'com.pushwoosh:pushwoosh-badge:5.1.1'
+    compile 'com.pushwoosh:pushwoosh-location:5.1.1'
 }
 
 apply plugin: 'com.google.gms.google-services'
