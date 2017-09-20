@@ -34,10 +34,14 @@ dependencies {
     compile 'com.android.support:appcompat-v7:26.0.2'
     compile 'com.android.support:support-v4:26.0.2'
 
-    compile 'com.google.android.gms:play-services-gcm:11.0.4'
-    compile 'com.google.android.gms:play-services-location:11.0.4'
+    compile "com.google.firebase:firebase-core:11.4.0"
+    compile "com.google.firebase:firebase-messaging:11.4.0"
+
+    compile 'com.google.android.gms:play-services-location:11.4.0'
 
     compile 'com.pushwoosh:pushwoosh:5.1.0'
     compile 'com.pushwoosh:pushwoosh-badge:5.1.0'
     compile 'com.pushwoosh:pushwoosh-location:5.1.0'
 }
+
+apply plugin: 'com.google.gms.google-services'

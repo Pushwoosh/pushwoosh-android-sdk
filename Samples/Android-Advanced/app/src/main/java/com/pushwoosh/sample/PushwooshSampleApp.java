@@ -20,7 +20,7 @@ public class PushwooshSampleApp extends Application {
 			if (result.isSuccess()) {
 				Log.d(LTAG, "Successfully registered for push notifications with token: " + result.getData());
 			} else {
-				Log.d(LTAG, "Failed to register for push notifications: " + result.getException().getMessage());
+				Log.d(LTAG, "Failed to register for push notifications:u " + result.getException().getMessage());
 			}
 		});
 
