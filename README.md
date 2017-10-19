@@ -20,7 +20,7 @@ In addition, add the following dependencies.
 	   ...
 	   compile 'com.android.support:support-compat:26.+'
 	   compile 'com.google.firebase:firebase-messaging:11.+'
-	   compile 'com.pushwoosh:pushwoosh:5.4.0'
+	   compile 'com.pushwoosh:pushwoosh:5.4.1'
 	}
 Starting with Pushwoosh SDK 5.4.0, FCM library is used by default, therefore, you need to integrate Firebase into your project correctly. Please refer to [Getting Started](http://docs.pushwoosh.com/docs/fcm-integration) guide.
 
@@ -35,7 +35,7 @@ Maven integration:
 	<dependency>
   		<groupId>com.pushwoosh</groupId>
   		<artifactId>pushwoosh</artifactId>
-  		<version>5.4.0</version>
+  		<version>5.4.1</version>
 	</dependency>
 
 Documentation:
