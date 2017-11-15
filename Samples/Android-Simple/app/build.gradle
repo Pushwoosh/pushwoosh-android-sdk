@@ -24,7 +24,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:26.0.2'
     compile 'com.android.support:support-v4:26.0.2'
 
-    compile 'com.pushwoosh:pushwoosh:5.4.3'
+    compile 'com.pushwoosh:pushwoosh:5.4.4'
 
     compile "com.google.firebase:firebase-core:11.4.0"
     compile "com.google.firebase:firebase-messaging:11.4.0"
