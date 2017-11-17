@@ -1,43 +1,38 @@
 apply plugin: 'com.android.application'
-apply plugin: 'me.tatarka.retrolambda'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.1'
+    compileSdkVersion 27
 
     defaultConfig {
         applicationId "com.pushwoosh.sample"
         minSdkVersion 14
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-        manifestPlaceholders = [pw_appid: "PUT_YOUR_APPLICATION_ID_HERE", gcm_project_number: "PUT_YOUR_FCM_SENDER_ID_HERE_PREFIXED_WITH_A"]
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    compileOptions {
-        targetCompatibility 1.8
-        sourceCompatibility 1.8
-    }
-}
 
-retrolambda {
-    javaVersion JavaVersion.VERSION_1_7
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:26.0.2'
-    compile 'com.android.support:support-v4:26.0.2'
+    compile "com.android.support:appcompat-v7:${support}"
+    compile "com.android.support:support-v4:${support}"
 
-    compile "com.google.firebase:firebase-core:11.4.0"
-    compile "com.google.firebase:firebase-messaging:11.4.0"
+    compile "com.google.firebase:firebase-core:${playServices}"
+    compile "com.google.firebase:firebase-messaging:${playServices}"
 
-    compile 'com.google.android.gms:play-services-location:11.4.0'
+    compile "com.google.android.gms:play-services-location:${playServices}"
 
     compile 'com.pushwoosh:pushwoosh:5.4.4'
     compile 'com.pushwoosh:pushwoosh-badge:5.4.4'

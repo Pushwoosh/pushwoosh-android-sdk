@@ -10,11 +10,12 @@
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Light">
         <meta-data
-            android:name="PW_APPID"
-            android:value="${pw_appid}"/>
+            android:name="com.pushwoosh.appid"
+            android:value="@string/test_push_app_id" />
+
         <meta-data
-            android:name="PW_PROJECT_ID"
-            android:value="${gcm_project_number}"/>
+            android:name="com.pushwoosh.senderid"
+            android:value="@string/test_push_sender_id" />
         <meta-data
             android:name="com.pushwoosh.notification_icon"
             android:value="@drawable/notification_small_icon" />
@@ -28,21 +29,7 @@
             android:name="com.pushwoosh.notification_factory"
             android:value=".NotificationFactorySample"/>
 
-        <activity
-            android:name="com.pushwoosh.DeepLinkActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data android:scheme="pw-${pw_appid}"/>
-            </intent-filter>
-        </activity>
-
         <!-- Application Activities -->
-
         <activity
             android:name=".DeepLinkActivity"
             android:label="DeepLinkActivity">
