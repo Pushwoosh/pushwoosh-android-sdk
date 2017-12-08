@@ -36,7 +36,7 @@ For GCM integrtion please refer to [GCM Integration (legacy)](http://docs.pushwo
 
 [Pushwoosh.aar](https://github.com/Pushwoosh/pushwoosh-android-sdk/blob/master/Pushwoosh.aar) - compiled version of Pushwoosh Android SDK. Includes all necessary AndroidManifest.xml changes required for receiving FCM push notifications. For Amazon integration please add the following dependency:
 
-	compile 'com.pushwoosh:pushwoosh-amazon:5.4.2'
+	compile 'com.pushwoosh:pushwoosh-amazon:5.5.2'
 
 Maven integration:
 
