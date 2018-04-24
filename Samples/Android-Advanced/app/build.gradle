@@ -35,9 +35,9 @@ dependencies {
 
     compile "com.google.android.gms:play-services-location:${playServices}"
 
-    compile 'com.pushwoosh:pushwoosh:5.5.9'
-    compile 'com.pushwoosh:pushwoosh-badge:5.5.9'
-    compile 'com.pushwoosh:pushwoosh-location:5.5.9'
+    compile 'com.pushwoosh:pushwoosh:5.5.10'
+    compile 'com.pushwoosh:pushwoosh-badge:5.5.10'
+    compile 'com.pushwoosh:pushwoosh-location:5.5.10'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
