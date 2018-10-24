@@ -18,7 +18,7 @@ In addition, add the following dependencies.
 	   ...
 	   compile 'com.android.support:support-compat:26.+'
 	   compile 'com.google.firebase:firebase-messaging:11.+'
-	   compile 'com.pushwoosh:pushwoosh:5.9.2'
+	   compile 'com.pushwoosh:pushwoosh:5.9.3'
 	}
 Starting with Pushwoosh SDK 5.4.2, you need to use [Android Plugin for Gradle v3.0.0](https://developer.android.com/studio/build/gradle-plugin-3-0-0.html) (or higher) with Gradle v4.1 (or higher). You should add Java 8 support as well. To do so, add the following lines to app’s build.gradle:
 ```
@@ -36,14 +36,14 @@ For GCM integrtion please refer to [GCM Integration (legacy)](http://docs.pushwo
 
 [Pushwoosh.aar](https://github.com/Pushwoosh/pushwoosh-android-sdk/blob/master/Pushwoosh.aar) - compiled version of Pushwoosh Android SDK. Includes all necessary AndroidManifest.xml changes required for receiving FCM push notifications. For Amazon integration please add the following dependency:
 
-	compile 'com.pushwoosh:pushwoosh-amazon:5.9.2'
+	compile 'com.pushwoosh:pushwoosh-amazon:5.9.3'
 
 Maven integration:
 
 	<dependency>
   		<groupId>com.pushwoosh</groupId>
   		<artifactId>pushwoosh</artifactId>
-  		<version>5.9.2</version>
+  		<version>5.9.3</version>
 	</dependency>
 
 Documentation:
