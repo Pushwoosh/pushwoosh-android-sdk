@@ -4,7 +4,12 @@ com.pushwoosh.beacon
 com.pushwoosh.fragment
 com.pushwoosh.function
 com.pushwoosh.inapp
+com.pushwoosh.inapp.view.inline
 com.pushwoosh.inbox
+com.pushwoosh.inbox.data
+com.pushwoosh.inbox.event
 com.pushwoosh.location
 com.pushwoosh.notification
+com.pushwoosh.richmedia
+com.pushwoosh.richmedia.animation
 com.pushwoosh.tags
