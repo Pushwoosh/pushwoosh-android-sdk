@@ -12,7 +12,7 @@ object MessageStorage {
 
     fun addMessage(context: Context, message: Message) {
         val messages = getHistory(context)
-        messages!!.add(message)
+        messages?.add(message)
 
         try {
             val prefs = context.getSharedPreferences(PREFERENCE, Context.MODE_PRIVATE)

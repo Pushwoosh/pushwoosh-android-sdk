@@ -33,7 +33,9 @@ object NotificationBuilderManager {
     fun createNotificationBuilder(context: Context, channelId: String): NotificationBuilder {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationBuilderApi26(context, channelId)
-        } else NotificationBuilderApi14(context, channelId)
+        } else {
+            NotificationBuilderApi14(context, channelId)
+        }
 
     }
 }

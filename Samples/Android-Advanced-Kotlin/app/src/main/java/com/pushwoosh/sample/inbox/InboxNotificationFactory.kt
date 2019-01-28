@@ -12,21 +12,29 @@ class InboxNotificationFactory : PushwooshNotificationFactory() {
         private const val GROUP_KEY = "PushwooshGroup"
     }
 
-    private fun generateInboxStyle(pushData: PushMessage): NotificationCompat.Style {
+    private fun generateInboxStyle(pushData: PushMessage): NotificationCompat.Style? {
+        if (applicationContext == null) {
+            return null
+        }
+
         MessageStorage.addMessage(applicationContext!!, Message(pushData.message, System.currentTimeMillis(), pushData.header))
         val messages = MessageStorage.getHistory(applicationContext!!)
 
-        val style = NotificationCompat.InboxStyle().setBigContentTitle(pushData.header + " Details")
+        messages?. run {
+            val style = NotificationCompat.InboxStyle().setBigContentTitle(pushData.header + " Details")
 
-        for (message in messages!!) {
-            style.addLine(getContentFromHtml("<b>" + message.sender + "</b> " + message.text))
+            for (message in messages) {
+                style.addLine(getContentFromHtml("<b>" + message.sender + "</b> " + message.text))
+            }
+
+            if (messages.size > 7) {
+                style.setSummaryText("+ " + (messages.size - 7) + " more")
+            }
+
+            return style
         }
 
-        if (messages.size > 7) {
-            style.setSummaryText("+ " + (messages.size - 7) + " more")
-        }
-
-        return style
+        return null
     }
 
     private fun generateSummary(pushData: PushMessage) {

@@ -9,11 +9,11 @@ import com.pushwoosh.notification.PushMessage
 
 class NotificationServiceSample : NotificationServiceExtension() {
     public override fun onMessageReceived(message: PushMessage?): Boolean {
-        Log.d(PushwooshSampleApp.LTAG, "NotificationService.onMessageReceived: " + message!!.toJson().toString())
+        Log.d(PushwooshSampleApp.LTAG, "NotificationService.onMessageReceived: " + message?.toJson().toString())
 
         // automatic foreground push handling
         if (isAppOnForeground) {
-            val mainHandler = Handler(applicationContext!!.mainLooper)
+            val mainHandler = Handler(applicationContext?.mainLooper)
             mainHandler.post { handlePush(message) }
 
             // this indicates that notification should not be displayed
@@ -32,8 +32,8 @@ class NotificationServiceSample : NotificationServiceExtension() {
     }
 
     @MainThread
-    private fun handlePush(message: PushMessage) {
-        Log.d(PushwooshSampleApp.LTAG, "NotificationService.handlePush: " + message.toJson().toString())
+    private fun handlePush(message: PushMessage?) {
+        Log.d(PushwooshSampleApp.LTAG, "NotificationService.handlePush: " + message?.toJson().toString())
         // TODO: handle push message
     }
 }

@@ -36,7 +36,4 @@ object ObjectSerializer {
 
         return ois.readObject() as T
     }
-
-    fun <T : Serializable> deserialize(string: String, clazz: Class<T>): T? = deserialize<T>(string)
-
 }
