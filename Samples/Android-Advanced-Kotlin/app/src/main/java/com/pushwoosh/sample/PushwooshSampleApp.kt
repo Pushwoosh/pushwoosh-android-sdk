@@ -21,8 +21,7 @@ class PushwooshSampleApp : Application() {
         Pushwoosh.getInstance().registerForPushNotifications { result ->
             if (result.isSuccess) {
                 Log.d(LTAG, "Successfully registered for push notifications with token: " + result.data)
-            }
-            else {
+            } else {
                 Log.d(LTAG, "Failed to register for push notifications:u " + result.exception?.message)
             }
         }
