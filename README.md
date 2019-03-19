@@ -30,9 +30,7 @@ android {
     	}
 }
 ```
-Starting with Pushwoosh SDK 5.1.1, FCM library is used by default, therefore, you need to integrate Firebase into your project correctly. Please refer to [Getting Started](http://docs.pushwoosh.com/docs/fcm-integration) guide.
-
-For GCM integrtion please refer to [GCM Integration (legacy)](http://docs.pushwoosh.com/docs/gcm-integration-legacy) guide.
+Starting with Pushwoosh SDK 5.1.1, FCM library is used by default, therefore, you need to integrate Firebase into your project correctly. Please refer to [Getting Started](https://www.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notifications/integrate-pushwoosh-android-sdk) guide.
 
 [Pushwoosh.aar](https://github.com/Pushwoosh/pushwoosh-android-sdk/blob/master/Pushwoosh.aar) - compiled version of Pushwoosh Android SDK. Includes all necessary AndroidManifest.xml changes required for receiving FCM push notifications. For Amazon integration please add the following dependency:
 
