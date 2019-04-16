@@ -1,7 +1,6 @@
 com.pushwoosh
 com.pushwoosh.badge
 com.pushwoosh.beacon
-com.pushwoosh.fragment
 com.pushwoosh.function
 com.pushwoosh.inapp
 com.pushwoosh.inapp.view.inline
