@@ -37,7 +37,7 @@ Maven integration:
 	</dependency>
 
 Documentation:
-https://rawgit.com/Pushwoosh/pushwoosh-android-sdk/master/Documentation/index.html
+https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Documentation
 
 Samples:
 https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Samples
