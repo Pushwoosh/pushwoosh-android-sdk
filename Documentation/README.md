@@ -2,6 +2,6 @@
 
 ## Classes
 [Pushwoosh](Pushwoosh.md)  
-[PushwooshInApp](/inapp/PushwooshInApp.md)  
+[PushwooshInApp](inapp/PushwooshInApp.md)  
 [PushwooshLocation](location/PushwooshLocation.md)  
 [PushwooshBadge](badge/PushwooshBadge.md)  
