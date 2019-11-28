@@ -7,6 +7,8 @@ import android.util.Log;
 import com.pushwoosh.notification.NotificationServiceExtension;
 import com.pushwoosh.notification.PushMessage;
 
+import java.util.List;
+
 public class NotificationServiceSample extends NotificationServiceExtension {
 	@Override
 	public boolean onMessageReceived(final PushMessage message) {
@@ -27,6 +29,13 @@ public class NotificationServiceSample extends NotificationServiceExtension {
 		}
 
 		return false;
+	}
+
+	@Override
+	protected void onMessagesGroupOpened(List<PushMessage> pushMessagesList) {
+		Log.d(PushwooshSampleApp.LTAG, "NotificationService.onMessagesGroupOpened with: " + pushMessagesList.size() + " messages");
+
+		// TODO: handle push messages group
 	}
 
 	@Override
