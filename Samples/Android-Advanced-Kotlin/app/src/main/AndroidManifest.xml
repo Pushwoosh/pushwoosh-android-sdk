@@ -28,7 +28,9 @@
         <meta-data
             android:name="com.pushwoosh.notification_factory"
             android:value=".NotificationFactorySample"/>
-
+        <meta-data
+            android:name="com.pushwoosh.summary_notification_factory"
+            android:value=".SummaryNotificationFactorySample"/>
         <!-- Application Activities -->
         <activity
             android:name=".DeepLinkActivity"

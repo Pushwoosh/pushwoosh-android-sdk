@@ -36,7 +36,7 @@ object MessageStorage {
         val prefs = context.getSharedPreferences(PREFERENCE, Context.MODE_PRIVATE)
         try {
             val emptyVal = ObjectSerializer.serialize(ArrayList<String>())
-            return ObjectSerializer.deserialize(prefs.getString(PROPERTY_MESSAGE_HISTORY, emptyVal))
+            return ObjectSerializer.deserialize(prefs.getString(PROPERTY_MESSAGE_HISTORY, emptyVal)!!)
         } catch (e: IOException) {
             e.printStackTrace()
         }

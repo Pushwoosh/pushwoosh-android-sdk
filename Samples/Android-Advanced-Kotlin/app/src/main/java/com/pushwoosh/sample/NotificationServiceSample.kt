@@ -23,6 +23,12 @@ class NotificationServiceSample : NotificationServiceExtension() {
         return false
     }
 
+    override fun onMessagesGroupOpened(pushMessagesList: MutableList<PushMessage>?) {
+        Log.d(PushwooshSampleApp.LTAG, "NotificationService.onMessagesGroupOpened with: " + pushMessagesList!!.size + " messages")
+
+        // TODO: handle push messages group
+    }
+
     override fun startActivityForPushMessage(message: PushMessage) {
         super.startActivityForPushMessage(message)
 
