@@ -6,8 +6,8 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0'
-        classpath 'com.google.gms:google-services:3.1.0'
+        classpath 'com.android.tools.build:gradle:3.6.3'
+        classpath 'com.google.gms:google-services:4.3.3'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -21,6 +21,5 @@ allprojects {
 }
 
 subprojects {
-    ext.support = "27.0.1"
-    ext.playServices = "11.6.0"
+    ext.firebase = "19.0.0"
 }

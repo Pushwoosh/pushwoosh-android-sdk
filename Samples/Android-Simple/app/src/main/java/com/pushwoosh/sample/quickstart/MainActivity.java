@@ -1,9 +1,10 @@
 package com.pushwoosh.sample.quickstart;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.pushwoosh.Pushwoosh;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
