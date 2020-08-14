@@ -1,0 +1,2 @@
+rootProject.name='Baidu Sample'
+include ':app'
