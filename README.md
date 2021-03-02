@@ -9,6 +9,14 @@ Pushwoosh Android SDK
 The guide for SDK integration is available on Pushwoosh website:  
 https://docs.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notifications
 
+Maven integration:
+
+	<dependency>
+  		<groupId>com.pushwoosh</groupId>
+  		<artifactId>pushwoosh</artifactId>
+  		<version>6.1.5</version>
+	</dependency>
+
 The sample projects are available here:  
 https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Samples
 
