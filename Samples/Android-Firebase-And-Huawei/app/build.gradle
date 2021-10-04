@@ -34,7 +34,7 @@ dependencies {
     implementation 'com.pushwoosh:pushwoosh-huawei:6.1.0'
 
     implementation "com.google.firebase:firebase-messaging:20.0.0"
-    implementation 'com.huawei.hms:push:4.0.3.301'
+    implementation 'com.huawei.hms:push:5.3.0.304'
 }
 
 apply plugin: 'com.huawei.agconnect'
