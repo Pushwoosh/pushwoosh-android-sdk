@@ -23,5 +23,8 @@ https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Samples
 Documentation:
 https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Documentation
 
+Share your feedback:
+https://docs.google.com/forms/d/e/1FAIpQLSd_0b8jwn-V_JmoPLIxIFYbHACCQhrzidOZV3ELywoQPXRSxw/viewform
+
 Pushwoosh team
 http://www.pushwoosh.com
