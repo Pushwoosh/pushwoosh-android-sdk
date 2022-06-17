@@ -14,7 +14,7 @@ Maven integration:
 	<dependency>
   		<groupId>com.pushwoosh</groupId>
   		<artifactId>pushwoosh</artifactId>
-  		<version>6.5.2</version>
+  		<version>6.5.3</version>
 	</dependency>
 
 The sample projects are available here:  
