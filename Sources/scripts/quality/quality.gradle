@@ -1,0 +1,142 @@
+/*
+ *
+ * Copyright (c) 2017. Pushwoosh Inc. (http://www.pushwoosh.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+ *
+ * (ii) the above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/**
+ * Set up Checkstyle, Findbugs and PMD to perform extensive code analysis.
+ *
+ * Gradle tasks added:
+ * - checkstyle
+ * - findbugs
+ * - pmd
+ *
+ * The three tasks above are added as dependencies of the check task so running check will
+ * run all of them.
+ */
+//
+//apply plugin: 'checkstyle'
+//apply plugin: 'findbugs'
+//apply plugin: 'pmd'
+apply plugin: 'jacoco'
+//
+//jacoco {
+//    toolVersion "0.7.6.201602180812"
+//}
+//
+//task jacocoTestReport(type: JacocoReport, dependsOn: ['testCoverageUnitTest', 'createCoverageCoverageReport']) {
+//
+//    reports {
+//        xml.enabled = true
+//        html.enabled = true
+//    }
+//
+//    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*', '**/Lambda$*.class', '**/Lambda.class', '**/*Lambda.class', '**/*Lambda*.class', '**/*Lambda*.*']
+//    def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/coverage", excludes: fileFilter)
+//    def mainSrc = "${project.projectDir}/src/main/java"
+//
+//    sourceDirectories = files([mainSrc])
+//    classDirectories = files([debugTree])
+//    executionData = fileTree(dir: "$buildDir", includes: [
+//            "jacoco/testCoverageUnitTest.exec",
+//            "outputs/code-coverage/connected/*coverage.ec"
+//    ])
+//}
+//
+//dependencies {
+//    checkstyle 'com.puppycrawl.tools:checkstyle:7.6.1'
+//}
+//
+//def qualityConfigDir = "$project.rootDir/config/quality";
+//def reportsDir = "$project.buildDir/reports"
+//
+//check.dependsOn 'checkstyle', 'findbugs', 'pmd'
+//
+//task checkstyle(type: Checkstyle, group: 'Verification', description: 'Runs code style checks') {
+//    configFile file("$qualityConfigDir/checkstyle/checkstyle-config.xml")
+//    source 'src'
+//    include '**/*.java'
+//    exclude '**/thirdparty/**'
+//
+//    reports {
+//        xml.enabled = false
+//        xml.destination "$reportsDir/checkstyle/checkstyle.xml"
+//    }
+//
+//    classpath = files( )
+//}
+//
+//task findbugs(type: FindBugs,
+//        group: 'Verification',
+//        description: 'Inspect java bytecode for bugs',
+//        dependsOn: ['assembleDebug']) {
+//
+//    ignoreFailures = false
+//    effort = "max"
+//    reportLevel = "high"
+//    excludeFilter = new File("$qualityConfigDir/findbugs/android-exclude-filter.xml")
+//    classes = files("$project.buildDir/intermediates/classes")
+//
+//    source 'src'
+//    include '**/*.java'
+//    exclude '**/gen/**'
+//
+//    reports {
+//        xml.enabled = false
+//        html.enabled = true
+//        xml.destination "$reportsDir/findbugs/findbugs.xml"
+//        html.destination "$reportsDir/findbugs/findbugs.html"
+//    }
+//
+//    classpath = files()
+//}
+//
+//task pmd(type: Pmd, group: 'Verification', description: 'Inspect sourcecode for bugs') {
+//    ruleSetFiles = files("$qualityConfigDir/pmd/pmd-ruleset.xml")
+//    ignoreFailures = false
+//    ruleSets = []
+//
+//    source 'src'
+//    include '**/*.java'
+//    exclude '**/gen/**'
+//
+//    reports {
+//        xml.enabled = true
+//        html.enabled = true
+//        xml.destination "$reportsDir/pmd/pmd.xml"
+//        html.destination "$reportsDir/pmd/pmd.html"
+//    }
+//}
+//
+android {
+    lintOptions {
+//        lintConfig file("$qualityConfigDir/lint/rules-lint.xml")
+//        htmlOutput file("$reportsDir/lint/lint-results.html")
+//        xmlOutput file("$reportsDir/lint/lint-results.xml")
+        abortOnError false
+//
+//        //Needed because of this https://github.com/square/okio/issues/58
+//        disable 'InvalidPackage'
+    }
+}

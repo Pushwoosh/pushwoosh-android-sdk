@@ -1,0 +1,76 @@
+/*
+ *
+ * Copyright (c) 2017. Pushwoosh Inc. (http://www.pushwoosh.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+ *
+ * (ii) the above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+ext {
+    targetArtefactIdDev = "pushwoosh-inbox-ui-dev"
+    targetArtefactId = "pushwoosh-inbox-ui"
+    targetName = "Pushwoosh Inbox UI"
+    targetDescription = "Pushwoosh Inbox UI"
+}
+
+
+apply plugin: 'com.android.library'
+apply from: '../scripts/maven/maven.gradle'
+
+apply from: '../scripts/quality/quality.gradle'
+
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion global_compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion global_minSdkVersion
+        targetSdkVersion global_compileSdkVersion
+        versionCode 1
+        versionName global_versionName
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    implementation "androidx.appcompat:appcompat:${support}"
+    implementation "androidx.recyclerview:recyclerview:${support}"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:${swipe_refresh_layout}"
+    implementation "com.google.android.material:material:${support}"
+
+    implementation "androidx.constraintlayout:constraintlayout:${constraint}"
+    implementation "com.github.bumptech.glide:glide:${glide}"
+
+    api project(':pushwoosh')
+    api project(':pushwoosh-inbox')
+}

@@ -1,0 +1,8 @@
+-dontwarn com.amazon.device.messaging.**
+-keep class com.pushwoosh.amazon.AmazonInitializer {
+    public protected *;
+}
+-keep class com.pushwoosh.PushAmazonHandlerJob {
+    public protected *;
+}
+-keep class com.pushwoosh.amazon.internal.registrar.AdmRegistrar {}

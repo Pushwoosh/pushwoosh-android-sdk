@@ -1,0 +1,70 @@
+<!--
+  ~
+  ~ Copyright (c) 2017. Pushwoosh Inc. (http://www.pushwoosh.com)
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining
+  ~ a copy of this software and associated documentation files (the
+  ~ "Software"), to deal in the Software without restriction, including
+  ~ without limitation the rights to use, copy, modify, merge, publish,
+  ~ distribute, sublicense, and/or sell copies of the Software, and to
+  ~ permit persons to whom the Software is furnished to do so, subject to
+  ~ the following conditions:
+  ~
+  ~ (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+  ~
+  ~ (ii) the above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  ~ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  ~ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  ~ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  ~ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<manifest package="com.pushwoosh.badge"
+		  xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<!--for Samsung-->
+	<uses-permission android:name="com.sec.android.provider.badge.permission.READ"/>
+	<uses-permission android:name="com.sec.android.provider.badge.permission.WRITE"/>
+
+	<!--for htc-->
+	<uses-permission android:name="com.htc.launcher.permission.READ_SETTINGS"/>
+	<uses-permission android:name="com.htc.launcher.permission.UPDATE_SHORTCUT"/>
+
+	<!--for sony-->
+	<uses-permission android:name="com.sonyericsson.home.permission.BROADCAST_BADGE"/>
+	<uses-permission android:name="com.sonymobile.home.permission.PROVIDER_INSERT_BADGE"/>
+
+	<!--for apex-->
+	<uses-permission android:name="com.anddoes.launcher.permission.UPDATE_COUNT"/>
+
+	<!--for solid-->
+	<uses-permission android:name="com.majeur.launcher.permission.UPDATE_BADGE"/>
+
+	<!--for huawei-->
+	<uses-permission android:name="com.huawei.android.launcher.permission.CHANGE_BADGE"/>
+	<uses-permission android:name="com.huawei.android.launcher.permission.READ_SETTINGS"/>
+	<uses-permission android:name="com.huawei.android.launcher.permission.WRITE_SETTINGS"/>
+
+	<!--for ZUK-->
+	<uses-permission android:name="android.permission.READ_APP_BADGE"/>
+
+	<!--for OPPO-->
+	<uses-permission android:name="com.oppo.launcher.permission.READ_SETTINGS"/>
+	<uses-permission android:name="com.oppo.launcher.permission.WRITE_SETTINGS"/>
+
+	<!--for EvMe-->
+	<uses-permission android:name="me.everything.badger.permission.BADGE_COUNT_READ"/>
+	<uses-permission android:name="me.everything.badger.permission.BADGE_COUNT_WRITE"/>
+
+	<application>
+		<meta-data
+			android:name="com.pushwoosh.plugin.badge"
+			android:value="com.pushwoosh.badge.BadgePlugin" />
+	</application>
+
+</manifest>

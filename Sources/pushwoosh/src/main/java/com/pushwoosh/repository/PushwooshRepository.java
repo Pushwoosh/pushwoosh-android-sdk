@@ -1,0 +1,367 @@
+/*
+ *
+ * Copyright (c) 2017. Pushwoosh Inc. (http://www.pushwoosh.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+ *
+ * (ii) the above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package com.pushwoosh.repository;
+
+import android.os.Bundle;
+import android.text.TextUtils;
+
+import com.pushwoosh.PushwooshPlatform;
+import com.pushwoosh.exception.GetTagsException;
+import com.pushwoosh.exception.PushwooshException;
+import com.pushwoosh.function.CacheFailedRequestCallback;
+import com.pushwoosh.function.Callback;
+import com.pushwoosh.function.Result;
+import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
+import com.pushwoosh.internal.event.ConfigLoadedEvent;
+import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.event.EventListener;
+import com.pushwoosh.internal.event.ServerCommunicationStartedEvent;
+import com.pushwoosh.internal.network.NetworkException;
+import com.pushwoosh.internal.network.NetworkModule;
+import com.pushwoosh.internal.network.RequestManager;
+import com.pushwoosh.internal.network.RequestStorage;
+import com.pushwoosh.internal.network.ServerCommunicationManager;
+import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.notification.PushMessage;
+import com.pushwoosh.repository.config.Channel;
+import com.pushwoosh.repository.config.Config;
+import com.pushwoosh.repository.config.ConfigPrefs;
+import com.pushwoosh.repository.config.Event;
+import com.pushwoosh.repository.config.GetConfigRequest;
+import com.pushwoosh.tags.Tags;
+import com.pushwoosh.tags.TagsBundle;
+
+import org.json.JSONObject;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+public class PushwooshRepository {
+    @Nullable
+    private final RequestManager requestManager;
+    private final SendTagsProcessor sendTagsProcessor;
+    private final RegistrationPrefs registrationPrefs;
+    private final NotificationPrefs notificationPrefs;
+    private final RequestStorage requestStorage;
+    private final ServerCommunicationManager serverCommunicationManager;
+    private String currentSessionHash;
+    private List<Channel> channels;
+    private List<Event> events;
+    private String publicKey;
+    private ConfigPrefs configPrefs;
+    private EventListener<ServerCommunicationStartedEvent> loadConfigWhenServerCommunicationStartsEvent;
+    private EventListener<ServerCommunicationStartedEvent> sendAppOpenWhenServerCommunicationStartsEvent;
+
+    public PushwooshRepository(RequestManager requestManager,
+                               SendTagsProcessor sendTagsProcessor,
+                               RegistrationPrefs registrationPrefs,
+                               NotificationPrefs notificationPrefs,
+                               RequestStorage requestStorage,
+                               @Nullable ConfigPrefs configPrefs,
+                               ServerCommunicationManager serverCommunicationManager) {
+        this.requestManager = requestManager;
+        this.sendTagsProcessor = sendTagsProcessor;
+        this.registrationPrefs = registrationPrefs;
+        this.notificationPrefs = notificationPrefs;
+        this.requestStorage = requestStorage;
+        this.configPrefs = configPrefs;
+        this.serverCommunicationManager = serverCommunicationManager;
+
+        if (registrationPrefs.setTagsFailed().get()) {
+            JSONObject tags = notificationPrefs.tags().get();
+            if (tags == null) {
+                return;
+            }
+
+            PWLog.debug("Resending application tags");
+
+            sendTagsProcessor.sendTags(tags, result -> {
+                if (result.isSuccess()) {
+                    registrationPrefs.setTagsFailed().set(false);
+                }
+            });
+        }
+
+    }
+
+    public String getCurrentSessionHash() {
+        return currentSessionHash;
+    }
+
+    public void setCurrentSessionHash(String currentSessionHash) {
+        this.currentSessionHash = currentSessionHash;
+    }
+
+    public void sendAppOpen() {
+        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
+            subscribeSendAppOpenWhenServerCommunicationStartsEvent();
+            return;
+        }
+
+        AppOpenRequest request = new AppOpenRequest();
+        if (requestManager == null) {
+            return;
+        }
+
+        requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
+
+        BusinessCasesManager businessCasesManager = PushwooshPlatform.getInstance().getBusinessCasesManager();
+        businessCasesManager.triggerCase(BusinessCasesManager.WELCOME_CASE, null);
+        businessCasesManager.triggerCase(BusinessCasesManager.APP_UPDATE_CASE, null);
+
+    }
+
+    private void subscribeSendAppOpenWhenServerCommunicationStartsEvent() {
+        if (sendAppOpenWhenServerCommunicationStartsEvent != null) {
+            return;
+        }
+        sendAppOpenWhenServerCommunicationStartsEvent = new EventListener<ServerCommunicationStartedEvent>() {
+            @Override
+            public void onReceive(ServerCommunicationStartedEvent event) {
+                EventBus.unsubscribe(ServerCommunicationStartedEvent.class, this);
+                sendAppOpen();
+            }
+        };
+        EventBus.subscribe(ServerCommunicationStartedEvent.class, sendAppOpenWhenServerCommunicationStartsEvent);
+    }
+
+    public void loadConfig() {
+        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
+            subscribeLoadConfigWhenServerCommunicationStartsEvent();
+            return;
+        }
+
+        if (requestManager == null)
+            return;
+
+        requestManager.sendRequest(new GetConfigRequest(), (result) -> {
+                Config config = result.getData();
+                if (config != null) {
+                    channels = config.getChannels();
+                    events = config.getEvents();
+                    publicKey = config.getPublicKey();
+                    if (configPrefs != null) {
+                        configPrefs.logger().set(config.getLogger());
+                    }
+                    EventBus.sendEvent(new ConfigLoadedEvent());
+                }
+            });
+    }
+
+    private void subscribeLoadConfigWhenServerCommunicationStartsEvent() {
+        if (loadConfigWhenServerCommunicationStartsEvent != null) {
+            return;
+        }
+        loadConfigWhenServerCommunicationStartsEvent = new EventListener<ServerCommunicationStartedEvent>() {
+            @Override
+            public void onReceive(ServerCommunicationStartedEvent event) {
+                EventBus.unsubscribe(ServerCommunicationStartedEvent.class, this);
+                loadConfig();
+            }
+        };
+        EventBus.subscribe(ServerCommunicationStartedEvent.class, loadConfigWhenServerCommunicationStartsEvent);
+    }
+
+    public List<Channel> getChannels() {
+        return channels;
+    }
+
+    public List<Event> getEvents() {
+        return events;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void sendTags(@NonNull TagsBundle tags, Callback<Void, PushwooshException> listener) {
+        JSONObject jsonTags = tags.toJson();
+        try {
+            notificationPrefs.tags().merge(jsonTags);
+        } catch (Exception e) {
+            // cache failure shouldn't affect request
+            PWLog.exception(e);
+        }
+        sendTagsProcessor.sendTags(jsonTags, listener);
+    }
+
+    public void sendEmailTags(@NonNull TagsBundle tags, String email, Callback<Void, PushwooshException> listener) {
+        JSONObject jsonTags = tags.toJson();
+
+        RequestManager requestManager = NetworkModule.getRequestManager();
+        if (requestManager == null) {
+            NetworkException exception = new NetworkException("Request manager is null");
+            PWLog.warn("Cannot send email tags", exception);
+            return;
+        }
+
+        SetEmailTagsRequest request = new SetEmailTagsRequest(jsonTags, email);
+        requestManager.sendRequest(request, new CacheFailedRequestCallback<Void>(request, RepositoryModule.getRequestStorage()) {
+            @Override
+            public void process(@NonNull Result<Void, NetworkException> result) {
+                super.process(result);
+                if (result.isSuccess()) {
+                    listener.process(Result.fromData(result.getData()));
+                } else {
+                    listener.process(Result.fromException(result.getException()));
+                }
+            }
+        });
+    }
+
+    public void getTags(@Nullable final Callback<TagsBundle, GetTagsException> callback) {
+        GetTagsRequest request = new GetTagsRequest();
+        if (requestManager == null) {
+            if (callback != null) {
+                callback.process(Result.fromException(new GetTagsException("Request Manager is null")));
+            }
+            return;
+        }
+        requestManager.sendRequest(request, result -> {
+            if (callback != null) {
+                if (result.isSuccess()) {
+                    TagsBundle tags = result.getData() == null ? Tags.empty() : result.getData();
+                    notificationPrefs.tags().set(tags.toJson());
+                    callback.process(Result.fromData(tags));
+                } else {
+                    JSONObject josnTags = notificationPrefs.tags().get();
+
+                    if (josnTags != null) {
+                        TagsBundle tags = Tags.fromJson(josnTags);
+                        callback.process(Result.fromData(tags));
+                    } else {
+                        callback.process(Result.fromException(new GetTagsException(result.getException() == null ? "" : result.getException().getMessage())));
+                    }
+                }
+            }
+        });
+    }
+
+    public void sendInappPurchase(String sku, BigDecimal price, String currency, Date purchaseTime) {
+        TrackInAppRequest request = new TrackInAppRequest(sku, price, currency, purchaseTime);
+        if (requestManager == null) {
+            return;
+        }
+
+        requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
+    }
+
+    public void sendPushOpened(String hash, String metadata) {
+        if (hash != null && TextUtils.equals(hash, notificationPrefs.lastNotificationHash().get())) {
+            PWLog.warn("Push stat for (" + hash + ") already sent");
+            return;
+        }
+
+        notificationPrefs.lastNotificationHash().set(hash);
+
+        PushStatRequest request = new PushStatRequest(hash, metadata);
+        if (requestManager == null) {
+            return;
+        }
+        requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
+    }
+
+    public void sendPushDelivered(String hash, String metaData) {
+        MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData);
+        if (requestManager == null) {
+            return;
+        }
+        requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
+    }
+
+    public void prefetchTags() {
+        GetTagsRequest request = new GetTagsRequest();
+        if (requestManager == null) {
+            return;
+        }
+
+        Result<TagsBundle, NetworkException> result = requestManager.sendRequestSync(request);
+        if (result.isSuccess() && result.getData() != null) {
+            JSONObject jsonTags = result.getData().toJson();
+            if (jsonTags.length() > 0) {
+                notificationPrefs.tags().set(jsonTags);
+            }
+        }
+    }
+
+    public List<PushMessage> getPushHistory() {
+        List<String> pushHistoryStrings = notificationPrefs.pushHistory().get();
+        List<PushMessage> result = new ArrayList<>();
+        for (String pushString : pushHistoryStrings) {
+            Bundle pushBundle = new Bundle();
+
+            try {
+                JSONObject object = new JSONObject(pushString);
+                Iterator<?> keys = object.keys();
+
+                while (keys.hasNext()) {
+                    String key = (String) keys.next();
+                    if (object.get(key) instanceof String) {
+                        pushBundle.putString(key, object.getString(key));
+                    }
+                }
+                PushMessage data = new PushMessage(pushBundle);
+                result.add(data);
+            } catch (Exception e) {
+                PWLog.exception(e);
+            }
+        }
+        return result;
+    }
+
+    public void removeAllDeviceData() {
+        notificationPrefs.tags().set(null);
+        registrationPrefs.removeAllDeviceData().set(true);
+    }
+
+    public boolean isDeviceDataRemoved() {
+        return registrationPrefs.removeAllDeviceData().get();
+    }
+
+    public void communicationEnabled(boolean enable) {
+        registrationPrefs.communicationEnable().set(enable);
+    }
+
+    public boolean isCommunicationEnabled(){
+        return registrationPrefs.communicationEnable().get();
+    }
+
+    public boolean isGdprEnable() {
+        return registrationPrefs.gdprEnable().get();
+    }
+
+    public String getHwid() {
+        return registrationPrefs.hwid().get();
+    }
+}

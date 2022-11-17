@@ -1,0 +1,259 @@
+/*
+ *
+ * Copyright (c) 2017. Pushwoosh Inc. (http://www.pushwoosh.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+ *
+ * (ii) the above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+apply plugin: 'maven'
+apply from: '../scripts/prepareAar/build.gradle'
+
+ext {
+    publishDir = "${project.buildDir}/publish/artifacts"
+    publishMavenDir = "${project.buildDir}/publish/artifacts-maven"
+    versionFile = 'VERSION'
+    targetVersionName = global_versionName
+    targetGroupId = global_targetGroupId
+    aarName = project.hasProperty('aarName') ? project.getProperties().get('aarName') : ""
+}
+
+task clearPublishDir(type: Delete) {
+    delete publishDir
+}
+
+def getBasePom() {
+    def basePom = pom {
+        //noinspection GroovyAssignabilityCheck
+        project {
+            modelVersion = '4.0.0'
+            groupId targetGroupId
+            artifactId targetArtefactId
+            version targetVersionName
+            name targetName
+            description = targetDescription
+            url = 'https://www.pushwoosh.com/'
+            licenses {
+                license {
+                    name 'Pushwoosh License'
+                    url 'https://github.com/Pushwoosh/push-notifications-sdk/blob/master/LICENSE.txt'
+                }
+            }
+
+            developers {
+                developer {
+                    name 'Vitaly Romanychev'
+                    email 'vromanychev@pushwoosh.com'
+                    organization = 'Pushwoosh'
+                    organizationUrl 'http://www.pushwoosh.com/'
+                }
+                developer {
+                    name 'Nikolay Galizin'
+                    email 'ngalizin@pushwoosh.com'
+                    organization = 'Pushwoosh'
+                    organizationUrl 'http://www.pushwoosh.com/'
+                }
+                developer {
+                    name 'Aleksandr Evstefeev'
+                    email 'aevstefeev@pushwoosh.com'
+                    organization = 'Pushwoosh'
+                    organizationUrl 'http://www.pushwoosh.com/'
+                }
+                developer {
+                    name 'Anton Kaizer'
+                    email 'akaizer@pushwoosh.com'
+                    organization = 'Pushwoosh'
+                    organizationUrl 'http://www.pushwoosh.com/'
+                }
+                developer {
+                    name 'Max Konev'
+                    email 'max@pushwoosh.com'
+                    organization = 'Pushwoosh'
+                    organizationUrl 'http://www.pushwoosh.com/'
+                }
+                developer {
+                    name 'Dmitry Malugin'
+                    email 'diman@pushwoosh.com'
+                    organization = 'Pushwoosh'
+                    organizationUrl 'http://www.pushwoosh.com/'
+                }
+                developer {
+                    name 'Blinov Alexander'
+                    email 'xanderblinov@gmail.com'
+                    organization = 'Arello Mobile'
+                    organizationUrl 'http://www.arello-mobile.com/'
+                }
+                developer {
+                    name 'Shmakov Yuri'
+                    email 'senneco@gmail.com'
+                    organization = 'Arello Mobile'
+                    organizationUrl 'http://www.arello-mobile.com/'
+                }
+                developer {
+                    name 'Savin Mikhail'
+                    email 'savinmike.u@gmail.com'
+                    organization = 'Arello Mobile'
+                    organizationUrl 'http://www.arello-mobile.com/'
+                }
+            }
+
+            scm {
+                connection 'scm:git:git@github.com:Pushwoosh/pushwoosh-android-sdk.git'
+                developerConnection 'scm:git:git@github.com:Pushwoosh/pushwoosh-android-sdk.git'
+                url 'git@github.com:Pushwoosh/pushwoosh-android-sdk.git'
+            }
+        }.withXml {
+            asNode().appendNode('packaging', 'aar')
+        }
+    }
+
+    return basePom.withXml {
+        asNode().dependencies.'*'.findAll {
+            it.artifactId.text().contains('pushwoosh')
+        }.each {
+            it.groupId*.value = targetGroupId
+            it.version*.value = targetVersionName
+        }
+    }
+}
+
+def addDependency(node, groupId, artifactId, version, type = 'aar', scope = 'compile') {
+    node.appendNode('dependency').with {
+        appendNode('groupId', groupId)
+        appendNode('artifactId', artifactId)
+        appendNode('version', version)
+        appendNode('type', type)
+        appendNode('scope', scope)
+    }
+}
+
+task createPomXml {
+    if (aarName != targetArtefactId) {
+        return
+    }
+    //creating local pom xml
+    getBasePom().withXml {
+
+        asNode().artifactId*.value = targetArtefactIdDev
+
+    }.writeTo(publishDir + "/" + targetArtefactIdDev + "-" + global_versionName + ".pom")
+
+    // creating global poms xml
+
+    getBasePom().withXml {
+
+        asNode().appendNode('build')
+                .appendNode('plugins')
+                .with {
+            appendNode('plugin')
+                    .with {
+                appendNode('groupId', 'org.sonatype.plugins')
+                appendNode('artifactId', 'nexus-staging-maven-plugin')
+                appendNode('version', '1.6.8')
+                appendNode('extensions', 'true')
+                appendNode('configuration').with {
+                    appendNode('serverId', 'ossrh')
+                    appendNode('nexusUrl', 'https://oss.sonatype.org/')
+                    appendNode('autoReleaseAfterClose', 'false')
+                }
+            }
+            appendNode('plugin')
+                    .with {
+                appendNode('groupId', 'com.simpligility.maven.plugins')
+                appendNode('artifactId', 'android-maven-plugin')
+                appendNode('version', '4.1.0')
+                appendNode('extensions', 'true')
+                appendNode('configuration').with {
+                    appendNode('sign').with {
+                        appendNode('debug', 'false')
+                    }
+                }
+            }
+        }
+        asNode().appendNode('distributionManagement').with {
+            appendNode('snapshotRepository')
+                    .with {
+                appendNode('id', 'ossrh')
+                appendNode('url', 'https://oss.sonatype.org/content/repositories/snapshots')
+            }
+            appendNode('repository')
+                    .with {
+                appendNode('id', 'ossrh')
+                appendNode('url', 'https://oss.sonatype.org/service/local/staging/deploy/maven2/')
+            }
+        }
+
+    }.writeTo(publishMavenDir + "/pom.xml")
+
+    def legacySupportV4Version = "1.0.0"
+    def androidAnnotationVersion = "[1.0.0, 1.3.99]"
+    def androidAppCompatVersion = "[1.0.0, 1.4.99]"
+    def androidRecyclerViewVersion = "[1.0.0, 1.2.99]"
+    def androidMaterialVersion = "[1.0.0, 1.5.99]"
+    def constraintLayoutVersion = "(1.0.1, 1.1.99]"
+    def playServicesVersion = "[17.0.0,20.0.99]"
+    def glideVersion = "[4.4.0, 4.11.0]"
+    def pushwooshVersion = global_versionName
+    def workManagerVersion = "[2.0.0, 2.7.99]"
+    def swipeRefreshLayoutVersion = "[1.0.0, 1.1.99]"
+
+    getBasePom().withXml {
+        def dependenciesNode = asNode().appendNode('dependencies')
+        switch (project.name) {
+            case 'pushwoosh':
+                addDependency(dependenciesNode, 'androidx.legacy', 'legacy-support-v4', legacySupportV4Version)
+                addDependency(dependenciesNode, 'androidx.work', 'work-runtime', workManagerVersion)
+                break
+            case 'pushwoosh-amazon':
+                addDependency(dependenciesNode, 'androidx.annotation', 'annotation', androidAnnotationVersion, 'jar')
+                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+                break
+            case 'pushwoosh-location':
+                addDependency(dependenciesNode, 'androidx.legacy', 'legacy-support-v4', legacySupportV4Version)
+                addDependency(dependenciesNode, 'com.google.android.gms', 'play-services-location', playServicesVersion)
+                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+                break
+            case 'pushwoosh-inbox':
+                addDependency(dependenciesNode, 'androidx.annotation', 'annotation', androidAnnotationVersion, 'jar')
+                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+                break
+            case 'pushwoosh-inbox-ui':
+                addDependency(dependenciesNode, 'androidx.appcompat', 'appcompat', androidAppCompatVersion)
+                addDependency(dependenciesNode, 'androidx.recyclerview', 'recyclerview', androidRecyclerViewVersion)
+                addDependency(dependenciesNode, 'com.google.android.material', 'material', androidMaterialVersion)
+                addDependency(dependenciesNode, 'androidx.constraintlayout', 'constraintlayout', constraintLayoutVersion)
+                addDependency(dependenciesNode, 'androidx.swiperefreshlayout', 'swiperefreshlayout', swipeRefreshLayoutVersion)
+                addDependency(dependenciesNode, 'com.github.bumptech.glide', 'glide', glideVersion)
+                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh-inbox', pushwooshVersion)
+                break
+            default:
+                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+        }
+    }.writeTo(publishMavenDir + "/" + targetArtefactId + ".pom")
+}
+
+createPomXml.dependsOn copyToGlobal
+
+android.libraryVariants.all { variant ->
+    if (variant.name == "release") {
+	    variant.getAssembleProvider().get().finalizedBy createPomXml
+    }
+}

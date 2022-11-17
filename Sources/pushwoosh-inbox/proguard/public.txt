@@ -1,0 +1,9 @@
+-keep public class com.pushwoosh.inbox.PushwooshInbox { *; }
+
+-keep public interface com.pushwoosh.inbox.data.InboxMessage { *; }
+
+-keep enum com.pushwoosh.inbox.data.InboxMessageType { *; }
+
+-keep public class com.pushwoosh.inbox.event.InboxMessagesUpdatedEvent { *; }
+
+-keep public class com.pushwoosh.inbox.exception.InboxMessagesException { *; }

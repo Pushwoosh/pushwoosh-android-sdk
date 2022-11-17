@@ -1,0 +1,354 @@
+-keep public class com.pushwoosh.internal.utils.LockScreenUtils {
+    *;
+}
+
+-keep public class com.pushwoosh.PushwooshWorkManagerHelper {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.repository.config.Channel {
+    *;
+}
+
+-keep class com.pushwoosh.repository.PushBundleStorageImpl$Column {
+    *;
+}
+
+-keep class com.pushwoosh.repository.LockScreenMediaStorageImpl$Column {
+    *;
+}
+
+-keep class com.pushwoosh.repository.InboxNotificationStorageImpl$Column {
+    *;
+}
+
+-keep public class com.pushwoosh.internal.checker.Checker {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.platform.prefs.migration.MigrationScheme {
+	public protected *;
+}
+
+-keep public class com.pushwoosh.internal.platform.prefs.migration.MigrationScheme$AvailableType {
+	public protected *;
+}
+
+-keep public interface com.pushwoosh.internal.utils.IPushwooshService {
+	public protected *;
+}
+
+## Notification
+
+-keep public interface com.pushwoosh.notification.handlers.notification.PushNotificationOpenHandler{
+    *;
+}
+-keep public class com.pushwoosh.notification.handlers.notification.NotificationOpenHandlerChainProvider{
+    public *;
+}
+
+-keep public class com.pushwoosh.notification.Action {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.PWLog {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.PWLog$Level {
+    public protected *;
+}
+
+
+## Inapp
+
+# javascript interface:
+-keepclassmembers class com.pushwoosh.inapp.view.js.PushwooshJSInterface {
+   public *;
+}
+
+-keepclassmembers class com.pushwoosh.inapp.view.js.PushManagerJSInterface {
+   public *;
+}
+
+-keep public class com.pushwoosh.inapp.event.InAppsReadyEvent {
+    public *;
+}
+
+## Exceptions
+
+-keep public class com.pushwoosh.exception.GetTagsException {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.exception.MergeUserException {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.exception.PostEventException {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.exception.PushwooshException {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.exception.RegisterForPushNotificationsException {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.exception.UnregisterForPushNotificationException {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.exception.SetEmailException {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.exception.SetUserException {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.exception.SetUserIdException {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.exception.ReloadInAppsException {
+    public protected *;
+}
+
+## Internal
+#Commands
+-keep public class com.pushwoosh.internal.command.CommandApplayer {
+    * ;
+}
+
+-keep public class com.pushwoosh.internal.command.CommandType {
+    * ;
+}
+
+-keep public class com.pushwoosh.internal.command.CommandParams {
+    * ;
+}
+
+
+-keep public class com.pushwoosh.internal.richmedia.ResourceAction {
+  public protected *;
+}
+# internal interface for plugins
+-keep public class com.pushwoosh.internal.platform.utils.GeneralUtils {
+  public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.JsonUtils {
+  public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.PWLog {
+  public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.PWLog$LogsUpdateListener {
+  public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.PWLog$Level {
+  public protected *;
+}
+
+-keep class com.pushwoosh.internal.utils.NotificationRegistrarHelper {
+    public static *;
+}
+
+-keep class com.pushwoosh.internal.PluginProvider {
+    public protected *;
+}
+
+# DeviceSpecific
+-keep class com.pushwoosh.internal.specific.DeviceSpecificProvider {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.specific.DeviceSpecificProvider$Builder {
+    public protected *;
+}
+
+-keep class com.pushwoosh.internal.specific.DeviceSpecific {
+    public protected *;
+}
+
+-keep class com.pushwoosh.internal.registrar.PushRegistrar {
+    public protected *;
+}
+
+#Network
+-keep public class com.pushwoosh.internal.network.PushRequest {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.network.NetworkModule {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.network.RequestManager {
+    public protected *;
+}
+
+# Events
+-keep public class com.pushwoosh.notification.event.* {
+  public protected *;
+}
+
+-keep public class com.pushwoosh.internal.event.* {
+  public protected *;
+}
+
+-keep class com.pushwoosh.notification.handlers.message.user.NotificationCreatedEvent {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.BootReceiver$DeviceBootedEvent {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.event.PermissionEvent {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.event.NotificationPermissionEvent {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.NotificationPermissionActivity {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.RequestPermissionHelper {
+    public protected *;
+}
+
+#Platform
+-keep public class com.pushwoosh.internal.platform.AndroidPlatformModule {
+    public protected *;
+}
+-keep class com.pushwoosh.notification.handlers.message.user.NotificationMessageHandler {
+    public protected *;
+}
+
+-keep class com.pushwoosh.notification.handlers.message.user.MessageHandler {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.Plugin {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.handlers.message.user.MessageHandleChainProvider {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.chain.Chain {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.platform.prefs.PrefsProvider {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.preference.** {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.PermissionActivity {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.DbUtils{
+    public protected *;
+}
+-keep public class com.pushwoosh.internal.network.NetworkException {
+    public protected *;
+}
+-keep public class com.pushwoosh.internal.utils.security.CallingPackageChecker {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.LocalNotificationReceiver {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.handlers.message.system.MessageSystemHandleChainProvider {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.handlers.message.system.MessageSystemHandler {
+    public protected *;
+}
+
+-keep class com.pushwoosh.PluginAPI {
+    *;
+}
+
+-keep class com.pushwoosh.internal.utils.ImageUtils {
+    *;
+}
+
+-keep class com.pushwoosh.internal.utils.PendingIntentUtils {
+    *;
+}
+
+-keepclassmembers class com.pushwoosh.inapp.view.inline.InlineInAppViewLayoutHelperApi1$InlineInappSizeInterface {
+    *;
+}
+
+-keep class com.pushwoosh.appevents.PushwooshAppEvents {
+    public <methods>;
+}
+
+-keep public class com.pushwoosh.notification.SummaryNotificationUtils {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.repository.RepositoryModule {
+    *;
+}
+
+-keep public class com.pushwoosh.repository.RegistrationPrefs {
+    *;
+}
+
+-keep public interface com.pushwoosh.internal.platform.manager.ManagerProvider {
+    *;
+}
+
+-keep class com.pushwoosh.internal.platform.AndroidPlatformModule {
+    *;
+}
+
+-keep public class com.pushwoosh.notification.builder.NotificationBuilderManager {
+    *;
+}
+
+-keep public class com.pushwoosh.PushwooshInitializer {
+    public static void init(android.content.Context);
+}
+
+-keep public class com.pushwoosh.PushwooshPlatform {
+    public static com.pushwoosh.PushwooshPlatform getInstance();
+    public com.pushwoosh.notification.PushwooshNotificationManager notificationManager();
+}
+
+-keep public class com.pushwoosh.notification.PushwooshNotificationManager {
+    public void onRegisteredForRemoteNotifications(java.lang.String);
+    public void onFailedToRegisterForRemoteNotifications(java.lang.String);
+    public void onUnregisteredFromRemoteNotifications(java.lang.String);
+    public void onFailedToUnregisterFromRemoteNotifications(java.lang.String);
+}
+
+-keepclassmembers class com.pushwoosh.internal.crypto.KeyProvider {
+    <init>();
+}
+
+-keep public class com.pushwoosh.PushwooshMessagingServiceHelper {
+    *;
+}

@@ -1,0 +1,7 @@
+-keep class com.pushwoosh.baidu.BaiduPushMessageReceiver {
+    public *;
+}
+
+-keep class com.pushwoosh.baidu.BaiduInitProvider {
+    public *;
+}

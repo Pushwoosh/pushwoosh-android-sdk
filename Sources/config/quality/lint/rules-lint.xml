@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+	<issue id="GoogleAppIndexingWarning" severity="ignore" />
+	<ignore path="*build" />
+	<ignore path="*.gradle" />
+	
+	<!-- Needed because of this https://github.com/square/okio/issues/58 -->
+	<issue id="InvalidPackage" severity="error">
+		<ignore regexp="okio.*jar" />
+	</issue>
+</lint>

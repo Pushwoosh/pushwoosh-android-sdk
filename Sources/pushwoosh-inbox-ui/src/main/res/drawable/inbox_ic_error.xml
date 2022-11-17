@@ -1,0 +1,48 @@
+<!--
+  ~
+  ~ Copyright (c) 2017. Pushwoosh Inc. (http://www.pushwoosh.com)
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining
+  ~ a copy of this software and associated documentation files (the
+  ~ "Software"), to deal in the Software without restriction, including
+  ~ without limitation the rights to use, copy, modify, merge, publish,
+  ~ distribute, sublicense, and/or sell copies of the Software, and to
+  ~ permit persons to whom the Software is furnished to do so, subject to
+  ~ the following conditions:
+  ~
+  ~ (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+  ~
+  ~ (ii) the above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  ~ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  ~ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  ~ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  ~ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="361.58dp"
+	android:height="303.59dp"
+	android:viewportWidth="361.58"
+	android:viewportHeight="303.59">
+
+	<path
+		android:fillColor="#35000000"
+		android:pathData="M198.93,228.9H12.78a0.73 0.73
+,0,0,1-0.73-0.73V216.65a5.88,5.88,0,0,0,2.41-1.2l98.35-82.16L136,153.92a59.68,59.68,0,0,0,79.29,0l23.89-21.26,19.29,16.11a5.92,5.92,0,0,0,5.49,1.14l0.14,0a6,6,0,0,0,2.15-10.29l-18-15,91.17-81.09V162.61a6,6,0,0,0,1.76,4.25h0a6,6,0,0,0,10.29-4.25V12.78A12.78,12.78,0,0,0,338.72,0H12.78A12.78,12.78,0,0,0,0,12.78V228.17A12.78,12.78,0,0,0,12.78,241H198.93a6,6,0,0,0,6-6.43h0A6,6,0,0,0,198.93,228.9ZM12.05,201.77V43.67l91.66,81.52Zm0-189a0.72
+0.72 ,0,0,1,0.73-0.73H338.72a0.73 0.73 ,0,0,1,0.73 0.73 V27.47a5.62,5.62,0,0,0-0.75 0.56
+L207.28,144.91a47.59,47.59,0,0,1-63.27,0L12.59,28a5.35,5.35,0,0,0-0.54-0.43Z" />
+	<path
+		android:fillColor="#35000000"
+		android:pathData="M287.28,155a74.29,74.29,0,1,0,74.3,74.29A74.38,74.38,0,0,0,287.28,155Zm0,136.54a62.25,62.25,0,1,1,62.25-62.25A62.32,62.32,0,0,1,287.28,291.55Z" />
+	<path
+		android:fillColor="#35000000"
+		android:pathData="M287.28,187.54a7.22,7.22,0,0,0-7.22,7.23v38.95a7.23,7.23,0,1,0,14.45,0V194.77A7.22,7.22,0,0,0,287.28,187.54Z" />
+	<path
+		android:fillColor="#35000000"
+		android:pathData="M287.28,250.18a7.23,7.23,0,0,0-7.22,7.23v1.21a7.23,7.23,0,1,0,14.45,0v-1.21A7.23,7.23,0,0,0,287.28,250.18Z" />
+</vector>

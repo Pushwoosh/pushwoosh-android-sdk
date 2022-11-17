@@ -1,0 +1,5 @@
+-keep public class com.pushwoosh.huawei.HuaweiInitializer {
+    *;
+}
+
+-keep class com.pushwoosh.huawei.internal.registrar.HuaweiPushRegistrar {}

@@ -1,0 +1,52 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    ext.kotlin_version = '1.3.50'
+    ext.huawei_version = '1.2.1.301'
+    ext.gradle_version = '3.5.4'
+    ext.gradle_pitest_plugin_version = '0.2.2'
+    repositories {
+        google()
+        mavenCentral()
+        // huawei maven
+        maven { url 'https://developer.huawei.com/repo/' }
+    }
+
+    dependencies {
+        classpath "com.android.tools.build:gradle:$gradle_version"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "pl.droidsonroids.gradle:gradle-pitest-plugin:$gradle_pitest_plugin_version"
+        classpath "com.huawei.agconnect:agcp:$huawei_version"
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+        // huawei maven
+        maven { url 'https://developer.huawei.com/repo/' }
+    }
+}
+
+subprojects {
+    ext.global_minSdkVersion = 17
+    ext.global_compileSdkVersion = 29
+    ext.global_targetVersion = 29
+    ext.global_versionName = "6.6.4"
+    ext.global_targetGroupId = "com.pushwoosh"
+
+    ext.googlePlayService = "17.0.0"
+    ext.firebase = "19.0.0"
+    ext.support = "1.0.0"
+    ext.legacy_support_v4 = "1.0.0"
+    ext.glide = "4.7.1"
+    ext.constraint = "1.1.3"
+    ext.workManager = "2.7.1"
+    ext.swipe_refresh_layout = "1.0.0"
+    ext.huawei = "6.1.0.300"
+}
+

@@ -1,0 +1,111 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath 'com.adarshr:gradle-test-logger-plugin:1.7.1'
+    }
+}
+
+ext{
+    targetArtefactIdDev = "pushwoosh-dev"
+    targetArtefactId = "pushwoosh"
+    targetName = "Pushwoosh"
+    targetDescription = "Pushwoosh push notifications SDK for Android"
+}
+
+apply plugin: 'com.android.library'
+apply from: '../scripts/quality/quality.gradle'
+apply from: '../scripts/maven/maven.gradle'
+apply plugin: 'pl.droidsonroids.pitest'
+apply plugin: 'com.adarshr.test-logger'
+
+android {
+    compileSdkVersion global_compileSdkVersion
+
+    defaultConfig {
+        versionName global_versionName
+        minSdkVersion global_minSdkVersion
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../proguard-common.txt',
+                    'proguard/public.txt', 'proguard/protected.txt'
+        }
+        debug {
+            minifyEnabled false
+        }
+        coverage {
+            testCoverageEnabled true
+            minifyEnabled false
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    testOptions {
+        unitTests.all {
+            jacoco {
+                includeNoLocationClasses = true
+            }
+        }
+    }
+
+    useLibrary 'android.test.runner'
+    useLibrary 'android.test.base'
+    useLibrary 'android.test.mock'
+}
+
+// need to export build configurations to be able to choose from other project
+android {
+    publishNonDefault true
+}
+
+dependencies {
+
+    implementation "androidx.work:work-runtime:${workManager}"
+    implementation "androidx.legacy:legacy-support-v4:${legacy_support_v4}"
+
+    androidTestImplementation "androidx.annotation:annotation:${support}"
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test:rules:1.1.1'
+    androidTestImplementation 'junit:junit:4.12'
+    androidTestImplementation 'org.mockito:mockito-core:1.10.19'
+
+    testImplementation "androidx.work:work-testing:${workManager}"
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:1.10.19'
+    testImplementation files('testLibs/json.jar')
+
+    testImplementation 'org.hamcrest:hamcrest-core:1.3'
+    testImplementation 'org.hamcrest:hamcrest-integration:1.3'
+    testImplementation 'org.hamcrest:hamcrest-library:1.3'
+
+    testImplementation 'org.robolectric:robolectric:3.8'
+    testImplementation 'org.robolectric:shadows-multidex:3.3.1'
+    testImplementation 'org.robolectric:shadows-play-services:3.3.1'
+    testImplementation 'org.robolectric:shadows-httpclient:3.3.1'
+
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
+    testImplementation 'org.powermock:powermock-module-junit4-rule:1.6.6'
+    testImplementation 'org.powermock:powermock-api-mockito2:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
+
+    testImplementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
+    testImplementation 'org.skyscreamer:jsonassert:1.5.0'
+}
+
+pitest {
+    targetClasses = ['com.pushwoosh.*']
+    threads = 5
+    outputFormats = ['HTML']
+    timeoutConstInMillis = 2000
+    // Necessary to allow Robolectric to finish. See http://pitest.org/faq/#im-seeing-a-lot-of-timeouts-whats-going-on
+}

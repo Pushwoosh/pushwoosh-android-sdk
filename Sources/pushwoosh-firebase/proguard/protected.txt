@@ -1,0 +1,9 @@
+-keep class com.pushwoosh.firebase.internal.checker.FirebaseChecker {
+    public protected *;
+}
+
+-keep class com.pushwoosh.firebase.FirebaseInitializer {
+    public protected *;
+}
+
+-keep class com.pushwoosh.firebase.internal.registrar.FcmRegistrar {}

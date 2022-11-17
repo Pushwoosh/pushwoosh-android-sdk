@@ -1,0 +1,143 @@
+-keep public class com.pushwoosh.Pushwoosh {
+    public protected *;
+    void sendMessageDelivery(android.os.Bundle);
+    void sendPushStat(android.os.Bundle);
+}
+
+-keep public class com.pushwoosh.GDPRManager {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.LocalNotification {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.LocalNotification$Builder {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.LocalNotificationRequest {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.PushMessage {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.PushwooshNotificationFactory {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.PushwooshSummaryNotificationFactory {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.NotificationServiceExtension {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.NotificationFactory {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.SummaryNotificationFactory {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.SoundType {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.VibrateType {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.notification.PushwooshNotificationSettings {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.inapp.PushwooshInApp {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.inapp.InAppManager {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.tags.Tags {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.tags.TagsBundle {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.tags.TagsBundle$Builder {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.function.Callback{
+    public protected *;
+}
+
+-keep public class com.pushwoosh.function.Result{
+    public protected *;
+}
+
+-keep public class com.pushwoosh.RegisterForPushNotificationsResultData{
+    public protected *;
+}
+
+-keep public class com.pushwoosh.richmedia.RichMediaManager {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.richmedia.RichMedia {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.richmedia.RichMediaPresentingDelegate {
+    *;
+}
+
+-keep public enum com.pushwoosh.richmedia.RichMedia$Source { *; }
+
+-keep class com.pushwoosh.richmedia.RichMediaStyle {
+    *;
+}
+-keep public interface com.pushwoosh.richmedia.animation.RichMediaAnimation {
+    *;
+}
+
+-keep public class com.pushwoosh.richmedia.animation.RichMediaAnimationSlideTop {
+    *;
+}
+
+-keep public class com.pushwoosh.richmedia.animation.RichMediaAnimationSlideBottom {
+    *;
+}
+
+-keep public class com.pushwoosh.richmedia.animation.RichMediaAnimationSlideRight {
+    *;
+}
+
+-keep public class com.pushwoosh.richmedia.animation.RichMediaAnimationSlideLeft {
+    *;
+}
+
+
+-keep public class com.pushwoosh.richmedia.animation.RichMediaAnimationCrossFade {
+    *;
+}
+
+-keep class com.pushwoosh.richmedia.RichMediaStyle.LoadingViewCreatorInterface {
+    *;
+}
+
+-keep class com.pushwoosh.inapp.view.inline.InlineInAppView {
+    public <methods>;
+}
+
+-keep public class com.pushwoosh.inapp.view.inline.InlineInAppViewListener {
+    *;
+}

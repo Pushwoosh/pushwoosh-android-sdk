@@ -1,0 +1,19 @@
+-keep public class com.pushwoosh.location.LocationPlugin {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.location.network.exception.LocationNotAvailableException {
+    public protected *;
+}
+
+-keep class com.pushwoosh.location.foregroundservice.ForegroundService {
+    *;
+}
+
+-keep public class com.pushwoosh.location.internal.utils.LocationPermissionActivity {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.location.internal.event.LocationPermissionEvent {
+    public protected *;
+}

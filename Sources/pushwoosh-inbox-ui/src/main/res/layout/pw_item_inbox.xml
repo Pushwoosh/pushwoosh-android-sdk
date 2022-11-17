@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~
+  ~ Copyright (c) 2017. Pushwoosh Inc. (http://www.pushwoosh.com)
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining
+  ~ a copy of this software and associated documentation files (the
+  ~ "Software"), to deal in the Software without restriction, including
+  ~ without limitation the rights to use, copy, modify, merge, publish,
+  ~ distribute, sublicense, and/or sell copies of the Software, and to
+  ~ permit persons to whom the Software is furnished to do so, subject to
+  ~ the following conditions:
+  ~
+  ~ (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+  ~
+  ~ (ii) the above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  ~ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  ~ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  ~ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  ~ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/pw_min_cell_height">
+
+    <ImageView
+        android:id="@+id/inboxImageView"
+        android:layout_width="@dimen/pw_image_icon"
+        android:layout_height="@dimen/pw_image_icon"
+        android:layout_margin="@dimen/pw_normal_margin"
+        android:contentDescription="@null"
+        app:srcCompat="@mipmap/ic_launcher_round" />
+
+    <LinearLayout
+        android:clipChildren="false"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginBottom="@dimen/pw_normal_margin"
+        android:layout_marginEnd="@dimen/pw_minor_margin"
+        android:layout_marginRight="@dimen/pw_minor_margin"
+        android:layout_marginTop="@dimen/pw_normal_margin"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/inboxLabelTextView"
+            tools:style="@style/TextAppearance.Inbox.InboxTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="@dimen/pw_normal_margin"
+            android:layout_marginEnd="@dimen/pw_normal_margin"
+            android:layout_gravity="start"
+            tools:text="Title" />
+
+        <TextView
+            android:id="@+id/inboxDescriptionTextView"
+            style="@style/TextAppearance.Inbox.InboxDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/pw_minor_margin"
+            tools:text="Avatar with text and icon" />
+    </LinearLayout>
+    <LinearLayout
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <com.pushwoosh.inbox.ui.presentation.view.view.TintableImageView
+            android:id="@+id/inboxStatusImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/pw_normal_margin"
+            android:layout_marginRight="@dimen/pw_normal_margin"
+            android:layout_marginStart="@dimen/pw_normal_margin"
+            android:layout_marginLeft="@dimen/pw_normal_margin"
+            android:layout_marginTop="@dimen/pw_normal_margin"
+            android:contentDescription="@null"
+            android:src="@drawable/inbox_ic_rich_media" />
+        <ImageView
+            android:id="@+id/inboxBannerImage"
+            style="@style/PwAttachmentView"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
+            android:layout_gravity="start"
+            android:layout_marginTop="@dimen/pw_minor_margin"
+            android:layout_marginBottom="@dimen/pw_minor_margin"
+            android:layout_marginStart="@dimen/pw_normal_margin"
+            android:layout_marginLeft="@dimen/pw_normal_margin"
+            android:layout_marginEnd="@dimen/pw_normal_margin"
+            android:layout_marginRight="@dimen/pw_normal_margin"
+            android:layout_width="@dimen/pw_attachment_preview"
+            android:layout_height="@dimen/pw_attachment_preview"
+            android:contentDescription="@null"
+            tools:src="@drawable/ic_launcher_foreground" />
+    </LinearLayout>
+
+</LinearLayout>

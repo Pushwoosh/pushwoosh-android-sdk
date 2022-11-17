@@ -1,0 +1,5 @@
+-keep public class com.pushwoosh.inbox.PushwooshInboxPlugin {
+    public protected *;
+}
+
+-keep enum com.pushwoosh.inbox.** { *; }

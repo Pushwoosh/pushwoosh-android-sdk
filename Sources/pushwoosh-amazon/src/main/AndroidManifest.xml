@@ -1,0 +1,79 @@
+<!--
+  ~
+  ~ Copyright (c) 2017. Pushwoosh Inc. (http://www.pushwoosh.com)
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining
+  ~ a copy of this software and associated documentation files (the
+  ~ "Software"), to deal in the Software without restriction, including
+  ~ without limitation the rights to use, copy, modify, merge, publish,
+  ~ distribute, sublicense, and/or sell copies of the Software, and to
+  ~ permit persons to whom the Software is furnished to do so, subject to
+  ~ the following conditions:
+  ~
+  ~ (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+  ~
+  ~ (ii) the above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  ~ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  ~ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  ~ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  ~ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<manifest package="com.pushwoosh.amazon"
+		  xmlns:amazon="http://schemas.amazon.com/apk/res/android"
+		  xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<uses-permission android:name="com.amazon.device.messaging.permission.RECEIVE" />
+
+	<!-- uses applicationId -->
+	<permission
+		android:name="${applicationId}.permission.RECEIVE_ADM_MESSAGE"
+		android:protectionLevel="signature" />
+	
+	<uses-permission android:name="${applicationId}.permission.RECEIVE_ADM_MESSAGE" />
+	<!-- uses applicationId end -->
+
+	<application>
+
+		<!-- You must explicitly enable ADM. You must also declare whether your application will run with or without ADM.
+		If you specify android:required="false", your app must degrade gracefully when ADM is unavailable. -->
+		<amazon:enable-feature
+			android:name="com.amazon.device.messaging"
+			android:required="false" />
+
+		<!-- it must have initOrder higher than PushwooshInitProvider-->
+		<!-- uses applicationId -->
+		<provider
+			android:name="com.pushwoosh.amazon.AmazonInitProvider"
+			android:authorities="${applicationId}.amazonpushwooshinitprovider"
+			android:enabled="true"
+			android:exported="false"
+			android:initOrder="52" />
+		<!-- uses applicationId end -->
+		<service
+			android:name="com.pushwoosh.PushAmazonHandlerJob"
+			android:permission="android.permission.BIND_JOB_SERVICE"
+			android:exported="false" />
+		
+		<!-- uses applicationId -->
+		<receiver
+			android:name="com.pushwoosh.PushAmazonReceiver"
+			android:exported="true"
+			android:permission="com.amazon.device.messaging.permission.SEND">
+			<intent-filter>
+				<action android:name="com.amazon.device.messaging.intent.REGISTRATION" />
+				<action android:name="com.amazon.device.messaging.intent.RECEIVE" />
+
+				<category android:name="${applicationId}" />
+			</intent-filter>
+		</receiver>
+		<!-- uses applicationId end -->
+		
+	</application>
+
+</manifest>

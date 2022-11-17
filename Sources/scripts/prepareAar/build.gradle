@@ -1,0 +1,155 @@
+/*
+ *
+ * Copyright (c) 2017. Pushwoosh Inc. (http://www.pushwoosh.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+ *
+ * (ii) the above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+ext {
+    moduleName = project.name
+    outputs = "publish/"
+    publishMavenDir = "${project.buildDir}/publish/artifacts-maven"
+    outputsTemp = "${outputs}/temp/"
+    aarName = project.hasProperty('aarName') ? project.getProperties().get('aarName') : moduleName
+    pushToMaven = project.hasProperty('pushToMaven') ? project.getProperties().get('pushToMaven') : true
+
+    globalBuildOutput = "../../build/output"
+    globalBuildOutputMapping = "${globalBuildOutput}/mapping"
+}
+
+def outputsDir = file("${project.buildDir}/$outputs")
+def outputsTempDir = file("${project.buildDir}/$outputsTemp")
+
+task copyAar {
+    doLast {
+        def buildType = 'release'
+        def buildDir = file("${project.buildDir}/outputs/aar/")
+
+        if (pushToMaven) {
+            print "Copy files to maven dir"
+            copy {
+                from(buildDir)
+                        {
+                            include "${moduleName}-${buildType}.aar"
+                            rename "${moduleName}-${buildType}.aar", "${moduleName}-${targetVersionName}.aar"
+                        }
+                into publishMavenDir
+            }
+
+            copy {
+                from(buildDir)
+                        {
+                            include "${moduleName}-${buildType}.aar"
+                            rename "${moduleName}-${buildType}.aar", "${targetArtefactIdDev}.aar"
+                        }
+                into publishDir
+            }
+        }
+
+        println aarName
+        copy {
+            from(buildDir)
+                    {
+                        include "${moduleName}-${buildType}.aar"
+                        rename "${moduleName}-${buildType}.aar", "${aarName}_v${targetVersionName}.aar"
+                    }
+            into outputsDir
+        }
+    }
+}
+
+task copyMapping {
+    doLast {
+        def buildType = 'release'
+        def buildDir = file("${project.buildDir}/outputs/mapping/${buildType}")
+        copy {
+            from(buildDir)
+                    {
+                        include "mapping.txt"
+                        rename "mapping.txt", "mapping-${moduleName}-${targetVersionName}.txt"
+                    }
+            into outputsDir
+        }
+    }
+}
+
+task unZipAar {
+    doLast {
+        copy {
+            from zipTree("$outputsDir/${aarName}_v${targetVersionName}.aar")
+            into outputsTempDir
+        }
+    }
+}
+
+task copyJarClass {
+    doLast {
+        copy {
+            from(outputsTempDir)
+                    {
+                        include("classes.jar")
+                        rename("classes.jar", "${aarName}_v${targetVersionName}.jar")
+                    }
+            into outputsDir
+        }
+
+        delete outputsTempDir
+    }
+}
+
+task copyToGlobal {
+    doLast {
+        def buildOutput = file(globalBuildOutput)
+        def globalMapping = file(globalBuildOutputMapping)
+        println buildOutput
+        copy {
+            from(outputsDir)
+                    {
+                        include "mapping-${moduleName}-${targetVersionName}.txt"
+                    }
+            into globalMapping
+        }
+
+        copy {
+            from(outputsDir)
+                    {
+                        include "${aarName}_v${targetVersionName}.aar"
+                    }
+            into buildOutput
+        }
+
+        def globalJar = "${buildOutput}/jars"
+
+        copy {
+            from(outputsDir)
+                    {
+                        include "${aarName}_v${targetVersionName}.jar"
+                    }
+            into globalJar
+        }
+    }
+}
+
+copyAar.dependsOn copyMapping
+unZipAar.dependsOn copyAar
+copyJarClass.dependsOn unZipAar
+copyToGlobal.dependsOn copyJarClass

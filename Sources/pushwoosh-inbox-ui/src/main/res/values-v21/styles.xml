@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="PwInboxTheme"
+        parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="inboxAccentColor">?attr/colorAccent</item>
+
+        <item name="inboxBackgroundColor">@android:color/white</item>
+        <item name="inboxHighlightColor">?attr/colorControlHighlight</item>
+
+        <item name="inboxImageTypeColor">?android:textColorSecondary</item>
+        <item name="inboxReadImageTypeColor">?android:textColorSecondary</item>
+
+        <item name="inboxTitleColor">?android:textColorPrimary</item>
+        <item name="inboxReadTitleColor">?android:textColorSecondary</item>
+
+        <item name="inboxDescriptionColor">?android:textColorSecondary</item>
+        <item name="inboxReadDescriptionColor">?android:textColorSecondary</item>
+
+        <item name="inboxDateColor">?attr/inboxAccentColor</item>
+        <item name="inboxReadDateColor">?android:textColorSecondary</item>
+
+        <item name="inboxDividerColor">?android:textColorPrimary</item>
+        <item name="android:windowContentTransitions">true</item>
+    </style>
+
+    <style name="PwInboxAttachment"
+        parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowContentTransitions">true</item>
+    </style>
+
+    <style name="PwAttachmentView">
+        <item name="android:transitionName">@string/pw_attachment_transition_id</item>
+    </style>
+</resources>
