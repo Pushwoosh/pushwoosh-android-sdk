@@ -114,12 +114,6 @@ public class PushwooshStartWorker {
         hwid.set(hwidString);
         registrationPrefs.hwid().set(hwid.get());
 
-        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
-            subscribeSetUserIdWhenServerCommunicationStartsEvent();
-        } else {
-            setUserIdIfEmpty();
-        }
-
         EventBus.sendEvent(new InitHwidEvent(hwid.get()));
         Pair<String, String> hwids = new Pair<>(hwid.get(), oldHwid.get());
         appOpenEndTagMigrateIfReady(hwids);
@@ -185,7 +179,14 @@ public class PushwooshStartWorker {
         EventBus.subscribe(ApplicationOpenDetector.ApplicationOpenEvent.class, event -> onAppOpen());
         PWLog.debug("appOpen:"+appOpen.get()+" onAppReady:"+appReady.get());
         if (appOpen.get()) {
-            EventBus.subscribe(PushwooshNotificationManager.ApplicationIdReadyEvent.class, event -> sendAppOpenEndTagMigrate());
+            if (appReady.get()) {
+                sendAppOpenEndTagMigrate();
+                registerUserIdWhenAppReady();
+            }
+            EventBus.subscribe(PushwooshNotificationManager.ApplicationIdReadyEvent.class, event -> {
+                sendAppOpenEndTagMigrate();
+                registerUserIdWhenAppReady();
+            });
         } else {
             Emitter.when(Emitter.forEvent(ApplicationOpenDetector.ApplicationOpenEvent.class),
                     Emitter.forEvent(PushwooshNotificationManager.ApplicationIdReadyEvent.class))
@@ -200,6 +201,7 @@ public class PushwooshStartWorker {
         appOpen.set(true);
         if (appReady.get()) {
             sendAppOpenEndTagMigrate();
+            registerUserIdWhenAppReady();
         }
     }
 
@@ -207,6 +209,7 @@ public class PushwooshStartWorker {
         PWLog.debug("onAppReady");
         if (appOpen.get()) {
             sendAppOpenEndTagMigrate();
+            registerUserIdWhenAppReady();
         }
     }
 
@@ -215,6 +218,14 @@ public class PushwooshStartWorker {
         if (!hwid.get().isEmpty()) {
             HWIDMigration.executeMigration(hwid.get(), oldHwid.get());
             pushwooshRepository.sendAppOpen();
+        }
+    }
+
+    private void registerUserIdWhenAppReady() {
+        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
+            subscribeSetUserIdWhenServerCommunicationStartsEvent();
+        } else {
+            setUserIdIfEmpty();
         }
     }
 

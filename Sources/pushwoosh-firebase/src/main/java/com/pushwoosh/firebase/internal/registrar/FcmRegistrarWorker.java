@@ -48,8 +48,6 @@ public class FcmRegistrarWorker extends Worker {
 
     private static void unregisterPW() {
         try {
-            FirebaseTokenHelper.deleteFirebaseToken();
-            PWLog.debug(TAG, "Fcm deregistration success");
             String token = RepositoryModule.getRegistrationPreferences().pushToken().get();
             NotificationRegistrarHelper.onUnregisteredFromRemoteNotifications(token);
         } catch (Exception e) {
