@@ -26,7 +26,6 @@ import com.pushwoosh.notification.PushMessageFactory;
 import com.pushwoosh.notification.PushwooshNotificationManager;
 import com.pushwoosh.notification.handlers.notification.PushStatNotificationOpenHandler;
 import com.pushwoosh.repository.DeviceRegistrar;
-import com.pushwoosh.repository.HWIDMigration;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
@@ -65,7 +64,6 @@ public class PushwooshPlatform {
     private GDPRManager gdprManager;
     private RichMediaController richMediaController;
     private AppVersionProvider appVersionProvider;
-    private HWIDMigration HWIDMigration;
     private PushwooshStartWorker pushwooshStartWorker;
     private DeviceRegistrar deviceRegistrar;
     private RichMediaStyle richMediaStyle;
@@ -140,25 +138,13 @@ public class PushwooshPlatform {
                 InAppModule.getInAppFolderProvider(),
                 richMediaStyle);
 
-
-        HWIDMigration = new HWIDMigration(requestManager,
-                sendTagsProcessor,
-                notificationPrefs.tagsMigrationDone(),
-                appVersionProvider,
-                notificationManager,
-                registrationPrefs,
-                deviceRegistrar);
-
         pushwooshDefaultEvents = new PushwooshDefaultEvents();
-
-        HWIDMigration.prepare();
 
         pushRegistrarHelper = new PushRegistrarHelper(config.getPluginProvider(), notificationManager);
 
         pushwooshStartWorker = new PushwooshStartWorker(
                 config,
                 registrationPrefs,
-                HWIDMigration,
                 appVersionProvider,
                 pushwooshRepository,
                 notificationManager,

@@ -39,8 +39,6 @@ public interface AppInfoProvider {
 
 	String getPackageName();
 
-	String getDeviceSecurityUUID();
-
 	@Nullable
 	String getVersionName();
 

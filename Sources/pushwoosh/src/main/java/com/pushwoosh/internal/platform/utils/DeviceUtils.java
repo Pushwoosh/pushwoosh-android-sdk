@@ -70,9 +70,6 @@ import java.util.concurrent.CountDownLatch;
 
 public class DeviceUtils {
     private static final int GET_UUID_TASK_TIMEOUT = 10000;
-    private static DeviceUUID DEVICE_SERIAL_UUID = new DeviceSerialUUID();
-    private static DeviceUUID DEVICE_OLD_HWID = new DeviceOldUUID();
-    private static DeviceUUID DEVICE_TELEPHONY_UUID = new DeviceTelephonyUUID();
 
     private static DeviceUUID DEVICE_RANDOM_UUID = new DeviceRandomUUID();
     private static DeviceUUID DEVICE_SHARED_UUID = new DeviceSharedUUID();
@@ -82,16 +79,8 @@ public class DeviceUtils {
     }
 
     static void initHWIDGenerators() {
-        DEVICE_SERIAL_UUID = new DeviceSerialUUID();
-        DEVICE_OLD_HWID = new DeviceOldUUID();
-        DEVICE_TELEPHONY_UUID = new DeviceTelephonyUUID();
-
         DEVICE_RANDOM_UUID = new DeviceRandomUUID();
         DEVICE_SHARED_UUID = new DeviceSharedUUID();
-
-        DEVICE_OLD_HWID.setFallback(DEVICE_TELEPHONY_UUID);
-        DEVICE_TELEPHONY_UUID.setFallback(DEVICE_SERIAL_UUID);
-        DEVICE_SERIAL_UUID.setFallback(DEVICE_RANDOM_UUID);
 
         DEVICE_SHARED_UUID.setFallback(DEVICE_RANDOM_UUID);
     }
@@ -106,10 +95,6 @@ public class DeviceUtils {
 
     @Nullable public static String getDeviceUUIDOrNull() {
         return RepositoryModule.getRegistrationPreferences().deviceId().get();
-    }
-
-    public static String getDeviceUUIDOld() {
-        return DEVICE_OLD_HWID.getUUID();
     }
 
     @SuppressLint("InlinedApi")
@@ -387,48 +372,6 @@ public class DeviceUtils {
 
         protected interface TryGetUuidCallback {
             void onGetUuid(String uuid);
-        }
-    }
-
-    private static class DeviceSerialUUID extends DeviceUUID {
-        protected String tryGetUUID() {
-            if (android.os.Build.VERSION.SDK_INT >= 28) {
-                return "";
-            } else {
-                @SuppressLint("HardwareIds")
-                String uuid = android.os.Build.SERIAL;
-                if (TextUtils.equals(Build.UNKNOWN, uuid)) {
-                    return "";
-                } else {
-                    return uuid;
-                }
-            }
-
-
-        }
-    }
-
-    private static class DeviceOldUUID extends DeviceUUID {
-        protected String tryGetUUID() {
-            return AndroidPlatformModule.getAppInfoProvider().getDeviceSecurityUUID();
-        }
-    }
-
-    private static class DeviceTelephonyUUID extends DeviceUUID {
-        @SuppressLint({"MissingPermission", "HardwareIds"})
-        protected String tryGetUUID() {
-            String uuid = "";
-            try {
-                TelephonyManager telephonyManager = AndroidPlatformModule.getManagerProvider().getTelephonyManager();
-                if (telephonyManager != null) {
-                    uuid = telephonyManager.getDeviceId();
-                }
-            } catch (RuntimeException e) {
-                PWLog.error("DeviceTelephonyUUID", e);
-                // fallback
-            }
-
-            return uuid;
         }
     }
 

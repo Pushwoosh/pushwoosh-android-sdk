@@ -69,11 +69,6 @@ public class ContextAppInfoProvider implements AppInfoProvider {
 	}
 
 	@Override
-	public String getDeviceSecurityUUID() {
-		return getContext() == null ? "" : Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
-	}
-
-	@Override
 	@Nullable
 	public String getVersionName() {
 		try {

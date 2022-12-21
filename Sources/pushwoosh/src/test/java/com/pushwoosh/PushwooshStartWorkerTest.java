@@ -22,7 +22,6 @@ import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushwooshNotificationManager;
 import com.pushwoosh.repository.DeviceRegistrar;
-import com.pushwoosh.repository.HWIDMigration;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.config.GetConfigRequest;
@@ -71,8 +70,6 @@ public class PushwooshStartWorkerTest {
 
     private RegistrationPrefs registrationPrefs;
     @Mock
-    private HWIDMigration HWIDMigration;
-    @Mock
     private AppVersionProvider appVersionProvider;
     @Mock
     private PushwooshRepository pushwooshRepository;
@@ -107,7 +104,6 @@ public class PushwooshStartWorkerTest {
         pushwooshStartWorker = new PushwooshStartWorker(
                 config,
                 registrationPrefs,
-                HWIDMigration,
                 appVersionProvider,
                 pushwooshRepository,
                 notificationManager,
@@ -301,9 +297,8 @@ public class PushwooshStartWorkerTest {
         //Assert.assertFalse(hwid.isEmpty());
         // hwid initialisation is asynchronous from 5.14.1
 
-        InOrder inOrder = Mockito.inOrder(appVersionProvider, HWIDMigration, pushwooshRepository);
+        InOrder inOrder = Mockito.inOrder(appVersionProvider, pushwooshRepository);
         inOrder.verify(appVersionProvider).handleLaunch();
-        inOrder.verify(HWIDMigration).executeMigration(anyString(), eq(""));
         inOrder.verify(pushwooshRepository).sendAppOpen();
 
         verify(pushwooshInApp).setUserId(anyString());

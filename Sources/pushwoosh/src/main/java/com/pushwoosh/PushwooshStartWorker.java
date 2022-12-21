@@ -1,13 +1,11 @@
 package com.pushwoosh;
 
 import android.text.TextUtils;
-import android.util.Pair;
 
 import com.pushwoosh.appevents.PushwooshDefaultEvents;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.internal.Plugin;
 import com.pushwoosh.internal.PushRegistrarHelper;
-import com.pushwoosh.internal.event.ConfigLoadedEvent;
 import com.pushwoosh.internal.event.Emitter;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
@@ -25,7 +23,6 @@ import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushwooshNotificationManager;
 import com.pushwoosh.notification.channel.NotificationChannelManager;
 import com.pushwoosh.repository.DeviceRegistrar;
-import com.pushwoosh.repository.HWIDMigration;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
 
@@ -38,13 +35,11 @@ public class PushwooshStartWorker {
     private final AtomicBoolean appOpen = new AtomicBoolean(false);
     private final AtomicBoolean appReady = new AtomicBoolean(false);
     private final AtomicReference<String> hwid = new AtomicReference<>("");
-    private final AtomicReference<String> oldHwid = new AtomicReference<>("");
 
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     private final Config config;
     private final RegistrationPrefs registrationPrefs;
-    private final HWIDMigration HWIDMigration;
     private final AppVersionProvider appVersionProvider;
     private final PushwooshRepository pushwooshRepository;
     private final PushwooshNotificationManager notificationManager;
@@ -58,7 +53,6 @@ public class PushwooshStartWorker {
 
     public PushwooshStartWorker(Config config,
                                 RegistrationPrefs registrationPrefs,
-                                HWIDMigration HWIDMigration,
                                 AppVersionProvider appVersionProvider,
                                 PushwooshRepository pushwooshRepository,
                                 PushwooshNotificationManager notificationManager,
@@ -69,7 +63,6 @@ public class PushwooshStartWorker {
                                 ServerCommunicationManager serverCommunicationManager) {
         this.config = config;
         this.registrationPrefs = registrationPrefs;
-        this.HWIDMigration = HWIDMigration;
         this.appVersionProvider = appVersionProvider;
         this.pushwooshRepository = pushwooshRepository;
         this.notificationManager = notificationManager;
@@ -110,13 +103,11 @@ public class PushwooshStartWorker {
     private void onGetHwid(String hwidString,
                            Subscription<ApplicationOpenDetector.ApplicationOpenEvent> subscriberAppOpen,
                            Subscription<PushwooshNotificationManager.ApplicationIdReadyEvent> subscriberAppReady) {
-        oldHwid.set(registrationPrefs.hwid().get());
         hwid.set(hwidString);
         registrationPrefs.hwid().set(hwid.get());
 
         EventBus.sendEvent(new InitHwidEvent(hwid.get()));
-        Pair<String, String> hwids = new Pair<>(hwid.get(), oldHwid.get());
-        appOpenEndTagMigrateIfReady(hwids);
+        sendAppOpenIfReady();
         subscribeForEvent();
 
         subscriberAppOpen.unsubscribe();
@@ -145,11 +136,10 @@ public class PushwooshStartWorker {
         EventBus.subscribe(ServerCommunicationStartedEvent.class, setUserIdWhenServerCommunicationStartsEvent);
     }
 
-    private void appOpenEndTagMigrateIfReady(Pair<String, String> hwids) {
+    private void sendAppOpenIfReady() {
         if (appOpen.get()) {
             appVersionProvider.handleLaunch();
             if (appReady.get()) {
-                HWIDMigration.executeMigration(hwids.first, hwids.second);
                 pushwooshRepository.sendAppOpen();
             }
         }
@@ -180,11 +170,11 @@ public class PushwooshStartWorker {
         PWLog.debug("appOpen:"+appOpen.get()+" onAppReady:"+appReady.get());
         if (appOpen.get()) {
             if (appReady.get()) {
-                sendAppOpenEndTagMigrate();
+                sendAppOpenIfHwidReady();
                 registerUserIdWhenAppReady();
             }
             EventBus.subscribe(PushwooshNotificationManager.ApplicationIdReadyEvent.class, event -> {
-                sendAppOpenEndTagMigrate();
+                sendAppOpenIfHwidReady();
                 registerUserIdWhenAppReady();
             });
         } else {
@@ -200,7 +190,7 @@ public class PushwooshStartWorker {
         appVersionProvider.handleLaunch();
         appOpen.set(true);
         if (appReady.get()) {
-            sendAppOpenEndTagMigrate();
+            sendAppOpenIfHwidReady();
             registerUserIdWhenAppReady();
         }
     }
@@ -208,15 +198,14 @@ public class PushwooshStartWorker {
     private void onAppReady() {
         PWLog.debug("onAppReady");
         if (appOpen.get()) {
-            sendAppOpenEndTagMigrate();
+            sendAppOpenIfHwidReady();
             registerUserIdWhenAppReady();
         }
     }
 
-    private void sendAppOpenEndTagMigrate() {
+    private void sendAppOpenIfHwidReady() {
         PWLog.debug("sendAppOpenEndTagMigrate");
         if (!hwid.get().isEmpty()) {
-            HWIDMigration.executeMigration(hwid.get(), oldHwid.get());
             pushwooshRepository.sendAppOpen();
         }
     }
