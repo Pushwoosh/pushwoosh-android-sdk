@@ -334,7 +334,7 @@ public class InboxRepository {
 	}
 
 	private void deleteFromStorage(GetInboxMessagesResponse response) {
-		if (response.getDeleted() != null) {
+		if (response.getDeleted() != null && response.getDeleted().size() > 0) {
 			inboxStorage.deleteList(response.getDeleted());
 		}
 	}

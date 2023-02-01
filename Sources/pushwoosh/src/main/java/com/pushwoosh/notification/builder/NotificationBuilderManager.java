@@ -171,7 +171,7 @@ public class NotificationBuilderManager {
 	public static List<StatusBarNotification> getActiveNotifications() {
 		ArrayList<StatusBarNotification> activeNotifications = new ArrayList<>();
 		NotificationManager notificationManager = AndroidPlatformModule.getManagerProvider().getNotificationManager();
-		if (notificationManager != null) {
+		if (notificationManager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			try {
 				StatusBarNotification[] statusBarNotifications = notificationManager.getActiveNotifications();
 				for (StatusBarNotification statusBarNotification : statusBarNotifications) {
