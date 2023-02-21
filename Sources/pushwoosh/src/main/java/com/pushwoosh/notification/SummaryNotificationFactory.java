@@ -79,8 +79,13 @@ public abstract class SummaryNotificationFactory {
         return false;
     }
 
+    public boolean shouldGenerateSummaryNotification() { return true; }
+
     @RequiresApi(Build.VERSION_CODES.N)
     public final Notification onGenerateSummaryNotification(int notificationsAmount, String notificationChannelId) {
+        if (!shouldGenerateSummaryNotification()) {
+            return null;
+        }
         Context appContext = getApplicationContext();
         if (appContext == null) {
             PWLog.error("onGenerateSummaryNotification " + AndroidPlatformModule.NULL_CONTEXT_MESSAGE);

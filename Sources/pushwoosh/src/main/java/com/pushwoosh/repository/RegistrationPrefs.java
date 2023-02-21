@@ -28,6 +28,8 @@ package com.pushwoosh.repository;
 
 import android.content.SharedPreferences;
 import androidx.annotation.Nullable;
+
+import android.os.Build;
 import android.text.TextUtils;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -147,7 +149,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		String defaultLocale = "en";
 		language = new PreferenceStringValue(preferences, PROPERTY_LANGUAGE,
 				config.isCollectingDeviceLocaleAllowed()
-						? Locale.getDefault().getLanguage()
+						? languageCode()
 						: defaultLocale);
 
 		PWLog.noise("RegistrationPrefs() done");
@@ -262,8 +264,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	}
 
 	public void setLanguage(@Nullable String language) {
-		if (language == null || language.length() != 2) {
-			language = Locale.getDefault().getLanguage();
+		if (language == null ) {
+			return;
 		}
 
 		language().set(language);
@@ -320,5 +322,11 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 			migrationScheme.putBoolean(PROPERTY_IS_REGISTERED_FOR_NOTIFICATION, !TextUtils.isEmpty(token));
 		}
 		return migrationScheme;
+	}
+
+	private String languageCode() {
+		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+				? Locale.getDefault().toLanguageTag()
+				: Locale.getDefault().getLanguage();
 	}
 }

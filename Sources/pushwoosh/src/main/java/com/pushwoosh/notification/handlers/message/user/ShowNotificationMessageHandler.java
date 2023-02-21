@@ -101,10 +101,9 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 				String notificationChannelId = (Build.VERSION.SDK_INT >= 26)
 						? notification.getChannelId() : SummaryNotificationFactory.NEED_TO_ADD_NEW_NOTIFICATION_CHANNEL_ID;
 				Notification summaryNotification = SummaryNotificationUtils.getSummaryNotification(activeNotificationsCount, notificationChannelId);
-				if (summaryNotification == null) {
-					return;
+				if (summaryNotification != null) {
+					SummaryNotificationUtils.fireSummaryNotification(summaryNotification);
 				}
-				SummaryNotificationUtils.fireSummaryNotification(summaryNotification);
 			}
 		}
 
