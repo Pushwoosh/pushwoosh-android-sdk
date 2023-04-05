@@ -34,6 +34,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
+
 import android.text.TextUtils;
 
 import com.pushwoosh.NotificationUpdateReceiver;
@@ -79,9 +81,13 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 			}
 
 			Intent notifyIntent = notificationFactory.getNotificationIntent(pushMessage);
+			// Samsung devices with Android 13+ update existing notification incorrectly (sometimes old banner remains)
+			// so we have to cancel existing notification before showing a new one, see
+			// https://jira.corp.pushwoosh.com/browse/PUSH-33434
+			NotificationManagerCompat.from(getApplicationContext()).cancelAll();
 			fireNotification(notification, notifyIntent, pushMessage); // deleteIntent is null as
-																						// handleNotification method does not
-																						// store push bundles in database
+			                                                           // handleNotification method does not
+																	   // store push bundles in database
 		}
 	}
 
