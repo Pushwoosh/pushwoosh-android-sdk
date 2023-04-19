@@ -335,16 +335,6 @@ public final class PushBundleDataProvider {
 
 	private PushBundleDataProvider() {/*do nothing*/}
 
-	@Nullable
-	public static String getHtmlPage(final Bundle pushBundle) {
-		return pushBundle.getString("h");
-	}
-
-	@Nullable
-	public static String getRemotePage(final Bundle pushBundle) {
-		return pushBundle.getString("r");
-	}
-
 	public static long getSentTime(Bundle pushBundle) {
 		return pushBundle.getLong("google.sent_time", System.currentTimeMillis());
 	}

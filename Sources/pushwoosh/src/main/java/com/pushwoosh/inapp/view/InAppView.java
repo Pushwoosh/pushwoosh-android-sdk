@@ -29,7 +29,6 @@ package com.pushwoosh.inapp.view;
 public interface InAppView {
 	int MODE_DEFAULT = 0;
 	int MODE_LOCKSCREEN = 1;
-	int MODE_REMOTE_PAGE = 2;
 
 	/**
 	 * Close inapp

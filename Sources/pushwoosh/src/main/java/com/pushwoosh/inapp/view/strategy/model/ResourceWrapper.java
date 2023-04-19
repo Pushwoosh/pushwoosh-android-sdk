@@ -110,15 +110,6 @@ public class ResourceWrapper {
 			return this;
 		}
 
-		public Builder setRemoteUrl(String remoteUrl) {
-			if (remoteUrl == null) {
-				return this;
-			}
-
-			return setResource(new Resource(remoteUrl))
-					.setResourceType(ResourceType.REMOTE_URL);
-		}
-
 		public Builder setSound(String sound) {
 			this.sound = sound;
 			return this;

@@ -53,9 +53,6 @@ public class InboxPerformActionStrategyFactory {
 			case DEEP_LINK:
 				inboxActionStrategy = new DeepLinkActionStrategy();
 				break;
-			case REMOTE_URL:
-				inboxActionStrategy = new RemoteUrlActionStrategy();
-				break;
 			default:
 				PWLog.error("Unknown inbox message type: " + inboxMessageInternal.getInboxMessageType());
 				return;

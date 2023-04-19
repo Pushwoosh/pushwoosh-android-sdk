@@ -56,8 +56,6 @@ public class ResourceViewStrategyFactory {
 				}
 
 				return new RichMediaViewStrategy(getContext(), resourceWrapper.getDelay());
-			case REMOTE_URL:
-				return new RemoteUrlDefaultViewStrategy(getContext());
 			default:
 				return new InAppDefaultViewStrategy(getContext(), InAppModule.getInAppFolderProvider());
 		}

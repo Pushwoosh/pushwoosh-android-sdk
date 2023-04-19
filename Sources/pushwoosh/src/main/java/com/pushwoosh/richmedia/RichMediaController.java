@@ -175,15 +175,11 @@ public class RichMediaController {
 	}
 
 	public void showResourceWrapper(ResourceWrapper resourceWrapper) {
-		if (delegate != null && isRichMedia(resourceWrapper)) {
+		if (delegate != null) {
 			useDelegate(resourceWrapper);
 		} else {
 			resourceViewStrategyFactory.showResource(resourceWrapper);
 		}
-	}
-
-	private boolean isRichMedia(ResourceWrapper resourceWrapper) {
-		return resourceWrapper.getResourceType() != ResourceType.REMOTE_URL;
 	}
 
 	public RichMediaStyle getRichMediaStyle() {

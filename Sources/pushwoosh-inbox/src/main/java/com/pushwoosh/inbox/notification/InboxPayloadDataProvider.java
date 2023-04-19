@@ -58,15 +58,6 @@ public class InboxPayloadDataProvider {
 	}
 
 	@Nullable
-	public static String getRemoteUrl(JSONObject jsonObject) throws JSONException {
-		if (!jsonObject.has("r")) {
-			return null;
-		}
-
-		return jsonObject.getString("r");
-	}
-
-	@Nullable
 	public static JSONObject getRichMedia(JSONObject jsonObject) throws JSONException {
 		if (!jsonObject.has("rm")) {
 			return null;
@@ -124,8 +115,6 @@ public class InboxPayloadDataProvider {
 			} else {
 				return InboxMessageType.DEEP_LINK;
 			}
-		} else if (InboxPayloadDataProvider.getRemoteUrl(jsonPayload) != null) {
-			return InboxMessageType.REMOTE_URL;
 		}
 
 		return InboxMessageType.PLAIN;

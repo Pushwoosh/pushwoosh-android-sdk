@@ -111,12 +111,4 @@ public class ResourceViewStrategyFactoryTest {
         ResourceViewStrategy resourceViewStrategy = resourceViewStrategyFactory.createStrategy(resourceWrapper);
         Assert.assertTrue(resourceViewStrategy instanceof RichMediaViewStrategy);
     }
-
-    @Test
-    public void remoteUrlDefaultViewStrategyTest(){
-        when(resourceWrapper.getResourceType()).thenReturn(ResourceType.REMOTE_URL);
-
-        ResourceViewStrategy resourceViewStrategy = resourceViewStrategyFactory.createStrategy(resourceWrapper);
-        Assert.assertTrue(resourceViewStrategy instanceof RemoteUrlDefaultViewStrategy);
-    }
 }

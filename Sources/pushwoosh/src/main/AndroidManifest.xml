@@ -40,11 +40,7 @@
 			android:name="com.pushwoosh.inapp.view.RichMediaWebActivity"
 			android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
-		<activity
-			android:name="com.pushwoosh.inapp.view.RemoteUrlActivity"
-			android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-
-		<activity
+        <activity
 				android:name="com.pushwoosh.notification.NotificationOpenActivity"
 				android:noHistory="true"
 				android:theme="@android:style/Theme.Translucent.NoTitleBar"

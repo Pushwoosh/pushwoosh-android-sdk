@@ -51,20 +51,6 @@ public final class ResourceAction {
 			richMediaController.showResourceWrapper(resourceWrapper);
 	}
 
-	/**
-	 * Show view associated with {@param remoteUrl}
-	 * @param remoteUrl - url from push
-	 */
-	public static void performRemoteUrlAction(String remoteUrl){
-		ResourceWrapper resourceWrapper = new ResourceWrapper.Builder()
-				.setRemoteUrl(remoteUrl)
-				.build();
-
-		RichMediaController richMediaController = PushwooshPlatform.getInstance().getRichMediaController();
-		if (richMediaController != null)
-			richMediaController.showResourceWrapper(resourceWrapper);
-	}
-
 	private ResourceAction() {
 	}
 }

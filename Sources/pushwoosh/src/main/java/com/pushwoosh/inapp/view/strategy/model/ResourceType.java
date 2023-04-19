@@ -28,6 +28,5 @@ package com.pushwoosh.inapp.view.strategy.model;
 
 public enum ResourceType {
 	IN_APP,
-	RICH_MEDIA,
-	REMOTE_URL
+	RICH_MEDIA
 }

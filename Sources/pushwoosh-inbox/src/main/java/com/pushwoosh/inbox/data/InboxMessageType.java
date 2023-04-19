@@ -41,8 +41,7 @@ public enum InboxMessageType {
 	PLAIN(0),
 	RICH_MEDIA(1),
 	URL(2),
-	DEEP_LINK(3),
-	REMOTE_URL(4);
+	DEEP_LINK(3);
 
 	private int code;
 

@@ -83,7 +83,6 @@ class InboxAdapter(context: Context,
         InboxMessageType.PLAIN,
         InboxMessageType.RICH_MEDIA,
         InboxMessageType.URL,
-        InboxMessageType.REMOTE_URL,
         InboxMessageType.DEEP_LINK -> TEXT_VIEW_TYPE
     }
 }

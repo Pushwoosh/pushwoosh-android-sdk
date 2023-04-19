@@ -76,9 +76,6 @@ public class RichMedia {
 			case RICH_MEDIA:
 				this.content = resource.getCode();
 				this.source = PushMessageSource;
-				break;
-			case REMOTE_URL:
-				throw new IllegalArgumentException("ResourceType can not equals REMOTE URL");
 		}
 	}
 

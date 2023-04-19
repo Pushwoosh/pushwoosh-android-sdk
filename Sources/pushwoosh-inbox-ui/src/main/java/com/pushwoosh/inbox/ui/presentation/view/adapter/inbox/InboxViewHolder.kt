@@ -163,6 +163,5 @@ fun InboxMessageType.getResource() = when (this) {
     InboxMessageType.PLAIN -> R.drawable.inbox_ic_app_open
     InboxMessageType.RICH_MEDIA -> R.drawable.inbox_ic_rich_media
     InboxMessageType.URL -> R.drawable.inbox_ic_remote_url
-    InboxMessageType.REMOTE_URL -> R.drawable.inbox_ic_remote_url
     InboxMessageType.DEEP_LINK -> R.drawable.inbox_ic_deep_link
 }
