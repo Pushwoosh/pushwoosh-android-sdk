@@ -73,7 +73,7 @@ dependencies {
 
     implementation "androidx.legacy:legacy-support-v4:${legacy_support_v4}"
     implementation "com.google.android.gms:play-services-base:${googlePlayService}"
-    implementation "com.google.android.gms:play-services-location:${googlePlayService}"
+    implementation "com.google.android.gms:play-services-location:${googleLocationServices}"
 
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'

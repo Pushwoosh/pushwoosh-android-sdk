@@ -201,6 +201,7 @@ public class CurrentPushwoosh implements PushwooshProxy {
 		PushwooshLocation.startLocationTracking(result -> {
 			if (result.isSuccess()) {
 				ShowMessageHelper.showMessage("Success change location tracking.");
+				PushwooshLocation.requestBackgroundLocationPermission();
 			} else {
 				ShowMessageHelper.showMessage("Failed change location tracking.");
 			}

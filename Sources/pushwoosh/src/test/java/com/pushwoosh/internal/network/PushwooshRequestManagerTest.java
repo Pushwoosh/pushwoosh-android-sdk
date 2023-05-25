@@ -266,7 +266,7 @@ public class PushwooshRequestManagerTest {
 
 	@Test(timeout = TIMEOUT_TEST)
 	public void badStatusCode() throws Exception {
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}").setResponseCode(404));
+		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}").setResponseCode(503));
 		Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
 
 		assertThat(result.isSuccess(), is(false));

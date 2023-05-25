@@ -17,6 +17,7 @@ import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.config.ConfigPrefs;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
@@ -145,6 +146,12 @@ class PushwooshRequestManager implements RequestManager {
 			statusCode = result.getStatus();
 			pushwooshStatusCode = result.getPushwooshStatus();
 
+			//postEvent might return 404 if wrong event name is provided, so in that case we want to
+			// avoid handling it further
+			if (NetworkResult.STATUS_NOT_FOUND == statusCode) {
+				return Result.from(null, null);
+			}
+
 			if (NetworkResult.STATUS_OK == statusCode && NetworkResult.STATUS_OK == pushwooshStatusCode) {
 				if (!isAnalytics(request)) {
 					PWLog.debug(TAG, request.getMethod() + " response success");
@@ -211,7 +218,7 @@ class PushwooshRequestManager implements RequestManager {
 				connectionOutput.flush();
 			}
 
-			String jsonString = getResponseJsonString(connection);
+			NetworkResult networkResult = getNetworkResultFromConnection(connection);
 
 			if (!isAnalytics) {
 				PWLog.info(TAG, "\n"
@@ -219,12 +226,11 @@ class PushwooshRequestManager implements RequestManager {
 						+ "|     Pushwoosh request:\n"
 						+ "| Url: " + url.toString() + "\n"
 						+ "| Payload: " + requestJson.toString() + "\n"
-						+ "| Response: " + jsonString + "\n"
+						+ "| Response: " + networkResult.getResponse().toString() + "\n"
 						+ "x");
 			}
 
-			JSONObject resultJSON = new JSONObject(jsonString);
-			return new NetworkResult(connection.getResponseCode(), resultJSON.getInt("status_code"), resultJSON);
+			return networkResult;
 		} catch (Exception e) {
 			//reset base url
 			if (baseUrl.equals(baseRequestUrl)) {
@@ -235,29 +241,45 @@ class PushwooshRequestManager implements RequestManager {
 		}
 	}
 
-	private String getResponseJsonString(HttpURLConnection connection) throws IOException {
+	private NetworkResult getNetworkResultFromConnection(HttpURLConnection connection) throws IOException {
 		InputStream inputStream;
+		JSONObject responseJson = new JSONObject();
+		int status = connection.getResponseCode();
+		int pushwooshStatus = 0;
 		if (isErrorResponseCode(connection.getResponseCode())) {
 			inputStream = new BufferedInputStream(connection.getErrorStream());
+			pushwooshStatus = status;
+			try {
+				responseJson.put("status_code",pushwooshStatus);
+				responseJson.put("status_message", connection.getResponseMessage());
+			} catch (JSONException e) {
+				PWLog.error(TAG, e.getMessage());
+			}
 		} else {
 			inputStream = new BufferedInputStream(connection.getInputStream());
 		}
 
 		try {
-			try (ByteArrayOutputStream dataCache = new ByteArrayOutputStream()) {
+			if (connection.getContentLength() != 0) {
+				try (ByteArrayOutputStream dataCache = new ByteArrayOutputStream()) {
 
-				// Fully read data
-				byte[] buff = new byte[1024];
-				int len;
-				while ((len = inputStream.read(buff)) >= 0) {
-					dataCache.write(buff, 0, len);
+					// Fully read data
+					byte[] buff = new byte[1024];
+					int len;
+					while ((len = inputStream.read(buff)) >= 0) {
+						dataCache.write(buff, 0, len);
+					}
+
+					responseJson = new JSONObject(dataCache.toString().trim());
+					pushwooshStatus = responseJson.getInt("status_code");
+				} catch (Exception e) {
+					PWLog.error(TAG, e.getMessage());
 				}
-
-				return new String(dataCache.toByteArray()).trim();
 			}
 		} finally {
 			inputStream.close();
 		}
+		return new NetworkResult(status, pushwooshStatus, responseJson);
 	}
 
 	private boolean isErrorResponseCode(int code) {
@@ -266,6 +288,7 @@ class PushwooshRequestManager implements RequestManager {
 
 	static class NetworkResult {
 		static final int STATUS_OK = 200;
+		static final int STATUS_NOT_FOUND = 404;
 
 		private int pushwooshStatus;
 		private int status;

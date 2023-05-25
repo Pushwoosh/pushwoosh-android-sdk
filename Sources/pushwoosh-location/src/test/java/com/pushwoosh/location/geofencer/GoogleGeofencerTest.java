@@ -44,6 +44,7 @@ import com.pushwoosh.location.internal.checker.LocationPermissionChecker;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -64,6 +65,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+//TODO Disabling these tests until we update robolectric to 4.9+ due to
+// https://github.com/robolectric/robolectric/issues/7269
 @RunWith(RobolectricTestRunner.class)
 public class GoogleGeofencerTest {
 	public static final String GEO_ZONE_1 = "geo zone 1";
@@ -112,7 +115,7 @@ public class GoogleGeofencerTest {
 		Whitebox.setInternalState(googleGeofencer, "googleApiClient", googleApiClient);
 	}
 
-
+	@Ignore
 	@Test
 	public void addZones() {
 		List<GeoZone> geoZoneList = getGeoZoneList();
@@ -138,6 +141,7 @@ public class GoogleGeofencerTest {
 		return geoZoneList;
 	}
 
+	@Ignore
 	@Test
 	public void addZonesEmptyListZone() {
 		List<GeoZone> geoZoneList = new ArrayList<>();
@@ -151,6 +155,7 @@ public class GoogleGeofencerTest {
 		verify(taskMock, never()).addOnCompleteListener(any());
 	}
 
+	@Ignore
 	@Test
 	public void addZonesCheckFailLocationPermissionChecker() {
 		List<GeoZone> geoZoneList = getGeoZoneList();
@@ -160,6 +165,7 @@ public class GoogleGeofencerTest {
 		checkNeverCallAddZones();
 	}
 
+	@Ignore
 	@Test
 	public void addZonesCheckFailGoogleApiChecker() {
 		List<GeoZone> geoZoneList = getGeoZoneList();
@@ -169,6 +175,7 @@ public class GoogleGeofencerTest {
 		checkNeverCallAddZones();
 	}
 
+	@Ignore
 	@Test
 	public void addZonedPendingIntentIsNull() {
 		createGoogleGeofencerWithMockedComponents(geofencingClient, null);
@@ -179,6 +186,7 @@ public class GoogleGeofencerTest {
 		checkNeverCallAddZones();
 	}
 
+	@Ignore
 	@Test
 	public void addZonedGeofencingClientIsNull() {
 		createGoogleGeofencerWithMockedComponents(null, pendingIntent);
@@ -189,6 +197,7 @@ public class GoogleGeofencerTest {
 		checkNeverCallAddZones();
 	}
 
+	@Ignore
 	@Test
 	public void removeZones() {
 		List<GeoZone> geoZoneList = getGeoZoneList();
@@ -202,6 +211,7 @@ public class GoogleGeofencerTest {
 		verify(taskMock).addOnCompleteListener(any());
 	}
 
+	@Ignore
 	@Test
 	public void removeZonesEmptyList() {
 		List<GeoZone> geoZoneList = new ArrayList<>();
@@ -216,6 +226,7 @@ public class GoogleGeofencerTest {
 		verify(taskMock, never()).addOnCompleteListener(any());
 	}
 
+	@Ignore
 	@Test
 	public void removeZonesCheckFailGoogleApiChecker() {
 		List<GeoZone> geoZoneList = getGeoZoneList();
@@ -225,6 +236,7 @@ public class GoogleGeofencerTest {
 		checkNeverCallRemoveZone();
 	}
 
+	@Ignore
 	@Test
 	public void removeZonedGeofencingClientIsNull() {
 		createGoogleGeofencerWithMockedComponents(null, pendingIntent);
@@ -235,6 +247,7 @@ public class GoogleGeofencerTest {
 		checkNeverCallRemoveZone();
 	}
 
+	@Ignore
 	@Test
 	public void onDestroy() {
 		googleGeofencer.onDestroy();
@@ -245,6 +258,7 @@ public class GoogleGeofencerTest {
 		verify(googleApiClient).disconnect();
 	}
 
+	@Ignore
 	@Test
 	public void connect() {
 		when(googleApiClient.isConnected()).thenReturn(true);
@@ -268,12 +282,14 @@ public class GoogleGeofencerTest {
 		verify(googleApiClient).connect();
 	}
 
+	@Ignore
 	@Test
 	public void onConnectionSuspendedMustReconnect() {
 		googleGeofencer.onConnectionSuspended(0);
 		verify(googleApiClient).reconnect();
 	}
 
+	@Ignore
 	@Test(timeout = 4000)
 	public void onConnectedMustSendEvent() throws InterruptedException {
 		CountDownLatch countDownLatch = new CountDownLatch(1);

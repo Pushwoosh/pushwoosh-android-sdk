@@ -209,7 +209,7 @@ task createPomXml {
     def androidRecyclerViewVersion = "[1.0.0, 1.2.99]"
     def androidMaterialVersion = "[1.0.0, 1.5.99]"
     def constraintLayoutVersion = "(1.0.1, 1.1.99]"
-    def playServicesVersion = "[17.0.0,20.0.99]"
+    def playServicesVersion = "[21.0.1, 21.0.99]"
     def glideVersion = "[4.4.0, 4.11.0]"
     def pushwooshVersion = global_versionName
     def workManagerVersion = "[2.0.0, 2.7.99]"

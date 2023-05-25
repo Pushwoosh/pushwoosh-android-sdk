@@ -70,6 +70,9 @@ public class GeofenceReceiver extends BroadcastReceiver {
 	protected void onHandleIntent(Intent intent) {
 		GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
 
+		if (geofencingEvent == null) {
+			return;
+		}
 		if (geofencingEvent.hasError()) {
 			PWLog.error(LocationConfig.TAG, SUB_TAG + "GeofencingEvent error occurred with errorCode :" + geofencingEvent.getErrorCode());
 			return;
@@ -83,8 +86,10 @@ public class GeofenceReceiver extends BroadcastReceiver {
 			List<String> ids = new ArrayList<>();
 
 			//noinspection Convert2streamapi
-			for (Geofence geofence : geofencingEvent.getTriggeringGeofences()) {
-				ids.add(geofence.getRequestId());
+			if (geofencingEvent.getTriggeringGeofences() != null){
+				for (Geofence geofence : geofencingEvent.getTriggeringGeofences()) {
+					ids.add(geofence.getRequestId());
+				}
 			}
 
 			PWLog.noise(LocationConfig.TAG, SUB_TAG + (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ? "Enter to " : "Exit from ") + " geoZones with ids " + Arrays.toString(ids.toArray()));
