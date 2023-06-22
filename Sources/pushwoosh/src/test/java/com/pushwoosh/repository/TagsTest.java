@@ -535,30 +535,6 @@ public class TagsTest {
 	}
 
 	//
-	// sendInappPurchase() part
-	//-----------------------------------------------------------------------
-
-	//Tests sendInappPurchase method sends trackInAppRequest with correct parameters
-	@Test
-	public void sendInappPurchaseTest() throws Exception {
-		ArgumentCaptor<JSONObject> captor = ArgumentCaptor.forClass(JSONObject.class);
-		Expectation<JSONObject> expectation = requestManagerMock.expect(TrackInAppRequest.class);
-
-		// steps:
-		pushwooshRepository.sendInappPurchase("product1", BigDecimal.valueOf(42), "USD", new Date(1010101101010L));
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		// postconditions:
-		verify(expectation, timeout(1000)).fulfilled(captor.capture());
-		JSONObject params = captor.getValue();
-
-		assertThat(params.getLong("price"), is(42L));
-		assertThat(params.getString("currency"), is("USD"));
-		assertThat(params.getString("productIdentifier"), is("product1"));
-		assertThat(params.getLong("transactionDate"), is(1010101101L));
-	}
-
-	//
 	// sendAppOpen() part
 	//-----------------------------------------------------------------------
 

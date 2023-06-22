@@ -35,7 +35,9 @@ import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.CacheFailedRequestCallback;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
+import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
+import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.internal.event.ConfigLoadedEvent;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
@@ -269,12 +271,27 @@ public class PushwooshRepository {
     }
 
     public void sendInappPurchase(String sku, BigDecimal price, String currency, Date purchaseTime) {
-        TrackInAppRequest request = new TrackInAppRequest(sku, price, currency, purchaseTime);
-        if (requestManager == null) {
+        InAppRepository inAppRepository = InAppModule.getInAppRepository();
+        if (inAppRepository == null) {
             return;
         }
 
-        requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
+        TagsBundle attributes = new TagsBundle.Builder()
+                .putString("productIdentifier", sku)
+                .putInt("quantity", 1)
+                .putString("amount", price.toPlainString())
+                .putDate("transactionDate", purchaseTime)
+                .putString("currency", currency)
+                .putString("status", "success")
+                .build();
+
+        inAppRepository.postEvent("PW_InAppPurchase", attributes, result -> {
+            if (result.isSuccess()) {
+                PWLog.noise("In-app purchase data sent successfully");
+            } else if (result.getException() != null) {
+                PWLog.error("Failed to send in-app purchase data", result.getException());
+            }
+        });
     }
 
     public void sendPushOpened(String hash, String metadata) {

@@ -226,10 +226,11 @@ public class InboxMessageInternal implements Serializable, Comparable<InboxMessa
 	public int compareTo(@NonNull InboxMessageInternal o) {
 		int compare = source.compare(o.source);
 		if (compare == 0) {
-			compare = Long.valueOf(order).compareTo(o.order);
-		}
-		if (compare == 0) {
 			compare = Long.valueOf(sendDate).compareTo(o.sendDate);
+		}
+		
+		if (compare == 0) {
+			compare = Long.valueOf(order).compareTo(o.order);
 		}
 
 		if (compare == 0) {

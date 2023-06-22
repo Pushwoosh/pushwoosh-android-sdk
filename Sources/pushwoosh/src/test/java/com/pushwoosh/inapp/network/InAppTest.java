@@ -36,6 +36,7 @@ import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
+import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.tags.Tags;
 import com.pushwoosh.testutil.CallbackWrapper;
 import com.pushwoosh.testutil.Expectation;
@@ -50,6 +51,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.shadows.ShadowLooper;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
@@ -58,6 +60,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+
+import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @SuppressWarnings("unchecked")
 @RunWith(RobolectricTestRunner.class)
@@ -69,6 +76,7 @@ public class InAppTest {
 
 	// class under test
 	private PushwooshInAppImpl pushwooshInApp;
+	private PushwooshRepository pushwooshRepository;
 
 	@Before
 	public void setUp() throws Exception {
@@ -79,6 +87,7 @@ public class InAppTest {
 
 		requestManagerMock = platformTestManager.getRequestManager();
 		pushwooshInApp = platformTestManager.getPushwooshInApp();
+		pushwooshRepository = platformTestManager.getPushwooshRepository();
 	}
 
 	@After
@@ -228,6 +237,38 @@ public class InAppTest {
 		JSONObject params = requestCaptor.getValue();
 		assertThat(params.getString("application"), is(equalTo(APP_ID)));
 		assertThat(params.getString("userId"), is(equalTo("testUserId")));
+	}
+
+	//
+	// sendInappPurchase() part
+	//-----------------------------------------------------------------------
+
+	//Tests sendInappPurchase method sends PostEventRequest with correct parameters
+	@Test
+	public void sendInappPurchaseTest() throws Exception {
+		ArgumentCaptor<JSONObject> captor = ArgumentCaptor.forClass(JSONObject.class);
+		Expectation<JSONObject> expectation = requestManagerMock.expect(PostEventRequest.class);
+		Date date = new Date(1010101101010L);
+
+		// steps:
+		pushwooshRepository.sendInappPurchase("product1", BigDecimal.valueOf(42), "USD", date);
+		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+		// postconditions:
+		verify(expectation, timeout(1000)).fulfilled(captor.capture());
+		JSONObject requestJson = captor.getValue();
+		JSONObject params = requestJson.getJSONObject("attributes");
+
+
+		assertThat(params.getString("amount"), is("42"));
+		assertThat(params.getString("currency"), is("USD"));
+		assertThat(params.getString("productIdentifier"), is("product1"));
+		assertThat(params.getInt("quantity"), is(1));
+		assertThat(params.getString("status"), is("success"));
+		
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+		String formattedDateString = dateFormat.format(date);
+		assertThat(params.getString("transactionDate"), is(formattedDateString));
 	}
 
 }

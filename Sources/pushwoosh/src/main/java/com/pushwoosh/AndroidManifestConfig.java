@@ -116,7 +116,7 @@ class AndroidManifestConfig implements Config {
 
 		multinotificationMode = applicationInfo.metaData.getBoolean("com.pushwoosh.multi_notification_mode", false);
 		lightscreenNotification = applicationInfo.metaData.getBoolean("com.pushwoosh.light_screen_notification", false);
-		sendPushStatIfShowForegroundDisabled = applicationInfo.metaData.getBoolean("com.pushwoosh.send_push_stats_if_alert_disabled", true);
+		sendPushStatIfShowForegroundDisabled = applicationInfo.metaData.getBoolean("com.pushwoosh.send_push_stats_if_alert_disabled", false);
 		isServerCommunicationAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_server_communication", true);
 		handleNotificationsUsingWorkManager = applicationInfo.metaData.getBoolean("com.pushwoosh.handle_notifications_using_workmanager", false);
 		shouldShowFullscreenRichMedia = applicationInfo.metaData.getBoolean("com.pushwoosh.show_fullscreen_richmedia", true);
