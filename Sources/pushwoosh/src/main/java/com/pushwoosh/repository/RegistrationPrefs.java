@@ -325,7 +325,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	}
 
 	private String languageCode() {
-		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+		//workaround to support simplified and traditional chinese on backend: https://jira.corp.pushwoosh.com/browse/PUSH-33298
+		return Locale.getDefault().getLanguage().equals("zh")
 				? Locale.getDefault().toLanguageTag()
 				: Locale.getDefault().getLanguage();
 	}
