@@ -83,8 +83,9 @@ public class WebClient extends WebViewClient implements JsCallback {
 
 	public void attachToWebView(WebView webView) {
 		String customData = RepositoryModule.getNotificationPreferences().customData().get();
+		String messageHash = RepositoryModule.getNotificationPreferences().messageHash().get();
 
-		pushwooshJSInterface = new PushwooshJSInterface(this, webView, mainContainer, customData);
+		pushwooshJSInterface = new PushwooshJSInterface(this, webView, mainContainer, customData, messageHash);
 
 		RepositoryModule.getNotificationPreferences().customData().set(null);
 
@@ -114,7 +115,7 @@ public class WebClient extends WebViewClient implements JsCallback {
 
 		PWLog.noise(TAG, "Finished loading url: " + url);
 
-		pushwooshJSInterface.onPageFinished(view);
+		pushwooshJSInterface.onPageFinished(view, resource);
 
 		inAppView.onPageLoaded();
 
@@ -126,7 +127,7 @@ public class WebClient extends WebViewClient implements JsCallback {
 		super.onPageStarted(view, url, favicon);
 		PWLog.noise(TAG, "Page started: " + url);
 
-		pushwooshJSInterface.onPageStarted(view);
+		pushwooshJSInterface.onPageStarted(view, resource);
 	}
 
 	@Override

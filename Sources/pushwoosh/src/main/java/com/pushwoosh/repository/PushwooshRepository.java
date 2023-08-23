@@ -78,6 +78,8 @@ public class PushwooshRepository {
     private final RequestStorage requestStorage;
     private final ServerCommunicationManager serverCommunicationManager;
     private String currentSessionHash;
+    private String currentRichMediaCode;
+    private String currentInAppCode;
     private List<Channel> channels;
     private List<Event> events;
     private String publicKey;
@@ -123,6 +125,22 @@ public class PushwooshRepository {
 
     public void setCurrentSessionHash(String currentSessionHash) {
         this.currentSessionHash = currentSessionHash;
+    }
+
+    public String getCurrentRichMediaCode() {
+        return currentRichMediaCode;
+    }
+
+    public void setCurrentRichMediaCode(String currentRichMediaCode) {
+        this.currentRichMediaCode = currentRichMediaCode;
+    }
+
+    public String getCurrentInAppCode() {
+        return currentInAppCode;
+    }
+
+    public void setCurrentInAppCode(String currentInAppCode) {
+        this.currentInAppCode = currentInAppCode;
     }
 
     public void sendAppOpen() {
@@ -295,6 +313,8 @@ public class PushwooshRepository {
     }
 
     public void sendPushOpened(String hash, String metadata) {
+        notificationPrefs.messageHash().set(hash);
+
         if (hash != null && TextUtils.equals(hash, notificationPrefs.lastNotificationHash().get())) {
             PWLog.warn("Push stat for (" + hash + ") already sent");
             return;

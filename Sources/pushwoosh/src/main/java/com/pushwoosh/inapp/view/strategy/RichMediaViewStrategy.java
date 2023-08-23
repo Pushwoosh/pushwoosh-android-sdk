@@ -31,6 +31,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.RichMediaWebActivity;
 import com.pushwoosh.internal.utils.PWLog;
@@ -53,6 +54,10 @@ class RichMediaViewStrategy implements ResourceViewStrategy {
 			PWLog.noise(TAG, "resource is empty");
 			return;
 		}
+
+		String richMediaCode = resource.getCode().substring(2);
+		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentRichMediaCode(richMediaCode);
+		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentInAppCode(null);
 
 		PWLog.debug(TAG, "presenting richMedia with code: " + resource.getCode() + ", url: " + resource.getUrl());
 		Intent intent = RichMediaWebActivity.createRichMediaIntent(context, resource);

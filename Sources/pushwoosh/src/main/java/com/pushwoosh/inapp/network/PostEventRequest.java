@@ -28,8 +28,8 @@ package com.pushwoosh.inapp.network;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.text.TextUtils;
 
+import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.internal.network.PushRequest;
 import com.pushwoosh.tags.Tags;
 import com.pushwoosh.tags.TagsBundle;
@@ -44,11 +44,15 @@ class PostEventRequest extends PushRequest<PostEventResponse> {
 	private String currentSessionHash;
 	private TagsBundle attributes;
 	private String event;
+	private String richMediaCode;
+	private String inAppCode;
 
 	PostEventRequest(String event, String currentSessionHash, @Nullable TagsBundle attributes) {
 		this.attributes = attributes != null ? attributes : Tags.empty();
 		this.currentSessionHash = currentSessionHash;
 		this.event = event;
+		this.richMediaCode = PushwooshPlatform.getInstance().pushwooshRepository().getCurrentRichMediaCode();
+		this.inAppCode = PushwooshPlatform.getInstance().pushwooshRepository().getCurrentInAppCode();
 	}
 
 	@Override
@@ -58,12 +62,13 @@ class PostEventRequest extends PushRequest<PostEventResponse> {
 
 	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
-		if (!TextUtils.isEmpty(currentSessionHash)) {
-			attributes = new TagsBundle.Builder()
-					.putAll(attributes.toJson())
-					.putString("msgHash", currentSessionHash)
-					.build();
-		}
+		attributes = new TagsBundle.Builder()
+				.putAll(attributes.toJson())
+				.putStringIfNotEmpty("msgHash", currentSessionHash)
+				.putStringIfNotEmpty("richMediaCode", richMediaCode)
+				.putStringIfNotEmpty("inAppCode", inAppCode)
+				.build();
+
 
 		params.put("attributes", attributes.toJson());
 		params.put("event", event);

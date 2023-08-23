@@ -39,9 +39,13 @@ import java.util.Calendar;
 
 public class TriggerInAppActionRequest extends PushRequest<Void> {
     private String inAppCode;
+    private String messageHash;
+    private String richMediaCode;
 
-    public TriggerInAppActionRequest(String inAppCode) {
+    public TriggerInAppActionRequest(String inAppCode, String messageHash, String richMediaCode) {
         this.inAppCode = inAppCode;
+        this.messageHash = messageHash;
+        this.richMediaCode = richMediaCode;
     }
 
     public String getMethod() {
@@ -51,7 +55,13 @@ public class TriggerInAppActionRequest extends PushRequest<Void> {
     @Override
     protected void buildParams(JSONObject params) throws JSONException {
         params.put("action", "show");
-        params.put("code", inAppCode);
+        params.put("code", inAppCode.startsWith("r-") ? "" : inAppCode);
+        if (messageHash != null) {
+            params.put("messageHash", messageHash);
+        }
+        if (richMediaCode.startsWith("r-")) {
+            params.put("richMediaCode", richMediaCode.substring(2));
+        }
 
         int timezone = Calendar.getInstance().getTimeZone().getRawOffset() / 1000;
         long unixTime = System.currentTimeMillis() / 1000L;

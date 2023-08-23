@@ -27,6 +27,8 @@
 package com.pushwoosh.tags;
 
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -132,6 +134,13 @@ public class TagsBundle {
 		 */
 		public Builder putString(String key, String value) {
 			tags.put(key, value);
+			return this;
+		}
+
+		public Builder putStringIfNotEmpty(String key, String value) {
+			if (!TextUtils.isEmpty(value)) {
+				tags.put(key, value);
+			}
 			return this;
 		}
 

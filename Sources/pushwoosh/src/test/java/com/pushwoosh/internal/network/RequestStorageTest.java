@@ -58,6 +58,8 @@ public class RequestStorageTest {
     private static final String TEST_METHOD = "method";
     public static final String TEST_UUID = "test uuid";
     public static final String APP_CODE = "app_code";
+    public static final String MESSAGE_HASH = "message_hash";
+    public static final String RICH_MEDIA_CODE = "rich_media_code";
     public static final String TEST_KEY = "key";
     public static final String NOT_VALID_BODY = "$$#@2#%^%^^^";
 
@@ -251,7 +253,7 @@ public class RequestStorageTest {
     }
 
     private List<Long> addRequests() {
-        request = new TriggerInAppActionRequest(APP_CODE);
+        request = new TriggerInAppActionRequest(APP_CODE, MESSAGE_HASH, RICH_MEDIA_CODE);
         List<String> list = new ArrayList<>();
         list.add("1");
         list.add("2");

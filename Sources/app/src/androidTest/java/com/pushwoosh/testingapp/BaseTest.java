@@ -35,6 +35,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.pushwoosh.Pushwoosh;
+import com.pushwoosh.RegisterForPushNotificationsResultData;
 import com.pushwoosh.exception.RegisterForPushNotificationsException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
@@ -164,7 +165,7 @@ public class BaseTest extends TestCase {
     }
 
     protected void clearInbox() {
-        Context context = InstrumentationRegistry.getContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         DbInboxStorage dbInboxStorage = new DbInboxStorage(new InboxDbHelper(context));
         Collection<InboxMessageInternal> list = dbInboxStorage.getAllActualMessages();
         List<String> listCode = new ArrayList<>();
@@ -206,7 +207,7 @@ public class BaseTest extends TestCase {
         Log.d(TAG, "location tracking has stopped");
     }
 
-    private class TestRegistrationCallback implements Callback<String, RegisterForPushNotificationsException> {
+    private class TestRegistrationCallback implements Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> {
         private CountDownLatch countDownLatch;
         private boolean success;
 
@@ -219,7 +220,7 @@ public class BaseTest extends TestCase {
         }
 
         @Override
-        public void process(@NonNull Result<String, RegisterForPushNotificationsException> result) {
+        public void process(@NonNull Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> result) {
             if (result.isSuccess()) {
                 Log.d(TAG, "successfully registered");
                 this.success = true;

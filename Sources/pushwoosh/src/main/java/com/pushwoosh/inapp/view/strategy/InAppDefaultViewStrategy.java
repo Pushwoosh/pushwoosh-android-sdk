@@ -29,6 +29,7 @@ package com.pushwoosh.inapp.view.strategy;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.view.RichMediaWebActivity;
@@ -53,6 +54,9 @@ class InAppDefaultViewStrategy implements ResourceViewStrategy {
 			PWLog.noise(TAG, "resource is empty");
 			return;
 		}
+
+		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentInAppCode(resource.getCode());
+		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentRichMediaCode(null);
 
 		new ShowInAppTask(this, resource, () -> {
 			if (inAppFolderProvider.isInAppDownloaded(resource.getCode())) {

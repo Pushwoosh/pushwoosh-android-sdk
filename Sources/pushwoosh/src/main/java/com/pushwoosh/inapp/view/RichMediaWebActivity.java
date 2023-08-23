@@ -41,6 +41,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 
+import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Callback;
@@ -51,6 +52,8 @@ import com.pushwoosh.inapp.model.HtmlData;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.js.PushwooshJSInterface;
 import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.platform.utils.GeneralUtils;
+import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.NotificationUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.NotificationPrefs;
@@ -92,7 +95,6 @@ public class RichMediaWebActivity extends WebActivity implements InAppFragment.O
     private String sound;
     private int mode;
     private HtmlData htmlData;
-
     private boolean viewTracked;
     private boolean isAnimated;
     private boolean closed = false;
@@ -106,7 +108,7 @@ public class RichMediaWebActivity extends WebActivity implements InAppFragment.O
             // fix for "java.lang.IllegalStateException: Could not find active fragment with index -1"
             finish();
         }
-        
+
         if (state != null) {
             if(state.getBoolean(KEY_IS_CLOSED)){
                 finish();
@@ -208,9 +210,24 @@ public class RichMediaWebActivity extends WebActivity implements InAppFragment.O
         if (!baseUrl.endsWith("/")) {
             baseUrl += "/";
         }
-        String htmlContentWithPushWooshInterface = htmlContent.replace("<head>", "<head>\n<script type=\"text/javascript\">" + PushwooshJSInterface.PUSHWOOSH_JS + "</script>");
-        resourceWebView.loadDataWithBaseURL(baseUrl, htmlContentWithPushWooshInterface, "text/html", "UTF-8", null);
+
+        resourceWebView.loadDataWithBaseURL(baseUrl, htmlContentWithPushwooshInterface(htmlContent), "text/html", "UTF-8", null);
         return true;
+    }
+
+    private String htmlContentWithPushwooshInterface(String content) {
+        String messageHash = RepositoryModule.getNotificationPreferences().messageHash().get();
+        String jsInterface = String.format(PushwooshJSInterface.PUSHWOOSH_JS,
+                Pushwoosh.getInstance().getHwid(),
+                GeneralUtils.SDK_VERSION,
+                Pushwoosh.getInstance().getApplicationCode(),
+                Pushwoosh.getInstance().getUserId(),
+                !resource.isInApp() ? resource.getCode().substring(2) : "",
+                DeviceSpecificProvider.getInstance().deviceType(),
+                messageHash != null ? messageHash : "",
+                resource.isInApp() ? resource.getCode() : ""
+        );
+        return content.replace("<head>", "<head>\n<script type=\"text/javascript\">" + jsInterface + "</script>");
     }
 
     @Override
@@ -249,7 +266,7 @@ public class RichMediaWebActivity extends WebActivity implements InAppFragment.O
         }
 
         if (!isAnimated) {
-            if (resource.isInApp() && !viewTracked) {
+            if (!viewTracked) {
                 viewTracked = true;
                 EventBus.sendEvent(new InAppViewEvent(resource));
             }

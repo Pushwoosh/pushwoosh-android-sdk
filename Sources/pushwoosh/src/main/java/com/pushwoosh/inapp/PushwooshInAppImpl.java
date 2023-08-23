@@ -36,10 +36,12 @@ import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.exception.ReloadInAppsException;
 import com.pushwoosh.exception.MergeUserException;
 import com.pushwoosh.exception.PostEventException;
+import com.pushwoosh.exception.RichMediaActionException;
 import com.pushwoosh.exception.SetUserIdException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.network.InAppRepository;
+import com.pushwoosh.inapp.network.RichMediaActionRequest;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
 import com.pushwoosh.internal.event.EventBus;
@@ -210,6 +212,10 @@ public class PushwooshInAppImpl {
 		if (richMediaController != null)
 			richMediaController.showResourceWrapper(resourceWrapper);
 
+	}
+
+	public void sendRichMediaAction(String richmediaCode, String inappCode, String messageHash, String actionAttributes, int actionType, Callback<Void, RichMediaActionException> callback) {
+		inAppRepository.richMediaAction(richmediaCode, inappCode, messageHash, actionAttributes, actionType, callback);
 	}
 
 	public void showGDPRDeletionInApp() {

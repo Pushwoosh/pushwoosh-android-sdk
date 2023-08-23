@@ -44,11 +44,17 @@ public abstract class WebActivity extends Activity implements InAppView {
     static final String EXTRA_INAPP = "extraInApp";
     static final String EXTRA_MODE = "extraMode";
     static final String EXTRA_SOUND = "extraSound";
+    static final String RICH_MEDIA_CODE= "richMediaCode";
+    static final String IN_APP_CODE = "inAppCode";
 
     protected static Intent applyIntentParams(Intent intent, Resource resource, String sound, int mode) {
         intent.putExtra(EXTRA_INAPP, resource);
         intent.putExtra(EXTRA_SOUND, sound);
         intent.putExtra(EXTRA_MODE, mode);
+
+        intent.putExtra(RICH_MEDIA_CODE, !resource.isInApp() ? resource.getCode().substring(2) : "");
+        intent.putExtra(IN_APP_CODE, resource.isInApp() ? resource.getCode() : "");
+
         if (!resource.isRequired()) {
             intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         } else {
@@ -59,6 +65,8 @@ public abstract class WebActivity extends Activity implements InAppView {
 
     private int mode;
     protected Resource resource;
+    protected String richMediaCode;
+    protected String inAppCode;
 
     @Nullable
     private ResourceWebView resourceWebView;
@@ -116,6 +124,8 @@ public abstract class WebActivity extends Activity implements InAppView {
                 return;
             }
 
+            richMediaCode = intent.getStringExtra(RICH_MEDIA_CODE);
+            inAppCode = intent.getStringExtra(IN_APP_CODE);
             String sound = intent.getStringExtra(EXTRA_SOUND);
             mode = intent.getIntExtra(EXTRA_MODE, InAppView.MODE_DEFAULT);
 

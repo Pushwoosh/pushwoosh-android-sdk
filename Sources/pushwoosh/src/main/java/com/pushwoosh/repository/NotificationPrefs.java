@@ -81,6 +81,7 @@ public class NotificationPrefs {
 	private static final String PROPERTY_NOTIFICATIONS_ENABLED = "pw_notifications_enabled";
 	private static final String PROPERTY_TAG_MIGRATION_DONE = "pw_tags_migration_done";
 	private static final String PROPERTY_CUSTOM_DATA = "pw_custom_data";
+	private static final String PROPERTY_MESSAGE_HASH = "pw_message_hash";
 	private static final String PROPERTY_IS_SERVER_COMMUNICATION_ALLOWED = "pw_is_server_communication_allowed";
 	private static final String PROPERTY_IS_COLLECTING_DEVICE_OS_VERSION_ALLOWED = "pw_is_collecting_device_os_version_allowed";
 	private static final String PROPERTY_IS_COLLECTING_DEVICE_LOCALE_ALLOWED = "pw_is_collecting_device_locale_allowed";
@@ -106,6 +107,7 @@ public class NotificationPrefs {
 	private final PreferenceClassValue summaryNotificationFactoryClass;
 	private final PreferenceBooleanValue tagsMigrationDone;
 	private final PreferenceStringValue customData;
+	private final PreferenceStringValue messageHash;
 	private final PreferenceBooleanValue isServerCommunicationAllowed;
 	private final PreferenceBooleanValue isCollectingDeviceOsVersionAllowed;
 	private final PreferenceBooleanValue isCollectingDeviceLocaleAllowed;
@@ -135,6 +137,7 @@ public class NotificationPrefs {
 		tags = new PreferenceJsonObjectValue(preferences, PROPERTY_CACHED_TAGS);
 		tagsMigrationDone = new PreferenceBooleanValue(preferences, PROPERTY_TAG_MIGRATION_DONE, false);
 		customData = new PreferenceStringValue(preferences, PROPERTY_CUSTOM_DATA, null);
+		messageHash = new PreferenceStringValue(preferences, PROPERTY_MESSAGE_HASH, null);
 		isServerCommunicationAllowed = new PreferenceBooleanValue(preferences, PROPERTY_IS_SERVER_COMMUNICATION_ALLOWED, config.isServerCommunicationAllowed());
 		handleNotificationsUsingWorkManager = new PreferenceBooleanValue(preferences, PROPERTY_HANDLE_NOTIFICATIONS_USING_WORK_MANAGER, config.handleNotificationsUsingWorkManager());
 		isCollectingDeviceOsVersionAllowed = new PreferenceBooleanValue(preferences, PROPERTY_IS_COLLECTING_DEVICE_OS_VERSION_ALLOWED, config.isCollectingDeviceOsVersionAllowed());
@@ -214,6 +217,10 @@ public class NotificationPrefs {
 
 	public PreferenceStringValue customData() {
 		return customData;
+	}
+
+	public PreferenceStringValue messageHash() {
+		return messageHash;
 	}
 
 	public PreferenceBooleanValue isServerCommunicationAllowed() {

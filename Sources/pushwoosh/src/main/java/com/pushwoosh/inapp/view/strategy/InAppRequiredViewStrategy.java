@@ -29,9 +29,11 @@ package com.pushwoosh.inapp.view.strategy;
 import android.content.Context;
 import androidx.annotation.Nullable;
 
+import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.RichMediaWebActivity;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.repository.PushwooshRepository;
 
 class InAppRequiredViewStrategy implements ResourceViewStrategy {
 	private static final String TAG = "InAppRequiredViewStrategy";
@@ -49,6 +51,8 @@ class InAppRequiredViewStrategy implements ResourceViewStrategy {
 			return;
 		}
 
+		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentInAppCode(resource.getCode());
+		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentRichMediaCode(null);
 		context.startActivity(RichMediaWebActivity.createInAppIntent(context, resource));
 	}
 }

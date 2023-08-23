@@ -36,6 +36,7 @@ import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.exception.MergeUserException;
 import com.pushwoosh.exception.PostEventException;
 import com.pushwoosh.exception.PushwooshException;
+import com.pushwoosh.exception.RichMediaActionException;
 import com.pushwoosh.exception.SetEmailException;
 import com.pushwoosh.exception.SetUserException;
 import com.pushwoosh.exception.SetUserIdException;
@@ -57,6 +58,7 @@ import com.pushwoosh.internal.event.Subscription;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
+import com.pushwoosh.internal.preference.PreferenceStringValue;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
@@ -100,8 +102,13 @@ public class InAppRepository {
 
         inAppDeployedChecker = new InAppDeployedChecker(inAppStorage, inAppFolderProvider);
         EventBus.subscribe(InAppViewEvent.class, (event) -> {
-            TriggerInAppActionRequest request = new TriggerInAppActionRequest(event.getResource().getCode());
+            PreferenceStringValue preferenceValue = RepositoryModule.getNotificationPreferences().messageHash();
+            String msgHash = preferenceValue.get();
+
+            TriggerInAppActionRequest request = new TriggerInAppActionRequest(event.getResource().getCode(), msgHash, event.getResource().getCode());
             requestManager.sendRequest(request);
+
+            RepositoryModule.getNotificationPreferences().messageHash().set(null);
         });
     }
 
@@ -363,6 +370,29 @@ public class InAppRepository {
         });
     }
 
+    public void richMediaAction(String richmediaCode, String inappCode, String messageHash, String actionAttributes, int actionType, Callback<Void, RichMediaActionException> callback) {
+        RichMediaActionRequest request = new RichMediaActionRequest(richmediaCode, inappCode, messageHash, actionAttributes, actionType);
+        if (!updateRequestManagerIfNeeded() || requestManager == null) {
+            if (callback != null) {
+                callback.process(Result.fromException(new RichMediaActionException("Request Manager is null")));
+            }
+            return;
+        }
+        requestManager.sendRequest(request, result -> {
+            if (callback == null) {
+                return;
+            }
+
+            if (result.isSuccess()) {
+                callback.process(Result.fromData(result.getData()));
+            } else {
+                if (result.getException() != null) {
+                    callback.process(Result.fromException(new RichMediaActionException(result.getException().getMessage())));
+                    PWLog.warn(TAG, result.getException().getMessage(), result.getException());
+                }
+            }
+        });
+    }
     public void postEvent(String event, TagsBundle attributes, @Nullable Callback<Resource, PostEventException> callback) {
         String currentSessionHash = PushwooshPlatform.getInstance().pushwooshRepository().getCurrentSessionHash();
 

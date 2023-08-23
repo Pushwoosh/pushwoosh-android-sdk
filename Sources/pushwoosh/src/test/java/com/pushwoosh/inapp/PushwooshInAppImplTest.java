@@ -72,10 +72,10 @@ public class PushwooshInAppImplTest {
         registrationPrefs = platformTestManager.getRegistrationPrefs();
         inAppRepositoryMock = platformTestManager.getInAppRepositoryMock();
         inAppStorage = platformTestManager.getInAppStorage();
-        Resource resource = new Resource("");
+        Resource resource = new Resource("r-12345-ABCDE", false);
         Mockito.when(inAppStorage.getResourceGDPRConsent()).thenReturn(resource);
 
-        Resource resource2 = new Resource("");
+        Resource resource2 = new Resource("r-ABCDE-12345", false);
         Mockito.when(inAppStorage.getResourceGDPRDeletion()).thenReturn(resource2);
     }
 
