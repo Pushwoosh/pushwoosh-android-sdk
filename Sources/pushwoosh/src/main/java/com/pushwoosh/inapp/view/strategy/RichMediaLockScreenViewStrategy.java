@@ -27,6 +27,7 @@
 package com.pushwoosh.inapp.view.strategy;
 
 import android.content.Context;
+import android.content.Intent;
 
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.RichMediaWebActivity;
@@ -52,6 +53,7 @@ class RichMediaLockScreenViewStrategy implements ResourceViewStrategy {
 		}
 
 		PWLog.debug(TAG, "presenting richMedia with code: " + resource.getCode() + ", url: " + resource.getUrl());
-		context.startActivity(RichMediaWebActivity.createRichMediaLockScreenIntent(context, resource, sound));
+		Intent intent = RichMediaWebActivity.createRichMediaLockScreenIntent(context, resource, sound);
+		context.startActivity(intent);
 	}
 }

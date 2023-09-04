@@ -1,0 +1,9 @@
+-keep class androidx.viewbinding.** {
+    public protected *;
+}
+
+-keep class com.pushwoosh.inbox.ui.** { *; }
+
+-keep class com.pushwoosh.inbox.ui.databinding.PwFragmentInboxBinding {
+    public protected *;
+}

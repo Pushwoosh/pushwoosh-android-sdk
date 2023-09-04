@@ -33,11 +33,13 @@ android {
     }
     buildTypes {
         release {
+            buildConfigField("String","VERSION_NAME","\"${defaultConfig.versionName}\"")
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../proguard-common.txt',
                     'proguard/public.txt', 'proguard/protected.txt'
         }
         debug {
+            buildConfigField("String","VERSION_NAME","\"${defaultConfig.versionName}\"")
             minifyEnabled false
         }
         coverage {

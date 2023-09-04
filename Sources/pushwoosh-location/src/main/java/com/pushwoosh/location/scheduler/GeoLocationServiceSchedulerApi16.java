@@ -91,7 +91,8 @@ class GeoLocationServiceSchedulerApi16 implements Scheduler {
 			return;
 		}
 
-		context.stopService(new Intent(context, GeoLocationServiceSchedulerApi16.class));
+		Intent intent = new Intent(context, GeoLocationServiceSchedulerApi16.class);
+		context.stopService(intent);
 		cancelAlarm(context);
 	}
 

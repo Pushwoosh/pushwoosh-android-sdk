@@ -27,6 +27,7 @@
 package com.pushwoosh.inapp.view.strategy;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 
 import com.pushwoosh.PushwooshPlatform;
@@ -60,7 +61,8 @@ class InAppDefaultViewStrategy implements ResourceViewStrategy {
 
 		new ShowInAppTask(this, resource, () -> {
 			if (inAppFolderProvider.isInAppDownloaded(resource.getCode())) {
-				context.startActivity(RichMediaWebActivity.createInAppIntent(context, resource));
+				Intent intent = RichMediaWebActivity.createInAppIntent(context,resource);
+				context.startActivity(intent);
 			} else {
 				PWLog.noise(TAG, "resource is not downloaded, abort show inApp");
 			}
@@ -93,7 +95,8 @@ class InAppDefaultViewStrategy implements ResourceViewStrategy {
 			super.onPostExecute(isInAppDownloaded);
 			if (isInAppDownloaded && weakRef.get() != null) {
 				Context context = weakRef.get().context;
-				context.startActivity(RichMediaWebActivity.createInAppIntent(context, resource));
+				Intent intent = RichMediaWebActivity.createInAppIntent(context, resource);
+				context.startActivity(intent);
 			} else {
 				callback.onFail();
 			}

@@ -31,6 +31,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Process;
 
@@ -143,8 +144,13 @@ public final class BroadcastEventBridge implements EventBridge {
 	}
 
 	private void subscribeReceivers() {
-		context.registerReceiver(updateReceiver, new IntentFilter(updateActionName));
-		context.registerReceiver(removeReceiver, new IntentFilter(removeActionName));
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			context.registerReceiver(updateReceiver, new IntentFilter(updateActionName), Context.RECEIVER_NOT_EXPORTED);
+			context.registerReceiver(removeReceiver, new IntentFilter(removeActionName), Context.RECEIVER_NOT_EXPORTED);
+		} else {
+			context.registerReceiver(updateReceiver, new IntentFilter(updateActionName));
+			context.registerReceiver(removeReceiver, new IntentFilter(removeActionName));
+		}
 	}
 
 	private void notifyUpdate(final Intent intent) {

@@ -30,6 +30,7 @@ import android.os.Bundle
 import com.pushwoosh.inbox.PushwooshInbox
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.event.InboxMessagesUpdatedEvent
+import com.pushwoosh.inbox.internal.data.InboxMessageInternal.InboxInvalidArgumentException
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.PushwooshInboxUi
 import com.pushwoosh.inbox.ui.model.repository.InboxEvent
@@ -126,6 +127,9 @@ class InboxPresenter(inboxView: InboxView) : BasePresenter() {
                         }
 
                 showList()
+            }
+            else -> {
+                throw InboxInvalidArgumentException()
             }
         }
     }

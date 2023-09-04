@@ -27,10 +27,12 @@
 package com.pushwoosh.inbox.ui.presentation.view.adapter.inbox
 
 import android.content.Context
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.data.InboxMessageType
+import com.pushwoosh.inbox.ui.databinding.PwItemInboxBinding
 import com.pushwoosh.inbox.ui.presentation.view.adapter.BaseRecyclerAdapter
 import com.pushwoosh.inbox.ui.presentation.view.adapter.ItemTouchHelperAdapter
 import com.pushwoosh.inbox.ui.presentation.view.style.ColorSchemeProvider
@@ -75,7 +77,10 @@ class InboxAdapter(context: Context,
     }
 
     override fun createViewHolderInstance(parent: ViewGroup, viewType: Int): ViewHolder<InboxMessage> = when (viewType) {
-        TEXT_VIEW_TYPE -> InboxViewHolder(viewGroup = parent, adapter = this, colorSchemeProvider = colorSchemeProvider, attachmentClickListener = attachmentClickListener)
+        TEXT_VIEW_TYPE -> {
+            val inboxItemBinding = PwItemInboxBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            InboxViewHolder(binding = inboxItemBinding, adapter = this, colorSchemeProvider = colorSchemeProvider, attachmentClickListener = attachmentClickListener)
+        }
         else -> throw IllegalArgumentException("Unknown type: $viewType")
     }
 

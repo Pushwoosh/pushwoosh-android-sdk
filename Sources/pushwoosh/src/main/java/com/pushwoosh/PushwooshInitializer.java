@@ -29,8 +29,7 @@ package com.pushwoosh;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ApplicationInfo;
-import android.util.Log;
+import android.os.Build;
 
 import com.pushwoosh.internal.crash.InternalCrashAnalyticsModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -91,7 +90,11 @@ public class PushwooshInitializer {
 		filter.addAction(Intent.ACTION_SCREEN_OFF);
 		filter.addAction(Intent.ACTION_ANSWER);
 		filter.addAction(Intent.ACTION_USER_PRESENT);
-		context.registerReceiver(lockScreenReceiver, filter);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			context.registerReceiver(lockScreenReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+		} else {
+			context.registerReceiver(lockScreenReceiver, filter);
+		}
 		PWLog.noise(TAG, "Pushwoosh init finished");
 	}
 

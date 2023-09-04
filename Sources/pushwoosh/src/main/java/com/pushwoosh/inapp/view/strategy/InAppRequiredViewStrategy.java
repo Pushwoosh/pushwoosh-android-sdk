@@ -27,6 +27,8 @@
 package com.pushwoosh.inapp.view.strategy;
 
 import android.content.Context;
+import android.content.Intent;
+
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.PushwooshPlatform;
@@ -53,6 +55,8 @@ class InAppRequiredViewStrategy implements ResourceViewStrategy {
 
 		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentInAppCode(resource.getCode());
 		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentRichMediaCode(null);
-		context.startActivity(RichMediaWebActivity.createInAppIntent(context, resource));
+
+		Intent intent = new Intent(RichMediaWebActivity.createInAppIntent(context, resource));
+		context.startActivity(intent);
 	}
 }

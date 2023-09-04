@@ -30,6 +30,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
+
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
@@ -48,7 +50,11 @@ public class ContextReceiverProvider implements ReceiverProvider {
 
 	@Override
 	public Intent registerReceiver(final BroadcastReceiver broadcastReceiver, final IntentFilter intentFilter) {
-		return getContext() == null ? null : getContext().registerReceiver(broadcastReceiver, intentFilter);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			return getContext() == null ? null : getContext().registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+		} else {
+			return getContext() == null ? null : getContext().registerReceiver(broadcastReceiver, intentFilter);
+		}
 	}
 
 	@Override

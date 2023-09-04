@@ -284,7 +284,9 @@ public class ActionsFragment extends PlaceholderFragment {
 
 	@OnClick(R.id.openInlineInAppButton)
 	public void openInlineInAppButton() {
-		startActivity(new Intent(getContext(), InlineInAppActivity.class));
+		//use explicit intent for Android 14 compatibility
+		Intent intent = new Intent(getContext(), InlineInAppActivity.class);
+		startActivity(intent);
 	}
 
 	@OnClick(R.id.stopServerCommunicationButton)
