@@ -28,7 +28,7 @@ android {
         versionName "1.0"
 
         manifestPlaceholders = [pw_appid          : "11C10-EF18D",
-                                gcm_project_number: "A562785984945",
+                                gcm_project_number: "A245850018966",
                                 pw_url            : "https://cp.pushwoosh.com/json/1.3/"]
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

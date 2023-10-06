@@ -2,7 +2,7 @@ package com.pushwoosh.firebase.internal.utils;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
-//import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.pushwoosh.Pushwoosh;
 
@@ -52,25 +52,25 @@ public class FirebaseTokenHelper {
         }
     }
 
-//    public static void deleteFirebaseToken() throws InvocationTargetException,
-//            IllegalAccessException, NoSuchMethodException {
-//        try {
-//            Method delete = FirebaseInstanceId.class.getDeclaredMethod("deleteInstanceId");
-//            delete.invoke(FirebaseInstanceId.getInstance());
-//        } catch (NoClassDefFoundError | NoSuchMethodException e) {
-//            try {
-//                Method delete = FirebaseMessaging.class.getDeclaredMethod("deleteToken");
-//                delete.invoke(FirebaseMessaging.getInstance());
-//            } catch (NoSuchMethodException e1) {
-//                throw new NoSuchMethodException("Failed to delete Firebase token: " + e1.getMessage());
-//            }
-//        } catch (IllegalAccessException e) {
-//            throw new IllegalAccessException("Failed to delete Firebase token: " + e.getMessage());
-//        } catch (IllegalArgumentException e) {
-//            throw new IllegalArgumentException("Failed to delete Firebase token: " + e.getMessage());
-//        } catch (InvocationTargetException e) {
-//            throw new InvocationTargetException(
-//                    new Throwable("Failed to delete Firebase token: " + e.getMessage()));
-//        }
-//    }
+    public static void deleteFirebaseToken() throws InvocationTargetException,
+            IllegalAccessException, NoSuchMethodException {
+        try {
+            Method delete = FirebaseInstanceId.class.getDeclaredMethod("deleteInstanceId");
+            delete.invoke(FirebaseInstanceId.getInstance());
+        } catch (NoClassDefFoundError | NoSuchMethodException e) {
+            try {
+                Method delete = FirebaseMessaging.class.getDeclaredMethod("deleteToken");
+                delete.invoke(FirebaseMessaging.getInstance());
+            } catch (NoSuchMethodException e1) {
+                throw new NoSuchMethodException("Failed to delete Firebase token: " + e1.getMessage());
+            }
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessException("Failed to delete Firebase token: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Failed to delete Firebase token: " + e.getMessage());
+        } catch (InvocationTargetException e) {
+            throw new InvocationTargetException(
+                    new Throwable("Failed to delete Firebase token: " + e.getMessage()));
+        }
+    }
 }

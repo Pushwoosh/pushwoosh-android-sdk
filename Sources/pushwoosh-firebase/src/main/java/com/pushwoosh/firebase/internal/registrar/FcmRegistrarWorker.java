@@ -25,6 +25,7 @@ public class FcmRegistrarWorker extends Worker {
     private static void registerPW() {
         String error = "";
         try {
+            FirebaseTokenHelper.deleteFirebaseToken();
             final String token = FirebaseTokenHelper.getFirebaseToken();
             if (token != null) {
                 PWLog.info(TAG, "FCM token is " + token);

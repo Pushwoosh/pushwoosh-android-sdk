@@ -141,7 +141,7 @@ public class PushwooshJSInterface {
                     + ""
                     + "        var successCbId = _pwCallbackHelper.registerCallback(successCallback);"
                     + "        var errorCbId = _pwCallbackHelper.registerCallback(errorCallback);"
-                    + "        pushwooshImpl.richMediaAction(inAppCode, richMediaCode, actionType, actionAttributes, successCbId, errorCbId);"
+                    + "        pushwooshImpl.richMediaAction(inAppCode, richMediaCode, actionType, JSON.stringify(actionAttributes), successCbId, errorCbId);"
                     + "    },"
                     + ""
                     + "    sendTags: function(tags) {"
