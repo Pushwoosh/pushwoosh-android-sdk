@@ -24,7 +24,7 @@
   ~ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   -->
 
-<manifest package="com.pushwoosh.amazon"
+<manifest
 		  xmlns:amazon="http://schemas.amazon.com/apk/res/android"
 		  xmlns:android="http://schemas.android.com/apk/res/android">
 

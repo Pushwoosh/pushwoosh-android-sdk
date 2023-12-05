@@ -130,7 +130,7 @@ apply plugin: 'jacoco'
 //}
 //
 android {
-    lintOptions {
+    lint {
 //        lintConfig file("$qualityConfigDir/lint/rules-lint.xml")
 //        htmlOutput file("$reportsDir/lint/lint-results.html")
 //        xmlOutput file("$reportsDir/lint/lint-results.xml")

@@ -42,7 +42,7 @@
 
 -dontwarn com.baidu.**
 -keep class com.baidu.**{*; }
-
+-flattenpackagehierarchy
 
 
 

@@ -1,3 +1,5 @@
+-flattenpackagehierarchy 'com.pushwoosh.amazon'
+
 -dontwarn com.amazon.device.messaging.**
 -keep class com.pushwoosh.amazon.AmazonInitializer {
     public protected *;

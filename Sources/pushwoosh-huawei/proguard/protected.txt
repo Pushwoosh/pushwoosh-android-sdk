@@ -1,3 +1,5 @@
+-flattenpackagehierarchy 'com.pushwoosh.huawei'
+
 -keep public class com.pushwoosh.huawei.HuaweiInitializer {
     *;
 }

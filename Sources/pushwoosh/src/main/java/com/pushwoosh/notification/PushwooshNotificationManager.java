@@ -209,7 +209,7 @@ public class PushwooshNotificationManager {
 
             final String pushToken = registrationPrefs.pushToken().get();
 
-            long regDate = registrationPrefs.lastPushRegistration().get();
+            long regDate = registrationPrefs.lastFirebaseRegistration().get();
             long currentTime = System.currentTimeMillis();
 
             if (TextUtils.isEmpty(pushToken) || (currentTime - regDate) > EXPIRATION_TIME) {

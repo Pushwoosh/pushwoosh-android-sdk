@@ -34,6 +34,9 @@ ext {
 
     globalBuildOutput = "../../build/output"
     globalBuildOutputMapping = "${globalBuildOutput}/mapping"
+    publishDir = "${project.buildDir}/publish/artifacts"
+    publishMavenDir = "${project.buildDir}/publish/artifacts-maven"
+    targetVersionName = global_versionName
 }
 
 def outputsDir = file("${project.buildDir}/$outputs")

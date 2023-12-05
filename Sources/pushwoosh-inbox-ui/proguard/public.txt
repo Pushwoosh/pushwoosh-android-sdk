@@ -1,3 +1,5 @@
+-flattenpackagehierarchy 'com.pushwoosh.inbox.ui'
+
 -keep class androidx.viewbinding.** {
     public protected *;
 }

@@ -1,3 +1,6 @@
+-flattenpackagehierarchy 'com.pushwoosh.badge'
+
+
 -keep public class com.pushwoosh.badge.BadgePlugin {
     public protected *;
 }

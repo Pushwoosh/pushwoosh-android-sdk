@@ -33,11 +33,14 @@ ext {
 
 
 apply plugin: 'com.android.library'
-apply from: '../scripts/maven/maven.gradle'
+apply from: '../scripts/buildSdk/publish.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
 apply from: '../scripts/quality/quality.gradle'
 
 android {
     compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.inbox"
+    testNamespace "com.pushwoosh.inbox.test"
 
     defaultConfig {
         versionName global_versionName

@@ -28,6 +28,8 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.amazon"
+    testNamespace "com.pushwoosh.amazon.test"
 
     defaultConfig {
         versionName global_versionName

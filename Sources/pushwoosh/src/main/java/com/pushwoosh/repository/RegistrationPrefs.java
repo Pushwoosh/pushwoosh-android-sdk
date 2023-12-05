@@ -29,7 +29,6 @@ package com.pushwoosh.repository;
 import android.content.SharedPreferences;
 import androidx.annotation.Nullable;
 
-import android.os.Build;
 import android.text.TextUtils;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -55,10 +54,15 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
 	private static final String PROPERTY_APPLICATION_ID = "application_id";
 	private static final String PROPERTY_PROJECT_ID = "project_id";
+	private static final String PROPERTY_XIAOMI_APP_ID = "xiaomi_app_id";
+	private static final String PROPERTY_XIAOMI_APP_KEY = "xiaomi_app_key";
+
+	private static final String PROPERTY_XIAOMI_APP_REGION = "pw_xiaomi_app_region";
 	private static final String PROPERTY_PUSH_TOKEN = "registration_id";
 	private static final String PROPERTY_REGISTERED_ON_SERVER = "registered_on_server";
 	private static final String PROPERTY_FORCE_REGISTER = "force_register";
 	private static final String PROPERTY_LAST_REGISTRATION = "last_registration_change";
+	private static final String PROPERTY_LAST_FIREBASE_TOKEN_REGISTRATION = "last_firebase_registration";
 	private static final String PROPERTY_APP_VERSION = "app_version";
 	private static final String PROPERTY_USER_ID = "user_id";
 	private static final String PROPERTY_DEVICE_ID = "device_id";
@@ -78,7 +82,11 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	private final PreferenceBooleanValue registeredOnServer;
 	private final PreferenceStringValue projectId;
 	private final PreferenceStringValue applicationId;
+	private final PreferenceStringValue xiaomiAppId;
+	private final PreferenceStringValue xiaomiAppKey;
+	private final PreferenceStringValue xiaomiAppRegion;
 	private final PreferenceLongValue lastPushRegistration;
+	private final PreferenceLongValue lastFirebaseRegistration;
 	private final PreferenceBooleanValue forceRegister;
 	private final PreferenceStringValue userId;
 	private final PreferenceStringValue deviceId;
@@ -113,6 +121,21 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 			projectId.set(config.getProjectId());
 		}
 
+		xiaomiAppId = new PreferenceStringValue(preferences, PROPERTY_XIAOMI_APP_ID, "");
+		if (xiaomiAppId.get().isEmpty() && config.getXiaomiAppId() != null) {
+			xiaomiAppId.set(config.getXiaomiAppId());
+		}
+
+		xiaomiAppKey = new PreferenceStringValue(preferences, PROPERTY_XIAOMI_APP_KEY, "");
+		if (xiaomiAppKey.get().isEmpty() && config.getXiaomiAppKey() != null) {
+			xiaomiAppKey.set(config.getXiaomiAppKey());
+		}
+
+		xiaomiAppRegion = new PreferenceStringValue(preferences, PROPERTY_XIAOMI_APP_REGION, "GLOBAL");
+		if (xiaomiAppRegion.get().isEmpty() && config.getXiaomiAppRegion() != null) {
+			xiaomiAppRegion.set(config.getXiaomiAppRegion());
+		}
+
 		pushToken = new PreferenceStringValue(preferences, PROPERTY_PUSH_TOKEN, "");
 		PreferenceIntValue appVersion = new PreferenceIntValue(preferences, PROPERTY_APP_VERSION, 0);
 
@@ -133,6 +156,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		registeredOnServer = new PreferenceBooleanValue(preferences, PROPERTY_REGISTERED_ON_SERVER, false);
 
 		lastPushRegistration = new PreferenceLongValue(preferences, PROPERTY_LAST_REGISTRATION, 0);
+		lastFirebaseRegistration = new PreferenceLongValue(preferences,PROPERTY_LAST_FIREBASE_TOKEN_REGISTRATION, 0);
 		userId = new PreferenceStringValue(preferences, PROPERTY_USER_ID, "");
 		deviceId = new PreferenceStringValue(preferences, PROPERTY_DEVICE_ID, "");
 		logLevel = new PreferenceStringValue(preferences, PROPERTY_LOG_LEVEL, config.getLogLevel());
@@ -175,6 +199,19 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		return projectId;
 	}
 
+	@Override
+	public PreferenceStringValue xiaomiAppId() {
+		return xiaomiAppId;
+	}
+
+	@Override
+	public PreferenceStringValue xiaomiAppKey() {
+		return xiaomiAppKey;
+	}
+	@Override
+	public PreferenceStringValue xiaomiAppRegion() {
+		return xiaomiAppRegion;
+	}
 	public PreferenceStringValue pushToken() {
 		return pushToken;
 	}
@@ -186,6 +223,10 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	@SuppressWarnings("WeakerAccess")
 	public PreferenceLongValue lastPushRegistration() {
 		return lastPushRegistration;
+	}
+
+	public PreferenceLongValue lastFirebaseRegistration() {
+		return lastFirebaseRegistration;
 	}
 
 	public PreferenceBooleanValue forceRegister() {
@@ -305,6 +346,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.INT, PROPERTY_APP_VERSION);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.BOOLEAN, PROPERTY_REGISTERED_ON_SERVER);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.LONG, PROPERTY_LAST_REGISTRATION);
+		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.LONG, PROPERTY_LAST_FIREBASE_TOKEN_REGISTRATION);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_USER_ID);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_DEVICE_ID);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_LOG_LEVEL);

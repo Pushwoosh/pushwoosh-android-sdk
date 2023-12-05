@@ -28,6 +28,8 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.baidu"
+    testNamespace "com.pushwoosh.baidu.test"
 
     defaultConfig {
         versionName global_versionName

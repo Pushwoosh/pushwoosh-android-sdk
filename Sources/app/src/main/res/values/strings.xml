@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">TestingApp</string>
+    <string name="xm_app_id">2882303761522104548</string>
+    <string name="xm_app_key">5522210445548</string>
+    <string name="xm_app_region">GLOBAL</string>
 
     <string-array name="setSoundNotificationTypeArray">
         <item>DEFAULT_MODE</item>

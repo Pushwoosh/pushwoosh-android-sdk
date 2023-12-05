@@ -30,7 +30,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
 
-import com.pushwoosh.MigrateLocalNotificationStorageTask;
 import com.pushwoosh.internal.Plugin;
 import com.pushwoosh.internal.network.RequestStorage;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -114,9 +113,6 @@ public class RepositoryModule {
 
 		DbLocalNotificationHelper dbLocalNotificationHelper = new DbLocalNotificationHelper(context);
 		localNotificationStorage = new LocalNotificationStorage(dbLocalNotificationHelper);
-
-		MigrateLocalNotificationStorageTask migrateTask = new MigrateLocalNotificationStorageTask(context);
-		migrateTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 	}
 
 	private static void migratePrefsIfNeeded(Config config) {

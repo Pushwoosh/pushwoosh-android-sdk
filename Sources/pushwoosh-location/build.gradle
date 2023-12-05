@@ -33,11 +33,14 @@ ext{
 
 apply plugin: 'com.android.library'
 apply from: '../scripts/quality/quality.gradle'
-apply from: '../scripts/maven/maven.gradle'
+apply from: '../scripts/buildSdk/publish.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
 apply plugin: 'pl.droidsonroids.pitest'
 
 android {
     compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.location"
+    testNamespace "com.pushwoosh.location.test"
 
     defaultConfig {
         versionName global_versionName

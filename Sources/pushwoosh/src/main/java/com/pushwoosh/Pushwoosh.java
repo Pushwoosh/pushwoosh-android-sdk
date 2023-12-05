@@ -663,6 +663,12 @@ public class Pushwoosh {
         }
     }
 
+    public void enableXiaomiPushNotifications() {
+        if (pushRegistrarHelper != null) {
+            pushRegistrarHelper.enableXiaomiPushNotifications();
+        }
+    }
+
     /**
      * Starts communication with Pushwoosh server.
      */

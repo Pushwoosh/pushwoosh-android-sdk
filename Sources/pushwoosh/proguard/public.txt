@@ -1,3 +1,5 @@
+-flattenpackagehierarchy 'com.pushwoosh'
+
 -keep public class com.pushwoosh.Pushwoosh {
     public protected *;
     void sendMessageDelivery(android.os.Bundle);

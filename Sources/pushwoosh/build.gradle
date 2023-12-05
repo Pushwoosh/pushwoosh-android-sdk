@@ -19,12 +19,16 @@ ext{
 
 apply plugin: 'com.android.library'
 apply from: '../scripts/quality/quality.gradle'
-apply from: '../scripts/maven/maven.gradle'
 apply plugin: 'pl.droidsonroids.pitest'
 apply plugin: 'com.adarshr.test-logger'
+apply from: '../scripts/buildSdk/publish.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
 
 android {
     compileSdkVersion global_compileSdkVersion
+
+    namespace "com.pushwoosh"
+    testNamespace "com.pushwoosh.test"
 
     defaultConfig {
         versionName global_versionName
@@ -63,11 +67,6 @@ android {
     useLibrary 'android.test.runner'
     useLibrary 'android.test.base'
     useLibrary 'android.test.mock'
-}
-
-// need to export build configurations to be able to choose from other project
-android {
-    publishNonDefault true
 }
 
 dependencies {

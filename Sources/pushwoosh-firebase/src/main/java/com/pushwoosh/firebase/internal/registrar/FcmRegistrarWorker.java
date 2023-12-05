@@ -1,13 +1,12 @@
 package com.pushwoosh.firebase.internal.registrar;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.pushwoosh.firebase.internal.utils.FirebaseTokenHelper;
 import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
-
-import java.lang.reflect.InvocationTargetException;
 
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
@@ -25,7 +24,10 @@ public class FcmRegistrarWorker extends Worker {
     private static void registerPW() {
         String error = "";
         try {
-            FirebaseTokenHelper.deleteFirebaseToken();
+            String savedPushToken = RepositoryModule.getRegistrationPreferences().pushToken().get();
+            if (!TextUtils.isEmpty(savedPushToken)) {
+                FirebaseTokenHelper.deleteFirebaseToken();
+            }
             final String token = FirebaseTokenHelper.getFirebaseToken();
             if (token != null) {
                 PWLog.info(TAG, "FCM token is " + token);
@@ -36,11 +38,6 @@ public class FcmRegistrarWorker extends Worker {
         } catch (IllegalStateException e) {
             PWLog.error(TAG, "FCM registration error: Failed to retrieve token. Is firebase configured correctly?");
             NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(error);
-        } catch (InvocationTargetException invocationTargetException) {
-            if (invocationTargetException.getTargetException() != null) {
-                error = invocationTargetException.getTargetException().getMessage();
-                PWLog.error(TAG, "FCM registration error:" + error);
-            }
         } catch (Exception e) {
             error = e.getMessage();
             PWLog.error(TAG, "FCM registration error:" + error);

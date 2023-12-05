@@ -33,14 +33,16 @@ ext {
 
 
 apply plugin: 'com.android.library'
-apply from: '../scripts/maven/maven.gradle'
-
+apply from: '../scripts/buildSdk/publish.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
 apply from: '../scripts/quality/quality.gradle'
 
 apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.inbox.ui"
+    testNamespace "com.pushwoosh.inbox.ui.test"
 
     defaultConfig {
         minSdkVersion global_minSdkVersion

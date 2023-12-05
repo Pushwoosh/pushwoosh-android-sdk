@@ -55,6 +55,9 @@ class AndroidManifestConfig implements Config {
 
 	private String appId = null;
 	private String projectId = null;
+	private String xiaomiAppId = null;
+	private String xiaomiAppKey = null;
+	private String xiaomiAppRegion = null;
 	private String logLevel = null;
 	private String requestUrl = null;
 	private String[] trustedPackageNames = {};
@@ -89,6 +92,9 @@ class AndroidManifestConfig implements Config {
 
 		appId = getString(applicationInfo.metaData, "com.pushwoosh.appid", "PW_APPID");
 		projectId = getString(applicationInfo.metaData, "com.pushwoosh.senderid", "PW_PROJECT_ID");
+		xiaomiAppId = getString(applicationInfo.metaData, "com.pushwoosh.xiaomiappid", "XM_APPID");
+		xiaomiAppKey = getString(applicationInfo.metaData, "com.pushwoosh.xiaomiappkey", "XM_APPKEY");
+		xiaomiAppRegion = getString(applicationInfo.metaData, "com.pushwoosh.xiaomiappregion", "XM_APPREGION");
 
 		String trustedPackagesString = getString(applicationInfo.metaData, "com.pushwoosh.trusted_package_names", null);
 		if (!TextUtils.isEmpty(trustedPackagesString)) {
@@ -212,6 +218,20 @@ class AndroidManifestConfig implements Config {
 	@Override
 	public String getProjectId() {
 		return projectId;
+	}
+
+	@Override
+	public String getXiaomiAppId() {
+		return xiaomiAppId;
+	}
+
+	@Override
+	public String getXiaomiAppKey() {
+		return xiaomiAppKey;
+	}
+	@Override
+	public String getXiaomiAppRegion() {
+		return xiaomiAppRegion;
 	}
 
 	@Override

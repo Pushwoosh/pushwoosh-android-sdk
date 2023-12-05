@@ -33,11 +33,14 @@ ext {
 
 apply plugin: 'com.android.library'
 apply from: '../scripts/quality/quality.gradle'
-apply from: '../scripts/maven/maven.gradle'
+apply from: '../scripts/buildSdk/publish.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
 
 
 android {
     compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.huawei"
+    testNamespace "com.pushwoosh.huawei.test"
 
     defaultConfig {
         versionName global_versionName

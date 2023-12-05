@@ -6,17 +6,20 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.google.gms:google-services:4.3.2' // google-services plugin
+        classpath 'com.google.gms:google-services:4.3.15' // google-services plugin
         classpath 'com.huawei.agconnect:agcp:1.6.2.300' // huawei plugin
     }
 }
 
 apply plugin: 'com.android.application'
 apply from: '../scripts/buildSdk/build.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
 apply plugin: 'com.huawei.agconnect'
 
 android {
     compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.testingapp"
+    testNamespace "com.pushwoosh.testingapp.test"
 
     defaultConfig {
 //        applicationId "com.pushwoosh.sdk" for Amazon
@@ -69,14 +72,21 @@ task buildPushwoosh(type: GradleBuild) {
     buildName = "buildPushwooshTask"
 }
 
+task copyAarsToOutputDir(type: GradleBuild) {
+    buildFile 'build.gradle'
+    buildName = "copyAarsToOutputDir"
+}
+
 android.applicationVariants.all { variant ->
     if (variant.name == "release") {
         def modulesList = [ "pushwoosh", "pushwoosh-badge", "pushwoosh-location", "pushwoosh-experimental",
-                            "pushwoosh-firebase", "pushwoosh-inbox", "pushwoosh-inbox-ui", "pushwoosh-huawei" ]
+                            "pushwoosh-firebase", "pushwoosh-inbox", "pushwoosh-inbox-ui", "pushwoosh-huawei", "pushwoosh-xiaomi" ]
 
         ArrayList<String> dependeciesList = new ArrayList<>();
+        ArrayList<String> aarsTaskList = new ArrayList<>();
         for (String projectName in modulesList) {
             dependeciesList.add(String.format(":%s:assembleRelease", projectName))
+            aarsTaskList.add(String.format(":%s:copyToGlobal", projectName))
             dependencies {
                 releaseImplementation fileTree(include: [ "*.aar" ], dir: "../${projectName}/build/outputs/aar" )
             }
@@ -84,7 +94,10 @@ android.applicationVariants.all { variant ->
 
         GradleBuild buildPushwoosh = tasks.getByName("buildPushwoosh")
         buildPushwoosh.setTasks(dependeciesList)
+        GradleBuild copyAars = tasks.getByName("copyAarsToOutputDir")
+        copyAars.setTasks(aarsTaskList)
         variant.preBuildProvider.get().dependsOn(buildPushwoosh)
+        variant.getAssembleProvider().get().finalizedBy(copyAars)
     }
 }
 
@@ -100,6 +113,7 @@ dependencies {
     debugApi project(':pushwoosh-amazon')
     debugApi project(':pushwoosh-firebase')
     debugApi project(':pushwoosh-huawei')
+    debugApi project(':pushwoosh-xiaomi')
     debugApi project(':pushwoosh-inbox')
     debugApi project(':pushwoosh-inbox-ui')
 
@@ -117,6 +131,7 @@ dependencies {
     implementation "com.google.android.gms:play-services-base:${googlePlayService}"
     implementation "com.google.android.gms:play-services-location:${googleLocationServices}"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation fileTree(dir: 'libs', include: ['*.jar','*.aar'])
 
     implementation 'com.jakewharton:butterknife:10.1.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.1.0'

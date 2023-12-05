@@ -32,12 +32,15 @@ ext {
 }
 
 apply plugin: 'com.android.library'
-apply from: '../scripts/maven/maven.gradle'
+apply from: '../scripts/buildSdk/publish.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
 apply from: '../scripts/quality/quality.gradle'
 
 
 android {
     compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.badge"
+    testNamespace "com.pushwoosh.badge.test"
 
     defaultConfig {
         versionName global_versionName

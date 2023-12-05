@@ -1,0 +1,1 @@
+-flattenpackagehierarchy 'com.pushwoosh.inbox.ui'

@@ -34,6 +34,7 @@ import com.pushwoosh.internal.registrar.PushRegistrar;
 public class DeviceSpecificProvider {
 	public static final String FCM_ANDROID_TYPE = "Android FCM";
 	public static final String HUAWEI_TYPE = "Huawei";
+	public static final String XIAOMI_TYPE = "Xiaomi";
 	private static DeviceSpecificProvider instance;
 	private final DeviceSpecific deviceSpecific;
 
@@ -68,6 +69,8 @@ public class DeviceSpecificProvider {
 	public boolean isHuawei() {
 		return type().equals(HUAWEI_TYPE);
 	}
+
+	public boolean isXiaomi() { return type().equals(XIAOMI_TYPE); }
 
 	public static class Builder {
 		private DeviceSpecific deviceSpecific;

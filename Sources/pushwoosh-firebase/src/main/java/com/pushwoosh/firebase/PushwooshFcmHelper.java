@@ -29,6 +29,7 @@ package com.pushwoosh.firebase;
 import android.content.Context;
 import android.os.Bundle;
 
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.pushwoosh.PushwooshMessagingServiceHelper;
@@ -36,16 +37,16 @@ import com.pushwoosh.firebase.internal.RemoteMessageUtils;
 import com.pushwoosh.firebase.internal.mapper.RemoteMessageMapper;
 import com.pushwoosh.firebase.internal.registrar.FcmRegistrar;
 import com.pushwoosh.firebase.internal.specific.FcmDeviceSpecificIniter;
+import com.pushwoosh.firebase.internal.utils.FirebaseTokenHelper;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
 
+import java.util.Date;
 import java.util.Map;
 
 import androidx.annotation.Nullable;
-
-import com.pushwoosh.firebase.internal.utils.FirebaseTokenHelper;
 
 @SuppressWarnings("WeakerAccess")
 public class PushwooshFcmHelper {
@@ -56,6 +57,7 @@ public class PushwooshFcmHelper {
 	 * call this method when {@link FirebaseMessagingService#onNewToken(String token)} is invoked
 	 */
 	public static void onTokenRefresh(@Nullable String ignored) {
+		RepositoryModule.getRegistrationPreferences().lastFirebaseRegistration().set(new Date().getTime());
 		Context context = AndroidPlatformModule.getApplicationContext();
 		if (context == null) {
 			PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);

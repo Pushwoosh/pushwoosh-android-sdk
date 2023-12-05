@@ -1,3 +1,5 @@
+-flattenpackagehierarchy 'com.pushwoosh.amazon'
+
 -keep public class com.pushwoosh.firebase.PushwooshFcmHelper {
     *;
 }

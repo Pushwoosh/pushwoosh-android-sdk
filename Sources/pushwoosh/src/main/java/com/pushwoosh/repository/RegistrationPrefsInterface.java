@@ -40,6 +40,12 @@ interface RegistrationPrefsInterface {
 
     PreferenceStringValue projectId();
 
+    PreferenceStringValue xiaomiAppId();
+
+    PreferenceStringValue xiaomiAppKey();
+
+    PreferenceStringValue xiaomiAppRegion();
+
     PreferenceStringValue pushToken();
 
     PreferenceBooleanValue registeredOnServer();

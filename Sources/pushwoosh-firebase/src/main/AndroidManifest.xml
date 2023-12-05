@@ -1,8 +1,7 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pushwoosh.firebase">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <provider
-            android:initOrder="54"
+            android:initOrder="55"
             android:enabled="true"
             android:authorities="${applicationId}.firebasepushwooshinitprovider" android:exported="false"
             android:name="com.pushwoosh.firebase.FirebaseInitProvider"/>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pushwoosh.testingapp">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <supports-screens android:anyDensity="true" />
 
@@ -53,6 +52,15 @@
         <meta-data
             android:name="com.pushwoosh.senderid"
             android:value="${gcm_project_number}" />
+        <meta-data
+            android:name="com.pushwoosh.xiaomiappid"
+            android:value="@string/xm_app_id" />
+        <meta-data
+            android:name="com.pushwoosh.xiaomiappkey"
+            android:value="@string/xm_app_key" />
+        <meta-data
+            android:name="com.pushwoosh.xiaomiappregion"
+            android:value="@string/xm_app_region" />
         <meta-data
             android:name="com.pushwoosh.log_level"
             android:value="NOISE" />

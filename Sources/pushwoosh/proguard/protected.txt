@@ -1,3 +1,5 @@
+-flattenpackagehierarchy 'com.pushwoosh'
+
 -keep public class com.pushwoosh.internal.utils.LockScreenUtils {
     *;
 }
@@ -34,9 +36,6 @@
 	public protected *;
 }
 
--keep public interface com.pushwoosh.internal.utils.IPushwooshService {
-	public protected *;
-}
 
 ## Notification
 

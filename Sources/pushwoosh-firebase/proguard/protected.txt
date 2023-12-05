@@ -1,3 +1,5 @@
+-flattenpackagehierarchy 'com.pushwoosh.firebase'
+
 -keep class com.pushwoosh.firebase.internal.checker.FirebaseChecker {
     public protected *;
 }

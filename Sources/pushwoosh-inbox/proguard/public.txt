@@ -1,3 +1,5 @@
+-flattenpackagehierarchy 'com.pushwoosh.inbox'
+
 -keep public class com.pushwoosh.inbox.PushwooshInbox { *; }
 
 -keep public interface com.pushwoosh.inbox.data.InboxMessage { *; }
