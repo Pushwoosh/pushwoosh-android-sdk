@@ -127,7 +127,7 @@ class RichMediaMessageHandler extends NotificationMessageHandler {
 
 		@Override
 		protected Void doInBackground(Void... voids) {
-			showRecourseWrapper(resourceWrapper);
+			showResourceWrapper(resourceWrapper);
 			return null;
 		}
 
@@ -138,13 +138,13 @@ class RichMediaMessageHandler extends NotificationMessageHandler {
 			SilentRichMediaStorage silentRichMediaStorage = RepositoryModule.getSilentRichMediaStorage();
 			ResourceWrapper resourceWrapper = silentRichMediaStorage.getResourceWrapper();
 			if (resourceWrapper != null) {
-				showRecourseWrapper(resourceWrapper);
+				showResourceWrapper(resourceWrapper);
 			}
 			return null;
 		}
 	}
 
-	private static void showRecourseWrapper(ResourceWrapper resourceWrapper) {
+	private static void showResourceWrapper(ResourceWrapper resourceWrapper) {
 		RichMediaController richMediaController = PushwooshPlatform.getInstance().getRichMediaController();
 		if (richMediaController != null) {
 			richMediaController.showResourceWrapper(resourceWrapper);
