@@ -68,6 +68,7 @@ class AndroidManifestConfig implements Config {
 	private boolean lightscreenNotification = false;
 	private boolean sendPushStatIfShowForegroundDisabled = false;
 	private boolean isServerCommunicationAllowed = true;
+	private boolean showPushnotificationAlert = false;
 	private boolean handleNotificationsUsingWorkManager = false;
 	private boolean isCollectingDeviceOsVersionAllowed = true;
 	private boolean isCollectingDeviceLocaleAllowed = true;
@@ -124,6 +125,7 @@ class AndroidManifestConfig implements Config {
 		lightscreenNotification = applicationInfo.metaData.getBoolean("com.pushwoosh.light_screen_notification", false);
 		sendPushStatIfShowForegroundDisabled = applicationInfo.metaData.getBoolean("com.pushwoosh.send_push_stats_if_alert_disabled", false);
 		isServerCommunicationAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_server_communication", true);
+		showPushnotificationAlert = applicationInfo.metaData.getBoolean("com.pushwoosh.foreground_push", false);
 		handleNotificationsUsingWorkManager = applicationInfo.metaData.getBoolean("com.pushwoosh.handle_notifications_using_workmanager", false);
 		shouldShowFullscreenRichMedia = applicationInfo.metaData.getBoolean("com.pushwoosh.show_fullscreen_richmedia", true);
 
@@ -272,6 +274,11 @@ class AndroidManifestConfig implements Config {
 	@Override
 	public boolean isServerCommunicationAllowed() {
 		return isServerCommunicationAllowed;
+	}
+
+	@Override
+	public boolean showPushNotificationAlert() {
+		return showPushnotificationAlert;
 	}
 
 	@Override

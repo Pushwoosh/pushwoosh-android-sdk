@@ -91,6 +91,11 @@ public interface Config {
 	boolean isServerCommunicationAllowed();
 
 	/**
+	 * @return if false, the SDK is allowed to show foreground push notifications.
+	 */
+	boolean showPushNotificationAlert();
+
+	/**
 	 * @return If true, SDK will add top margin to Rich Media view
 	 */
 	boolean shouldShowFullscreenRichMedia();

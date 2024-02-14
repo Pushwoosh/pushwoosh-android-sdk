@@ -83,6 +83,7 @@ public class NotificationPrefs {
 	private static final String PROPERTY_CUSTOM_DATA = "pw_custom_data";
 	private static final String PROPERTY_MESSAGE_HASH = "pw_message_hash";
 	private static final String PROPERTY_IS_SERVER_COMMUNICATION_ALLOWED = "pw_is_server_communication_allowed";
+	private static final String PROPERTY_IS_SHOW_NOTIFICATION_ALERT = "pw_is_show_notification_alert";
 	private static final String PROPERTY_IS_COLLECTING_DEVICE_OS_VERSION_ALLOWED = "pw_is_collecting_device_os_version_allowed";
 	private static final String PROPERTY_IS_COLLECTING_DEVICE_LOCALE_ALLOWED = "pw_is_collecting_device_locale_allowed";
 	private static final String PROPERTY_IS_COLLECTING_DEVICE_MODEL_ALLOWED = "pw_is_collecting_device_model_allowed";
@@ -109,6 +110,7 @@ public class NotificationPrefs {
 	private final PreferenceStringValue customData;
 	private final PreferenceStringValue messageHash;
 	private final PreferenceBooleanValue isServerCommunicationAllowed;
+	private final PreferenceBooleanValue showPushnotificationAlert;
 	private final PreferenceBooleanValue isCollectingDeviceOsVersionAllowed;
 	private final PreferenceBooleanValue isCollectingDeviceLocaleAllowed;
 	private final PreferenceBooleanValue isCollectingDeviceModelAllowed;
@@ -139,6 +141,7 @@ public class NotificationPrefs {
 		customData = new PreferenceStringValue(preferences, PROPERTY_CUSTOM_DATA, null);
 		messageHash = new PreferenceStringValue(preferences, PROPERTY_MESSAGE_HASH, null);
 		isServerCommunicationAllowed = new PreferenceBooleanValue(preferences, PROPERTY_IS_SERVER_COMMUNICATION_ALLOWED, config.isServerCommunicationAllowed());
+		showPushnotificationAlert = new PreferenceBooleanValue(preferences, PROPERTY_IS_SHOW_NOTIFICATION_ALERT, config.showPushNotificationAlert());
 		handleNotificationsUsingWorkManager = new PreferenceBooleanValue(preferences, PROPERTY_HANDLE_NOTIFICATIONS_USING_WORK_MANAGER, config.handleNotificationsUsingWorkManager());
 		isCollectingDeviceOsVersionAllowed = new PreferenceBooleanValue(preferences, PROPERTY_IS_COLLECTING_DEVICE_OS_VERSION_ALLOWED, config.isCollectingDeviceOsVersionAllowed());
 		isCollectingDeviceLocaleAllowed = new PreferenceBooleanValue(preferences, PROPERTY_IS_COLLECTING_DEVICE_LOCALE_ALLOWED, config.isCollectingDeviceLocaleAllowed());
@@ -225,6 +228,10 @@ public class NotificationPrefs {
 
 	public PreferenceBooleanValue isServerCommunicationAllowed() {
 		return isServerCommunicationAllowed;
+	}
+
+	public PreferenceBooleanValue showPushnotificationAlert() {
+		return showPushnotificationAlert;
 	}
 
 	public PreferenceBooleanValue isCollectingDeviceOsVersionAllowed() {

@@ -15,6 +15,8 @@ import com.pushwoosh.notification.handlers.message.system.MessageSystemHandleCha
 import com.pushwoosh.notification.handlers.message.user.MessageHandleChainProvider;
 import com.pushwoosh.notification.handlers.notification.NotificationOpenHandlerChainProvider;
 import com.pushwoosh.notification.handlers.notification.PushStatNotificationOpenHandler;
+import com.pushwoosh.repository.NotificationPrefs;
+import com.pushwoosh.repository.RepositoryModule;
 
 import java.util.List;
 
@@ -157,7 +159,11 @@ public class NotificationServiceExtension {
      */
     @WorkerThread
     protected boolean onMessageReceived(PushMessage data) {
-        return false;
+        if (RepositoryModule.getNotificationPreferences() != null) {
+            return (!RepositoryModule.getNotificationPreferences().showPushnotificationAlert().get() && isAppOnForeground());
+        } else {
+            return false;
+        }
     }
 
     /**

@@ -247,6 +247,12 @@ public class Pushwoosh {
         }
     }
 
+    public void setShowPushnotificationAlert(boolean showAlert) {
+        if (RepositoryModule.getNotificationPreferences() != null) {
+            RepositoryModule.getNotificationPreferences().showPushnotificationAlert().set(showAlert);
+        }
+    }
+
     private void subscribeRegisterFromInApp(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
         if (callback != null) {
             subscriberRegister = EventBus.subscribe(RegistrationSuccessEvent.class, event -> {
