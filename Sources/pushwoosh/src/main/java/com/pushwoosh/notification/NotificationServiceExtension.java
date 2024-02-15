@@ -160,7 +160,7 @@ public class NotificationServiceExtension {
     @WorkerThread
     protected boolean onMessageReceived(PushMessage data) {
         if (RepositoryModule.getNotificationPreferences() != null) {
-            return (!RepositoryModule.getNotificationPreferences().showPushnotificationAlert().get() && isAppOnForeground());
+            return (RepositoryModule.getNotificationPreferences().showPushnotificationAlert().get() && isAppOnForeground());
         } else {
             return false;
         }
