@@ -6,12 +6,14 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.RestrictTo;
 
 import com.pushwoosh.NotificationUpdateReceiver;
+import com.pushwoosh.exception.GroupIdNotFoundException;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.PendingIntentUtils;
@@ -19,28 +21,31 @@ import com.pushwoosh.notification.channel.NotificationChannelManager;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
-import static com.pushwoosh.notification.NotificationIntentHelper.SUMMARY_GROUP_ID;
 import static com.pushwoosh.repository.NotificationPrefs.DEFAULT_GROUP_CHANNEL_NAME;
 
 public class SummaryNotificationUtils {
+    private final static Object MUTEX = new Object();
+    private final static NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
     @RequiresApi(api = Build.VERSION_CODES.N)
     @RestrictTo(RestrictTo.Scope.LIBRARY)
     @Nullable
-    public static Notification getSummaryNotification(int activeNotificationsCount, String notificationChannelId) {
+    public static Notification getSummaryNotification(int activeNotificationsCount, String notificationChannelId, String groupId) {
         Context context = AndroidPlatformModule.getApplicationContext();
         if (context == null) {
             PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
             return null;
         }
-        Notification summaryNotification = provideSummaryNotificationFactory().onGenerateSummaryNotification(activeNotificationsCount, notificationChannelId);
+        Notification summaryNotification = provideSummaryNotificationFactory().onGenerateSummaryNotification(activeNotificationsCount, notificationChannelId, groupId);
         if (summaryNotification == null) {
             return null;
         }
+
+        int messageId = getOrGenerateNotificationIdForGroup(groupId);
         Intent summaryContentIntent = SummaryNotificationFactory.getNotificationIntent();
-        summaryContentIntent.putExtra(NotificationIntentHelper.EXTRA_GROUP_ID, SUMMARY_GROUP_ID);
+        summaryContentIntent.putExtra(NotificationIntentHelper.EXTRA_GROUP_ID, messageId);
         summaryContentIntent.putExtra(NotificationIntentHelper.EXTRA_IS_SUMMARY_NOTIFICATION, true);
-        summaryNotification.contentIntent = PendingIntent.getActivity(context, SUMMARY_GROUP_ID, summaryContentIntent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
-        summaryNotification.deleteIntent = PendingIntent.getBroadcast(context, SUMMARY_GROUP_ID, getSummaryDeleteIntent(), PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
+        summaryNotification.contentIntent = PendingIntent.getActivity(context, messageId, summaryContentIntent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
+        summaryNotification.deleteIntent = PendingIntent.getBroadcast(context, messageId, getSummaryDeleteIntent(), PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
         return summaryNotification;
     }
 
@@ -63,7 +68,7 @@ public class SummaryNotificationUtils {
                     .build();
         }
 
-        manager.notify(SUMMARY_GROUP_ID, notification);
+        manager.notify(getOrGenerateNotificationIdForGroup(notification.getGroup()), notification);
     }
 
     @NonNull
@@ -89,5 +94,29 @@ public class SummaryNotificationUtils {
         }
 
         return new PushwooshSummaryNotificationFactory();
+    }
+
+    private static int getOrGenerateNotificationIdForGroup(String groupId) {
+        int messageId = getNotificationIdForGroup(groupId);
+        if (messageId == -1) {
+            synchronized (MUTEX) {
+                messageId = notificationPrefs.messageId().get();
+
+                if (notificationPrefs.multiMode().get()) {
+                    messageId++;
+                    notificationPrefs.messageId().set(messageId);
+                    RepositoryModule.getSummaryNotificationStorage().put(groupId, messageId);
+                }
+            }
+        }
+        return messageId;
+    }
+
+    public static int getNotificationIdForGroup(String groupId) {
+        try {
+            return RepositoryModule.getSummaryNotificationStorage().getNotificationId(groupId);
+        } catch (GroupIdNotFoundException e) {
+            return -1;
+        }
     }
 }

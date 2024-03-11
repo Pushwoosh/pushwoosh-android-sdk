@@ -26,6 +26,8 @@
 
 package com.pushwoosh.notification;
 
+import static com.pushwoosh.repository.NotificationPrefs.DEFAULT_NOTIFICATION_GROUP;
+
 import android.app.Notification;
 import android.graphics.Color;
 import android.os.Build;
@@ -58,7 +60,6 @@ public final class PushBundleDataProvider {
 	@SuppressWarnings("deprecation")
 	private static final int NOTIFICATION_PRIORITY_DEFAULT = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN ? Notification.PRIORITY_DEFAULT : 0;
 	private static final int NOTIFICATION_VISIBILITY_PUBLIC = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? Notification.VISIBILITY_PUBLIC : 1;
-
 	public static boolean isSilent(Bundle pushBundle) {
 		return getStringBoolean(pushBundle, "silent") || getStringBoolean(pushBundle, "pw_silent");
 	}
@@ -338,4 +339,8 @@ public final class PushBundleDataProvider {
 	public static long getSentTime(Bundle pushBundle) {
 		return pushBundle.getLong("google.sent_time", System.currentTimeMillis());
 	}
+
+    public static String getGroupId(Bundle pushBundle) {
+		return pushBundle.getString("group_id", DEFAULT_NOTIFICATION_GROUP);
+    }
 }

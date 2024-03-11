@@ -36,7 +36,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 33
     ext.global_targetVersion = 34
-    ext.global_versionName = "6.7.4"
+    ext.global_versionName = "6.7.5"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.1.0"

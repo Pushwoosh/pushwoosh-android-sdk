@@ -10,10 +10,10 @@ public interface PushBundleStorage {
     Bundle getPushBundle(long id) throws Exception;
     void removePushBundle(long id);
 
-    long putGroupPushBundle(Bundle pushBundle, int id) throws Exception;
+    long putGroupPushBundle(Bundle pushBundle, int id, String groupId) throws Exception;
     List<Bundle> getGroupPushBundles();
     void removeGroupPushBundle(long id);
     void removeGroupPushBundles();
 
-    PushBundleDatabaseEntry getLastPushBundleEntry() throws Exception;
+    PushBundleDatabaseEntry getLastPushBundleEntryForGroup(String groupId) throws Exception;
 }

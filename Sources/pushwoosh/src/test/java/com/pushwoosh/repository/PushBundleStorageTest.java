@@ -166,9 +166,9 @@ public class PushBundleStorageTest {
         long firstId;
         long lastId;
         try {
-            firstId = storage.putGroupPushBundle(getTestBundle(), 1004);
-            storage.putGroupPushBundle(getTestBundle(), 1005);
-            lastId = storage.putGroupPushBundle(getTestBundle(), 1006);
+            firstId = storage.putGroupPushBundle(getTestBundle(), 1004, "test_group");
+            storage.putGroupPushBundle(getTestBundle(), 1005, "test_group");
+            lastId = storage.putGroupPushBundle(getTestBundle(), 1006, "test_group");
         } catch (Exception e) {
             firstId = -100;
             lastId = -100;

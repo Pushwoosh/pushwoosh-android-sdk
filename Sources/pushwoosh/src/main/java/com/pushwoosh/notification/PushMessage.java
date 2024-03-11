@@ -42,6 +42,7 @@ public class PushMessage {
 	private final String msgTag;
 	private final boolean lockScreen;
 	private final String customData;
+	private final String groupId;
 
 	public PushMessage(@NonNull Bundle extras) {
 		this.extras = extras;
@@ -63,6 +64,7 @@ public class PushMessage {
 		badges = PushBundleDataProvider.getBadges(extras);
 		badgesAdditive = PushBundleDataProvider.isBadgesAdditive(extras);
 		customData = PushBundleDataProvider.getCustomData(extras);
+		groupId = PushBundleDataProvider.getGroupId(extras);
 
 		bigPictureUrl = PushBundleDataProvider.getBigPicture(extras);
 		largeIconUrl = PushBundleDataProvider.getLargeIcon(extras);
@@ -267,6 +269,13 @@ public class PushMessage {
 	 */
 	public String getCustomData() {
 		return customData;
+	}
+
+	/**
+	 * @return notification group id
+	 */
+	public String getGroupId() {
+		return groupId;
 	}
 
 	/**

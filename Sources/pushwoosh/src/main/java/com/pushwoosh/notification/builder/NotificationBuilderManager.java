@@ -41,11 +41,13 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationManagerCompat;
 import android.text.TextUtils;
 
+import com.pushwoosh.exception.GroupIdNotFoundException;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.PendingIntentUtils;
 import com.pushwoosh.notification.Action;
 import com.pushwoosh.notification.PushMessage;
+import com.pushwoosh.notification.SummaryNotificationUtils;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.repository.util.PushBundleDatabaseEntry;
@@ -59,9 +61,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-
-import static com.pushwoosh.notification.NotificationIntentHelper.SUMMARY_GROUP_ID;
-import static com.pushwoosh.repository.NotificationPrefs.DEFAULT_NOTIFICATION_GROUP;
+import java.util.stream.Collectors;
 
 public class NotificationBuilderManager {
 	/**
@@ -189,6 +189,14 @@ public class NotificationBuilderManager {
 			PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
 		}
 		return activeNotifications;
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.N)
+	public static List<StatusBarNotification> getActiveNotificationsForGroup(String groupId) {
+		//summary notification is generated only for Android N and higher, so it's safe to use streams
+		return getActiveNotifications().stream()
+				.filter(statusBarNotification -> TextUtils.equals(statusBarNotification.getNotification().getGroup(), groupId))
+				.collect(Collectors.toList());
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -323,12 +331,12 @@ public class NotificationBuilderManager {
 		}
 	}
 
-	public static void cancelLastStatusBarNotification() throws Exception {
-		PushBundleDatabaseEntry entry = RepositoryModule.getPushBundleStorage().getLastPushBundleEntry();
+	public static void cancelLastStatusBarNotificationForGroup(String groupId) throws Exception {
+		PushBundleDatabaseEntry entry = RepositoryModule.getPushBundleStorage().getLastPushBundleEntryForGroup(groupId);
 		NotificationManager notificationManager = getNotificationManager();
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-			List<StatusBarNotification> activeNotifications = NotificationBuilderManager.getActiveNotifications();
+			List<StatusBarNotification> activeNotifications = NotificationBuilderManager.getActiveNotificationsForGroup(groupId);
 			for (StatusBarNotification statusBarNotification : activeNotifications) {
 				if (statusBarNotification.getId() == entry.getNotificationId()) {
 					statusBarNotification.getNotification().contentIntent.send();
@@ -336,28 +344,23 @@ public class NotificationBuilderManager {
 				}
 			}
 			if (getActiveNotifications().size() == 0) {
-				cancelGroupSummary();
+				cancelGroupSummary(groupId);
 			}
 		}
 		//remove push bundle from database
 		RepositoryModule.getPushBundleStorage().removeGroupPushBundle(entry.getRowId());
 	}
 
-	public static void cancelGroupSummary() {
-		getNotificationManager().cancel(SUMMARY_GROUP_ID);
-	}
-
-	public static Notification rebuildNotificationWithDefaultGroup(Notification notification) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-			NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
-			if (notificationPrefs.multiMode().get()) {
-				Context applicationContext = AndroidPlatformModule.getApplicationContext();
-				notification = Notification.Builder.recoverBuilder(applicationContext, notification)
-						.setGroup(DEFAULT_NOTIFICATION_GROUP)
-						.build();
+	public static void cancelGroupSummary(String groupId) {
+		int notificationId = SummaryNotificationUtils.getNotificationIdForGroup(groupId);
+		if (notificationId != -1) {
+			getNotificationManager().cancel(notificationId);
+			try {
+				RepositoryModule.getSummaryNotificationStorage().remove(groupId);
+			} catch (GroupIdNotFoundException e) {
+				PWLog.error("Failed to remove entry for group id " + groupId + " from summaryNotificationStorage");
 			}
 		}
-		return notification;
 	}
 
 	private static NotificationManager getNotificationManager() {

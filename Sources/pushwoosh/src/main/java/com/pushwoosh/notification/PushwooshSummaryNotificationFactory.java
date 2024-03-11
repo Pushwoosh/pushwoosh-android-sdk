@@ -1,7 +1,6 @@
 package com.pushwoosh.notification;
 
 import androidx.annotation.ColorInt;
-import static com.pushwoosh.repository.NotificationPrefs.DEFAULT_NOTIFICATION_GROUP;
 
 public class PushwooshSummaryNotificationFactory extends SummaryNotificationFactory {
 
@@ -19,10 +18,5 @@ public class PushwooshSummaryNotificationFactory extends SummaryNotificationFact
     @ColorInt
     public int summaryNotificationColor() {
         return -1; // default color
-    }
-
-    @Override
-    public String summaryNotificationGroup() {
-        return DEFAULT_NOTIFICATION_GROUP;
     }
 }

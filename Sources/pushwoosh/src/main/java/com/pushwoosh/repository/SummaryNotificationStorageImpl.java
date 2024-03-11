@@ -9,45 +9,45 @@ import android.util.Pair;
 
 import androidx.annotation.Nullable;
 
+import com.pushwoosh.exception.GroupIdNotFoundException;
 import com.pushwoosh.exception.NotificationIdNotFoundException;
 import com.pushwoosh.internal.utils.PWLog;
 
 import java.util.List;
 
-public class StatusBarNotificationStorageImpl extends SQLiteOpenHelper implements StatusBarNotificationStorage {
-    private static final String TAG = StatusBarNotificationStorage.class.getSimpleName();
-    private static final String DB_NAME = "StatusBarNotificationIds.db";
+public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements SummaryNotificationStorage {
+    private static final String TAG = SummaryNotificationStorage.class.getSimpleName();
+    private static final String DB_NAME = "SummaryNotificationIds.db";
     private static final int VERSION = 1;
 
-    private static final String TABLE_NOTIFICATION_IDS = "statusBarIds";
-
-    private final Object mutex = new Object();
+    private static final String TABLE_NOTIFICATION_IDS = "summaryNotificationIds";
 
     private static class Column {
-        static final String STATUS_BAR_ID = "status_bar_id";
-        static final String PUSHWOOSH_ID = "pushwoosh_id";
+        static final String GROUP_ID = "group_id";
+        static final String NOTIFICATION_ID = "pushwoosh_id";
     }
 
-    public StatusBarNotificationStorageImpl(@Nullable Context context) {
+    private final Object mutex = new Object();
+    public SummaryNotificationStorageImpl(@Nullable Context context) {
         super(context, DB_NAME, null, VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        createNotificationIdsTable(db);
+        createNotificationSummaryIdsTable(db);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTIFICATION_IDS);
-        createNotificationIdsTable(db);
+        createNotificationSummaryIdsTable(db);
     }
 
     @Override
-    public void put(long pushwooshId, int statusBarId) {
+    public void put(String groupId, int notificationId) {
         ContentValues cv = new ContentValues();
-        cv.put(Column.PUSHWOOSH_ID, pushwooshId);
-        cv.put(Column.STATUS_BAR_ID, statusBarId);
+        cv.put(Column.GROUP_ID, groupId);
+        cv.put(Column.NOTIFICATION_ID, notificationId);
 
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
@@ -72,19 +72,18 @@ public class StatusBarNotificationStorageImpl extends SQLiteOpenHelper implement
         }
     }
 
-
     @Override
-    public int remove(long pushwooshId) throws NotificationIdNotFoundException {
-        int cancelId = get(pushwooshId);
+    public int remove(String groupId) throws GroupIdNotFoundException {
+        int cancelId = getNotificationId(groupId);
 
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
                 try {
                     db.beginTransaction();
                     try {
-                        int result = db.delete(TABLE_NOTIFICATION_IDS, Column.PUSHWOOSH_ID + "=" + pushwooshId, null);
+                        int result = db.delete(TABLE_NOTIFICATION_IDS, Column.GROUP_ID + "=" + groupId, null);
                         if (result <= 0) {
-                            PWLog.noise(TAG, "failed to remove notification ids pair for id: " + pushwooshId);
+                            PWLog.noise(TAG, "failed to remove notification ids pair for id: " + groupId);
                         }
                         db.setTransactionSuccessful();
                     } finally {
@@ -101,7 +100,7 @@ public class StatusBarNotificationStorageImpl extends SQLiteOpenHelper implement
     }
 
     @Override
-    public void update(List<Pair<Long, Integer>> idsPairs) {
+    public void update(List<Pair<String, Integer>> ids) {
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
                 try {
@@ -119,8 +118,8 @@ public class StatusBarNotificationStorageImpl extends SQLiteOpenHelper implement
                 PWLog.error(TAG, "Failed to update notification storage: " + e.getMessage());
                 return;
             }
-            if (idsPairs != null) {
-                for (Pair<Long, Integer> pair: idsPairs) {
+            if (ids != null) {
+                for (Pair<String, Integer> pair: ids) {
                     put(pair.first, pair.second);
                 }
             }
@@ -128,21 +127,54 @@ public class StatusBarNotificationStorageImpl extends SQLiteOpenHelper implement
     }
 
     @Override
-    public int get(long pushwooshId) throws NotificationIdNotFoundException {
+    public int getNotificationId(String groupId) throws GroupIdNotFoundException {
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
                 try {
                     db.beginTransaction();
                     try {
-                        String selection = Column.PUSHWOOSH_ID + " = ?";
-                        String[] selectionArgs = {Long.toString(pushwooshId)};
+                        String selection = Column.GROUP_ID + " = ?";
+                        String[] selectionArgs = {groupId};
                         try (Cursor cursor = db.query(TABLE_NOTIFICATION_IDS, null, selection, selectionArgs, null, null, null)) {
                             if (cursor.moveToFirst()) {
                                 db.setTransactionSuccessful();
                                 return getStatusBarId(cursor);
                             } else {
-                                PWLog.error("Can't get StatusBarNotification with id: " + pushwooshId);
-                                throw new NotificationIdNotFoundException("Can't get StatusBarNotification with id: " + pushwooshId);
+                                PWLog.error("Can't get StatusBarNotification with group id: " + groupId);
+                                throw new GroupIdNotFoundException("Can't get StatusBarNotification with group id: " + groupId);
+                            }
+                        }
+                    } finally {
+                        db.endTransaction();
+                    }
+                } finally {
+                    db.close();
+                }
+            } catch (GroupIdNotFoundException e) {
+                throw e;
+            } catch (Exception e) {
+                PWLog.error("Can't get StatusBarNotification with group id: " + groupId, e);
+                throw new GroupIdNotFoundException("Can't get StatusBarNotification with group id: " + groupId);
+            }
+        }
+    }
+
+    @Override
+    public String getGroup(int notificationId) throws NotificationIdNotFoundException {
+        synchronized (mutex) {
+            try (SQLiteDatabase db = getWritableDatabase()) {
+                try {
+                    db.beginTransaction();
+                    try {
+                        String selection = Column.NOTIFICATION_ID + " = ?";
+                        String[] selectionArgs = {Integer.toString(notificationId)};
+                        try (Cursor cursor = db.query(TABLE_NOTIFICATION_IDS, null, selection, selectionArgs, null, null, null)) {
+                            if (cursor.moveToFirst()) {
+                                db.setTransactionSuccessful();
+                                return getGroupId(cursor);
+                            } else {
+                                PWLog.error("Can't get group with notification id: " + notificationId);
+                                throw new NotificationIdNotFoundException("Can't get group with notification id: " + notificationId);
                             }
                         }
                     } finally {
@@ -154,29 +186,33 @@ public class StatusBarNotificationStorageImpl extends SQLiteOpenHelper implement
             } catch (NotificationIdNotFoundException e) {
                 throw e;
             } catch (Exception e) {
-                PWLog.error("Can't get StatusBarNotification with id: " + pushwooshId, e);
-                throw new NotificationIdNotFoundException("Can't get StatusBarNotification with id: " + pushwooshId);
+                PWLog.error("Can't get group with notification id: " + notificationId, e);
+                throw new NotificationIdNotFoundException("Can't get group with notification id: " + notificationId);
             }
         }
     }
 
     private int getStatusBarId(Cursor cursor) {
-        return cursor.getInt(cursor.getColumnIndex(Column.STATUS_BAR_ID));
+        return cursor.getInt(cursor.getColumnIndexOrThrow(Column.NOTIFICATION_ID));
     }
 
-    private void createNotificationIdsTable(SQLiteDatabase db) {
+    private String getGroupId(Cursor cursor) {
+        return cursor.getString(cursor.getColumnIndexOrThrow(Column.GROUP_ID));
+    }
+
+    private void createNotificationSummaryIdsTable(SQLiteDatabase db) {
         String createTable = String.format("create table %s (", TABLE_NOTIFICATION_IDS)
-                + getStatusBarIdColumns()
-                + ", " + getPushwooshIdColumns()
+                + getStatusBarIdsColumns()
+                + ", " + getNotificationIdsColumns()
                 + "UNIQUE );";
         db.execSQL(createTable);
     }
 
-    private String getStatusBarIdColumns() {
-        return String.format("%s INTEGER ", Column.STATUS_BAR_ID);
+    private String getStatusBarIdsColumns() {
+        return String.format("%s TEXT ", Column.GROUP_ID);
     }
 
-    private String getPushwooshIdColumns() {
-        return String.format("%s INTEGER ", Column.PUSHWOOSH_ID);
+    private String getNotificationIdsColumns() {
+        return String.format("%s INTEGER ", Column.NOTIFICATION_ID);
     }
 }

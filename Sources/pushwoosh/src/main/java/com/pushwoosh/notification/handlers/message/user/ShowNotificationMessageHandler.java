@@ -51,9 +51,12 @@ import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.pushwoosh.internal.platform.AndroidPlatformModule.getApplicationContext;
-import static com.pushwoosh.notification.NotificationIntentHelper.SUMMARY_GROUP_ID;
+import static com.pushwoosh.notification.NotificationIntentHelper.EXTRA_GROUP_ID;
+import static com.pushwoosh.notification.NotificationIntentHelper.EXTRA_NOTIFICATION_ROW_ID;
+import static com.pushwoosh.notification.SummaryNotificationUtils.getNotificationIdForGroup;
 
 class ShowNotificationMessageHandler extends NotificationMessageHandler {
 	private final static String TAG = ShowNotificationMessageHandler.class.getSimpleName();
@@ -93,20 +96,23 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 
 	protected void handleMultiModeNotification(PushMessage pushMessage) {
 		Notification notification = notificationFactory.onGenerateNotification(pushMessage);
-		notification = NotificationBuilderManager.rebuildNotificationWithDefaultGroup(notification);
-
 		if (notification == null) {
 			return;
 		}
 		// generate summary notification only for Android.N and newer versions
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 			List<StatusBarNotification> activeNotifications = NotificationBuilderManager.getActiveNotifications();
-			if (activeNotifications.size() >= 1) {
-				int activeNotificationsCount = NotificationBuilderManager.isReplacingMessage(pushMessage, activeNotifications)
-						? activeNotifications.size() : activeNotifications.size() + 1;
+
+			List<StatusBarNotification> notificationsWithGroupId = activeNotifications.stream()
+					.filter(statusBarNotification -> TextUtils.equals(statusBarNotification.getNotification().getGroup(), notification.getGroup()))
+					.collect(Collectors.toList());
+
+			if (notificationsWithGroupId.size() >= 1) {
+				int notificationsWithGroupIdCount = NotificationBuilderManager.isReplacingMessage(pushMessage, notificationsWithGroupId)
+						? notificationsWithGroupId.size() : notificationsWithGroupId.size() + 1;
 				String notificationChannelId = (Build.VERSION.SDK_INT >= 26)
 						? notification.getChannelId() : SummaryNotificationFactory.NEED_TO_ADD_NEW_NOTIFICATION_CHANNEL_ID;
-				Notification summaryNotification = SummaryNotificationUtils.getSummaryNotification(activeNotificationsCount, notificationChannelId);
+				Notification summaryNotification = SummaryNotificationUtils.getSummaryNotification(notificationsWithGroupIdCount, notificationChannelId, notification.getGroup());
 				if (summaryNotification != null) {
 					SummaryNotificationUtils.fireSummaryNotification(summaryNotification);
 				}
@@ -114,7 +120,8 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 		}
 
 		Intent contentIntent = notificationFactory.getNotificationIntent(pushMessage);
-		contentIntent.putExtra(NotificationIntentHelper.EXTRA_GROUP_ID, SUMMARY_GROUP_ID);
+		int summaryNotificationId = getNotificationIdForGroup(pushMessage.getGroupId());
+		contentIntent.putExtra(NotificationIntentHelper.EXTRA_GROUP_ID, summaryNotificationId);
 
 		fireNotification(notification, contentIntent, pushMessage);
 	}
@@ -131,8 +138,10 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 		Intent deleteIntent = null;
 
 		try {
-			long notificationId = RepositoryModule.getPushBundleStorage().putGroupPushBundle(data.toBundle(), messageId);
-			deleteIntent = getDeleteIntent(notificationId);
+			long notificationId = RepositoryModule.getPushBundleStorage().putGroupPushBundle(data.toBundle(), messageId, notification.getGroup());
+			int summaryNotificationId = getNotificationIdForGroup(notification.getGroup());
+			contentIntent.putExtra(EXTRA_NOTIFICATION_ROW_ID, notificationId);
+			deleteIntent = getDeleteIntent(notificationId, summaryNotificationId);
 		} catch (Exception e) {
 			// ignore
 		}
@@ -234,11 +243,12 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 	}
 
 	@NonNull
-	private Intent getDeleteIntent(long rowId) {
+	private Intent getDeleteIntent(long rowId, int summaryNotificationId) {
 		Context applicationContext = getApplicationContext();
 		Intent deleteIntent = new Intent(applicationContext, NotificationUpdateReceiver.class);
 		deleteIntent.putExtra(NotificationIntentHelper.EXTRA_NOTIFICATION_ROW_ID, rowId);
 		deleteIntent.putExtra(NotificationIntentHelper.EXTRA_IS_DELETE_INTENT, true);
+		deleteIntent.putExtra(EXTRA_GROUP_ID, summaryNotificationId);
 		deleteIntent.setAction(Long.toString(System.currentTimeMillis()));
 		return deleteIntent;
 	}

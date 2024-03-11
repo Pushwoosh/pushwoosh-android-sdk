@@ -62,15 +62,6 @@ public abstract class SummaryNotificationFactory {
     public abstract int summaryNotificationColor();
 
     /**
-     * Custom notification groups are not currently supported.
-     * We strongly discourage you from using this override unless it is absolutely necessary for your use-case.
-     *
-     * @return The summary notification group key.
-     * By default returns the "group_undefined" value.
-     */
-    public abstract String summaryNotificationGroup();
-
-    /**
      * Override this method to set whether the summary notification will be dismissed after the user opens it.
      *
      * @return The flag indicating whether the group summary notification would be cancelled automatically. By default returns false.
@@ -82,7 +73,7 @@ public abstract class SummaryNotificationFactory {
     public boolean shouldGenerateSummaryNotification() { return true; }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    public final Notification onGenerateSummaryNotification(int notificationsAmount, String notificationChannelId) {
+    public final Notification onGenerateSummaryNotification(int notificationsAmount, String notificationChannelId, String groupId) {
         if (!shouldGenerateSummaryNotification()) {
             return null;
         }
@@ -113,7 +104,7 @@ public abstract class SummaryNotificationFactory {
                 .setColor(color)
                 .setNumber(notificationsAmount)
                 .setAutoCancel(autoCancelSummaryNotification())
-                .setGroup(summaryNotificationGroup())
+                .setGroup(groupId)
                 .setGroupSummary(true);
 
         String summaryText = summaryNotificationMessage(notificationsAmount);

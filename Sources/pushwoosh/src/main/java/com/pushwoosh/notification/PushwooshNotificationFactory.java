@@ -44,6 +44,7 @@ public class PushwooshNotificationFactory extends NotificationFactory {
 				.setVisibility(pushData.getVisibility())
 
 				.setTicker(getContentFromHtml(pushData.getTicker()))
+				.setGroup(pushData.getGroupId())
 				.setWhen(System.currentTimeMillis());
 
 		for (Action action : pushData.getActions()) {

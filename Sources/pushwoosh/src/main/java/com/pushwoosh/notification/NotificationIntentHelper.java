@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.pushwoosh.PushwooshPlatform;
+import com.pushwoosh.exception.NotificationIdNotFoundException;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.builder.NotificationBuilderManager;
@@ -20,6 +21,7 @@ import com.pushwoosh.repository.StatusBarNotificationStorage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NotificationIntentHelper {
 
@@ -51,8 +53,9 @@ public class NotificationIntentHelper {
         }
         long rowId = intent.getLongExtra(EXTRA_NOTIFICATION_ROW_ID, 0);
         if (rowId > 0) {
+            int summaryNotificationId = intent.getIntExtra(EXTRA_GROUP_ID, 0);
             new RemoveGroupPushBundleTask(rowId).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
-            new UpdateSummaryNotificationTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+            new UpdateSummaryNotificationTask(summaryNotificationId).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
         }
         long pushwooshNotificationID = intent.getLongExtra(EXTRA_PUSHWOOSH_NOTIFICATION_ID, -1);
         if (pushwooshNotificationID != -1) {
@@ -69,14 +72,23 @@ public class NotificationIntentHelper {
             PWLog.exception(e);
         }
 
-        if (intent.getIntExtra(EXTRA_GROUP_ID, 0) == SUMMARY_GROUP_ID) {
-            new UpdateSummaryNotificationTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+        long rowId = intent.getLongExtra(EXTRA_NOTIFICATION_ROW_ID, 0);
+        if (rowId != 0) {
+            new RemoveGroupPushBundleTask(rowId).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);;
+        }
+
+        int summaryNotificationId = intent.getIntExtra(EXTRA_GROUP_ID, 0);
+        if (summaryNotificationId != 0) {
+            new UpdateSummaryNotificationTask(summaryNotificationId).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
         }
     }
 
     private static void handleNotificationGroup(Intent intent) {
-        new GetGroupPushMessagesTask(pushMessages -> onGetGroupPushMessagesSuccess(pushMessages), () -> onGetGroupPushMessagesFail(intent))
-                .executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+        int summaryNotificationId = intent.getIntExtra(EXTRA_GROUP_ID, 0);
+        if (summaryNotificationId != 0) {
+            new GetGroupPushMessagesTask(pushMessages -> onGetGroupPushMessagesSuccess(pushMessages), () -> onGetGroupPushMessagesFail(intent), summaryNotificationId)
+                    .executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+        }
     }
 
     private static void onGetGroupPushMessagesSuccess(List<PushMessage> pushMessages) {
@@ -122,11 +134,13 @@ public class NotificationIntentHelper {
     private static class GetGroupPushMessagesTask extends AsyncTask<Void, Void, List<PushMessage>> {
         private final GetGroupPushMessagesSuccessCallback successCallback;
         private final GetGroupPushMessagesFailureCallback failureCallback;
+        private final int summaryNotificationId;
 
         public GetGroupPushMessagesTask(@NonNull GetGroupPushMessagesSuccessCallback successCallback,
-                                        @NonNull GetGroupPushMessagesFailureCallback failureCallback) {
+                                        @NonNull GetGroupPushMessagesFailureCallback failureCallback, int summaryNotificationId) {
             this.successCallback = successCallback;
             this.failureCallback = failureCallback;
+            this.summaryNotificationId = summaryNotificationId;
         }
 
         @RequiresApi(api = Build.VERSION_CODES.M)
@@ -134,9 +148,18 @@ public class NotificationIntentHelper {
         protected List<PushMessage> doInBackground(Void... voids) {
             try {
                 List<PushMessage> pushMessages = getPushMessages();
-                NotificationBuilderManager.cancelLastStatusBarNotification();
+                String groupId = getSummaryNotificationGroupForId(summaryNotificationId);
+                List<PushMessage> pushMessagesForGroup = null;
+                //summary notification is generated only for Android N and higher, so it's safe to use streams
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    pushMessagesForGroup = pushMessages.stream()
+                            .filter(pushMessage -> groupId.equals(pushMessage.getGroupId()))
+                            .collect(Collectors.toList());
+                }
 
-                return pushMessages;
+                NotificationBuilderManager.cancelLastStatusBarNotificationForGroup(groupId);
+
+                return pushMessagesForGroup;
             } catch (Exception e) {
                 return null;
             }
@@ -159,6 +182,7 @@ public class NotificationIntentHelper {
             }
             List<PushMessage> pushMessagesList = new ArrayList<>();
             for (Bundle pushBundle : pushBundles) {
+                PushMessage pushMessage = new PushMessage(pushBundle);
                 pushMessagesList.add(new PushMessage(pushBundle));
             }
             return pushMessagesList;
@@ -166,27 +190,45 @@ public class NotificationIntentHelper {
     }
 
     private static class UpdateSummaryNotificationTask extends AsyncTask<Void, Void, Void> {
+        private final int notificationId;
+        public UpdateSummaryNotificationTask(int notificationId) {
+            this.notificationId = notificationId;
+        }
+
         @Override
         protected Void doInBackground(Void... voids) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                List<StatusBarNotification> activeNotifications = NotificationBuilderManager.getActiveNotifications();
+                String groupId = getSummaryNotificationGroupForId(notificationId);
+                if (groupId == null) {
+                    return null;
+                }
+
+                List<StatusBarNotification> activeNotifications = NotificationBuilderManager.getActiveNotificationsForGroup(groupId);
                 if (activeNotifications == null) {
                     return null;
                 }
                 /*if group summary had 2 notifications, and one was closed, it will still exist,
                 but the last notification will be shown separately, so we need to cancel summary here */
                 if (activeNotifications.isEmpty()) {
-                    NotificationBuilderManager.cancelGroupSummary();
+                    NotificationBuilderManager.cancelGroupSummary(groupId);
                     return null;
                 }
                 Notification summaryNotification =
                         SummaryNotificationUtils.getSummaryNotification(activeNotifications.size(),
-                                SummaryNotificationFactory.NEED_TO_ADD_NEW_NOTIFICATION_CHANNEL_ID);
+                                SummaryNotificationFactory.NEED_TO_ADD_NEW_NOTIFICATION_CHANNEL_ID, groupId);
                 if (summaryNotification == null) {
                     return null;
                 }
                 SummaryNotificationUtils.fireSummaryNotification(summaryNotification);
             }
+            return null;
+        }
+    }
+
+    private static String getSummaryNotificationGroupForId(int notificationId) {
+        try {
+            return RepositoryModule.getSummaryNotificationStorage().getGroup(notificationId);
+        } catch (NotificationIdNotFoundException e) {
             return null;
         }
     }

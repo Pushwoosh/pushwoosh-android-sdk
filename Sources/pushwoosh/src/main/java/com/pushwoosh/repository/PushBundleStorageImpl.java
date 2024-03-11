@@ -17,7 +17,7 @@ import java.util.List;
 public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundleStorage {
     private static final String TAG = PushBundleStorageImpl.class.getSimpleName();
     private static final String DB_NAME = "pushBundleDb.db";
-    private static final int VERSION = 4;
+    private static final int VERSION = 5;
 
     private static final String TABLE_PUSH_BUNDLES = "pushBundles";
     private static final String TABLE_GROUP_PUSH_BUNDLES = "groupPushBundles";
@@ -28,6 +28,7 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
         static final String ROW_ID = "rowid";
         static final String PUSH_BUNDLE_JSON = "push_bundle_json";
         static final String NOTIFICATION_ID = "notification_id";
+        static final String GROUP_ID = "group_id";
     }
 
     public PushBundleStorageImpl(Context context) {
@@ -55,13 +56,16 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
 
     private void createPushBundlesTable(SQLiteDatabase db) {
         String createTable = String.format("create table %s (", TABLE_PUSH_BUNDLES)
-                + getPushBundlesColumns() + ");";
+                + getPushBundlesColumns()
+                + ", " + getGroupIdColumn()
+                + ");";
         db.execSQL(createTable);
     }
 
     private void createGroupPushBundlesTable(SQLiteDatabase db) {
         String createTable = String.format("create table %s (", TABLE_GROUP_PUSH_BUNDLES)
                 + getPushBundlesColumns()
+                + ", " + getGroupIdColumn()
                 + ", " + getNotificationIdColumn()
                 + ");";
         db.execSQL(createTable);
@@ -69,6 +73,10 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
 
     private String getPushBundlesColumns() {
         return String.format("%s TEXT ", Column.PUSH_BUNDLE_JSON);
+    }
+
+    private String getGroupIdColumn() {
+        return String.format("%s TEXT ", Column.GROUP_ID);
     }
 
     private String getNotificationIdColumn() {
@@ -92,8 +100,8 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
     }
 
     @Override
-    public long putGroupPushBundle(Bundle pushBundle, int id) throws Exception {
-        ContentValues cv = getGroupPushBundleContentValues(pushBundle, id);
+    public long putGroupPushBundle(Bundle pushBundle, int id, String groupId) throws Exception {
+        ContentValues cv = getGroupPushBundleContentValues(pushBundle, id, groupId);
         return put(cv, TABLE_GROUP_PUSH_BUNDLES);
     }
 
@@ -166,11 +174,13 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
     }
 
     @Override
-    public PushBundleDatabaseEntry getLastPushBundleEntry() throws Exception {
+    public PushBundleDatabaseEntry getLastPushBundleEntryForGroup(String groupId) throws Exception {
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
-                String[] columns = {Column.NOTIFICATION_ID, Column.PUSH_BUNDLE_JSON, Column.ROW_ID};
-                try (Cursor cursor = db.query(TABLE_GROUP_PUSH_BUNDLES, columns, null , null,null,null,null)) {
+                String[] columns = {Column.NOTIFICATION_ID, Column.PUSH_BUNDLE_JSON, Column.GROUP_ID, Column.ROW_ID};
+                String selection = Column.GROUP_ID + " = ?";
+                String[] selectionArgs = { groupId };
+                try (Cursor cursor = db.query(TABLE_GROUP_PUSH_BUNDLES, columns, selection , selectionArgs,null,null,null)) {
                     if (cursor.moveToLast()) {
                         return new PushBundleDatabaseEntry(cursor.getInt(cursor.getColumnIndex(Column.NOTIFICATION_ID)),
                                 cursor.getLong(cursor.getColumnIndex(Column.ROW_ID)),
@@ -214,10 +224,11 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
         return cv;
     }
 
-    private ContentValues getGroupPushBundleContentValues(Bundle pushBundle, int id) {
+    private ContentValues getGroupPushBundleContentValues(Bundle pushBundle, int id, String groupId) {
         ContentValues cv = new ContentValues();
         cv.put(Column.PUSH_BUNDLE_JSON, JsonUtils.bundleToJson(pushBundle).toString());
         cv.put(Column.NOTIFICATION_ID, id);
+        cv.put(Column.GROUP_ID, groupId);
         return cv;
     }
 
