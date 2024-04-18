@@ -36,6 +36,7 @@ import com.pushwoosh.notification.handlers.notification.NotificationOpenHandlerC
 import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.tags.TagsBundle;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -141,7 +142,7 @@ public class PushwooshNotificationManager {
         registrationPrefs.projectId().set(senderId);
 
         if (needRegister) {
-            pushRegistrar.registerPW();
+            pushRegistrar.registerPW(null);
         }
     }
 
@@ -156,7 +157,7 @@ public class PushwooshNotificationManager {
                 context, new String[] {TiramisuApiHelper.PERMISSION_POST_NOTIFICATIONS});
     }
 
-    public void registerForPushNotifications(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, boolean shouldRequestPermission) {
+    public void registerForPushNotifications(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, boolean shouldRequestPermission, TagsBundle tags) {
         EventBus.subscribe(NotificationPermissionEvent.class, new EventListener<NotificationPermissionEvent>() {
             @Override
             public void onReceive(NotificationPermissionEvent event) {
@@ -165,14 +166,14 @@ public class PushwooshNotificationManager {
                         || TiramisuApiHelper.getReleaseOrCodeName().equals("Tiramisu")) {
                     notificationsAllowed = event.getGrantedPermissions().contains(TiramisuApiHelper.PERMISSION_POST_NOTIFICATIONS);
                 }
-                registerForPushesInternal(callback, notificationsAllowed);
+                registerForPushesInternal(callback, notificationsAllowed, tags);
             }
         });
 
         try {
             if (Build.VERSION.SDK_INT < TiramisuApiHelper.TIRAMISU_API &&
                     !TiramisuApiHelper.getReleaseOrCodeName().equals("Tiramisu")) {
-                registerForPushesInternal(callback, true);
+                registerForPushesInternal(callback, true, tags);
             } else if (ContextCompat.checkSelfPermission(AndroidPlatformModule.getApplicationContext(),
                     TiramisuApiHelper.PERMISSION_POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 // check if user has manually denied notification permission, if not - request permission
@@ -180,13 +181,13 @@ public class PushwooshNotificationManager {
                     requestNotificationPermission();
                 // permission denied - register for pushes silently with notificationsAllowed == false
                 } else {
-                    registerForPushesInternal(callback, false);
+                    registerForPushesInternal(callback, false, tags);
                 }
             // permission already granted - register silently with notificationsAllowed == true and
             // set hasUserDeniedNotificationPermission to false in case permission was granted from app settings
             } else {
                 RepositoryModule.getRegistrationPreferences().hasUserDeniedNotificationPermission().set(false);
-                registerForPushesInternal(callback, true);
+                registerForPushesInternal(callback, true, tags);
             }
         } catch (Exception e) {
             PWLog.exception(e);
@@ -195,7 +196,7 @@ public class PushwooshNotificationManager {
 
     }
 
-    private void registerForPushesInternal(Callback callback, boolean notificationsAllowed) {
+    private void registerForPushesInternal(Callback callback, boolean notificationsAllowed, TagsBundle tags) {
         try {
             boolean communicationEnable = registrationPrefs.communicationEnable().get();
             if (!communicationEnable) {
@@ -213,7 +214,7 @@ public class PushwooshNotificationManager {
             long currentTime = System.currentTimeMillis();
 
             if (TextUtils.isEmpty(pushToken) || (currentTime - regDate) > EXPIRATION_TIME) {
-                pushRegistrar.registerPW();
+                pushRegistrar.registerPW(tags);
             } else {
                 EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(pushToken, notificationsAllowed)));
             }
@@ -272,9 +273,9 @@ public class PushwooshNotificationManager {
         pushesRescheduled.set(true);
     }
 
-    public void onRegisteredForRemoteNotifications(String pushToken) {
+    public void onRegisteredForRemoteNotifications(String pushToken, String tagsJson) {
         RepositoryModule.getRegistrationPreferences().pushToken().set(pushToken);
-        DeviceRegistrar.registerWithServer(pushToken);
+        DeviceRegistrar.registerWithServer(pushToken, tagsJson);
     }
 
     public void onFailedToRegisterForRemoteNotifications(String error) {

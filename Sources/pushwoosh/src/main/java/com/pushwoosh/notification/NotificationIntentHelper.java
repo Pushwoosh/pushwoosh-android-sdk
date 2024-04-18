@@ -16,7 +16,6 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.builder.NotificationBuilderManager;
 import com.pushwoosh.repository.RepositoryModule;
-import com.pushwoosh.repository.StatusBarNotificationStorage;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,10 +55,6 @@ public class NotificationIntentHelper {
             int summaryNotificationId = intent.getIntExtra(EXTRA_GROUP_ID, 0);
             new RemoveGroupPushBundleTask(rowId).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
             new UpdateSummaryNotificationTask(summaryNotificationId).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
-        }
-        long pushwooshNotificationID = intent.getLongExtra(EXTRA_PUSHWOOSH_NOTIFICATION_ID, -1);
-        if (pushwooshNotificationID != -1) {
-            new UpdateNotificationStorageTask(pushwooshNotificationID).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
         }
     }
 
@@ -229,25 +224,6 @@ public class NotificationIntentHelper {
         try {
             return RepositoryModule.getSummaryNotificationStorage().getGroup(notificationId);
         } catch (NotificationIdNotFoundException e) {
-            return null;
-        }
-    }
-
-    private static class UpdateNotificationStorageTask extends AsyncTask<Void, Void, Void> {
-        private final long notificationId;
-
-        public UpdateNotificationStorageTask(long notificationId) {
-            this.notificationId = notificationId;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            StatusBarNotificationStorage storage = RepositoryModule.getStatusBarNotificationStorage();
-            try {
-                storage.remove(notificationId);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             return null;
         }
     }

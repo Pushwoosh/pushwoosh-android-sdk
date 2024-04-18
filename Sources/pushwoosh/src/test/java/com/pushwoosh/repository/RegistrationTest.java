@@ -114,12 +114,12 @@ public class RegistrationTest {
 
 
 		// Steps:
-		notificationManager.registerForPushNotifications(callback, true);
+		notificationManager.registerForPushNotifications(callback, true, null);
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 
 		// Postconditions:
-		verify(pushRegistrarMock, timeout(100).times(0)).registerPW();
+		verify(pushRegistrarMock, timeout(100).times(0)).registerPW(null);
 		verify(callback, timeout(1000)).process(captor.capture());
 
 		Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> result = captor.getValue();
@@ -134,11 +134,11 @@ public class RegistrationTest {
 		Mockito.doThrow(exception).when(pushRegistrarMock).checkDevice(any());
 
 		// Steps:
-		notificationManager.registerForPushNotifications(null, true);
+		notificationManager.registerForPushNotifications(null, true, null);
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		// Postconditions:
-		verify(pushRegistrarMock, timeout(100).times(0)).registerPW();
+		verify(pushRegistrarMock, timeout(100).times(0)).registerPW(null);
 	}
 
 	//Tests registration successful and callBack.onRegistered called when pushToken is not empty and last registrationTime < 10 mins
@@ -155,12 +155,12 @@ public class RegistrationTest {
 
 
 		// Steps:
-		notificationManager.registerForPushNotifications(callback, true);
+		notificationManager.registerForPushNotifications(callback, true, null);
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 
 		// Postcondition:
-		verify(pushRegistrarMock, timeout(100).times(0)).registerPW();
+		verify(pushRegistrarMock, timeout(100).times(0)).registerPW(null);
 
 		verify(callback, timeout(1000)).process(captor.capture());
 		Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> result = captor.getValue();
@@ -181,15 +181,15 @@ public class RegistrationTest {
 		Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
 
 		// Steps:
-		notificationManager.registerForPushNotifications(callback, true);
+		notificationManager.registerForPushNotifications(callback, true, null);
 		assertThat(notificationManager.getPushToken(), is(nullValue())); // intermediate condition
 
-		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN);
+		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN, null);
 
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		// Postconditions:
-		verify(pushRegistrarMock, timeout(100)).registerPW();
+		verify(pushRegistrarMock, timeout(100)).registerPW(null);
 
 		verify(callback, timeout(1000)).process(captor.capture());
 		Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> result = captor.getValue();
@@ -212,12 +212,12 @@ public class RegistrationTest {
 		Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
 
 		// Steps:
-		notificationManager.registerForPushNotifications(null, true);
-		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN);
+		notificationManager.registerForPushNotifications(null, true, null);
+		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN, null);
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		// Postcondition:
-		verify(pushRegistrarMock, timeout(100)).registerPW();
+		verify(pushRegistrarMock, timeout(100)).registerPW(null);
 
 		verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
 		JSONObject params = requestCaptor.getValue();
@@ -233,7 +233,7 @@ public class RegistrationTest {
 		Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback = CallbackWrapper.spy();
 
 		// Steps:
-		notificationManager.registerForPushNotifications(callback, true);
+		notificationManager.registerForPushNotifications(callback, true, null);
 		notificationManager.onFailedToRegisterForRemoteNotifications("test registration error");
 
 		// Postcondition:
@@ -251,11 +251,11 @@ public class RegistrationTest {
 		requestManagerMock.setException(new NetworkException("test network fail"), RegisterDeviceRequest.class);
 
 		// Steps:
-		notificationManager.registerForPushNotifications(callback, true);
-		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN);
+		notificationManager.registerForPushNotifications(callback, true, null);
+		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN, null);
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-		verify(pushRegistrarMock, timeout(1000)).registerPW();
+		verify(pushRegistrarMock, timeout(1000)).registerPW(null);
 		verify(callback, timeout(1000)).process(captor.capture());
 		Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> result = captor.getValue();
 
@@ -268,8 +268,8 @@ public class RegistrationTest {
 		requestManagerMock.setException(new NetworkException("test network fail"), RegisterDeviceRequest.class);
 
 		// Steps:
-		notificationManager.registerForPushNotifications(null, true);
-		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN);
+		notificationManager.registerForPushNotifications(null, true, null);
+		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN, null);
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		// Postcondition:

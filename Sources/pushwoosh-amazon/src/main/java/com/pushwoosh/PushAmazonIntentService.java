@@ -37,6 +37,7 @@ package com.pushwoosh;
 import android.content.Intent;
 
 import com.amazon.device.messaging.ADMMessageHandlerBase;
+import com.pushwoosh.amazon.TagsRegistrarHelper;
 import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
 
@@ -63,7 +64,14 @@ public class PushAmazonIntentService extends ADMMessageHandlerBase {
 	protected void onRegistered(String registrationId) {
 		PWLog.info(TAG, "Device registered: regId = " + registrationId);
 
-		NotificationRegistrarHelper.onRegisteredForRemoteNotifications(registrationId);
+		String tagsJson = null;
+		if (TagsRegistrarHelper.tagsBundle != null)
+		{
+			tagsJson = TagsRegistrarHelper.tagsBundle.toJson().toString();
+		}
+
+		NotificationRegistrarHelper.onRegisteredForRemoteNotifications(registrationId, tagsJson);
+		TagsRegistrarHelper.tagsBundle = null;
 	}
 
 	@Override

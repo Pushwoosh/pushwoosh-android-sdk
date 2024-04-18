@@ -52,4 +52,8 @@ class UnregisterDeviceRequest extends PushRequest<Void> {
 	public String getMethod() {
 		return "unregisterDevice";
 	}
+
+	@Override
+	public boolean shouldUseJitter(){ return false; }
+
 }

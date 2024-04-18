@@ -52,13 +52,13 @@ public final class NotificationRegistrarHelper {
 		return RepositoryModule.getRegistrationPreferences().isRegisteredForPush().get();
 	}
 
-	public static void onRegisteredForRemoteNotifications(final String registrationId) {
+	public static void onRegisteredForRemoteNotifications(final String registrationId, String tagsJson) {
 		if (!isRegisteredForRemoteNotifications()) {
 			return;
 		}
 
 		PushwooshNotificationManager notificationManager = PushwooshPlatform.getInstance().notificationManager();
-		notificationManager.onRegisteredForRemoteNotifications(registrationId);
+		notificationManager.onRegisteredForRemoteNotifications(registrationId, tagsJson);
 	}
 
 	public static void clearToken() {

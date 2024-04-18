@@ -217,19 +217,40 @@ public class Pushwoosh {
     }
 
     /**
+     * @see <a href="#registerForPushNotificationsWithTags(Callback, TagsBundle)">registerForPushNotifications(Callback, TagsBundle)</a>
+     */
+    public void registerForPushNotificationsWithTags(TagsBundle tags) {
+        registerForPushNotificationsWithTags(null, tags);
+    }
+
+    /**
      * Registers device for push notifications
      *
      * @param callback push registration callback
      */
     public void registerForPushNotifications(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
-        registerForPushNotificationsInternal(callback, true);
+        registerForPushNotificationsInternal(callback, true, null);
+    }
+
+    /**
+     * Registers device for push notifications
+     *
+     * @param callback push registration callback
+     * @param tags tags to be set when registering for pushes
+     */
+    public void registerForPushNotificationsWithTags(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, TagsBundle tags) {
+        registerForPushNotificationsInternal(callback, true, tags);
     }
 
     public void registerForPushNotificationsWithoutPermission(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
-        registerForPushNotificationsInternal(callback, false);
+        registerForPushNotificationsInternal(callback, false, null);
     }
 
-    private void registerForPushNotificationsInternal(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, boolean shouldRequestPermission) {
+    public void registerForPushNotificationsWithTagsWithoutPermission(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, TagsBundle tagsBundle) {
+        registerForPushNotificationsInternal(callback, false, tagsBundle);
+    }
+
+    private void registerForPushNotificationsInternal(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, boolean shouldRequestPermission, TagsBundle tags) {
         if (RepositoryModule.getNotificationPreferences() != null &&
                 !RepositoryModule.getNotificationPreferences().isServerCommunicationAllowed().get()) {
             String error = "Communication with Pushwoosh is disabled. You have to enable the server" +
@@ -243,7 +264,7 @@ public class Pushwoosh {
             return;
         }
         if (notificationManager != null) {
-            notificationManager.registerForPushNotifications(callback, shouldRequestPermission);
+            notificationManager.registerForPushNotifications(callback, shouldRequestPermission, tags);
         }
     }
 

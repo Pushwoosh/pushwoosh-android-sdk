@@ -22,6 +22,9 @@ public class SetEmailTagsRequest extends PushRequest<Void> {
     }
 
     @Override
+    public boolean shouldUseJitter(){ return false; }
+
+    @Override
     protected void buildParams(JSONObject params) throws JSONException {
         Iterator<String> keys = tags.keys();
         while (keys.hasNext()) {

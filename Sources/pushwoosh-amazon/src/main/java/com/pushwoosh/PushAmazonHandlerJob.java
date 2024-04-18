@@ -4,8 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.amazon.device.messaging.ADMMessageHandlerJobBase;
+import com.pushwoosh.amazon.TagsRegistrarHelper;
 import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.tags.TagsBundle;
 
 public class PushAmazonHandlerJob extends ADMMessageHandlerJobBase {
     public static final String TAG = "PushAmazonHandlerJob";
@@ -28,7 +30,13 @@ public class PushAmazonHandlerJob extends ADMMessageHandlerJobBase {
     protected void onRegistered(Context context, String registrationId) {
         PWLog.info(TAG, "Device registered: regId = " + registrationId);
 
-        NotificationRegistrarHelper.onRegisteredForRemoteNotifications(registrationId);
+        String tagsJson = null;
+        if (TagsRegistrarHelper.tagsBundle != null) {
+            tagsJson = TagsRegistrarHelper.tagsBundle.toJson().toString();
+        }
+
+        NotificationRegistrarHelper.onRegisteredForRemoteNotifications(registrationId, tagsJson);
+        TagsRegistrarHelper.tagsBundle = null;
     }
 
     @Override

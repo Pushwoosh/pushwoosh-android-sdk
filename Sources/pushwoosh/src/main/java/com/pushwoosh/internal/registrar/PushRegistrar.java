@@ -26,6 +26,8 @@
 
 package com.pushwoosh.internal.registrar;
 
+import com.pushwoosh.tags.TagsBundle;
+
 /**
  * Interface which used for connecting/disconnecting to push cloud messaging service
  */
@@ -45,7 +47,7 @@ public interface PushRegistrar {
 	/**
 	 * Register to push cloud messaging service
 	 */
-	void registerPW();
+	void registerPW(TagsBundle tags);
 
 	/**
 	 * Unregister from push cloud messaging service

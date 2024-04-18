@@ -37,10 +37,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.amazon.device.messaging.ADM;
+import com.pushwoosh.PushAmazonHandlerJob;
+import com.pushwoosh.amazon.TagsRegistrarHelper;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.tags.TagsBundle;
 
 import java.util.HashSet;
 import java.util.List;
@@ -61,8 +64,8 @@ public class AdmRegistrar implements PushRegistrar {
 	}
 
 	@Override
-	public void registerPW() {
-		impl.registerPW();
+	public void registerPW(TagsBundle tags) {
+		impl.registerPW(tags);
 	}
 
 	@Override
@@ -114,8 +117,9 @@ public class AdmRegistrar implements PushRegistrar {
 			checkManifest(context);
 		}
 
-		void registerPW() {
+		void registerPW(TagsBundle tagsBundle) {
 			adm.startRegister();
+			TagsRegistrarHelper.tagsBundle = tagsBundle;
 		}
 
 		void unregisterPW() {

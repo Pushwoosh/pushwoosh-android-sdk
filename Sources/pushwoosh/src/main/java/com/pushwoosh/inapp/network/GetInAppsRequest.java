@@ -50,6 +50,9 @@ class GetInAppsRequest extends PushRequest<List<Resource>> {
 	}
 
 	@Override
+	public boolean shouldUseJitter(){ return false; }
+
+	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		params.put("language", Locale.getDefault().getLanguage());
 	}

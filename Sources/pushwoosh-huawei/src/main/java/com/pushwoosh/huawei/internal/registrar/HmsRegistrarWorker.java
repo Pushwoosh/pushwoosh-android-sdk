@@ -24,6 +24,7 @@ import static com.pushwoosh.internal.platform.AndroidPlatformModule.NULL_CONTEXT
 public class HmsRegistrarWorker extends Worker {
     public static final String DATA_REGISTER = "DATA_REGISTER";
     public static final String DATA_UNREGISTER = "DATA_UNREGISTER";
+    public static final String DATA_TAGS = "DATA_TAGS";
     public static final String TAG = "HmsRegistrarWorker";
 
     private Context context;
@@ -33,13 +34,13 @@ public class HmsRegistrarWorker extends Worker {
         this.context = context;
     }
 
-    private static void registerPW(Context context) {
+    private static void registerPW(Context context, String tagsJson) {
         new PushwooshHmsHelper.GetTokenAsync(new PushwooshHmsHelper.OnGetTokenAsync() {
             @Override
             public void onGetToken(String token) {
                 if (token != null) {
                     PWLog.info(TAG, "HCM token is " + token);
-                    NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token);
+                    NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token, tagsJson);
                 } else {
                     PWLog.info(TAG, "HCM token is empty");
                 }
@@ -75,6 +76,7 @@ public class HmsRegistrarWorker extends Worker {
     public Result doWork() {
         boolean register = getInputData().getBoolean(DATA_REGISTER, false);
         boolean unregister = getInputData().getBoolean(DATA_UNREGISTER, false);
+        String tags = getInputData().getString(DATA_TAGS);
         Context context = this.context;
 
         if (context == null) {
@@ -83,7 +85,7 @@ public class HmsRegistrarWorker extends Worker {
         }
 
         if (register) {
-            registerPW(context);
+            registerPW(context, tags);
         } else if (unregister) {
             unregisterPW(context);
         }

@@ -15,6 +15,7 @@ import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.tags.TagsBundle;
 import com.xiaomi.channel.commonutils.android.Region;
 import com.xiaomi.channel.commonutils.logger.LoggerInterface;
 import com.xiaomi.mipush.sdk.Logger;
@@ -28,7 +29,7 @@ public class XiaomiPushRegistrar implements PushRegistrar {
     @Override
     public void init() {
         impl = new Impl();
-        impl.registerPW();
+        impl.registerPW(null);
 
         //Enable Log in case of errors
         LoggerInterface newLogger = new LoggerInterface() {
@@ -55,8 +56,8 @@ public class XiaomiPushRegistrar implements PushRegistrar {
     }
 
     @Override
-    public void registerPW() {
-        impl.registerPW();
+    public void registerPW(TagsBundle tags) {
+        impl.registerPW(tags);
     }
 
     @Override
@@ -80,7 +81,7 @@ public class XiaomiPushRegistrar implements PushRegistrar {
             GeneralUtils.checkNotNullOrEmpty(appId, "mAppId");
         }
 
-        void registerPW() {
+        void registerPW(TagsBundle tagsBundle) {
             MiPushClient.setRegion(getAppRegionFromPrefs());
             if(isMainProcess()) {
                 if (context != null ) {

@@ -80,7 +80,7 @@ public class PushwooshStartWorker {
         Subscription<PushwooshNotificationManager.ApplicationIdReadyEvent> subscriberAppReady =
                 EventBus.subscribe(PushwooshNotificationManager.ApplicationIdReadyEvent.class, event -> appReady.set(true));
         Emitter.when(Emitter.forEvent(PushwooshNotificationManager.ApplicationIdReadyEvent.class),
-                Emitter.forEvent(InitHwidEvent.class)).bind(event -> onStart());
+                Emitter.forEvent(InitHwidEvent.class)).bind(event -> onApplicationOpenAndHwidReady());
 
         if (!pushRegistrarHelper.initDefaultPushRegistrarInPlugin()) {
             notificationManager.initPushRegistrar();
@@ -145,11 +145,13 @@ public class PushwooshStartWorker {
         }
     }
 
-    private void onStart() {
+    private void onApplicationOpenAndHwidReady() {
         if (started.compareAndSet(false, true)) {
-            pushwooshRepository.loadConfig();
-            deviceRegistrar.updateRegistration();
-            pushwooshInApp.checkForUpdates();
+            EventBus.subscribe(ApplicationOpenDetector.ApplicationOpenEvent.class, event -> {
+                pushwooshRepository.loadConfig();
+                deviceRegistrar.updateRegistration();
+                pushwooshInApp.checkForUpdates();
+            });
         }
     }
 

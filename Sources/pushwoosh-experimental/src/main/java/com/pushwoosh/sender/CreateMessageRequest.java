@@ -34,6 +34,9 @@ class CreateMessageRequest extends PushRequest<Void> {
     }
 
     @Override
+    public boolean shouldUseJitter() { return false; }
+
+    @Override
     protected void buildParams(JSONObject params) throws JSONException {
         JsonUtils.clearJsonObject(params);
         params.put("application", application);

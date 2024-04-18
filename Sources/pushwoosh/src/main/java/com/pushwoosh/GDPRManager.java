@@ -112,7 +112,7 @@ public class GDPRManager {
 
         pushwooshRepository.communicationEnabled(enable);
         if (enable) {
-            notificationManager.registerForPushNotifications(resultRegister -> onPushRegistrationChangeResult(callback, resultRegister.getException()), true);
+            notificationManager.registerForPushNotifications(resultRegister -> onPushRegistrationChangeResult(callback, resultRegister.getException()), true, null);
         } else {
             notificationManager.unregisterForPushNotifications(resultUnregister -> onPushRegistrationChangeResult(callback, resultUnregister.getException()));
         }

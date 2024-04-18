@@ -42,9 +42,7 @@ public class DeepLinkActivity extends TranslucentActivity {
 		String scheme = uri.getScheme().toLowerCase(Locale.getDefault());
 		String host = uri.getHost();
 
-		String appId = RepositoryModule.getRegistrationPreferences().applicationId().get();
-		String expectedScheme = "pw-" + appId.toLowerCase(Locale.getDefault());
-		if (scheme.equals(expectedScheme)) {
+		if (scheme.startsWith("pushwoosh-")) {
 			if (host.equals("createTestDevice")) {
 				PWLog.debug(TAG, "createTestDevice");
 				createTestDevice(getApplicationContext());
@@ -60,14 +58,14 @@ public class DeepLinkActivity extends TranslucentActivity {
 		CreateTestDeviceRequest request = new CreateTestDeviceRequest(DeviceUtils.getDeviceName(), "Imported from the app");
 		RequestManager requestManager = NetworkModule.getRequestManager();
 		if (requestManager == null) {
-			Toast.makeText(context, "Test device registration has been failed. RequestManager is null", Toast.LENGTH_LONG).show();
+			Toast.makeText(context, "Test device registration has failed. RequestManager is null", Toast.LENGTH_LONG).show();
 			return;
 		}
 		requestManager.sendRequest(request, result -> {
 			if (result.isSuccess()) {
 				Toast.makeText(context, "Test device has been registered.", Toast.LENGTH_LONG).show();
 			} else {
-				Toast.makeText(context, "Test device registration has been failed. " + (result.getException() == null ? "" : result.getException().getMessage()), Toast.LENGTH_LONG).show();
+				Toast.makeText(context, "Test device registration has failed. " + (result.getException() == null ? "" : result.getException().getMessage()), Toast.LENGTH_LONG).show();
 			}
 		});
 	}

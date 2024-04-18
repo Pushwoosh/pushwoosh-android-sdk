@@ -167,9 +167,6 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 			saveNotificationIdAndTag(data, messageId, tag);
 		}
 		manager.notify(tag, messageId, notification);
-
-		RepositoryModule.getStatusBarNotificationStorage().put(data.getPushwooshNotificationId(), messageId);
-
 		tryTurnScreenOn();
 
 		addToPushHistory(data);

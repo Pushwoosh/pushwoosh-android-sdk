@@ -46,6 +46,7 @@ import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.RequestPermissionHelper;
 import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.tags.TagsBundle;
 
 import java.util.List;
 
@@ -81,7 +82,7 @@ public class BaiduPushRegistrar implements PushRegistrar, EventListener<BaiduPer
     }
 
     @Override
-    public void registerPW() {
+    public void registerPW(TagsBundle tags) {
         if(Utils.checkPermission(context)){
             registerBaidu();
         } else {

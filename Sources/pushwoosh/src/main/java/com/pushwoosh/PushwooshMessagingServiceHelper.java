@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 
 import com.pushwoosh.internal.event.EventBus;
-import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
@@ -16,7 +15,7 @@ public class PushwooshMessagingServiceHelper {
         Context context = AndroidPlatformModule.getApplicationContext();
         PushwooshInitializer.init(context);
 
-        NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token);
+        NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token, null);
         EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(token,true)));
     }
 

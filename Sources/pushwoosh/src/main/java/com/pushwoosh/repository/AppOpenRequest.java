@@ -47,6 +47,8 @@ class AppOpenRequest extends PushRequest<Void> {
     public String getMethod() {
         return "applicationOpen";
     }
+    public boolean shouldUseJitter(){ return true; }
+
 
     @Override
     protected void buildParams(JSONObject params) throws JSONException {

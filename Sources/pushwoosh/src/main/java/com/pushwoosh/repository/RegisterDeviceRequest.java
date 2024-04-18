@@ -26,6 +26,8 @@
 
 package com.pushwoosh.repository;
 
+import android.text.TextUtils;
+
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 
 import org.json.JSONArray;
@@ -35,10 +37,12 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 class RegisterDeviceRequest extends AppOpenRequest {
-	private String pushToken;
+	private final String pushToken;
+	private final String tagsJson;
 
-	RegisterDeviceRequest(String pushToken) {
+	RegisterDeviceRequest(String pushToken, String tagsJson) {
 		this.pushToken = pushToken;
+		this.tagsJson = tagsJson;
 	}
 
 	@Override
@@ -47,10 +51,17 @@ class RegisterDeviceRequest extends AppOpenRequest {
 	}
 
 	@Override
+	public boolean shouldUseJitter() { return false; }
+
+	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		super.buildParams(params);
 
 		params.put("push_token", pushToken);
+		if (!TextUtils.isEmpty(tagsJson)) {
+			JSONObject tagsObject = new JSONObject(tagsJson);
+			params.put("tags", tagsObject);
+		}
 
 		ArrayList<String> rawResources = GeneralUtils.getRawResourses();
 		if (rawResources != null) {

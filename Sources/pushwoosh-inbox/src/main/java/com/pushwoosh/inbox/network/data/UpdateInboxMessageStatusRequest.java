@@ -57,4 +57,7 @@ public class UpdateInboxMessageStatusRequest extends BaseInboxRequest<Void> {
 	public String getMethod() {
 		return "inboxStatus";
 	}
+
+	@Override
+	public boolean shouldUseJitter() { return false; }
 }

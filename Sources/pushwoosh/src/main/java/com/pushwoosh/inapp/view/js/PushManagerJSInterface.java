@@ -187,7 +187,7 @@ public class PushManagerJSInterface {
     @JavascriptInterface
     public void registerForPushNotifications() {
         if (PushwooshPlatform.getInstance() != null)
-            PushwooshPlatform.getInstance().notificationManager().registerForPushNotifications(null,true);
+            PushwooshPlatform.getInstance().notificationManager().registerForPushNotifications(null,true, null);
     }
 
     /**

@@ -32,6 +32,8 @@ class RegisterEmailUserRequest extends PushRequest<Map<String, Object>> {
         return "registerEmailUser";
     }
 
+    public boolean shouldUseJitter(){ return false; }
+
     @Override
     protected void buildParams(JSONObject params) throws JSONException {
 

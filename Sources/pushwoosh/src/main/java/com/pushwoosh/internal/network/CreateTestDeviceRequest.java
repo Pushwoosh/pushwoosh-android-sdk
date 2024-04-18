@@ -22,6 +22,9 @@ public class CreateTestDeviceRequest extends PushRequest<Void> {
 	}
 
 	@Override
+	public boolean shouldUseJitter(){ return false; }
+
+	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		params.put("name", mName);
 		params.put("description", mDesc);

@@ -30,6 +30,8 @@ class RegisterEmailRequest extends PushRequest<Map<String, Object>> {
         return "registerEmail";
     }
 
+    public boolean shouldUseJitter(){ return false; }
+
     @Override
     protected void buildParams(JSONObject params) throws JSONException {
         String language = Locale.getDefault().getDisplayLanguage();

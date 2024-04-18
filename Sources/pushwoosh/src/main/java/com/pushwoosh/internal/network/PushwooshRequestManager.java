@@ -9,6 +9,8 @@ package com.pushwoosh.internal.network;
 
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 
 import com.pushwoosh.function.Callback;
@@ -29,6 +31,7 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
+import java.util.Random;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -42,18 +45,21 @@ import androidx.annotation.Nullable;
 class PushwooshRequestManager implements RequestManager {
 	private static final String TAG = "RequestManager";
 	public static final String INTERACTIONS_WERE_STOPPED_EXCEPTION_STRING = "Device data was removed from Pushwoosh and all interactions were stopped";
+	public static final int JITTER_MAX_TIME = 30000;
 
 	private final RegistrationPrefs registrationPrefs;
 	private final ServerCommunicationManager serverCommunicationManager;
 	private String baseRequestUrl;
 	private boolean usingReverseProxy = false;
 	private ConfigPrefs configPrefs;
+	private final Handler jitterMainHandler;
 
 	PushwooshRequestManager(RegistrationPrefs registrationPrefs, @Nullable ConfigPrefs configPrefs,
 							ServerCommunicationManager serverCommunicationManager) {
 		this.registrationPrefs = registrationPrefs;
 		this.configPrefs = configPrefs;
 		this.serverCommunicationManager = serverCommunicationManager;
+		this.jitterMainHandler = new Handler(Looper.getMainLooper());
 
 		baseRequestUrl = registrationPrefs.baseUrl().get();
 	}
@@ -87,9 +93,19 @@ class PushwooshRequestManager implements RequestManager {
 			}
 			return;
 		}
-		new SendRequestTask<>(this, request, baseUrl, callback)
-				.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+
+		if (request.shouldUseJitter()) {
+			int jitterRandomOffset = new Random().nextInt(JITTER_MAX_TIME);
+			PWLog.debug(TAG, "Adding jitter delay of " + jitterRandomOffset + " milliseconds to " + request.getClass().getCanonicalName() + " request");
+			jitterMainHandler.postDelayed(() -> new SendRequestTask<>(this, request, baseUrl, callback)
+                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR), jitterRandomOffset);
+		} else {
+			new SendRequestTask<>(this, request, baseUrl, callback)
+					.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+		}
 	}
+
+
 
 	@NonNull
 	public <Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request) {
@@ -119,21 +135,19 @@ class PushwooshRequestManager implements RequestManager {
 		if (baseUrl == null) {
 			baseUrl = baseRequestUrl;
 		}
-		if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed() && !isAnalytics(request)) {
+		if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
 			NetworkException e = new NetworkException("As the server communication was stopped" +
 					" the request was cached instead of being sent. Start the server communication" +
 					" using startServerCommunication method of Pushwoosh class to send '" + request.getMethod() + "' request.");
 			return Result.fromException(e);
 		}
-		if (!isAnalytics(request)) {
 			PWLog.debug(TAG, "Try To send: " + request.getMethod() + "; baseUrl: " + baseUrl);
-		}
 
 		Exception exception;
 		int statusCode = 0, pushwooshStatusCode = 0;
 		try {
 			JSONObject data = request.getParams();
-			NetworkResult result = makeRequest(baseUrl, data, request.getMethod(), isAnalytics(request));
+			NetworkResult result = makeRequest(baseUrl, data, request.getMethod());
 
 			statusCode = result.getStatus();
 			pushwooshStatusCode = result.getPushwooshStatus();
@@ -145,9 +159,7 @@ class PushwooshRequestManager implements RequestManager {
 			}
 
 			if (NetworkResult.STATUS_OK == statusCode && NetworkResult.STATUS_OK == pushwooshStatusCode) {
-				if (!isAnalytics(request)) {
-					PWLog.debug(TAG, request.getMethod() + " response success");
-				}
+				PWLog.debug(TAG, request.getMethod() + " response success");
 
 				JSONObject response = result.getResponse();
 				// honor base url change
@@ -168,21 +180,14 @@ class PushwooshRequestManager implements RequestManager {
 		} catch (Exception ex) {
 			exception = ex;
 		}
-
-		if (!isAnalytics(request)) {
-			PWLog.error(TAG, exception.getClass().getCanonicalName());
-			if (exception instanceof ConnectionException) {
-				PWLog.error(TAG, "ERROR: " + "connection error.");
-			} else {
-				PWLog.error(TAG, "ERROR: " + exception.getMessage(), exception);
-			}
+		PWLog.error(TAG, exception.getClass().getCanonicalName());
+		if (exception instanceof ConnectionException) {
+			PWLog.error(TAG, "ERROR: " + "connection error.");
+		} else {
+			PWLog.error(TAG, "ERROR: " + exception.getMessage(), exception);
 		}
 
 		return Result.fromException(new ConnectionException(exception.getMessage(), statusCode, pushwooshStatusCode));
-	}
-
-	private <Response> boolean isAnalytics(final PushRequest<Response> request) {
-		return request instanceof AnalyticsPushRequest;
 	}
 
 	private void saveBaseUrl(String url) {
@@ -190,7 +195,7 @@ class PushwooshRequestManager implements RequestManager {
 		registrationPrefs.baseUrl().set(url);
 	}
 
-	private NetworkResult makeRequest(final String baseUrl, JSONObject data, String methodName, boolean isAnalytics) throws Exception {
+	private NetworkResult makeRequest(final String baseUrl, JSONObject data, String methodName) throws Exception {
 		try {
 			URL url = new URL(baseUrl + methodName);
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -211,16 +216,13 @@ class PushwooshRequestManager implements RequestManager {
 			}
 
 			NetworkResult networkResult = getNetworkResultFromConnection(connection);
-
-			if (!isAnalytics) {
-				PWLog.info(TAG, "\n"
-						+ "x\n"
-						+ "|     Pushwoosh request:\n"
-						+ "| Url: " + url.toString() + "\n"
-						+ "| Payload: " + requestJson.toString() + "\n"
-						+ "| Response: " + networkResult.getResponse().toString() + "\n"
-						+ "x");
-			}
+			PWLog.info(TAG, "\n"
+					+ "x\n"
+					+ "|     Pushwoosh request:\n"
+					+ "| Url: " + url.toString() + "\n"
+					+ "| Payload: " + requestJson.toString() + "\n"
+					+ "| Response: " + networkResult.getResponse().toString() + "\n"
+					+ "x");
 
 			return networkResult;
 		} catch (Exception e) {

@@ -84,7 +84,7 @@ public class BaiduPushMessageReceiver extends PushMessageReceiver {
 
         if (errorCode == 0) {
             PWLog.noise(TAG, "success onBind");
-            NotificationRegistrarHelper.onRegisteredForRemoteNotifications(channelId);
+            NotificationRegistrarHelper.onRegisteredForRemoteNotifications(channelId, null);
         } else {
             String errorMessage = "Baidu registartion failed. " + stringFromErrorCode(errorCode);
             PWLog.noise(TAG, errorMessage);

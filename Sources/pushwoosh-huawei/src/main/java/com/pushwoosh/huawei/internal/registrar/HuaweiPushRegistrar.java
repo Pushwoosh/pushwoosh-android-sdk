@@ -9,6 +9,7 @@ import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.tags.TagsBundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,8 +34,8 @@ public class HuaweiPushRegistrar implements PushRegistrar {
     }
 
     @Override
-    public void registerPW() {
-        impl.registerPW();
+    public void registerPW(TagsBundle tags) {
+        impl.registerPW(tags);
     }
 
     @Override
@@ -75,9 +76,14 @@ public class HuaweiPushRegistrar implements PushRegistrar {
             checkManifest(context);
         }
 
-        void registerPW() {
+        void registerPW(TagsBundle tagsBundle) {
+            String tagsJson = null;
+            if (tagsBundle != null) {
+                tagsJson = tagsBundle.toJson().toString();
+            }
             Data inputData = new Data.Builder()
                     .putBoolean(HmsRegistrarWorker.DATA_REGISTER, true)
+                    .putString(HmsRegistrarWorker.DATA_TAGS, tagsJson)
                     .build();
             OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(HmsRegistrarWorker.class)
                     .setInputData(inputData)

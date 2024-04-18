@@ -114,6 +114,21 @@ public class TagsBundle {
 		}
 
 		/**
+		 * Adds remove operation for given list tag
+		 *
+		 * @param key   tag name
+		 * @param value list to remove
+		 * @return builder
+		 */
+		public Builder removeFromList(String key, List<String> value) {
+			Map<String, Object> remove  = new HashMap<>();
+			remove.put("operation", "remove");
+			remove.put("value", value);
+			tags.put(key, remove);
+			return this;
+		}
+
+		/**
 		 * Adds tag with boolean value
 		 *
 		 * @param key   tag name

@@ -56,7 +56,7 @@ public class AdmRegistrarTest {
     @Test
     @Ignore
     public void registerPW() {
-        admRegistrar.registerPW();
+        admRegistrar.registerPW(null);
     }
 
     @Test

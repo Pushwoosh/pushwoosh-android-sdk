@@ -97,7 +97,7 @@ public class DeviceRegistrarTest {
 
     @Test
     public void registerWithServer() throws JSONException {
-        DeviceRegistrar.registerWithServer(TEST_ID);
+        DeviceRegistrar.registerWithServer(TEST_ID, null);
 
         checkNormalReg();
     }
@@ -121,7 +121,7 @@ public class DeviceRegistrarTest {
 
     @Test
     public void registerWithServerError() {
-        DeviceRegistrar.registerWithServer(TEST_ID);
+        DeviceRegistrar.registerWithServer(TEST_ID,null);
         registrationPrefs.lastPushRegistration().set(1000L);
 
         checkFeilReg();

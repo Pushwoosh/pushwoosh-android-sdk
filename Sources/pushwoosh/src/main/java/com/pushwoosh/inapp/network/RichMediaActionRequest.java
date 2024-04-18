@@ -31,6 +31,9 @@ public class RichMediaActionRequest extends PushRequest<Void> {
     }
 
     @Override
+    public boolean shouldUseJitter(){ return false; }
+
+    @Override
     protected void buildParams(JSONObject params) throws JSONException {
         addStringToParamsIfNotEmpty( "rich_media_code", richmediaCode, params);
         addStringToParamsIfNotEmpty("inapp_code", inappCode, params);

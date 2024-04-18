@@ -57,7 +57,6 @@ public class MessageSystemHandleChainProvider {
 				.addMessagePreHandler(new UserPushMessageSystemHandler())
 				.addMessagePreHandler(new LogLevelMessageSystemHandler())
 				.addMessagePreHandler(new BackwardsCompatibilityMessageSystemHandler())
-				.addMessagePreHandler(new CancelNotificationHandler())
 				.build();
 	}
 }

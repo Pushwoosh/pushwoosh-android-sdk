@@ -148,6 +148,17 @@ public final class Tags {
 				.build();
 	}
 
+	/**
+	 * @param key   tag name
+	 * @param list append value
+	 * @return TagsBundle for list tag remove operation
+	 */
+	public static TagsBundle removeFromList(String key, List<String> list) {
+		return new TagsBundle.Builder()
+				.removeFromList(key, list)
+				.build();
+	}
+
 
 	/**
 	 * @return empty TagsBundle

@@ -124,7 +124,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="pw-${pw_appid}" />
+                <data android:scheme="pushwoosh-${pw_appid}" />
             </intent-filter>
         </activity>
         <activity

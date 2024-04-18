@@ -65,11 +65,11 @@ public class DeviceRegistrar {
 	private static final String TAG = "DeviceRegistrar";
 	private static final int COOLDOWN_MINUTES = 10;
 	
-	public static void registerWithServer(final String deviceRegistrationID) {
+	public static void registerWithServer(final String deviceRegistrationID, String tagsJson) {
 		PWLog.debug(TAG, "Registering for pushes...");
 		RegistrationPrefs registrationPrefs = RepositoryModule.getRegistrationPreferences();
 
-		RegisterDeviceRequest request = new RegisterDeviceRequest(deviceRegistrationID);
+		RegisterDeviceRequest request = new RegisterDeviceRequest(deviceRegistrationID, tagsJson);
 		RequestManager requestManager = NetworkModule.getRequestManager();
 		if (requestManager == null) {
 			EventBus.sendEvent(new RegistrationErrorEvent("Request manager is null"));
@@ -131,12 +131,12 @@ public class DeviceRegistrar {
 	public void updateRegistration() {
 		RegistrationPrefs registrationPrefs = RepositoryModule.getRegistrationPreferences();
 		final String regId = registrationPrefs.pushToken().get();
-		if (regId != null && !regId.equals("")) {
+		if (regId != null && !regId.isEmpty()) {
 			//if we need to re-register on Pushwoosh because of Pushwoosh App Id change
 			boolean forceRegister = registrationPrefs.forceRegister().get();
 			registrationPrefs.forceRegister().set(false);
 			if (forceRegister || neededToRequestPushwooshServer()) {
-				registerWithServer(regId);
+				registerWithServer(regId, null);
 			}
 		}
 	}

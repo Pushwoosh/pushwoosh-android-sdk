@@ -38,6 +38,9 @@ public class GetInboxMessagesRequest extends BaseInboxRequest<GetInboxMessagesRe
 		return "getInboxMessages";
 	}
 
+	@Override
+	public boolean shouldUseJitter() { return false; }
+
 
 	@Override
 	public GetInboxMessagesResponse parseResponse(@NonNull JSONObject response) throws JSONException {

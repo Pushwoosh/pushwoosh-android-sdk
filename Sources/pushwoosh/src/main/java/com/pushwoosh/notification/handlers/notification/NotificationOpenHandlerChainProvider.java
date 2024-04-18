@@ -58,7 +58,6 @@ public final class NotificationOpenHandlerChainProvider {
 				.addMessagePreHandler(PushwooshPlatform.getInstance().pushStatNotificationOpenHandler())
 				.addMessagePreHandler(new RichMediaPushNotificationOpenHandler())
 				.addMessagePreHandler(new LaunchActivityPushNotificationOpenHandler())
-				.addMessagePreHandler(new UpdateStatusBarStorageOpenHandler())
 				.build();
 	}
 }

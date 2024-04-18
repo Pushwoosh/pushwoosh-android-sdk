@@ -33,6 +33,6 @@ final class PluginAPI {
 	public static void handleTokenRefresh() {
 		NotificationRegistrarHelper.clearToken();
 		if (PushwooshPlatform.getInstance() != null)
-			PushwooshPlatform.getInstance().notificationManager().registerForPushNotifications(null, true);
+			PushwooshPlatform.getInstance().notificationManager().registerForPushNotifications(null, true, null);
 	}
 }

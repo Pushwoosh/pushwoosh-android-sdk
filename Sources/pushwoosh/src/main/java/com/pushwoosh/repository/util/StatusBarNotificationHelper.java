@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class StatusBarNotificationHelper {
-    private static final String TAG = "StatusBarNotificationStorageHelper";
+    private static final String TAG = "StatusBarNotificationHelper";
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public static List<Pair<Long,Integer>> getActiveNotificationsIds() {

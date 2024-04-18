@@ -16,6 +16,9 @@ public class GetConfigRequest extends PushRequest<Config> {
     public String getMethod() {
         return "getConfig";
     }
+    @Override
+    public boolean shouldUseJitter(){ return false; }
+
 
     @Override
     protected void buildParams(JSONObject params) throws JSONException {

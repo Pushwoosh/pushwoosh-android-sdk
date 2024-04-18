@@ -7,6 +7,7 @@ import com.pushwoosh.firebase.internal.utils.FirebaseTokenHelper;
 import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.tags.TagsBundle;
 
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
@@ -15,13 +16,14 @@ import androidx.work.WorkerParameters;
 public class FcmRegistrarWorker extends Worker {
     public static final String DATA_REGISTER = "DATA_REGISTER";
     public static final String DATA_UNREGISTER = "DATA_UNREGISTER";
+    public static final String DATA_TAGS = "DATA_TAGS";
     public static final String TAG = "FcmRegistrarWorker";
 
     public FcmRegistrarWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
 
-    private static void registerPW() {
+    private static void registerPW(String tagsJson) {
         String error = "";
         try {
             String savedPushToken = RepositoryModule.getRegistrationPreferences().pushToken().get();
@@ -31,7 +33,7 @@ public class FcmRegistrarWorker extends Worker {
             final String token = FirebaseTokenHelper.getFirebaseToken();
             if (token != null) {
                 PWLog.info(TAG, "FCM token is " + token);
-                NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token);
+                NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token, tagsJson);
             } else {
                 PWLog.info(TAG, "FCM token is empty");
             }
@@ -59,8 +61,9 @@ public class FcmRegistrarWorker extends Worker {
     public Result doWork() {
         boolean register = getInputData().getBoolean(DATA_REGISTER, false);
         boolean unregister = getInputData().getBoolean(DATA_UNREGISTER, false);
+        String tagsJson = getInputData().getString(DATA_TAGS);
         if (register) {
-            registerPW();
+            registerPW(tagsJson);
         } else if (unregister) {
             unregisterPW();
         }

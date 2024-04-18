@@ -45,6 +45,8 @@ class MessageDeliveredRequest extends PushRequest<Void> {
 		return "messageDeliveryEvent";
 	}
 
+	public boolean shouldUseJitter(){ return true; }
+
 	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		if (hash != null) {

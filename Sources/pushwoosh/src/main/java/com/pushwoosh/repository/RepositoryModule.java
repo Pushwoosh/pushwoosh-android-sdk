@@ -54,7 +54,6 @@ public class RepositoryModule {
 	private static PushBundleStorage pushBundleStorage;
 	private static InboxNotificationStorage inboxNotificationStorage;
 	private static SilentRichMediaStorage silentRichMediaStorage;
-	private static StatusBarNotificationStorage statusBarNotificationStorage;
 	private static SummaryNotificationStorage summaryNotificationStorage;
 
 	public static void init(Config config, UUIDFactory uuidFactory, DeviceRegistrar deviceRegistrar) {
@@ -96,12 +95,6 @@ public class RepositoryModule {
 		if (silentRichMediaStorage == null) {
 			Context context = AndroidPlatformModule.getApplicationContext();
 			silentRichMediaStorage = new SilentRichMediaStorageImpl(context);
-		}
-
-		if (statusBarNotificationStorage == null) {
-			Context context = AndroidPlatformModule.getApplicationContext();
-			statusBarNotificationStorage = new StatusBarNotificationStorageImpl(context);
-			new UpdateStatusBarNotificationStorageTask(statusBarNotificationStorage).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
 		}
 
 		if (summaryNotificationStorage == null) {
@@ -199,26 +192,7 @@ public class RepositoryModule {
 	public static SilentRichMediaStorage getSilentRichMediaStorage() {
 		return silentRichMediaStorage;
 	}
-
-	public static StatusBarNotificationStorage getStatusBarNotificationStorage() { return statusBarNotificationStorage; }
-
 	public static SummaryNotificationStorage getSummaryNotificationStorage() { return summaryNotificationStorage; }
-
-	private static class UpdateStatusBarNotificationStorageTask extends AsyncTask<Void, Void, Void>{
-		StatusBarNotificationStorage statusBarNotificationStorage;
-
-		public UpdateStatusBarNotificationStorageTask(StatusBarNotificationStorage statusBarNotificationStorage) {
-			this.statusBarNotificationStorage = statusBarNotificationStorage;
-		}
-
-		@Override
-		protected Void doInBackground(Void... voids) {
-			if (Build.VERSION.SDK_INT >= 23) {
-				statusBarNotificationStorage.update(StatusBarNotificationHelper.getActiveNotificationsIds());
-			}
-			return null;
-		}
-	}
 
 	private static class UpdateSummaryNotificationStorageTask extends AsyncTask<Void, Void, Void>{
 		SummaryNotificationStorage summaryNotificationStorage;

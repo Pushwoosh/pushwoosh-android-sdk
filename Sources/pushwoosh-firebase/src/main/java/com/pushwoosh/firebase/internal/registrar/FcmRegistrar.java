@@ -36,15 +36,19 @@ import com.pushwoosh.firebase.internal.checker.FirebaseChecker;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.registrar.PushRegistrar;
+import com.pushwoosh.internal.utils.JsonUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.tags.TagsBundle;
 
 import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 
 import static com.pushwoosh.internal.platform.AndroidPlatformModule.NULL_CONTEXT_MESSAGE;
+
+import org.json.JSONObject;
 
 public class FcmRegistrar implements PushRegistrar {
 
@@ -62,8 +66,8 @@ public class FcmRegistrar implements PushRegistrar {
 	}
 
 	@Override
-	public void registerPW() {
-		impl.registerPW();
+	public void registerPW(TagsBundle tags) {
+		impl.registerPW(tags);
 	}
 
 	@Override
@@ -105,9 +109,14 @@ public class FcmRegistrar implements PushRegistrar {
 			checkManifest(context);
 		}
 
-		void registerPW() {
+		void registerPW(TagsBundle tags) {
+			String tagsJson = null;
+			if (tags != null) {
+				tagsJson = tags.toJson().toString();
+			}
 			Data inputData = new Data.Builder()
 					.putBoolean(FcmRegistrarWorker.DATA_REGISTER, true)
+					.putString(FcmRegistrarWorker.DATA_TAGS, tagsJson)
 					.build();
 			OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(FcmRegistrarWorker.class)
 					.setInputData(inputData)
