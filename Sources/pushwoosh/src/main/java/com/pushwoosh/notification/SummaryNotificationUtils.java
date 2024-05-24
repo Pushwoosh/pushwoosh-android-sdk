@@ -44,6 +44,7 @@ public class SummaryNotificationUtils {
         Intent summaryContentIntent = SummaryNotificationFactory.getNotificationIntent();
         summaryContentIntent.putExtra(NotificationIntentHelper.EXTRA_GROUP_ID, messageId);
         summaryContentIntent.putExtra(NotificationIntentHelper.EXTRA_IS_SUMMARY_NOTIFICATION, true);
+        summaryNotification.extras.putBoolean(NotificationIntentHelper.EXTRA_IS_SUMMARY_NOTIFICATION,true);
         summaryNotification.contentIntent = PendingIntent.getActivity(context, messageId, summaryContentIntent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
         summaryNotification.deleteIntent = PendingIntent.getBroadcast(context, messageId, getSummaryDeleteIntent(), PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
         return summaryNotification;

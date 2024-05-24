@@ -33,6 +33,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
@@ -103,19 +105,25 @@ class NotificationOpenHandler {
 
 		//launching default launcher category activity
 		try {
-			String packageName = AndroidPlatformModule.getAppInfoProvider().getPackageName();
-			PackageManager packageManager = AndroidPlatformModule.getManagerProvider().getPackageManager();
-			Intent launchIntent = packageManager == null ? null : packageManager.getLaunchIntentForPackage(packageName);
-			if (launchIntent == null) {
-				throw new ActivityNotFoundException();
-			}
-			launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-			launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+			Intent launchIntent = getIntent();
 			launchIntent.putExtras(extras);
 			context.startActivity(launchIntent);
 		} catch (ActivityNotFoundException e) {
 			PWLog.error("Failed to start default launch activity.", e);
 		}
+	}
+
+	@NonNull
+	private static Intent getIntent() {
+		String packageName = AndroidPlatformModule.getAppInfoProvider().getPackageName();
+		PackageManager packageManager = AndroidPlatformModule.getManagerProvider().getPackageManager();
+		Intent launchIntent = packageManager == null ? null : packageManager.getLaunchIntentForPackage(packageName);
+		if (launchIntent == null) {
+			throw new ActivityNotFoundException();
+		}
+		launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+		launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		return launchIntent;
 	}
 
 	void postHandleNotification(Bundle pushBundle) {

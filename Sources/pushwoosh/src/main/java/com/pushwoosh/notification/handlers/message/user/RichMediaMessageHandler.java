@@ -27,6 +27,7 @@
 package com.pushwoosh.notification.handlers.message.user;
 
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.pushwoosh.PushwooshPlatform;
@@ -38,6 +39,7 @@ import com.pushwoosh.internal.platform.ApplicationOpenDetector;
 import com.pushwoosh.internal.utils.LockScreenUtils;
 import com.pushwoosh.notification.PushBundleDataProvider;
 import com.pushwoosh.notification.PushMessage;
+import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.repository.SilentRichMediaStorage;
 import com.pushwoosh.richmedia.RichMediaController;
@@ -57,9 +59,14 @@ class RichMediaMessageHandler extends NotificationMessageHandler {
 
 	@Override
 	public void handlePushMessage(final PushMessage pushMessage) {
-		String richMedia = PushBundleDataProvider.getRichMedia(pushMessage.toBundle());
+		Bundle pushBundle = pushMessage.toBundle();
+		String richMedia = PushBundleDataProvider.getRichMedia(pushBundle);
+		NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
 		if (richMedia != null) {
 			loadRichMedia(richMedia);
+			if (PushBundleDataProvider.isSilent(pushBundle)) {
+				notificationPrefs.messageHash().set(PushBundleDataProvider.getPushHash(pushBundle));
+			}
 		}
 
 		super.handlePushMessage(pushMessage);

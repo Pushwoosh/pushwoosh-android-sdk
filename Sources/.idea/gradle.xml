@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <option name="testRunner" value="GRADLE" />
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleHome" value="/usr/local/Cellar/gradle/4.7/libexec" />
+        <option name="gradleJvm" value="corretto-11" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/pushwoosh" />
+            <option value="$PROJECT_DIR$/pushwoosh-amazon" />
+            <option value="$PROJECT_DIR$/pushwoosh-amazon/amazon-stub" />
+            <option value="$PROJECT_DIR$/pushwoosh-badge" />
+            <option value="$PROJECT_DIR$/pushwoosh-baidu" />
+            <option value="$PROJECT_DIR$/pushwoosh-baidu/baidu-stub" />
+            <option value="$PROJECT_DIR$/pushwoosh-experimental" />
+            <option value="$PROJECT_DIR$/pushwoosh-firebase" />
+            <option value="$PROJECT_DIR$/pushwoosh-huawei" />
+            <option value="$PROJECT_DIR$/pushwoosh-inbox" />
+            <option value="$PROJECT_DIR$/pushwoosh-inbox-ui" />
+            <option value="$PROJECT_DIR$/pushwoosh-location" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>

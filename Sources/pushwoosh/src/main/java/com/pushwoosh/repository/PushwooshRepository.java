@@ -313,8 +313,6 @@ public class PushwooshRepository {
     }
 
     public void sendPushOpened(String hash, String metadata) {
-        notificationPrefs.messageHash().set(hash);
-
         if (hash != null && TextUtils.equals(hash, notificationPrefs.lastNotificationHash().get())) {
             PWLog.warn("Push stat for (" + hash + ") already sent");
             return;
