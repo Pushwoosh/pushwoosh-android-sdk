@@ -163,12 +163,16 @@ public final class JsonUtils {
 
     public static void mergeJson(@NonNull JSONObject from, @NonNull JSONObject to) {
         Iterator<String> keys = from.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            try {
-                to.put(key, from.opt(key));
-            } catch (JSONException e) {
-                PWLog.exception(e);
+        //use synchronized keyword in attempt to fix rare ConcurrentModificationException in
+        // java.util.LinkedHashMap$LinkedKeyIterator.next on devices with Samsung chips (https://kanban.corp.pushwoosh.com/issue/SDK-310/)
+        synchronized (keys) {
+            while (keys.hasNext()) {
+                String key = keys.next();
+                try {
+                    to.put(key, from.opt(key));
+                } catch (JSONException e) {
+                    PWLog.exception(e);
+                }
             }
         }
     }

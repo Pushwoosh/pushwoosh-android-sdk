@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Immutable collection of tags specific for current device. Tags are used to target different audience selectively when sending push notification.
@@ -57,7 +58,7 @@ public class TagsBundle {
 	 * TagsBundle.Builder class is used to generate TagsBundle instances
 	 */
 	public static class Builder {
-		private final Map<String, Object> tags = new HashMap<>();
+		private final Map<String, Object> tags = new ConcurrentHashMap<>();
 
 		/**
 		 * Adds tag with integer value
@@ -203,9 +204,13 @@ public class TagsBundle {
 		 */
 		public Builder putAll(JSONObject json) {
 			Iterator<String> keys = json.keys();
-			while (keys.hasNext()) {
-				String key = keys.next();
-				this.tags.put(key, json.opt(key));
+			//use synchronized keyword in attempt to fix rare ConcurrentModificationException in
+			// java.util.LinkedHashMap$LinkedKeyIterator.next on devices with Samsung chips (https://kanban.corp.pushwoosh.com/issue/SDK-306/)
+			synchronized (keys) {
+				while (keys.hasNext()) {
+					String key = keys.next();
+					this.tags.put(key, json.opt(key));
+				}
 			}
 
 			return this;

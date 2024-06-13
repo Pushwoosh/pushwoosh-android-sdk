@@ -31,38 +31,26 @@ import android.app.ActivityManager;
 import android.app.KeyguardManager;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.BatteryManager;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
-import android.os.StatFs;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
-import android.view.WindowManager;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.PushwooshSharedDataProvider;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
-import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -102,105 +90,6 @@ public class DeviceUtils {
         int xlargeBit = Configuration.SCREENLAYOUT_SIZE_XLARGE;
         Configuration config = AndroidPlatformModule.getResourceProvider().getConfiguration();
         return config != null && (config.screenLayout & xlargeBit) == xlargeBit;
-    }
-
-    public static float getBatteryLevel() {
-        try {
-            Intent batteryIntent = AndroidPlatformModule.getReceiverProvider().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-            if (batteryIntent == null) {
-                return -1.f;
-            }
-
-            int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-            int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-
-            if (level == -1 || scale == -1) {
-                return -1.f;
-            }
-
-            return ((float) level / (float) scale) * 100.0f;
-        } catch (Exception e) {
-            // just in case
-        }
-
-        return -1.f;
-    }
-
-    public static long getAvailableInternalSpaceMB() {
-        try {
-            StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
-            long blockSize = stat.getBlockSize();
-            long availableBlocks = stat.getAvailableBlocks();
-            return (availableBlocks * blockSize) / (1024 * 1024);
-        } catch (Exception e) {
-            // just in case
-        }
-
-        return -1;
-    }
-
-    public static long getTotalInternalSpaceMB() {
-        try {
-            StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
-            long blockSize = stat.getBlockSize();
-            long totalBlocks = stat.getBlockCount();
-            return (totalBlocks * blockSize) / (1024 * 1024);
-        } catch (Exception e) {
-            // just in case
-        }
-
-        return -1;
-    }
-
-    public static long getAvailableExternalSpaceMB() {
-        try {
-            StatFs stat = new StatFs(Environment.getExternalStorageDirectory().getPath());
-            long blockSize = stat.getBlockSize();
-            long availableBlocks = stat.getAvailableBlocks();
-            return (availableBlocks * blockSize) / (1024 * 1024);
-        } catch (Exception e) {
-            // just in case
-        }
-
-        return -1;
-    }
-
-    public static long getTotalExternalSpaceMB() {
-        try {
-            StatFs stat = new StatFs(Environment.getExternalStorageDirectory().getPath());
-            long blockSize = stat.getBlockSize();
-            long totalBlocks = stat.getBlockCount();
-            return (totalBlocks * blockSize) / (1024 * 1024);
-        } catch (Exception e) {
-            // just in case
-        }
-
-        return -1;
-    }
-
-    public static int getScreenWidth() {
-        DisplayMetrics displaymetrics = new DisplayMetrics();
-        WindowManager windowManager = AndroidPlatformModule.getManagerProvider().getWindowManager();
-        if (windowManager == null) {
-            return 0;
-        }
-        windowManager.getDefaultDisplay().getMetrics(displaymetrics);
-        return displaymetrics.widthPixels;
-    }
-
-    public static int getScreenHeight() {
-        DisplayMetrics displaymetrics = new DisplayMetrics();
-        WindowManager windowManager = AndroidPlatformModule.getManagerProvider().getWindowManager();
-        if (windowManager == null) {
-            return 0;
-        }
-        windowManager.getDefaultDisplay().getMetrics(displaymetrics);
-        return displaymetrics.heightPixels;
-    }
-
-    @Nullable
-    public static String getInstaller() {
-        return AndroidPlatformModule.getAppInfoProvider().getInstallerPackageName();
     }
 
     public static String getDeviceName() {
@@ -247,47 +136,6 @@ public class DeviceUtils {
             }
         }
 
-        return false;
-    }
-
-    public static String getGooglePlayServicesVersion() {
-        try {
-            PackageInfo pInfo = AndroidPlatformModule.getApplicationContext().getPackageManager().getPackageInfo("com.google.android.gms", 0);
-            return pInfo.versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            return "not_installed";
-        } catch (NullPointerException e) {
-            return "undefined";
-        }
-    }
-
-    public static String getFirmware() {
-        return Build.DISPLAY;
-    }
-
-    public static boolean isDeviceRooted() {
-        return checkRootMethod1() || checkRootMethod2();
-    }
-
-    private static boolean checkRootMethod1() {
-        Process process = null;
-        try {
-            process = new ProcessBuilder("/system/xbin/which", "su").start();
-            BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            return in.readLine() != null;
-        } catch (Throwable t) {
-            return false;
-        } finally {
-            if (process != null) process.destroy();
-        }
-    }
-
-    private static boolean checkRootMethod2() {
-        for (String pathDir : System.getenv("PATH").split(":")){
-            if (new File(pathDir, "su").exists()) {
-                return true;
-            }
-        }
         return false;
     }
 
@@ -416,7 +264,7 @@ public class DeviceUtils {
                 return;
             }
 
-            Handler stopTaskHandler = new Handler();
+            Handler stopTaskHandler = new Handler(Looper.myLooper() != null ? Looper.myLooper() : Looper.getMainLooper());
             TryGetSharedUuidCallback uuidCallback = (uuid) -> {
                 stopTaskHandler.removeCallbacksAndMessages(null);
                 if (callback != null)
