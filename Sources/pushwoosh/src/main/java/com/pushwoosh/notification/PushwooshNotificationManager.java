@@ -26,7 +26,6 @@ import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.NotificationPermissionActivity;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.RequestPermissionHelper;
-import com.pushwoosh.internal.utils.TiramisuApiHelper;
 import com.pushwoosh.notification.event.DeregistrationErrorEvent;
 import com.pushwoosh.notification.event.RegistrationErrorEvent;
 import com.pushwoosh.notification.event.RegistrationSuccessEvent;
@@ -147,14 +146,13 @@ public class PushwooshNotificationManager {
     }
 
     public static void requestNotificationPermission() {
-        // hack for early preview versions of Tiramisu
-        if (Build.VERSION.SDK_INT < TiramisuApiHelper.TIRAMISU_API && !TiramisuApiHelper.getReleaseOrCodeName().equals("Tiramisu")) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             return;
         }
 
         Context context = AndroidPlatformModule.getApplicationContext();
         RequestPermissionHelper.requestPermissionsForClass(NotificationPermissionActivity.class,
-                context, new String[] {TiramisuApiHelper.PERMISSION_POST_NOTIFICATIONS});
+                context, new String[] {"android.permission.POST_NOTIFICATIONS"});
     }
 
     public void registerForPushNotifications(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, boolean shouldRequestPermission, TagsBundle tags) {
@@ -162,20 +160,18 @@ public class PushwooshNotificationManager {
             @Override
             public void onReceive(NotificationPermissionEvent event) {
                 boolean notificationsAllowed = true;
-                if (Build.VERSION.SDK_INT >= TiramisuApiHelper.TIRAMISU_API
-                        || TiramisuApiHelper.getReleaseOrCodeName().equals("Tiramisu")) {
-                    notificationsAllowed = event.getGrantedPermissions().contains(TiramisuApiHelper.PERMISSION_POST_NOTIFICATIONS);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    notificationsAllowed = event.getGrantedPermissions().contains("android.permission.POST_NOTIFICATIONS");
                 }
                 registerForPushesInternal(callback, notificationsAllowed, tags);
             }
         });
 
         try {
-            if (Build.VERSION.SDK_INT < TiramisuApiHelper.TIRAMISU_API &&
-                    !TiramisuApiHelper.getReleaseOrCodeName().equals("Tiramisu")) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
                 registerForPushesInternal(callback, true, tags);
             } else if (ContextCompat.checkSelfPermission(AndroidPlatformModule.getApplicationContext(),
-                    TiramisuApiHelper.PERMISSION_POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    "android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
                 // check if user has manually denied notification permission, if not - request permission
                 if (!RepositoryModule.getRegistrationPreferences().hasUserDeniedNotificationPermission().get() && shouldRequestPermission) {
                     requestNotificationPermission();

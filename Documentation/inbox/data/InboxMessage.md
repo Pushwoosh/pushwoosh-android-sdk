@@ -24,10 +24,16 @@
 		<td><a href="#1a4a7088640e67c69f05fd0e31823a4972">public Date getSendDate()</a></td>
 	</tr>
 	<tr>
+		<td><a href="#1adc7b37cdcc733c52cf315a96884cac46">public String getISO8601SendDate()</a></td>
+	</tr>
+	<tr>
 		<td><a href="#1a0b27893fa0fa49e9494ef2120faaf5d1">public InboxMessageType getType()</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a43268afb78e5bed111c4c4cabce53899">public String getBannerUrl()</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1aa402935697d7f9f3de248156264e99af">public String getActionParams()</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a8d122b60de3016560a0cffc41b07676d">public boolean isRead()</a></td>
@@ -71,6 +77,12 @@
 ----------  
   
 
+#### <a name="1adc7b37cdcc733c52cf315a96884cac46"></a>public String getISO8601SendDate()  
+
+
+----------  
+  
+
 #### <a name="1a0b27893fa0fa49e9494ef2120faaf5d1"></a>public <a href="InboxMessageType.md">InboxMessageType</a> getType()  
 
 
@@ -78,6 +90,12 @@
   
 
 #### <a name="1a43268afb78e5bed111c4c4cabce53899"></a>public String getBannerUrl()  
+
+
+----------  
+  
+
+#### <a name="1aa402935697d7f9f3de248156264e99af"></a>public String getActionParams()  
 
 
 ----------  

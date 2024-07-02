@@ -132,6 +132,20 @@ public class NotificationServiceExtension {
     }
 
     /**
+     * Handles notification cancel.
+     *
+     * @param pushBundle push notification payload as Bundle
+     */
+    public final void handleNotificationCanceled(Bundle pushBundle) {
+        if (pushBundle == null) {
+            PWLog.info("cancel null notification");
+            return;
+        }
+        PushMessage message = new PushMessage(pushBundle);
+        onMessageCanceled(message);
+    }
+
+    /**
      * Callback method which is fired when single push notification opened
      *
      * @param message push message which was opened
@@ -141,6 +155,16 @@ public class NotificationServiceExtension {
     protected void onMessageOpened(final PushMessage message) {
 
     }
+
+    /**
+     * Callback method that is triggered when the user deletes a push notification from the Notification Center.
+     *
+     * @param message push message which was canceled
+     */
+    protected void onMessageCanceled(final PushMessage message) {
+
+    }
+
 
     /**
      * Callback method which is fired when push notifications group opened

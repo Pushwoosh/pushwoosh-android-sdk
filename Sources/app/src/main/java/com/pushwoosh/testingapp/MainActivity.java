@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 
-import com.pushwoosh.inapp.InAppManager;
 import com.pushwoosh.inbox.data.InboxMessage;
 import com.pushwoosh.inbox.ui.OnInboxMessageClickListener;
 import com.pushwoosh.inbox.ui.PushwooshInboxUi;
@@ -45,7 +44,6 @@ public class MainActivity extends AppCompatActivity implements OnInboxMessageCli
         BusStation.getBus().register(this);
 
         String appOpen = AppPreferencesStrings.APP_OPEN;
-        InAppManager.getInstance().postEvent(appOpen);
 
         PushwooshInboxUi.INSTANCE.setOnMessageClickListener(this);
 

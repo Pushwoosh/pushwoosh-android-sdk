@@ -1,11 +1,13 @@
 package com.pushwoosh.notification;
 
+import android.content.Context;
+
 import androidx.annotation.ColorInt;
 
+import com.pushwoosh.PushwooshInitializer;
 import com.pushwoosh.PushwooshPlatform;
-import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.NotificationUtils;
-import com.pushwoosh.notification.channel.NotificationChannelManager;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
@@ -132,5 +134,9 @@ public class PushwooshNotificationSettings {
 		if (checkIfInitializaed()) {
 			PREFERENCES.channelName().set(name);
 		}
+	}
+
+	public static void lazyInitPushwoosh(Context context) {
+		PushwooshInitializer.lazyInit(context);
 	}
 }

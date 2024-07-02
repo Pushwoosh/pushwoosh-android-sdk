@@ -9,7 +9,7 @@ LocalNotification Builder.
 
 <table>
 	<tr>
-		<td><a href="#1ab88305361eac6bcd9b7d0afd730ea116">public LocalNotification build()</a></td>
+		<td><a href="#1a5f15722515d5b1a0a4498558a6869fd1">public  Builder()</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a71a5714aac5a4bf6547e4797368abc99">public Builder setTag(String tag)</a></td>
@@ -21,7 +21,7 @@ LocalNotification Builder.
 		<td><a href="#1a464c00955cb02e740d26ed8f658546c0">public Builder setDelay(int delay)</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1a5f15722515d5b1a0a4498558a6869fd1">public  Builder()</a></td>
+		<td><a href="#1a74c3fd383b3dda93344390a0a46d2a62">public Builder setLink(String url)</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1aea9c09484d64be40c5269ce6011892a0">public Builder setBanner(String url)</a></td>
@@ -36,7 +36,7 @@ LocalNotification Builder.
 		<td><a href="#1aabfb69ace19dbba950f0ccffaa007031">public Builder setExtras(Bundle extras)</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1a74c3fd383b3dda93344390a0a46d2a62">public Builder setLink(String url)</a></td>
+		<td><a href="#1ab88305361eac6bcd9b7d0afd730ea116">public LocalNotification build()</a></td>
 	</tr>
 </table>
 
@@ -44,8 +44,8 @@ LocalNotification Builder.
 ----------  
   
 
-#### <a name="1ab88305361eac6bcd9b7d0afd730ea116"></a>public <a href="../LocalNotification.md">LocalNotification</a> build()  
-Builds and returns LocalNotification.<br/><br/><br/><strong>Returns</strong> local notification 
+#### <a name="1a5f15722515d5b1a0a4498558a6869fd1"></a>public  Builder()  
+
 
 ----------  
   
@@ -89,8 +89,15 @@ Sets the delay after which notification will be displayed.<br/><br/><br/><strong
 ----------  
   
 
-#### <a name="1a5f15722515d5b1a0a4498558a6869fd1"></a>public  Builder()  
-
+#### <a name="1a74c3fd383b3dda93344390a0a46d2a62"></a>public <a href="#heading">Builder</a> setLink(String url)  
+Sets url link that will be open in browser instead of default launcher activity after clicking on notification. Deeplink url can be also used as parameter.<br/><br/><br/><strong>Parameters</strong><br/>
+<table>
+	<tr>
+		<td><strong>url</strong></td>
+		<td>url link </td>
+	</tr>
+</table>
+<strong>Returns</strong> builder 
 
 ----------  
   
@@ -147,12 +154,5 @@ Sets custom notification bundle. Warning: this can replace other settings.<br/><
 ----------  
   
 
-#### <a name="1a74c3fd383b3dda93344390a0a46d2a62"></a>public <a href="#heading">Builder</a> setLink(String url)  
-Sets url link that will be open in browser instead of default launcher activity after clicking on notification. Deeplink url can be also used as parameter.<br/><br/><br/><strong>Parameters</strong><br/>
-<table>
-	<tr>
-		<td><strong>url</strong></td>
-		<td>url link </td>
-	</tr>
-</table>
-<strong>Returns</strong> builder 
+#### <a name="1ab88305361eac6bcd9b7d0afd730ea116"></a>public <a href="../LocalNotification.md">LocalNotification</a> build()  
+Builds and returns LocalNotification.<br/><br/><br/><strong>Returns</strong> local notification 

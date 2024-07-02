@@ -43,7 +43,6 @@ import com.pushwoosh.internal.utils.FileUtils;
 import com.pushwoosh.internal.utils.PWLog;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,7 +51,6 @@ import java.util.List;
  */
 class AndroidManifestConfig implements Config {
 	private static final String TAG = "Config";
-
 	private String appId = null;
 	private String projectId = null;
 	private String xiaomiAppId = null;
@@ -64,6 +62,7 @@ class AndroidManifestConfig implements Config {
 	private Class<?> notificationService;
 	private Class<?> notificationFactory;
 	private Class<?> summaryNotificationFactory;
+	private boolean lazySdkInitialization = false;
 	private boolean multinotificationMode = false;
 	private boolean lightscreenNotification = false;
 	private boolean sendPushStatIfShowForegroundDisabled = false;
@@ -121,6 +120,7 @@ class AndroidManifestConfig implements Config {
 		notificationFactory = getClass(applicationInfo.metaData, "com.pushwoosh.notification_factory");
 		summaryNotificationFactory = getClass(applicationInfo.metaData, "com.pushwoosh.summary_notification_factory");
 
+		lazySdkInitialization = applicationInfo.metaData.getBoolean("com.pushwoosh.lazy_initialization", false);
 		multinotificationMode = applicationInfo.metaData.getBoolean("com.pushwoosh.multi_notification_mode", false);
 		lightscreenNotification = applicationInfo.metaData.getBoolean("com.pushwoosh.light_screen_notification", false);
 		sendPushStatIfShowForegroundDisabled = applicationInfo.metaData.getBoolean("com.pushwoosh.send_push_stats_if_alert_disabled", false);
@@ -261,6 +261,12 @@ class AndroidManifestConfig implements Config {
 		return summaryNotificationFactory;
 	}
 
+
+	@Override
+	public boolean isLazySdkInitialization() {
+		return lazySdkInitialization;
+	}
+
 	@Override
 	public boolean isMultinotificationMode() {
 		return multinotificationMode;
@@ -337,5 +343,10 @@ class AndroidManifestConfig implements Config {
 	@Override
 	public String[] getTrustedPackageNames() {
 		return trustedPackageNames;
+	}
+
+	@Override
+	public void setLazySdkInitialization(boolean value) {
+		lazySdkInitialization = value;
 	}
 }

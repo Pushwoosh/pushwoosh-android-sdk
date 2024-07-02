@@ -81,6 +81,11 @@ public interface Config {
 	boolean isMultinotificationMode();
 
 	/**
+	 * @return If true, SDK will only be initialized when lazyInit is called.
+	 */
+    boolean isLazySdkInitialization();
+
+    /**
 	 * @return If true, notification should unlock screen on arrive
 	 */
 	boolean isLightscreenNotification();
@@ -147,4 +152,6 @@ public interface Config {
     boolean getSendPushStatIfShowForegroundDisabled();
 
     String[] getTrustedPackageNames();
+
+    void setLazySdkInitialization(boolean value);
 }

@@ -46,6 +46,13 @@ public class NotificationIntentHelper {
     }
 
     private static void handleDeleteIntent(Intent intent) {
+        try {
+            Bundle pushBundle = intent.getBundleExtra(EXTRA_NOTIFICATION_BUNDLE);
+            NotificationServiceExtension notificationServiceExtension = PushwooshPlatform.getInstance().notificationService();
+            notificationServiceExtension.handleNotificationCanceled(pushBundle);
+        } catch (Exception e) {
+            PWLog.exception(e);
+        }
         if (intent.getBooleanExtra(EXTRA_IS_SUMMARY_NOTIFICATION, false)) {
             new RemoveAllGroupPushBundlesTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
             return;

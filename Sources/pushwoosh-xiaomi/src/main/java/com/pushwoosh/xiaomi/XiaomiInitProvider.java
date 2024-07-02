@@ -14,7 +14,6 @@ import com.pushwoosh.internal.utils.security.CallingPackageChecker;
 public class XiaomiInitProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
-        PWLog.debug("Xiaomi init");
         XiaomiInitializer.init(getContext());
         return true;
     }

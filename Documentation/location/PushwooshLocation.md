@@ -19,6 +19,9 @@ PushwooshLocation is a static class responsible for pushwoosh geolocation tracki
 	<tr>
 		<td><a href="#1a4b316128fcb040cba03a036557a38f0d">public static void stopLocationTracking()</a></td>
 	</tr>
+	<tr>
+		<td><a href="#1a861592ccd07b49f8bce34f9e1b40188b">public static void requestBackgroundLocationPermission()</a></td>
+	</tr>
 </table>
 
 
@@ -46,3 +49,9 @@ Starts location tracking for geo push notifications.<br/><br/><br/><strong>Param
 
 #### <a name="1a4b316128fcb040cba03a036557a38f0d"></a>public static void stopLocationTracking()  
 Stops geolocation tracking. 
+
+----------  
+  
+
+#### <a name="1a861592ccd07b49f8bce34f9e1b40188b"></a>public static void requestBackgroundLocationPermission()  
+Requests background location permission. Works on Android 10 or above. On Android 12 opens the application's location permission settings. Before calling this method make sure the application already has ACCESS\_FINE\_LOCATION or ACCESS\_COARSE\_LOCATION permission and ACCESS\_BACKGROUND\_LOCATION permission is declared in the AndroidManifest.xml. 

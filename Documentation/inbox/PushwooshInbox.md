@@ -12,7 +12,28 @@
 		<td><a href="#1a64fb80bfe49d813feb3abb76a6e119c3">public static void messagesWithNoActionPerformedCount(Callback&lt;Integer, InboxMessagesException&gt; callback)</a></td>
 	</tr>
 	<tr>
+		<td><a href="#1a4825c9df95cd8b843b413975c11bc60b">public static void registerMessagesWithNoActionPerformedCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1afd086dcbccfd50327640ab2900dfee57">public static void unregisterMessagesWithNoActionPerformedCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1afa1172501a30a412126134237ab7e9ce">public static void unreadMessagesCount(Callback&lt;Integer, InboxMessagesException&gt; callback)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1a70aa2f070ef7531a8fc9bb000d71af5b">public static void registerUnreadMessagesCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1afa2e7172ee5bed80dc11d27033948578">public static void unregisterUnreadMessagesCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)</a></td>
+	</tr>
+	<tr>
 		<td><a href="#1a47dc3c5b870dbe2ccc921e31028ac2b5">public static void messagesCount(Callback&lt;Integer, InboxMessagesException&gt; callback)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1a50a0e955320a4c7f4d46b1d14c712653">public static void registerMessagesCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1a850b81f042afff1cc0ca7ef80c4d1c95">public static void unregisterMessagesCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1abc6b8796b44ecca009aaad82ef923c3e">public static void loadMessages(Callback&lt;Collection&lt;InboxMessage&gt;, InboxMessagesException&gt; callback)</a></td>
@@ -24,7 +45,7 @@
 		<td><a href="#1a5d973456e4dfd68ad8b7ef79ae9a9f09">public static void loadCachedMessages(Callback&lt;Collection&lt;InboxMessage&gt;, InboxMessagesException&gt; callback, @Nullable InboxMessage inboxMessage, int limit)</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1afa1172501a30a412126134237ab7e9ce">public static void unreadMessagesCount(Callback&lt;Integer, InboxMessagesException&gt; callback)</a></td>
+		<td><a href="#1a49ebfb1cafbc65ce5912606ec20295d9">public static void loadMessages(Callback&lt;Collection&lt;InboxMessage&gt;, InboxMessagesException&gt; callback, @Nullable InboxMessage inboxMessage, int limit)</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1ae23065c20a803b904da72bf7032b2d79">public static void readMessage(String code)</a></td>
@@ -40,9 +61,6 @@
 	</tr>
 	<tr>
 		<td><a href="#1a206f4c3551edcd10019685e94843a3f7">public static void deleteMessages(Collection&lt;String&gt; codes)</a></td>
-	</tr>
-	<tr>
-		<td><a href="#1a49ebfb1cafbc65ce5912606ec20295d9">public static void loadMessages(Callback&lt;Collection&lt;InboxMessage&gt;, InboxMessagesException&gt; callback, @Nullable InboxMessage inboxMessage, int limit)</a></td>
 	</tr>
 </table>
 
@@ -63,12 +81,103 @@ Get the number of the com.pushwoosh.inbox.data.InboxMessage with no action perfo
 ----------  
   
 
+#### <a name="1a4825c9df95cd8b843b413975c11bc60b"></a>public static void registerMessagesWithNoActionPerformedCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)  
+Register the observer to get updates of the number of the com.pushwoosh.inbox.data.InboxMessage with no action performed<br/><br/><br/><strong>Parameters</strong><br/>
+<table>
+	<tr>
+		<td><strong>callback</strong></td>
+		<td>- if successful, return the number of the InboxMessages with no action performed. Otherwise, return error </td>
+	</tr>
+</table>
+
+
+----------  
+  
+
+#### <a name="1afd086dcbccfd50327640ab2900dfee57"></a>public static void unregisterMessagesWithNoActionPerformedCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)  
+Unregister the observer of the number of the com.pushwoosh.inbox.data.InboxMessage with no action performed<br/><br/><br/><strong>Parameters</strong><br/>
+<table>
+	<tr>
+		<td><strong>callback</strong></td>
+		<td>- if successful, return the number of the InboxMessages with no action performed. Otherwise, return error </td>
+	</tr>
+</table>
+
+
+----------  
+  
+
+#### <a name="1afa1172501a30a412126134237ab7e9ce"></a>public static void unreadMessagesCount(Callback&lt;Integer, InboxMessagesException&gt; callback)  
+Get the number of the unread com.pushwoosh.inbox.data.InboxMessage<br/><br/><br/><strong>Parameters</strong><br/>
+<table>
+	<tr>
+		<td><strong>callback</strong></td>
+		<td>- if successful, return the number of the unread InboxMessages. Otherwise, return error </td>
+	</tr>
+</table>
+
+
+----------  
+  
+
+#### <a name="1a70aa2f070ef7531a8fc9bb000d71af5b"></a>public static void registerUnreadMessagesCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)  
+Register the observer to get the number of the unread com.pushwoosh.inbox.data.InboxMessage<br/><br/><br/><strong>Parameters</strong><br/>
+<table>
+	<tr>
+		<td><strong>callback</strong></td>
+		<td>- if successful, return the number of the InboxMessages with no action performed. Otherwise, return error </td>
+	</tr>
+</table>
+
+
+----------  
+  
+
+#### <a name="1afa2e7172ee5bed80dc11d27033948578"></a>public static void unregisterUnreadMessagesCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)  
+Unregister the observer of the unread com.pushwoosh.inbox.data.InboxMessage<br/><br/><br/><strong>Parameters</strong><br/>
+<table>
+	<tr>
+		<td><strong>callback</strong></td>
+		<td>- if successful, return the number of the InboxMessages with no action performed. Otherwise, return error </td>
+	</tr>
+</table>
+
+
+----------  
+  
+
 #### <a name="1a47dc3c5b870dbe2ccc921e31028ac2b5"></a>public static void messagesCount(Callback&lt;Integer, InboxMessagesException&gt; callback)  
 Get the total number of the com.pushwoosh.inbox.data.InboxMessage<br/><br/><br/><strong>Parameters</strong><br/>
 <table>
 	<tr>
 		<td><strong>callback</strong></td>
 		<td>- if successful, return the total number of the InboxMessages. Otherwise, return error </td>
+	</tr>
+</table>
+
+
+----------  
+  
+
+#### <a name="1a50a0e955320a4c7f4d46b1d14c712653"></a>public static void registerMessagesCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)  
+Register the observer to get the total number of the com.pushwoosh.inbox.data.InboxMessage<br/><br/><br/><strong>Parameters</strong><br/>
+<table>
+	<tr>
+		<td><strong>callback</strong></td>
+		<td>- if successful, return the number of the InboxMessages with no action performed. Otherwise, return error </td>
+	</tr>
+</table>
+
+
+----------  
+  
+
+#### <a name="1a850b81f042afff1cc0ca7ef80c4d1c95"></a>public static void unregisterMessagesCountObserver(Callback&lt;Integer, InboxMessagesException&gt; callback)  
+Unregister the observer of the total number of the com.pushwoosh.inbox.data.InboxMessage<br/><br/><br/><strong>Parameters</strong><br/>
+<table>
+	<tr>
+		<td><strong>callback</strong></td>
+		<td>- if successful, return the number of the InboxMessages with no action performed. Otherwise, return error </td>
 	</tr>
 </table>
 
@@ -127,12 +236,20 @@ Get the collection of the com.pushwoosh.inbox.data.InboxMessage that the user re
 ----------  
   
 
-#### <a name="1afa1172501a30a412126134237ab7e9ce"></a>public static void unreadMessagesCount(Callback&lt;Integer, InboxMessagesException&gt; callback)  
-Get the number of the unread com.pushwoosh.inbox.data.InboxMessage<br/><br/><br/><strong>Parameters</strong><br/>
+#### <a name="1a49ebfb1cafbc65ce5912606ec20295d9"></a>public static void loadMessages(Callback&lt;Collection&lt;InboxMessage&gt;, InboxMessagesException&gt; callback, @Nullable InboxMessage inboxMessage, int limit)  
+Get the collection of the com.pushwoosh.inbox.data.InboxMessage that the user received This method obtains messages from network. In case the network connection is not available messages will be obtained from local database<br/><br/><br/><strong>Parameters</strong><br/>
 <table>
 	<tr>
 		<td><strong>callback</strong></td>
-		<td>- if successful, return the number of the unread InboxMessages. Otherwise, return error </td>
+		<td>- if successful, return the collection of the InboxMessages. Otherwise, return error </td>
+	</tr>
+	<tr>
+		<td><strong>inboxMessage</strong></td>
+		<td>- This parameter provides pagination. Pass the last com.pushwoosh.inbox.data.InboxMessage that is on your current page as a parameter to get previous messages. To get latest messages or in case the pagination is not necessary, pass null as a parameter. </td>
+	</tr>
+	<tr>
+		<td><strong>limit</strong></td>
+		<td>- amount of messages to get. Pass -1 to get all the messages </td>
 	</tr>
 </table>
 
@@ -198,26 +315,5 @@ Call this method, when the user deletes the list of com.pushwoosh.inbox.data.Inb
 	<tr>
 		<td><strong>codes</strong></td>
 		<td>of the list of com.pushwoosh.inbox.data.InboxMessage#getCode() that the user deleted </td>
-	</tr>
-</table>
-
-
-----------  
-  
-
-#### <a name="1a49ebfb1cafbc65ce5912606ec20295d9"></a>public static void loadMessages(Callback&lt;Collection&lt;InboxMessage&gt;, InboxMessagesException&gt; callback, @Nullable InboxMessage inboxMessage, int limit)  
-Get the collection of the com.pushwoosh.inbox.data.InboxMessage that the user received This method obtains messages from network. In case the network connection is not available messages will be obtained from local database<br/><br/><br/><strong>Parameters</strong><br/>
-<table>
-	<tr>
-		<td><strong>callback</strong></td>
-		<td>- if successful, return the collection of the InboxMessages. Otherwise, return error </td>
-	</tr>
-	<tr>
-		<td><strong>inboxMessage</strong></td>
-		<td>- This parameter provides pagination. Pass the last com.pushwoosh.inbox.data.InboxMessage that is on your current page as a parameter to get previous messages. To get latest messages or in case the pagination is not necessary, pass null as a parameter. </td>
-	</tr>
-	<tr>
-		<td><strong>limit</strong></td>
-		<td>- amount of messages to get. Pass -1 to get all the messages </td>
 	</tr>
 </table>

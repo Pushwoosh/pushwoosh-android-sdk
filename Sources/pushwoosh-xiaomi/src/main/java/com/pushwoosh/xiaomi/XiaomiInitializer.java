@@ -11,7 +11,6 @@ import com.pushwoosh.xiaomi.utils.XiaomiUtils;
 public class XiaomiInitializer {
 
     public static void init(Context context) {
-        PWLog.debug("XIAOMI");
         if (XiaomiUtils.isXiaomiDevice()) {
             new DeviceSpecificProvider.Builder()
                     .setDeviceSpecific(XiaomiDeviceSpecificIniter.create(new XiaomiPushRegistrar()))

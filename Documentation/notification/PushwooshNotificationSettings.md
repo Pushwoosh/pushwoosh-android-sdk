@@ -9,9 +9,6 @@ PushwooshNotificationSettings class is used to customise push notification appea
 
 <table>
 	<tr>
-		<td><a href="#1abadb2a9eee001a9650c773e3c291844b">public static void setNotificationChannelName(String name)</a></td>
-	</tr>
-	<tr>
 		<td><a href="#1a77a3f66d5cd709ed0e2e57449d09acdb">public static void setMultiNotificationMode(boolean on)</a></td>
 	</tr>
 	<tr>
@@ -22,6 +19,9 @@ PushwooshNotificationSettings class is used to customise push notification appea
 	</tr>
 	<tr>
 		<td><a href="#1afca3cf323c292700a9f1d426e510804d">public static void setLightScreenOnNotification(boolean on)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1ab6a9e720cce1b9b53c8ff77559b9adf0">public static void setEnableLED(boolean on)</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a6a2f0c63f5d400e8607484c5c732b072">public static void setColorLED(@ColorInt int color)</a></td>
@@ -36,20 +36,10 @@ PushwooshNotificationSettings class is used to customise push notification appea
 		<td><a href="#1af7378863944b37657ccd70da45fec5e5">public static void enableNotifications(boolean on)</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1ab6a9e720cce1b9b53c8ff77559b9adf0">public static void setEnableLED(boolean on)</a></td>
+		<td><a href="#1abadb2a9eee001a9650c773e3c291844b">public static void setNotificationChannelName(String name)</a></td>
 	</tr>
-</table>
-
-
-----------  
-  
-
-#### <a name="1abadb2a9eee001a9650c773e3c291844b"></a>public static void setNotificationChannelName(String name)  
-Set default notification channel name for API 26<br/><br/><br/><strong>Parameters</strong><br/>
-<table>
 	<tr>
-		<td><strong>name</strong></td>
-		<td>name of notification channel </td>
+		<td><a href="#1acfbd348d805f8aa0f9861a7ed78b4658">public static void lazyInitPushwoosh(Context context)</a></td>
 	</tr>
 </table>
 
@@ -109,6 +99,19 @@ Set whether notification should unlock screen.<br/><br/><br/><strong>Parameters<
 ----------  
   
 
+#### <a name="1ab6a9e720cce1b9b53c8ff77559b9adf0"></a>public static void setEnableLED(boolean on)  
+Set whether notification should cause LED blinking.<br/><br/><br/><strong>Parameters</strong><br/>
+<table>
+	<tr>
+		<td><strong>on</strong></td>
+		<td>enable LED blinking </td>
+	</tr>
+</table>
+
+
+----------  
+  
+
 #### <a name="1a6a2f0c63f5d400e8607484c5c732b072"></a>public static void setColorLED(@ColorInt int color)  
 Set LED color. <a href="PushwooshNotificationSettings.md#1ab6a9e720cce1b9b53c8ff77559b9adf0">setEnableLED(boolean)</a> must be set to adjust LED color.<br/><br/><br/><strong>Parameters</strong><br/>
 <table>
@@ -154,11 +157,17 @@ Set whether notifications should be enabled<br/><br/><br/><strong>Parameters</st
 ----------  
   
 
-#### <a name="1ab6a9e720cce1b9b53c8ff77559b9adf0"></a>public static void setEnableLED(boolean on)  
-Set whether notification should cause LED blinking.<br/><br/><br/><strong>Parameters</strong><br/>
+#### <a name="1abadb2a9eee001a9650c773e3c291844b"></a>public static void setNotificationChannelName(String name)  
+Set default notification channel name for API 26<br/><br/><br/><strong>Parameters</strong><br/>
 <table>
 	<tr>
-		<td><strong>on</strong></td>
-		<td>enable LED blinking </td>
+		<td><strong>name</strong></td>
+		<td>name of notification channel </td>
 	</tr>
 </table>
+
+
+----------  
+  
+
+#### <a name="1acfbd348d805f8aa0f9861a7ed78b4658"></a>public static void lazyInitPushwoosh(Context context)  

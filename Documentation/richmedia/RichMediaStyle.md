@@ -9,13 +9,13 @@
 
 <table>
 	<tr>
-		<td><a href="#1ada6ec77a4a7071c2266dbed639d0186b">public void setTimeOutBackButtonEnable(long timeOutBackButtonEnable)</a></td>
-	</tr>
-	<tr>
 		<td><a href="#1a0b963f9cec0f7492b74569ded8a3a065">public  RichMediaStyle(int backgroundColor, RichMediaAnimation richMediaAnimation)</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a1409257e9afb9c2fe7636d019053d4ce">public int getBackgroundColor()</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1aa1db8ccc217e56483c9045bc0612289e">public void setBackgroundColor(int backgroundColor)</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a8ac16a4516f27a149cf961cc1ec6e61f">public RichMediaAnimation getRichMediaAnimation()</a></td>
@@ -33,15 +33,9 @@
 		<td><a href="#1aa6ddea5fab3e6e2e9a2fa4a9623417a5">public long getTimeOutBackButtonEnable()</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1aa1db8ccc217e56483c9045bc0612289e">public void setBackgroundColor(int backgroundColor)</a></td>
+		<td><a href="#1ada6ec77a4a7071c2266dbed639d0186b">public void setTimeOutBackButtonEnable(long timeOutBackButtonEnable)</a></td>
 	</tr>
 </table>
-
-
-----------  
-  
-
-#### <a name="1ada6ec77a4a7071c2266dbed639d0186b"></a>public void setTimeOutBackButtonEnable(long timeOutBackButtonEnable)  
 
 
 ----------  
@@ -54,6 +48,12 @@
   
 
 #### <a name="1a1409257e9afb9c2fe7636d019053d4ce"></a>public int getBackgroundColor()  
+
+
+----------  
+  
+
+#### <a name="1aa1db8ccc217e56483c9045bc0612289e"></a>public void setBackgroundColor(int backgroundColor)  
 
 
 ----------  
@@ -89,4 +89,4 @@
 ----------  
   
 
-#### <a name="1aa1db8ccc217e56483c9045bc0612289e"></a>public void setBackgroundColor(int backgroundColor)  
+#### <a name="1ada6ec77a4a7071c2266dbed639d0186b"></a>public void setTimeOutBackButtonEnable(long timeOutBackButtonEnable)  

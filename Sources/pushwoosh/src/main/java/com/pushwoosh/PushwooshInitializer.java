@@ -36,6 +36,7 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.LockScreenReceiver;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.repository.RepositoryModule;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -52,7 +53,15 @@ public class PushwooshInitializer {
 			"See the integration guide https://docs.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notifications";
 
 	public static void init(Context context) {
-		if (isComponentInit()) {
+		init(context, false);
+	}
+
+	public static void lazyInit(Context context) {
+		init(context, true);
+	}
+
+	public static void init (Context context, boolean lazy) {
+		if (isComponentInit() && !lazy) {
 			PWLog.noise(TAG, "already init");
 			return;
 		}
@@ -75,12 +84,19 @@ public class PushwooshInitializer {
 			return;
 		}
 
+		AndroidManifestConfig config = new AndroidManifestConfig();
+		if (lazy) {
+			config.setLazySdkInitialization(false);
+		}
+
 		PushwooshPlatform pushwooshPlatform = new PushwooshPlatform.Builder()
-				.setConfig(new AndroidManifestConfig())
+				.setConfig(config)
 				.setPushRegistrar(DeviceSpecificProvider.getInstance().pushRegistrar())
 				.build();
 
-
+		if (config.isLazySdkInitialization()) {
+			return;
+		}
 		pushwooshPlatform.onApplicationCreated();
 		AndroidPlatformModule.getApplicationOpenDetector().onApplicationCreated(pushwooshPlatform.getAppVersionProvider().isFirstLaunch());
 

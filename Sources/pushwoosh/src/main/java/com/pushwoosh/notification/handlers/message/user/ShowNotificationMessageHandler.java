@@ -141,7 +141,7 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 			long notificationId = RepositoryModule.getPushBundleStorage().putGroupPushBundle(data.toBundle(), messageId, notification.getGroup());
 			int summaryNotificationId = getNotificationIdForGroup(notification.getGroup());
 			contentIntent.putExtra(EXTRA_NOTIFICATION_ROW_ID, notificationId);
-			deleteIntent = getDeleteIntent(notificationId, summaryNotificationId);
+			deleteIntent = getDeleteIntent(notificationId, summaryNotificationId, data);
 		} catch (Exception e) {
 			// ignore
 		}
@@ -240,11 +240,12 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 	}
 
 	@NonNull
-	private Intent getDeleteIntent(long rowId, int summaryNotificationId) {
+	private Intent getDeleteIntent(long rowId, int summaryNotificationId, PushMessage data) {
 		Context applicationContext = getApplicationContext();
 		Intent deleteIntent = new Intent(applicationContext, NotificationUpdateReceiver.class);
 		deleteIntent.putExtra(NotificationIntentHelper.EXTRA_NOTIFICATION_ROW_ID, rowId);
 		deleteIntent.putExtra(NotificationIntentHelper.EXTRA_IS_DELETE_INTENT, true);
+		deleteIntent.putExtra(NotificationIntentHelper.EXTRA_NOTIFICATION_BUNDLE, data.toBundle());
 		deleteIntent.putExtra(EXTRA_GROUP_ID, summaryNotificationId);
 		deleteIntent.setAction(Long.toString(System.currentTimeMillis()));
 		return deleteIntent;

@@ -48,7 +48,6 @@ import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.internal.utils.TiramisuApiHelper;
 import com.pushwoosh.notification.event.DeregistrationErrorEvent;
 import com.pushwoosh.notification.event.DeregistrationSuccessEvent;
 import com.pushwoosh.notification.event.RegistrationErrorEvent;
@@ -160,9 +159,9 @@ public class DeviceRegistrar {
 	private static boolean areNotificationsEnabled() {
 		try {
 			Context context = AndroidPlatformModule.getApplicationContext();
-			if (Build.VERSION.SDK_INT >= 33 || TiramisuApiHelper.getReleaseOrCodeName().equals("Tiramisu")) {
+			if (Build.VERSION.SDK_INT >= 33) {
 				return ActivityCompat.checkSelfPermission(context,
-						TiramisuApiHelper.PERMISSION_POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+						"android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED;
 			} else {
 				return NotificationManagerCompat.from(context).areNotificationsEnabled();
 			}

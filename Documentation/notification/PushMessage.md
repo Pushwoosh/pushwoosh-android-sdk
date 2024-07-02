@@ -9,10 +9,10 @@ Push message data class.
 
 <table>
 	<tr>
-		<td><a href="#1a6d692864571ea73719d610499fb7ee4c">public JSONObject toJson()</a></td>
+		<td><a href="#1a89e2a91baf70d8d77289d3087b67ae63">public  PushMessage(@NonNull Bundle extras)</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1a89e2a91baf70d8d77289d3087b67ae63">public  PushMessage(@NonNull Bundle extras)</a></td>
+		<td><a href="#1a2692abead156cad99e72925aeeff94cd">public String getLargeIconUrl()</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a4f96b2805f0c6b8f1bd24cd380d8b650">public String getBigPictureUrl()</a></td>
@@ -25,6 +25,12 @@ Push message data class.
 	</tr>
 	<tr>
 		<td><a href="#1a15733fd7534f81194e5fb19ab1af28bf">public String getPushHash()</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1a6620bee567039ef83355cf9193aef4e0">public String getPushMetaData()</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1ab1092848689a9735eb8920110c8a8c47">public long getPushwooshNotificationId()</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a3021a5693dea68f6260048c154d212bc">public boolean isSilent()</a></td>
@@ -57,6 +63,9 @@ Push message data class.
 		<td><a href="#1ad1319721cc6d8899850b9188d39f3174">public int getBadges()</a></td>
 	</tr>
 	<tr>
+		<td><a href="#1aa844f51d6752bbd6be58122c53c912ac">public boolean isBadgesAdditive()</a></td>
+	</tr>
+	<tr>
 		<td><a href="#1a8d484dff7cc08f41cb694d9d65ff910c">public int getVisibility()</a></td>
 	</tr>
 	<tr>
@@ -78,10 +87,13 @@ Push message data class.
 		<td><a href="#1a7bdfd7ec12174071956a35e0f8b3a3b8">public String getCustomData()</a></td>
 	</tr>
 	<tr>
+		<td><a href="#1a8e77aca1068d0c6ac62b9c0c51710f0c">public String getGroupId()</a></td>
+	</tr>
+	<tr>
 		<td><a href="#1acf6890db68d99c8251c169ab90c86a53">public Bundle toBundle()</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1a2692abead156cad99e72925aeeff94cd">public String getLargeIconUrl()</a></td>
+		<td><a href="#1a6d692864571ea73719d610499fb7ee4c">public JSONObject toJson()</a></td>
 	</tr>
 </table>
 
@@ -89,14 +101,14 @@ Push message data class.
 ----------  
   
 
-#### <a name="1a6d692864571ea73719d610499fb7ee4c"></a>public JSONObject toJson()  
-<strong>Returns</strong> JSON representation of push payload 
+#### <a name="1a89e2a91baf70d8d77289d3087b67ae63"></a>public  PushMessage(@NonNull Bundle extras)  
+
 
 ----------  
   
 
-#### <a name="1a89e2a91baf70d8d77289d3087b67ae63"></a>public  PushMessage(@NonNull Bundle extras)  
-
+#### <a name="1a2692abead156cad99e72925aeeff94cd"></a>public String getLargeIconUrl()  
+<strong>Returns</strong> Notification large icon url. <em>See also:</em> <a href="https://developer.android.com/reference/android/app/Notification.Builder.html#setLargeIcon(android.graphics.Bitmap)">Notification.Builder.setLargeIcon</a>
 
 ----------  
   
@@ -121,6 +133,18 @@ Push message data class.
 
 #### <a name="1a15733fd7534f81194e5fb19ab1af28bf"></a>public String getPushHash()  
 <strong>Returns</strong> Pushmessage hash. Pushes triggered using remote API may not have hash. 
+
+----------  
+  
+
+#### <a name="1a6620bee567039ef83355cf9193aef4e0"></a>public String getPushMetaData()  
+<strong>Returns</strong> Pushmessage metadata. 
+
+----------  
+  
+
+#### <a name="1ab1092848689a9735eb8920110c8a8c47"></a>public long getPushwooshNotificationId()  
+<strong>Returns</strong> Pushwoosh Notification ID 
 
 ----------  
   
@@ -185,6 +209,12 @@ Push message data class.
 ----------  
   
 
+#### <a name="1aa844f51d6752bbd6be58122c53c912ac"></a>public boolean isBadgesAdditive()  
+<strong>Returns</strong> True if there is a sign '+' or '-' at the beginning of the badge number. 
+
+----------  
+  
+
 #### <a name="1a8d484dff7cc08f41cb694d9d65ff910c"></a>public int getVisibility()  
 <strong>Returns</strong> Notification visibility. <em>See also:</em> <a href="https://developer.android.com/reference/android/app/Notification.Builder.html#setVisibility(int)">Notification.Builder.setVisibility</a>
 
@@ -210,7 +240,7 @@ Push message data class.
   
 
 #### <a name="1a5c604d271c3dfee3f976b010b7c95654"></a>public String getTag()  
-<strong>Returns</strong> Notification tag. Notifications with different tags will not replace each other. Notifications with same tag will replace each other if multinotification mode is not set <a href="PushwooshNotificationSettings.md#1a77a3f66d5cd709ed0e2e57449d09acdb">com.pushwoosh.notification.PushwooshNotificationSettings#setMultiNotificationMode(boolean)</a>
+<strong>Returns</strong> Notification tag. Notifications with different tags will not replace each other. Notifications with same tag will replace each other if multinotification mode is on <a href="PushwooshNotificationSettings.md#1a77a3f66d5cd709ed0e2e57449d09acdb">com.pushwoosh.notification.PushwooshNotificationSettings#setMultiNotificationMode(boolean)</a>
 
 ----------  
   
@@ -227,11 +257,17 @@ Push message data class.
 ----------  
   
 
+#### <a name="1a8e77aca1068d0c6ac62b9c0c51710f0c"></a>public String getGroupId()  
+<strong>Returns</strong> notification group id 
+
+----------  
+  
+
 #### <a name="1acf6890db68d99c8251c169ab90c86a53"></a>public Bundle toBundle()  
 <strong>Returns</strong> Bundle representation of push payload 
 
 ----------  
   
 
-#### <a name="1a2692abead156cad99e72925aeeff94cd"></a>public String getLargeIconUrl()  
-<strong>Returns</strong> Notification large icon url. <em>See also:</em> <a href="https://developer.android.com/reference/android/app/Notification.Builder.html#setLargeIcon(android.graphics.Bitmap)">Notification.Builder.setLargeIcon</a>
+#### <a name="1a6d692864571ea73719d610499fb7ee4c"></a>public JSONObject toJson()  
+<strong>Returns</strong> JSON representation of push payload 

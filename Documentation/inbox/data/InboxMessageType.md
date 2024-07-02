@@ -21,9 +21,6 @@ The Inbox message type.<br/>
 		<td><a href="#1aa1c79867e95a3d1a69cf1991672c9ed7">public  DEEP_LINK</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1afc15a38974d19bff4a30cedc64f0e629">public  REMOTE_URL</a></td>
-	</tr>
-	<tr>
 		<td><a href="#1a884f4af48c0a1c7ef5026d4733089636">public static InboxMessageType getByCode(int code)</a></td>
 	</tr>
 	<tr>
@@ -57,12 +54,6 @@ The Inbox message type.<br/>
   
 
 #### <a name="1aa1c79867e95a3d1a69cf1991672c9ed7"></a>public  DEEP_LINK  
-
-
-----------  
-  
-
-#### <a name="1afc15a38974d19bff4a30cedc64f0e629"></a>public  REMOTE_URL  
 
 
 ----------  
