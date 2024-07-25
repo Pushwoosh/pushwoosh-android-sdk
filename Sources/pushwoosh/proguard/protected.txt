@@ -8,10 +8,6 @@
     public protected *;
 }
 
--keep public class com.pushwoosh.repository.config.Channel {
-    *;
-}
-
 -keep class com.pushwoosh.repository.PushBundleStorageImpl$Column {
     *;
 }

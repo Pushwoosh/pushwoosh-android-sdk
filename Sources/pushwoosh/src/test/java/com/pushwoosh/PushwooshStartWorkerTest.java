@@ -10,11 +10,8 @@ import android.os.Looper;
 
 import com.pushwoosh.appevents.PushwooshDefaultEvents;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
-import com.pushwoosh.inapp.event.RichMediaCloseEvent;
 import com.pushwoosh.internal.Plugin;
 import com.pushwoosh.internal.PushRegistrarHelper;
-import com.pushwoosh.internal.event.ConfigLoadedEvent;
-import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.AppVersionProvider;
@@ -24,7 +21,6 @@ import com.pushwoosh.notification.PushwooshNotificationManager;
 import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
-import com.pushwoosh.repository.config.GetConfigRequest;
 import com.pushwoosh.testutil.PlatformTestManager;
 
 import org.junit.After;
@@ -215,7 +211,6 @@ public class PushwooshStartWorkerTest {
         PushwooshPlatform.getInstance().notificationManager().setAppId("123");
         openActivity();
 
-        EventBus.sendEvent(new ConfigLoadedEvent());
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
@@ -227,7 +222,6 @@ public class PushwooshStartWorkerTest {
         pushwooshStartWorker.onApplicationCreated();
 
         PushwooshPlatform.getInstance().notificationManager().setAppId("123");
-        EventBus.sendEvent(new ConfigLoadedEvent());
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         openActivity();
@@ -243,7 +237,6 @@ public class PushwooshStartWorkerTest {
         openActivity();
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         PushwooshPlatform.getInstance().notificationManager().setAppId("123");
-        EventBus.sendEvent(new ConfigLoadedEvent());
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
@@ -258,7 +251,6 @@ public class PushwooshStartWorkerTest {
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         PushwooshPlatform.getInstance().notificationManager().setAppId("123");
-        EventBus.sendEvent(new ConfigLoadedEvent());
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         assertNormalStart();
@@ -270,7 +262,6 @@ public class PushwooshStartWorkerTest {
 
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         PushwooshPlatform.getInstance().notificationManager().setAppId("123");
-        EventBus.sendEvent(new ConfigLoadedEvent());
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         openActivity();
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
@@ -286,7 +277,6 @@ public class PushwooshStartWorkerTest {
         openActivity();
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         PushwooshPlatform.getInstance().notificationManager().setAppId("123");
-        EventBus.sendEvent(new ConfigLoadedEvent());
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         assertNormalStart();

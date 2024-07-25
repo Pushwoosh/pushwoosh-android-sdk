@@ -8,16 +8,13 @@
 package com.pushwoosh.internal.network;
 
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.TextUtils;
 
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
-import com.pushwoosh.repository.config.ConfigPrefs;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,13 +48,11 @@ class PushwooshRequestManager implements RequestManager {
 	private final ServerCommunicationManager serverCommunicationManager;
 	private String baseRequestUrl;
 	private boolean usingReverseProxy = false;
-	private ConfigPrefs configPrefs;
 	private final Handler jitterMainHandler;
 
-	PushwooshRequestManager(RegistrationPrefs registrationPrefs, @Nullable ConfigPrefs configPrefs,
+	PushwooshRequestManager(RegistrationPrefs registrationPrefs,
 							ServerCommunicationManager serverCommunicationManager) {
 		this.registrationPrefs = registrationPrefs;
-		this.configPrefs = configPrefs;
 		this.serverCommunicationManager = serverCommunicationManager;
 		this.jitterMainHandler = new Handler(Looper.getMainLooper());
 

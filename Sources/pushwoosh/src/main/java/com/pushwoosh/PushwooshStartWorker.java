@@ -148,7 +148,6 @@ public class PushwooshStartWorker {
     private void onApplicationOpenAndHwidReady() {
         if (started.compareAndSet(false, true)) {
             EventBus.subscribe(ApplicationOpenDetector.ApplicationOpenEvent.class, event -> {
-                pushwooshRepository.loadConfig();
                 deviceRegistrar.updateRegistration();
                 pushwooshInApp.checkForUpdates();
             });

@@ -33,6 +33,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.utils.JsonUtils;
+import com.pushwoosh.internal.utils.PWLog;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -149,7 +150,11 @@ public class TagsBundle {
 		 * @return builder
 		 */
 		public Builder putString(String key, String value) {
-			tags.put(key, value);
+			try {
+				tags.put(key, value);
+			} catch (Exception e) {
+				PWLog.error("Failed to put String tag in TagsBundle:" + e);
+			}
 			return this;
 		}
 

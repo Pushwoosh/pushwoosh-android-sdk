@@ -2,18 +2,13 @@ package com.pushwoosh.appevents;
 
 import android.app.Application;
 
-import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.InAppManager;
-import com.pushwoosh.internal.event.ConfigLoadedEvent;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.ApplicationOpenDetector.ApplicationOpenEvent;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
-import com.pushwoosh.repository.config.Event;
 import com.pushwoosh.tags.TagsBundle;
-
-import java.util.List;
 
 public class PushwooshDefaultEvents {
     private static volatile Application.ActivityLifecycleCallbacks activityLifecycleCallbacks;
@@ -26,7 +21,6 @@ public class PushwooshDefaultEvents {
     private boolean isConfigLoaded = false;
 
     public void init() {
-        EventBus.subscribe(ConfigLoadedEvent.class, configLoadedEventListener);
         registerActivityLifecycleCallbacks();
     }
 
@@ -35,43 +29,21 @@ public class PushwooshDefaultEvents {
         registerActivityLifecycleCallbacks();
     };
 
-    private EventListener<ConfigLoadedEvent> configLoadedEventListener = (event) -> {
-        EventBus.unsubscribe(ConfigLoadedEvent.class, PushwooshDefaultEvents.this.configLoadedEventListener);
-        isConfigLoaded = true;
-    };
-
-    private EventListener<ConfigLoadedEvent> readyToSendRequestsListener;
-
     void postEvent(String eventName, TagsBundle attributes) {
-        if (isConfigLoaded) {
-            postEventInternal(eventName, attributes);
-        } else {
-            readyToSendRequestsListener = event -> {
-                EventBus.unsubscribe(ConfigLoadedEvent.class, this.readyToSendRequestsListener);
                 postEventInternal(eventName, attributes);
-            };
-            EventBus.subscribe(ConfigLoadedEvent.class, readyToSendRequestsListener);
-        }
     }
 
     private void postEventInternal(String eventName, TagsBundle attributes) {
-        List<Event> events = PushwooshPlatform.getInstance().pushwooshRepository().getEvents();
-        if (events != null) {
-            for (Event e: events) {
-                if (e.getName().equals(eventName)) {
-                    InAppManager.getInstance().postEvent(eventName, attributes);
-                    break;
-                }
-            }
-        }
+        InAppManager.getInstance().postEvent(eventName, attributes);
     }
 
     static TagsBundle buildAttributes(String eventName, String activityName) {
         TagsBundle.Builder attributes = new TagsBundle.Builder();
         attributes.putInt("device_type", DeviceSpecificProvider.getInstance().deviceType());
-        attributes.putString("application_version", AndroidPlatformModule.getAppInfoProvider().getVersionName());
-
-        if (eventName.equals(SCREEN_OPENED_EVENT)) {
+        if (AndroidPlatformModule.getAppInfoProvider() != null && AndroidPlatformModule.getAppInfoProvider().getVersionName() != null) {
+            attributes.putString("application_version", AndroidPlatformModule.getAppInfoProvider().getVersionName());
+        }
+        if (eventName.equals(SCREEN_OPENED_EVENT) && activityName != null) {
             attributes.putString("screen_name", activityName);
         }
 

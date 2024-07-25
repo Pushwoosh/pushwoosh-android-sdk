@@ -31,7 +31,6 @@ import android.os.AsyncTask;
 
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
-import com.pushwoosh.repository.config.ConfigPrefs;
 
 /**
  * DI to provide {@link com.pushwoosh.internal.network.RequestManager}
@@ -39,10 +38,10 @@ import com.pushwoosh.repository.config.ConfigPrefs;
 public class NetworkModule {
 	private static RequestManager requestManager;
 
-	public static void init(RegistrationPrefs registrationPrefs, ConfigPrefs configPrefs,
+	public static void init(RegistrationPrefs registrationPrefs,
 							ServerCommunicationManager serverCommunicationManager) {
 		if (requestManager == null) {
-			requestManager = new PushwooshRequestManager(registrationPrefs, configPrefs, serverCommunicationManager);
+			requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager);
 		}
 	}
 

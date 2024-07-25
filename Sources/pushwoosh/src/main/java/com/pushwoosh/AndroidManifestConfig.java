@@ -72,6 +72,7 @@ class AndroidManifestConfig implements Config {
 	private boolean isCollectingDeviceOsVersionAllowed = true;
 	private boolean isCollectingDeviceLocaleAllowed = true;
 	private boolean isCollectingDeviceModelAllowed = true;
+	private boolean isCollectingLifecycleEventsAllowed = true;
 	private boolean shouldShowFullscreenRichMedia = false;
 
 	@IdRes
@@ -171,10 +172,12 @@ class AndroidManifestConfig implements Config {
 			isCollectingDeviceOsVersionAllowed = false;
 			isCollectingDeviceLocaleAllowed = false;
 			isCollectingDeviceModelAllowed = false;
+			isCollectingLifecycleEventsAllowed = false;
 		} else {
 			isCollectingDeviceOsVersionAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_os_version", true);
 			isCollectingDeviceLocaleAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_locale", true);
 			isCollectingDeviceModelAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_model", true);
+			isCollectingLifecycleEventsAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_events", true);
 		}
 	}
 
@@ -305,6 +308,11 @@ class AndroidManifestConfig implements Config {
 	@Override
 	public boolean isCollectingDeviceModelAllowed() {
 		return isCollectingDeviceModelAllowed;
+	}
+
+	@Override
+	public boolean isCollectingLifecycleEventsAllowed() {
+		return isCollectingLifecycleEventsAllowed;
 	}
 
 	@Override

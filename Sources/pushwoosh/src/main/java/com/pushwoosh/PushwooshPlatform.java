@@ -31,7 +31,6 @@ import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.repository.SendTagsProcessor;
-import com.pushwoosh.repository.config.ConfigPrefs;
 import com.pushwoosh.richmedia.RichMediaController;
 import com.pushwoosh.richmedia.RichMediaFactory;
 import com.pushwoosh.richmedia.RichMediaStyle;
@@ -111,8 +110,7 @@ public class PushwooshPlatform {
         registrationPrefs = RepositoryModule.getRegistrationPreferences();
         serverCommunicationManager = new ServerCommunicationManager();
 
-        ConfigPrefs configPrefs = new ConfigPrefs();
-        NetworkModule.init(registrationPrefs, configPrefs, serverCommunicationManager);
+        NetworkModule.init(registrationPrefs, serverCommunicationManager);
 
         notificationManager = new PushwooshNotificationManager(builder.pushRegistrar, config);
         pushwooshInApp = new PushwooshInAppImpl(new PushwooshInAppServiceImpl(), serverCommunicationManager);
@@ -128,7 +126,7 @@ public class PushwooshPlatform {
         SendTagsProcessor sendTagsProcessor = new SendTagsProcessor();
         NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
         RequestStorage requestStorage = RepositoryModule.getRequestStorage();
-        pushwooshRepository = new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage, configPrefs, serverCommunicationManager);
+        pushwooshRepository = new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage, serverCommunicationManager);
 
         gdprManager = new GDPRManager(pushwooshRepository, notificationManager, pushwooshInApp);
         richMediaStyle = new RichMediaStyle(0, new RichMediaAnimationSlideBottom());

@@ -122,6 +122,11 @@ public interface Config {
 	boolean isCollectingDeviceModelAllowed();
 
 	/**
+	 * @return If true, SDK is allowed to collect and send app lifecycle events to Pushwoosh
+	 */
+	boolean isCollectingLifecycleEventsAllowed();
+
+	/**
 	 * @return If true, the WorkManager is set to handle notifications.
 	 */
 	boolean handleNotificationsUsingWorkManager();

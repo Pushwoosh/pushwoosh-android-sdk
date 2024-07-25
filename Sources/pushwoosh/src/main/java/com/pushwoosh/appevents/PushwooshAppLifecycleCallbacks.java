@@ -11,6 +11,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
+import com.pushwoosh.PushwooshPlatform;
+import com.pushwoosh.internal.platform.AndroidPlatformModule;
+
 class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
     private static final int SCREEN_OPENED_EVENT_DELAY = 100;
 
@@ -29,13 +32,15 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        if (activity instanceof FragmentActivity) {
-            registerSupportFragmentListener((FragmentActivity) activity);
+        if (PushwooshPlatform.getInstance().getConfig().isCollectingLifecycleEventsAllowed()) {
+            if (activity instanceof FragmentActivity) {
+                registerSupportFragmentListener((FragmentActivity) activity);
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                registerFragmentListener(activity);
+            }
+            notifyScreenOpened();
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            registerFragmentListener(activity);
-        }
-        notifyScreenOpened();
     }
 
     private void registerSupportFragmentListener(FragmentActivity activity) {
@@ -68,11 +73,13 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityStarted(Activity activity) {
-        activityName = activity.getClass().getName();
-        if (activitiesCount == 0) {
-            callback.invoke(APPLICATION_OPENED_EVENT, activityName);
+        if (PushwooshPlatform.getInstance().getConfig().isCollectingLifecycleEventsAllowed()) {
+            activityName = activity.getClass().getName();
+            if (activitiesCount == 0) {
+                callback.invoke(APPLICATION_OPENED_EVENT, activityName);
+            }
+            activitiesCount++;
         }
-        activitiesCount++;
     }
 
     @Override
@@ -85,9 +92,11 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityStopped(Activity activity) {
-        activitiesCount--;
+        if (PushwooshPlatform.getInstance().getConfig().isCollectingLifecycleEventsAllowed()) {
+            activitiesCount--;
         if (activitiesCount == 0) {
             callback.invoke(APPLICATION_CLOSED_EVENT, activityName);
+        }
         }
     }
 

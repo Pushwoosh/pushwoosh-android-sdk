@@ -44,16 +44,13 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.repository.config.Channel;
 import com.pushwoosh.tags.Tags;
 import com.pushwoosh.tags.TagsBundle;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
@@ -442,17 +439,6 @@ public class PushwooshJSInterface {
     @JavascriptInterface
     public String getCustomData() {
         return customData;
-    }
-
-    @JavascriptInterface
-    public void getChannels(String callback) {
-        PushwooshPlatform platform = PushwooshPlatform.getInstance();
-        List<Channel> channels = platform.pushwooshRepository().getChannels();
-        JSONArray channelsJSON = new JSONArray();
-        for (Channel channel : channels) {
-            channelsJSON.put(channel.jsonValue());
-        }
-        invokeCallback(callback, channelsJSON.toString());
     }
 
     @JavascriptInterface

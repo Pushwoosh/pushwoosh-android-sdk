@@ -38,7 +38,6 @@ import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
 import com.pushwoosh.inapp.network.InAppRepository;
-import com.pushwoosh.internal.event.ConfigLoadedEvent;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.event.ServerCommunicationStartedEvent;
@@ -49,11 +48,6 @@ import com.pushwoosh.internal.network.RequestStorage;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushMessage;
-import com.pushwoosh.repository.config.Channel;
-import com.pushwoosh.repository.config.Config;
-import com.pushwoosh.repository.config.ConfigPrefs;
-import com.pushwoosh.repository.config.Event;
-import com.pushwoosh.repository.config.GetConfigRequest;
 import com.pushwoosh.tags.Tags;
 import com.pushwoosh.tags.TagsBundle;
 
@@ -61,7 +55,6 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -80,11 +73,6 @@ public class PushwooshRepository {
     private String currentSessionHash;
     private String currentRichMediaCode;
     private String currentInAppCode;
-    private List<Channel> channels;
-    private List<Event> events;
-    private String publicKey;
-    private ConfigPrefs configPrefs;
-    private EventListener<ServerCommunicationStartedEvent> loadConfigWhenServerCommunicationStartsEvent;
     private EventListener<ServerCommunicationStartedEvent> sendAppOpenWhenServerCommunicationStartsEvent;
 
     public PushwooshRepository(RequestManager requestManager,
@@ -92,14 +80,12 @@ public class PushwooshRepository {
                                RegistrationPrefs registrationPrefs,
                                NotificationPrefs notificationPrefs,
                                RequestStorage requestStorage,
-                               @Nullable ConfigPrefs configPrefs,
                                ServerCommunicationManager serverCommunicationManager) {
         this.requestManager = requestManager;
         this.sendTagsProcessor = sendTagsProcessor;
         this.registrationPrefs = registrationPrefs;
         this.notificationPrefs = notificationPrefs;
         this.requestStorage = requestStorage;
-        this.configPrefs = configPrefs;
         this.serverCommunicationManager = serverCommunicationManager;
 
         if (registrationPrefs.setTagsFailed().get()) {
@@ -174,55 +160,6 @@ public class PushwooshRepository {
             }
         };
         EventBus.subscribe(ServerCommunicationStartedEvent.class, sendAppOpenWhenServerCommunicationStartsEvent);
-    }
-
-    public void loadConfig() {
-        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
-            subscribeLoadConfigWhenServerCommunicationStartsEvent();
-            return;
-        }
-
-        if (requestManager == null)
-            return;
-
-        requestManager.sendRequest(new GetConfigRequest(), (result) -> {
-                Config config = result.getData();
-                if (config != null) {
-                    channels = config.getChannels();
-                    events = config.getEvents();
-                    publicKey = config.getPublicKey();
-                    if (configPrefs != null) {
-                        configPrefs.logger().set(config.getLogger());
-                    }
-                    EventBus.sendEvent(new ConfigLoadedEvent());
-                }
-            });
-    }
-
-    private void subscribeLoadConfigWhenServerCommunicationStartsEvent() {
-        if (loadConfigWhenServerCommunicationStartsEvent != null) {
-            return;
-        }
-        loadConfigWhenServerCommunicationStartsEvent = new EventListener<ServerCommunicationStartedEvent>() {
-            @Override
-            public void onReceive(ServerCommunicationStartedEvent event) {
-                EventBus.unsubscribe(ServerCommunicationStartedEvent.class, this);
-                loadConfig();
-            }
-        };
-        EventBus.subscribe(ServerCommunicationStartedEvent.class, loadConfigWhenServerCommunicationStartsEvent);
-    }
-
-    public List<Channel> getChannels() {
-        return channels;
-    }
-
-    public List<Event> getEvents() {
-        return events;
-    }
-
-    public String getPublicKey() {
-        return publicKey;
     }
 
     public void sendTags(@NonNull TagsBundle tags, Callback<Void, PushwooshException> listener) {
