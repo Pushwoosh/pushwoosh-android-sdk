@@ -40,7 +40,7 @@ public class ApplicationOpenDetector {
     private Date firstLaunchDate;
 
     public static class ApplicationOpenEvent implements Event {
-        ApplicationOpenEvent() {/*do nothing*/}
+        public ApplicationOpenEvent() {/*do nothing*/}
     }
 
     public static class ApplicationMovedToForegroundEvent implements Event {

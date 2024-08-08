@@ -16,12 +16,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(sdk = Build.VERSION_CODES.O)
+@org.robolectric.annotation.Config(sdk = Build.VERSION_CODES.O, manifest = "AndroidManifest.xml")
 public class NotificationChannelPermissionControllerTest  {
     private PreferenceStringValue testChannelNamePref;
     private NotificationPrefs testPrefs;

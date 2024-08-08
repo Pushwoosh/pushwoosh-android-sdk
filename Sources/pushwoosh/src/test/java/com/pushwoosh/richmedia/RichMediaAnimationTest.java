@@ -11,6 +11,7 @@ import com.pushwoosh.richmedia.animation.RichMediaAnimationSlideBottom;
 import com.pushwoosh.richmedia.animation.RichMediaAnimationSlideLeft;
 import com.pushwoosh.richmedia.animation.RichMediaAnimationSlideRight;
 import com.pushwoosh.richmedia.animation.RichMediaAnimationSlideTop;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,12 +22,11 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.robolectric.RobolectricTestRunner;
-
-import static org.mockito.Matchers.any;
+import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class RichMediaAnimationTest {
 
     public static final int PARENT_HEIGHT = 100;
@@ -67,13 +67,13 @@ public class RichMediaAnimationTest {
         Animation animation = animationArgumentCaptor.getValue();
         Assert.assertTrue(animation instanceof TranslateAnimation);
 
-        float mFromXValue = (float) Whitebox.getInternalState(animation, "mFromXValue");
+        float mFromXValue = (float) WhiteboxHelper.getInternalState(animation, "mFromXValue");
         Assert.assertEquals(fromXDelta, mFromXValue, 0);
-        float mFromYValue = (float) Whitebox.getInternalState(animation, "mFromYValue");
+        float mFromYValue = (float) WhiteboxHelper.getInternalState(animation, "mFromYValue");
         Assert.assertEquals(fromYDelta, mFromYValue, 0);
-        float mToYValue = (float) Whitebox.getInternalState(animation, "mToYValue");
+        float mToYValue = (float) WhiteboxHelper.getInternalState(animation, "mToYValue");
         Assert.assertEquals(toYDelta, mToYValue, 0);
-        float mToXValue = (float) Whitebox.getInternalState(animation, "mToXValue");
+        float mToXValue = (float) WhiteboxHelper.getInternalState(animation, "mToXValue");
         Assert.assertEquals(toXDelta, mToXValue, 0);
 
     }

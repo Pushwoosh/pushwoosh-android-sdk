@@ -38,6 +38,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -45,8 +46,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -55,6 +56,7 @@ import static org.mockito.Mockito.verify;
  * Created by aevstefeev on 21/03/2018.
  */
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class LocalNotificationStorageIntegretionTest extends BaseLocalNotificationTest {
     private LocalNotificationStorage localNotificationStorage;
 
@@ -109,7 +111,7 @@ public class LocalNotificationStorageIntegretionTest extends BaseLocalNotificati
         Assert.assertEquals(1, bundleResult.getInt("pw_msg", 0));
         Assert.assertEquals("title1", bundleResult.getString("title", ""));
         Assert.assertEquals(true, bundleResult.getBoolean("local", false));
-        Assert.assertEquals("Bundle[{pw_msg=1, title=title1, local=true}]", bundleResult.toString());
+        Assert.assertEquals("Bundle[{pw_msg=1, local=true, title=title1}]", bundleResult.toString());
     }
 
     @Test

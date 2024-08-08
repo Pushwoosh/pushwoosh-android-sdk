@@ -15,7 +15,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = Build.VERSION_CODES.KITKAT)
+@Config(manifest = "AndroidManifest.xml")
 public class CallingPackageCheckerTest {
     String[] trustedPackages = {"com.pushwoosh.trusted_package"};
     String[] trustedPackages2 = {"com.pushwoosh.trusted_package",

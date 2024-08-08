@@ -8,8 +8,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class CrashReportTest {
     private final String testMessageString = "Test";
     private final Throwable throwable = new RuntimeException(testMessageString);

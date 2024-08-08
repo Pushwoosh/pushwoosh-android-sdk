@@ -44,6 +44,7 @@ import static com.pushwoosh.internal.crash.CrashManager.STACK_TRACES_FOUND_NONE;
 import static org.mockito.Mockito.mock;
 
 @RunWith(RobolectricTestRunner.class)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class CrashManagerTest {
     private final Context context = RuntimeEnvironment.application;
     private final WeakReference<Context> weakContext = new WeakReference<>(context);

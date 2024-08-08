@@ -86,7 +86,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	private final PreferenceStringValue xiaomiAppKey;
 	private final PreferenceStringValue xiaomiAppRegion;
 	private final PreferenceLongValue lastPushRegistration;
-	private final PreferenceLongValue lastFirebaseRegistration;
 	private final PreferenceBooleanValue forceRegister;
 	private final PreferenceStringValue userId;
 	private final PreferenceStringValue deviceId;
@@ -156,7 +155,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		registeredOnServer = new PreferenceBooleanValue(preferences, PROPERTY_REGISTERED_ON_SERVER, false);
 
 		lastPushRegistration = new PreferenceLongValue(preferences, PROPERTY_LAST_REGISTRATION, 0);
-		lastFirebaseRegistration = new PreferenceLongValue(preferences,PROPERTY_LAST_FIREBASE_TOKEN_REGISTRATION, 0);
 		userId = new PreferenceStringValue(preferences, PROPERTY_USER_ID, "");
 		deviceId = new PreferenceStringValue(preferences, PROPERTY_DEVICE_ID, "");
 		logLevel = new PreferenceStringValue(preferences, PROPERTY_LOG_LEVEL, config.getLogLevel());
@@ -223,10 +221,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	@SuppressWarnings("WeakerAccess")
 	public PreferenceLongValue lastPushRegistration() {
 		return lastPushRegistration;
-	}
-
-	public PreferenceLongValue lastFirebaseRegistration() {
-		return lastFirebaseRegistration;
 	}
 
 	public PreferenceBooleanValue forceRegister() {

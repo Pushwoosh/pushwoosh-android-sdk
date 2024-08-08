@@ -57,7 +57,7 @@ public class PushwooshFcmHelper {
 	 * call this method when {@link FirebaseMessagingService#onNewToken(String token)} is invoked
 	 */
 	public static void onTokenRefresh(@Nullable String ignored) {
-		RepositoryModule.getRegistrationPreferences().lastFirebaseRegistration().set(new Date().getTime());
+		RepositoryModule.getRegistrationPreferences().lastPushRegistration().set(new Date().getTime());
 		Context context = AndroidPlatformModule.getApplicationContext();
 		if (context == null) {
 			PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);

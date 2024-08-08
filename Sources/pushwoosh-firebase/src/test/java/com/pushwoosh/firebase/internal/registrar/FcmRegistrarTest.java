@@ -41,13 +41,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 
 import androidx.work.Configuration;
 import androidx.work.impl.utils.SynchronousExecutor;
 import androidx.work.testing.WorkManagerTestInitHelper;
 
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
+@Config(manifest = "AndroidManifest.xml")
 public class FcmRegistrarTest {
     public static final String DEVICE_ID = "deviceID";
     public static final String TOKEN = "token123";
@@ -89,7 +90,7 @@ public class FcmRegistrarTest {
 
     @Test
     public void registerPW() {
-        fcmRegistrar.registerPW();
+        fcmRegistrar.registerPW(null);
     }
 
     @Test

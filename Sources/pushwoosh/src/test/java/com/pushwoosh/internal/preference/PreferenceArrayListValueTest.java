@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -18,9 +19,10 @@ import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertSame;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class PreferenceArrayListValueTest <T extends Serializable> {
     private static final String ADD_NON_SERIALIZABLE_OBJECT_TEST_KEY = "addNonSerializableObjectTestKey";
     private static final String GEO_ZONE_ARRAY_LIST_TEST_KEY = "geoZoneArrayListTestKey";

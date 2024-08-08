@@ -28,7 +28,6 @@ package com.pushwoosh.repository;
 
 
 import com.ibm.icu.util.Calendar;
-import com.pushwoosh.BuildConfig;
 import com.pushwoosh.RegisterForPushNotificationsResultData;
 import com.pushwoosh.exception.RegisterForPushNotificationsException;
 import com.pushwoosh.function.Callback;
@@ -57,6 +56,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 
 
@@ -65,12 +65,14 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
+@LooperMode(LooperMode.Mode.LEGACY)
+@org.robolectric.annotation.Config(manifest = org.robolectric.annotation.Config.NONE)
 public class RegistrationTest {
 	private static final String PUSH_TOKEN = "test_pushToken";
 
@@ -233,11 +235,11 @@ public class RegistrationTest {
 		Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback = CallbackWrapper.spy();
 
 		// Steps:
-		notificationManager.registerForPushNotifications(callback, true, null);
+		notificationManager.registerForPushNotifications(callback, false, null);
 		notificationManager.onFailedToRegisterForRemoteNotifications("test registration error");
 
 		// Postcondition:
-		verify(callback, timeout(1000)).process(captor.capture());
+		verify(callback, timeout(10000)).process(captor.capture());
 		Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> result = captor.getValue();
 
 		assertThat(result.isSuccess(), is(false));

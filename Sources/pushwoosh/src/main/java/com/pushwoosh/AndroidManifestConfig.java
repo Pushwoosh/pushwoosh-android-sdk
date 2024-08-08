@@ -56,6 +56,7 @@ class AndroidManifestConfig implements Config {
 	private String xiaomiAppId = null;
 	private String xiaomiAppKey = null;
 	private String xiaomiAppRegion = null;
+	private String apiToken = null;
 	private String logLevel = null;
 	private String requestUrl = null;
 	private String[] trustedPackageNames = {};
@@ -93,6 +94,8 @@ class AndroidManifestConfig implements Config {
 
 		appId = getString(applicationInfo.metaData, "com.pushwoosh.appid", "PW_APPID");
 		projectId = getString(applicationInfo.metaData, "com.pushwoosh.senderid", "PW_PROJECT_ID");
+		apiToken = getString(applicationInfo.metaData, "com.pushwoosh.apitoken", "PW_API_TOKEN");
+
 		xiaomiAppId = getString(applicationInfo.metaData, "com.pushwoosh.xiaomiappid", "XM_APPID");
 		xiaomiAppKey = getString(applicationInfo.metaData, "com.pushwoosh.xiaomiappkey", "XM_APPKEY");
 		xiaomiAppRegion = getString(applicationInfo.metaData, "com.pushwoosh.xiaomiappregion", "XM_APPREGION");
@@ -356,5 +359,10 @@ class AndroidManifestConfig implements Config {
 	@Override
 	public void setLazySdkInitialization(boolean value) {
 		lazySdkInitialization = value;
+	}
+
+	@Override
+	public String getApiToken() {
+		return apiToken;
 	}
 }

@@ -28,6 +28,7 @@ package com.pushwoosh.internal.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 

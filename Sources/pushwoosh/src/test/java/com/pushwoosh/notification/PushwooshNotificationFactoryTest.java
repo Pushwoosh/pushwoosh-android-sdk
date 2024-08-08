@@ -27,113 +27,244 @@
 package com.pushwoosh.notification;
 
 import android.app.Notification;
+import android.app.PendingIntent;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Bundle;
 
-import com.pushwoosh.BuildConfig;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.platform.resource.ContextResourceProvider;
 import com.pushwoosh.internal.preference.PreferenceBooleanValue;
 import com.pushwoosh.internal.preference.PreferenceIntValue;
 import com.pushwoosh.internal.preference.PreferenceVibrateTypeValue;
 import com.pushwoosh.internal.utils.NotificationUtils;
+import com.pushwoosh.notification.builder.AppIconHelper;
 import com.pushwoosh.notification.builder.NotificationBuilder;
 import com.pushwoosh.notification.builder.NotificationBuilderManager;
+import com.pushwoosh.notification.channel.NotificationChannelInfoProvider;
 import com.pushwoosh.notification.channel.NotificationChannelManager;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
-import org.junit.Ignore;
-import org.junit.Rule;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.rule.PowerMockRule;
-import org.powermock.reflect.Whitebox;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import androidx.annotation.Nullable;
 
 /**
  * Created by aevstefeev on 12/03/2018.
  */
 @RunWith(RobolectricTestRunner.class)
-@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
-@Config(constants = BuildConfig.class, sdk = 25)
-@Ignore
-@PrepareForTest({RepositoryModule.class, NotificationUtils.class, NotificationBuilderManager.class})
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml", sdk = 26)
 public class PushwooshNotificationFactoryTest {
-
-    @Rule
-    public PowerMockRule rule = new PowerMockRule();
 
     @Test
     public void onGenerateNotification() throws Exception {
-        String sound = "sound.mp3";
-        PowerMockito.mockStatic(NotificationUtils.class);
-        PowerMockito.mockStatic(RepositoryModule.class);
+        try (
+                MockedStatic<AndroidPlatformModule> androidPlatformModuleMockedStatic = Mockito.mockStatic(AndroidPlatformModule.class);
+                MockedStatic<NotificationUtils> notificationUtilsMockedStatic = Mockito.mockStatic(NotificationUtils.class);
+                MockedStatic<RepositoryModule> repositoryModuleMockedStatic = Mockito.mockStatic(RepositoryModule.class);
+                MockedStatic<NotificationBuilderManager> builderManagerMockedStatic = Mockito.mockStatic(NotificationBuilderManager.class);
+                MockedStatic<NotificationChannelInfoProvider> channelInfoProviderMockedStatic = Mockito.mockStatic(NotificationChannelInfoProvider.class)
+        ) {
+            String sound = "sound.mp3";
 
-        NotificationBuilder builder= NotificationBuilderManager.createNotificationBuilder(RuntimeEnvironment.application, null);
-        PowerMockito.mockStatic(NotificationBuilderManager.class);
-        PowerMockito.when(NotificationBuilderManager.createNotificationBuilder(RuntimeEnvironment.application, null)).thenReturn(builder);
+            androidPlatformModuleMockedStatic.when(AndroidPlatformModule::getApplicationContext).thenReturn(RuntimeEnvironment.application);
+            androidPlatformModuleMockedStatic.when(AndroidPlatformModule::getResourceProvider).thenReturn(new ContextResourceProvider(RuntimeEnvironment.application));
+
+            NotificationBuilder notificationBuilder = getNotificationBuilder();
+            builderManagerMockedStatic.when(()-> NotificationBuilderManager.createNotificationBuilder(RuntimeEnvironment.getApplication().getApplicationContext(), null))
+                    .thenReturn(notificationBuilder);
+
+            Uri soundUri = Uri.fromFile(new File(sound));
+            notificationUtilsMockedStatic.when(() -> NotificationUtils.getSoundUri(sound)).thenReturn(soundUri);
+
+            NotificationPrefs notificationPrefsMock = mock(NotificationPrefs.class);
+
+            PreferenceBooleanValue ledEnable = mock(PreferenceBooleanValue.class);
+            when(ledEnable.get()).thenReturn(true);
+
+            PreferenceIntValue ledColor = mock(PreferenceIntValue.class);
+            when(ledColor.get()).thenReturn(10);
+
+            when(notificationPrefsMock.ledColor()).thenReturn(ledColor);
+            when(notificationPrefsMock.ledEnabled()).thenReturn(ledEnable);
+
+            PreferenceVibrateTypeValue preferenceVibrateTypeValue = mock(PreferenceVibrateTypeValue.class);
+            when(preferenceVibrateTypeValue.get()).thenReturn(VibrateType.fromInt(0));
+            when(notificationPrefsMock.vibrateType()).thenReturn(preferenceVibrateTypeValue);
+
+            repositoryModuleMockedStatic.when(RepositoryModule::getNotificationPreferences).thenReturn(notificationPrefsMock);
+
+            AndroidPlatformModule.init(RuntimeEnvironment.application, true);
+
+            PushwooshNotificationFactory pushwooshNotificationFactory = new PushwooshNotificationFactory();
+            NotificationChannelManager notificationChannelManagerMock = mock(NotificationChannelManager.class);
+            WhiteboxHelper.setInternalState(pushwooshNotificationFactory, "notificationChannelManager", notificationChannelManagerMock);
+
+            PushMessage pushMessage = new PushMessageTestTool().getPushMessageMock(true);
+
+            when(pushMessage.toJson()).thenReturn(new JSONObject());
+
+            List<Action> actionList = new ArrayList<>();
+            actionList.add(mock(Action.class));
+            actionList.add(mock(Action.class));
+            actionList.add(mock(Action.class));
+            when(pushMessage.getActions()).thenReturn(actionList);
+
+            channelInfoProviderMockedStatic.when(() -> NotificationChannelInfoProvider.getChannelName(pushMessage)).thenReturn("channel");
 
 
-        Uri soundUri = Uri.fromFile(new File(sound));
-        PowerMockito.when(NotificationUtils.getSoundUri(sound)).thenReturn(soundUri);
-        NotificationPrefs notificationPrefs = mock(NotificationPrefs.class);
-        PreferenceBooleanValue ledEnable = mock(PreferenceBooleanValue.class);
-        when(ledEnable.get()).thenReturn(true);
-        PreferenceIntValue ledColor = mock(PreferenceIntValue.class);
-        when(ledColor.get()).thenReturn(10);
-        when(notificationPrefs.ledColor()).thenReturn(ledColor);
-        when(notificationPrefs.ledEnabled()).thenReturn(ledEnable);
-        PreferenceVibrateTypeValue preferenceVibrateTypeValue = mock(PreferenceVibrateTypeValue.class);
-        when(preferenceVibrateTypeValue.get()).thenReturn(VibrateType.fromInt(0));
-        when(notificationPrefs.vibrateType()).thenReturn(preferenceVibrateTypeValue);
-        PowerMockito.when(RepositoryModule.getNotificationPreferences()).thenReturn(notificationPrefs);
+            Notification notification = pushwooshNotificationFactory.onGenerateNotification(pushMessage);
 
-        AndroidPlatformModule.init(RuntimeEnvironment.application, true);
+            assertEquals("ticker_text", notification.tickerText.toString());
 
-        PushwooshNotificationFactory pushwooshNotificationFactory = new PushwooshNotificationFactory();
-        NotificationChannelManager notificationChannelManager = mock(NotificationChannelManager.class);
-        Whitebox.setInternalState(pushwooshNotificationFactory, "notificationChannelManager", notificationChannelManager);
+            NotificationUtils.tryToGetBitmapFromInternet("lagre_icon", 64);
+            notificationUtilsMockedStatic.verify(()-> NotificationUtils.tryToGetBitmapFromInternet("lagre_icon", 64), times(1));
+            notificationUtilsMockedStatic.verify(()-> NotificationUtils.tryToGetBitmapFromInternet("url_picture", -1), times(1));
+            notificationUtilsMockedStatic.verify(()-> NotificationUtils.getSoundUri("sound.mp3"), times(1));
 
+            verify(notificationChannelManagerMock).addChannel(pushMessage, "channel", "");
+            verify(notificationChannelManagerMock).addSound(notification, soundUri, false);
+            verify(notificationChannelManagerMock).addLED(notification, pushMessage.getLed(), pushMessage.getLedOnMS(), pushMessage.getLedOffMS());
+            verify(notificationChannelManagerMock).addVibration(notification, VibrateType.fromInt(0),pushMessage.getVibration());
+        }
+    }
 
-        PushMessage pushMessage = new PushMessageTestTool().getPushMessageMock(true);
+    private NotificationBuilder getNotificationBuilder() {
+        return new NotificationBuilder() {
+            public final Notification.Builder builder = new Notification.Builder(RuntimeEnvironment.getApplication().getApplicationContext(), "channel");
+            @Override
+            public NotificationBuilder setContentTitle(CharSequence title) {
+                builder.setContentTitle(title);
+                return this;
+            }
 
-        List<Action> actionList = new ArrayList<>();
-        actionList.add(mock(Action.class));
-        actionList.add(mock(Action.class));
-        actionList.add(mock(Action.class));
-        when(pushMessage.getActions()).thenReturn(actionList);
+            @Override
+            public NotificationBuilder setContentText(CharSequence text) {
+                builder.setContentText(text);
+                return this;
+            }
 
-        Notification notification = pushwooshNotificationFactory.onGenerateNotification(pushMessage);
+            @Override
+            public NotificationBuilder setSmallIcon(int smallIcon) {
+                builder.setSmallIcon(smallIcon);
+                if (smallIcon == -1) {
+                    builder.setSmallIcon(AppIconHelper.getAppIcon(
+                            AndroidPlatformModule.getApplicationContext(),
+                            AndroidPlatformModule.getAppInfoProvider().getPackageName())
+                    );
+                }
+                return this;
+            }
 
-        assertEquals("ticker_text", notification.tickerText.toString());
-        PowerMockito.verifyStatic();
-        NotificationUtils.tryToGetBitmapFromInternet("lagre_icon", 64);
-        PowerMockito.verifyStatic();
-        NotificationUtils.tryToGetBitmapFromInternet("url_picture", -1);
-        PowerMockito.verifyStatic();
-        NotificationUtils.getSoundUri("sound.mp3");
-        PowerMockito.verifyStatic(Mockito.times(3));
-        NotificationBuilderManager.addAction(eq(RuntimeEnvironment.application), eq(builder), Mockito.any(Action.class));
+            @Override
+            public NotificationBuilder setTicker(CharSequence ticker) {
+                builder.setTicker(ticker);
+                return this;
+            }
 
-        verify(notificationChannelManager).addChannel(pushMessage, "channel", "description");
-        verify(notificationChannelManager).addSound(notification, soundUri, false);
-        verify(notificationChannelManager).addLED(notification, pushMessage.getLed(), pushMessage.getLedOnMS(), pushMessage.getLedOffMS());
-        verify(notificationChannelManager).addVibration(notification, VibrateType.fromInt(0),pushMessage.getVibration());
+            @Override
+            public NotificationBuilder setWhen(long time) {
+                builder.setWhen(time);
+                builder.setShowWhen(true);
+                return this;
+            }
+
+            @Override
+            public NotificationBuilder setStyle(@Nullable Bitmap bigPicture, CharSequence text) {
+                final Notification.Style style;
+
+                if (bigPicture != null) {
+                    //Images should be ? 450dp wide, ~2:1 aspect (see slide 52)
+                    //The image will be centerCropped
+                    //here: http://commondatastorage.googleapis.com/io2012/presentations/live%20to%20website/105.pdf
+                    style = new Notification.BigPictureStyle()
+                            .bigPicture(bigPicture)
+                            .setSummaryText(text);
+                } else {
+                    style = new Notification.BigTextStyle()
+                            .bigText(text);
+                }
+
+                builder.setStyle(style);
+                return this;
+            }
+
+            @Override
+            public NotificationBuilder setColor(Integer iconBackgroundColor) {
+                if (iconBackgroundColor != null) {
+                    builder.setColor(iconBackgroundColor);
+                }
+                return this;
+            }
+
+            @Override
+            public NotificationBuilder setLargeIcon(Bitmap largeIcon) {
+                if (null != largeIcon) {
+                    builder.setLargeIcon(largeIcon);
+                }
+                return this;
+            }
+
+            @Override
+            public NotificationBuilder setPriority(int priority) {
+                builder.setPriority(priority);
+                return this;
+            }
+
+            @Override
+            public NotificationBuilder setVisibility(int visibility) {
+                builder.setVisibility(visibility);
+                return this;
+            }
+
+            @Override
+            public NotificationBuilder addAction(int icon, CharSequence title, PendingIntent intent) {
+                builder.addAction(new Notification.Action(icon, title, intent));
+                return this;
+            }
+
+            @Override
+            public NotificationBuilder setLed(int arg, int ledOnMs, int ledOffMs) {
+                return this;
+            }
+
+            @Override
+            public NotificationBuilder setExtras(Bundle extras) {
+                builder.setExtras(extras);
+                return this;
+            }
+
+            @Override
+            public NotificationBuilder setGroup(String groupId) {
+                builder.setGroup(groupId);
+                return this;
+            }
+
+            @Override
+            public Notification build() {
+                return builder.build();
+            }
+        };
     }
 }

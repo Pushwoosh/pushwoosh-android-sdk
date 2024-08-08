@@ -38,10 +38,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class NotificationChannelInfoProviderTest {
     private PlatformTestManager platformTestManager;
 

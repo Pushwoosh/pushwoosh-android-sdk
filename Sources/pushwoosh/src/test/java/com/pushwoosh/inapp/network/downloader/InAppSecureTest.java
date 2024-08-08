@@ -36,60 +36,66 @@ import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.internal.utils.FileUtils;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.rule.PowerMockRule;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
-@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
-@PrepareForTest(FileUtils.class)
+@Config(manifest = "AndroidManifest.xml")
 public class InAppSecureTest {
-	@Rule
-	public PowerMockRule rule = new PowerMockRule();
-
 	private FileHashChecker fileHashChecker = new FileHashChecker();
-	private File file;
 
 	@Before
 	public void setUp() {
-		file = new File("");
-		mockStatic(FileUtils.class);
-		when(FileUtils.getMd5Hash(file)).thenReturn("test_hash");
 	}
 
 	@Test
 	public void testValidHash() {
-		Resource resource = new Resource("", "", "test_hash", 0, InAppLayout.DIALOG, null, false, 0, null, null);
-		assertTrue(fileHashChecker.check(new Pair<>(file, resource)));
+		File file = new File("");
+		try(MockedStatic<FileUtils> fileUtilsMockedStatic = Mockito.mockStatic(FileUtils.class)) {
+			fileUtilsMockedStatic.when(() -> FileUtils.getMd5Hash(file)).thenReturn("test_hash");
+			Resource resource = new Resource("", "", "test_hash", 0, InAppLayout.DIALOG, null, false, 0, null, null);
+			assertTrue(fileHashChecker.check(new Pair<>(file, resource)));
+		}
 	}
 
 	@Test
 	public void testInvalidHash() {
-		Resource resource = new Resource("", "", "invalid_hash", 0, InAppLayout.DIALOG, null, false, 0, null, null);
-		assertFalse(fileHashChecker.check(new Pair<>(file, resource)));
+		File file = new File("");
+		try(MockedStatic<FileUtils> fileUtilsMockedStatic = Mockito.mockStatic(FileUtils.class)) {
+			fileUtilsMockedStatic.when(() -> FileUtils.getMd5Hash(file)).thenReturn("test_hash");
+			Resource resource = new Resource("", "", "invalid_hash", 0, InAppLayout.DIALOG, null, false, 0, null, null);
+			assertFalse(fileHashChecker.check(new Pair<>(file, resource)));
+		}
 	}
 
 	@Test
 	public void testEmptyHash() {
-		Resource resource = new Resource("", "", "", 0, InAppLayout.DIALOG, null, false, 0, null, null);
-		assertTrue(fileHashChecker.check(new Pair<>(file, resource)));
+		File file = new File("");
+		try(MockedStatic<FileUtils> fileUtilsMockedStatic = Mockito.mockStatic(FileUtils.class)) {
+			fileUtilsMockedStatic.when(() -> FileUtils.getMd5Hash(file)).thenReturn("test_hash");
+			Resource resource = new Resource("", "", "", 0, InAppLayout.DIALOG, null, false, 0, null, null);
+			assertTrue(fileHashChecker.check(new Pair<>(file, resource)));
+		}
 	}
 
 	@Test
 	public void testNullHash() {
-		Resource resource = new Resource("", "", null, 0, InAppLayout.DIALOG, null, false, 0, null, null);
-		assertTrue(fileHashChecker.check(new Pair<>(file, resource)));
+		File file = new File("");
+		try(MockedStatic<FileUtils> fileUtilsMockedStatic = Mockito.mockStatic(FileUtils.class)) {
+			fileUtilsMockedStatic.when(() -> FileUtils.getMd5Hash(file)).thenReturn("test_hash");
+			Resource resource = new Resource("", "", null, 0, InAppLayout.DIALOG, null, false, 0, null, null);
+			assertTrue(fileHashChecker.check(new Pair<>(file, resource)));
+		}
 	}
 }

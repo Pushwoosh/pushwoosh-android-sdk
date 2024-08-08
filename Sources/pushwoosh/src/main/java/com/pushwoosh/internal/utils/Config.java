@@ -49,6 +49,8 @@ public interface Config {
 	String getXiaomiAppId();
 	String getXiaomiAppKey();
 	String getXiaomiAppRegion();
+	String getApiToken();
+
 
 	/**
 	 * @return Sets logging level.

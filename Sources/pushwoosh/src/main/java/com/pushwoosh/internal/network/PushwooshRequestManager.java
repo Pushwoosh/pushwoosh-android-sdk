@@ -11,8 +11,10 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
+import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 
@@ -190,6 +192,10 @@ class PushwooshRequestManager implements RequestManager {
 		registrationPrefs.baseUrl().set(url);
 	}
 
+	private String getApiToken() {
+		return "Token " + PushwooshPlatform.getInstance().getConfig().getApiToken();
+	}
+
 	private NetworkResult makeRequest(final String baseUrl, JSONObject data, String methodName) throws Exception {
 		try {
 			URL url = new URL(baseUrl + methodName);
@@ -198,6 +204,7 @@ class PushwooshRequestManager implements RequestManager {
 
 			connection.setRequestMethod("POST");
 			connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+			connection.setRequestProperty("Authorization", getApiToken());
 			connection.setDoOutput(true);
 
 			JSONObject requestJson = new JSONObject();

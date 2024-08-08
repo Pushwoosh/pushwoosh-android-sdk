@@ -26,11 +26,11 @@
 
 package com.pushwoosh.internal.utils;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.pushwoosh.internal.PluginProvider;
 
-
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 public class MockConfig {
 

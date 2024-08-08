@@ -47,10 +47,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 import org.skyscreamer.jsonassert.JSONAssert;
 
@@ -68,7 +70,8 @@ import java.util.Date;
 
 @SuppressWarnings("unchecked")
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
+@LooperMode(LooperMode.Mode.LEGACY)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class InAppTest {
 	private PlatformTestManager platformTestManager;
 

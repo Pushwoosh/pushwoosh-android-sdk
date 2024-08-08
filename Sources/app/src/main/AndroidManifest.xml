@@ -41,6 +41,10 @@
             android:name="com.pushwoosh.trusted_package_names"
             android:value="com.pushwoosh.demoapp,com.pushwoosh.test"/>
 
+        <meta-data
+            android:name="com.pushwoosh.apitoken"
+            android:value="2Ih9EsuJufCDEtAkAXw1Eu7xJB55nO7YYuPDj3pwkGONJ3TPAv20OeR1YxTJFgJ4hYb4Yr83lUXcMpEeECcd" />
+
         <!-- <meta-data -->
         <!-- android:name="com.pushwoosh.notification_icon" -->
         <!-- android:value="@drawable/notification_small_icon" /> -->

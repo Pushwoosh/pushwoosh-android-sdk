@@ -8,11 +8,12 @@ import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static org.junit.Assert.assertEquals;
 
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
+@Config(manifest = "AndroidManifest.xml")
 public class GeneralUtilsTest {
 
 	@Test(expected = IllegalArgumentException.class)

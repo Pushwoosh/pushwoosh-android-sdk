@@ -33,6 +33,7 @@ import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.repository.LocalNotificationStorage;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.testutil.PlatformTestManager;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
 
@@ -44,7 +45,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -55,7 +55,7 @@ import java.util.Set;
 
 import static com.pushwoosh.notification.LocalNotificationReceiver.EXTRA_NOTIFICATION_ID;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -79,7 +79,7 @@ public class LocalNotificationReceiverTest {
         MockitoAnnotations.initMocks(this);
         platformTestManager = new PlatformTestManager();
         platformTestManager.setUp();
-        Whitebox.setInternalState(PushwooshPlatform.getInstance(), "notificationServiceExtension", notificationServiceExtensionMock);
+        WhiteboxHelper.setInternalState(PushwooshPlatform.getInstance(), "notificationServiceExtension", notificationServiceExtensionMock);
         localNotificationReceiver = new LocalNotificationReceiver();
 
 

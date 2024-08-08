@@ -40,6 +40,7 @@ import com.pushwoosh.internal.platform.prefs.PrefsProvider;
 import com.pushwoosh.internal.utils.AppVersionProvider;
 import com.pushwoosh.internal.utils.TimeProvider;
 import com.pushwoosh.testutil.PlatformTestManager;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
 import org.junit.Before;
@@ -48,19 +49,20 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class BusinessCasesManagerTest {
     public static final String CODE_1 = "code1";
     public static final String CODE_2 = "code2";
@@ -131,7 +133,7 @@ public class BusinessCasesManagerTest {
         businessCaseMap.put(BusinessCasesManager.APP_UPDATE_CASE, businessCaseUpdate);
         when(businessCaseUpdate.getUid()).thenReturn(BusinessCasesManager.APP_UPDATE_CASE);
 
-        Whitebox.setInternalState(businessCasesManager, "businessCases", businessCaseMap);
+        WhiteboxHelper.setInternalState(businessCasesManager, "businessCases", businessCaseMap);
     }
 
     @After
@@ -194,19 +196,6 @@ public class BusinessCasesManagerTest {
         when(inAppStorage.getResource(eq(CODE_2))).thenReturn(updateResource);
         when(inAppStorage.getResource(eq(CODE_3))).thenReturn(recoveryResource);
     }
-
-    //todo this not working know
-    /*@Test
-    public void processBusinessCasesDataFromJson() throws JSONException {
-        addResourceMockStorage();
-
-        JSONObject json = new JSONObject(JSON_IN_APPS);
-        BusinessCasesManager.processBusinessCasesData(json);
-
-        verify(businessCaseWelcome).setInAppId(eq(CODE_1));
-        verify(businessCaseUpdate).setInAppId(eq(CODE_2));
-        verify(businessCaseRecovery).setInAppId(eq(CODE_3));
-    }*/
 
     @Test
     public void resetBusinessCasesFrequencyCapping() {

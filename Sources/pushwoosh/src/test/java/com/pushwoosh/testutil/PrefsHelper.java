@@ -26,6 +26,7 @@
 
 package com.pushwoosh.testutil;
 
+import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.notification.SoundType;
 import com.pushwoosh.notification.VibrateType;
 import com.pushwoosh.repository.LocalNotificationStorage;
@@ -45,6 +46,7 @@ public class PrefsHelper {
 		tearDownNotificationPrefs();
 		tearDownRegistrationPrefs();
 		tearDowmLocalNotificationStorage();
+		EventBus.clearSubscribersMap();
 	}
 
 	private static void tearDownNotificationPrefs() {

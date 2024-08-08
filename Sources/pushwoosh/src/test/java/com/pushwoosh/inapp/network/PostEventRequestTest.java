@@ -41,6 +41,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.LooperMode;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 
@@ -50,10 +51,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
+@LooperMode(LooperMode.Mode.LEGACY)
 public class PostEventRequestTest {
 
 	private PlatformTestManager platformTestManager;
@@ -83,6 +85,7 @@ public class PostEventRequestTest {
 	@Test
 	public void testBuildParams() throws Exception {
 		PostEventRequest request = new PostEventRequest("testEvent", "", Tags.intTag("intTag", 15));
+
 
 		JSONObject params = PushRequestHelper.getParams(request);
 		assertThat(params.getString("application"), is(equalTo(APP_ID)));

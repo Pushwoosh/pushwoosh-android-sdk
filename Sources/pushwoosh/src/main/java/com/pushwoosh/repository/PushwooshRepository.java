@@ -269,7 +269,7 @@ public class PushwooshRepository {
         if (requestManager == null) {
             return;
         }
-        requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
+        requestManager.sendRequest(request, null, new CacheFailedRequestCallback<>(request, requestStorage));
     }
 
     public void prefetchTags() {

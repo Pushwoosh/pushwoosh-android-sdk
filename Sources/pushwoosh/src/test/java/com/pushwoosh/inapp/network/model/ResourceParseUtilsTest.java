@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,7 +43,7 @@ import java.util.Map;
  * Created by aevstefeev on 07/03/2018.
  */
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
+@Config(manifest = "AndroidManifest.xml")
 public class ResourceParseUtilsTest {
 
     @Test

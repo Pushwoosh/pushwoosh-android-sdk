@@ -37,11 +37,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.robolectric.annotation.Config;
 
 import java.util.Locale;
 
 import static org.junit.Assert.*;
 
+@Config(manifest = "AndroidManifest.xml")
 public class AppOpenRequestTest extends BaseTest {
 
 

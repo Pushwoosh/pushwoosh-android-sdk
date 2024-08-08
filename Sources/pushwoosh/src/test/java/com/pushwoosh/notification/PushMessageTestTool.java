@@ -30,7 +30,6 @@ import androidx.annotation.NonNull;
 
 import org.json.JSONObject;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 
 /**
  * Created by aevstefeev on 13/03/2018.
@@ -48,7 +47,7 @@ public class PushMessageTestTool {
 
     @NonNull
     public PushMessage getPushMessagePowerMock(boolean isSilent) {
-        PushMessage pushMessage = PowerMockito.mock(PushMessage.class);
+        PushMessage pushMessage = Mockito.mock(PushMessage.class);
         setData(isSilent, pushMessage);
         return pushMessage;
     }

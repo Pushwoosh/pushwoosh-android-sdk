@@ -7,6 +7,7 @@ import android.webkit.WebView;
 
 import com.pushwoosh.richmedia.RichMediaStyle;
 import com.pushwoosh.richmedia.animation.RichMediaAnimation;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,15 +15,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.powermock.reflect.Whitebox;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import static com.pushwoosh.inapp.network.model.InAppLayout.FULLSCREEN;
-import static org.mockito.Matchers.any;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class ResourceWebViewTest {
 
     private ResourceWebView resourceWebView;
@@ -46,8 +46,8 @@ public class ResourceWebViewTest {
         context = Mockito.spy(RuntimeEnvironment.application);
         richMediaStyle.setRichMediaAnimation(richMediaAnimation);
         resourceWebView = new ResourceWebView(context, FULLSCREEN, richMediaStyle, false);
-        contentView = Whitebox.getInternalState(resourceWebView, "container");
-        webView = Whitebox.getInternalState(resourceWebView, "webView");
+        contentView = (View) WhiteboxHelper.getInternalState(resourceWebView, "container");
+        webView = (WebView) WhiteboxHelper.getInternalState(resourceWebView, "webView");
     }
 
     @Test

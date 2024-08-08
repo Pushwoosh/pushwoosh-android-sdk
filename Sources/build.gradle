@@ -33,10 +33,10 @@ allprojects {
 }
 
 subprojects {
-    ext.global_minSdkVersion = 21
+    ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 33
     ext.global_targetVersion = 34
-    ext.global_versionName = "6.7.11"
+    ext.global_versionName = "6.7.12"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.1.0"
@@ -50,5 +50,6 @@ subprojects {
     ext.workManager = "2.7.1"
     ext.swipe_refresh_layout = "1.0.0"
     ext.huawei = "6.1.0.300"
+    ext.mockito = "5.8.0"
 }
 

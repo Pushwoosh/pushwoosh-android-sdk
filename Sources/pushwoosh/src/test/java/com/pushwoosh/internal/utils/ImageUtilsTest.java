@@ -15,11 +15,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class ImageUtilsTest {
 
     public static final int WIDTH = 101;
@@ -51,7 +53,7 @@ public class ImageUtilsTest {
 
         Bitmap result = imageUtils.drawableToBitmap(drawable);
         //todo inject canvas to ImageUtils
-        verify(drawable).setBounds(0, 0, 0, 0);
+        verify(drawable).setBounds(0, 0, WIDTH, HEIGHT);
         drawable.draw(Mockito.any(Canvas.class));
 
         Assert.assertEquals(HEIGHT, result.getHeight());

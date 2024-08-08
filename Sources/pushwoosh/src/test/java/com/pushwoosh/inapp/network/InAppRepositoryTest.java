@@ -48,6 +48,7 @@ import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.tags.Tags;
 import com.pushwoosh.testutil.CallbackWrapper;
 import com.pushwoosh.testutil.PlatformTestManager;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -60,21 +61,19 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import org.mockito.internal.util.reflection.Whitebox;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.annotation.LooperMode;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -85,6 +84,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
+@LooperMode(LooperMode.Mode.LEGACY)
 public class InAppRepositoryTest {
     public static final String TEST_EXCEPTION_STRING = "test_exception";
     public static final NetworkException EXCEPTION = new NetworkException(TEST_EXCEPTION_STRING);
@@ -116,7 +116,7 @@ public class InAppRepositoryTest {
         inAppRepository = new InAppRepository(requestManagerMock, inAppStorageMock,
                 inAppDownloaderMock, resourceMapperMock, inAppFolderProviderMock, platformTestManager.getRegistrationPrefs());
 
-        Whitebox.setInternalState(inAppRepository, "inAppDeployedChecker", inAppDeployedCheckerMock);
+        WhiteboxHelper.setInternalState(inAppRepository, "inAppDeployedChecker", inAppDeployedCheckerMock);
 
 
     }
@@ -159,7 +159,7 @@ public class InAppRepositoryTest {
         inAppRepository.setUserId(userId);
         ArgumentCaptor<RegisterUserRequest> requestCaptor = ArgumentCaptor.forClass(RegisterUserRequest.class);
         verify(requestManagerMock)
-                .sendRequest(requestCaptor.capture(), any(CacheFailedRequestCallback.class));
+                .sendRequest(requestCaptor.capture(), any(Callback.class));
         JSONObject param = new JSONObject();
         requestCaptor.getValue().buildParams(param);
         Assert.assertEquals(userId, param.get("userId"));

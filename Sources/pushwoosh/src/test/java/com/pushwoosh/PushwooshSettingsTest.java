@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
  */
 
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class PushwooshSettingsTest {
 	private PlatformTestManager platformTestManager;
 

@@ -59,7 +59,6 @@ import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.shadows.ShadowLog;
 
@@ -72,8 +71,7 @@ import androidx.work.testing.WorkManagerTestInitHelper;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
-
+import static org.mockito.Mockito.when;
 
 public class PlatformTestManager {
 	private final RequestManagerMock requestManagerMock;
@@ -146,8 +144,8 @@ public class PlatformTestManager {
 		PushwooshInAppServiceImpl pushwooshInAppServiceMock = Mockito.mock(PushwooshInAppServiceImpl.class);
 
 		PushwooshInAppImpl pushwooshInApp= (PushwooshInAppImpl)
-				Whitebox.getInternalState(pushwooshPlatform, "pushwooshInApp");
-		Whitebox.setInternalState(pushwooshInApp, "pushwooshInAppService", pushwooshInAppServiceMock);
+				WhiteboxHelper.getInternalState(pushwooshPlatform, "pushwooshInApp");
+		WhiteboxHelper.setInternalState(pushwooshInApp, "pushwooshInAppService", pushwooshInAppServiceMock);
 	}
 
 	public RequestManagerMock getRequestManager() {
@@ -160,9 +158,9 @@ public class PlatformTestManager {
 
 	public PushwooshRepository getPushwooshRepositoryMock() {
 		PushwooshRepository pushwooshRepository = (PushwooshRepository)
-				Whitebox.getInternalState(pushwooshPlatform, "pushwooshRepository");
+				WhiteboxHelper.getInternalState(pushwooshPlatform, "pushwooshRepository");
 		pushwooshRepositoryMock = Mockito.spy(pushwooshRepository);
-		Whitebox.setInternalState(pushwooshPlatform,"pushwooshRepository", pushwooshRepositoryMock);
+		WhiteboxHelper.setInternalState(pushwooshPlatform,"pushwooshRepository", pushwooshRepositoryMock);
 		return pushwooshRepositoryMock;
 	}
 
@@ -221,8 +219,7 @@ public class PlatformTestManager {
 
 	public void tearDown() {
 		PrefsHelper.tearDownPrefs();
-		Map<Class<? extends Event>, List<EventListener<?>>> mapEvent = org.powermock.reflect.Whitebox
-                .getInternalState(EventBus.class, "SUBSCRIBERS_MAP");
-		mapEvent.clear();
+//		Map<Class<? extends Event>, List<EventListener<?>>> mapEvent = (Map<Class<? extends Event>, List<EventListener<?>>>) WhiteboxHelper.getInternalState(EventBus.class, "SUBSCRIBERS_MAP");
+//		mapEvent.clear();
 	}
 }

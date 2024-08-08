@@ -15,18 +15,17 @@ import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.platform.prefs.PrefsProvider;
 import com.pushwoosh.internal.utils.AppVersionProvider;
 import com.pushwoosh.internal.utils.TimeProvider;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.invocation.InvocationOnMock;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,16 +33,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.doAnswer;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BusinessCasesManager.class, Looper.class})
 public class BusinessCasesTriggerCaseTest {
     public static final String CODE_1 = "code1";
     public static final long UPDATED_WELCOME = 1L;
@@ -70,31 +68,29 @@ public class BusinessCasesTriggerCaseTest {
 
     @Before
     public void setUp() throws Exception {
-        PowerMockito.mockStatic(Looper.class);
-        Looper mockMainThreadLooper = PowerMockito.mock(Looper.class);
-        when(Looper.getMainLooper()).thenReturn(mockMainThreadLooper);
-        Handler mockMainThreadHandler = PowerMockito.mock(Handler.class);
-        Answer<Boolean> handlerPostAnswer = new Answer<Boolean>() {
-            @Override
-            public Boolean answer(InvocationOnMock invocation) throws Throwable {
-                Runnable runnable = invocation.getArgumentAt(0, Runnable.class);
+        Looper mockMainThreadLooper;
+        Handler mockMainThreadHandler;
+        Answer<Boolean> handlerPostAnswer;
+        HandlerThread handlerThread;
+        try (MockedStatic<Looper> looperMockedStatic = Mockito.mockStatic(Looper.class)) {
+            mockMainThreadLooper = Mockito.mock(Looper.class);
+            looperMockedStatic.when(Looper::getMainLooper).thenReturn(mockMainThreadLooper);
+            mockMainThreadHandler = Mockito.mock(Handler.class);
+            handlerPostAnswer = invocation -> {
+                Runnable runnable = invocation.getArgument(0, Runnable.class);
                 Long delay = 0L;
                 if (invocation.getArguments().length > 1) {
-                    delay = invocation.getArgumentAt(1, Long.class);
+                    delay = invocation.getArgument(1, Long.class);
                 }
                 if (runnable != null) {
                     mainThread.schedule(runnable, delay, TimeUnit.MILLISECONDS);
                 }
                 return true;
-            }
-        };
+            };
+        }
         doAnswer(handlerPostAnswer).when(mockMainThreadHandler).post(any(Runnable.class));
         doAnswer(handlerPostAnswer).when(mockMainThreadHandler).postDelayed(any(Runnable.class), anyLong());
-        PowerMockito.whenNew(Handler.class).withAnyArguments().thenReturn(mockMainThreadHandler);
-        HandlerThread handlerThread = PowerMockito.mock(HandlerThread.class);
-        PowerMockito.whenNew(HandlerThread.class)
-                .withAnyArguments()
-                .thenReturn(handlerThread);
+        handlerThread = Mockito.mock(HandlerThread.class);
 
         applicationInfoMock.metaData = metaDataMock;
         when(appInfoProviderMock.getApplicationInfo()).thenReturn(applicationInfoMock);
@@ -102,7 +98,7 @@ public class BusinessCasesTriggerCaseTest {
         businessCasesManager = new BusinessCasesManager(prefsProviderMock, appInfoProviderMock, timeProviderMock, appVersionProvider);
         Map<String, BusinessCase> businessCaseMap = new HashMap<>();
         businessCaseMap.put(BusinessCasesManager.WELCOME_CASE, businessCaseWelcome);
-        Whitebox.setInternalState(businessCasesManager, "businessCases", businessCaseMap);
+        WhiteboxHelper.setInternalState(businessCasesManager, "businessCases", businessCaseMap);
 
         InAppStorage inAppStorage = mock(InAppStorage.class);
         InAppModule.setInAppStorage(inAppStorage);

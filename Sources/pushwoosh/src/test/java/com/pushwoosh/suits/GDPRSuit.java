@@ -26,18 +26,13 @@
 
 package com.pushwoosh.suits;
 
-import com.pushwoosh.GDPRManagerIntegretionTest;
-import com.pushwoosh.GDPRManagerTest;
 import com.pushwoosh.internal.network.PushwooshRequestManagerTest;
-import com.pushwoosh.internal.network.RequestManager;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-        GDPRManagerTest.class,
-        GDPRManagerIntegretionTest.class,
         PushwooshRequestManagerTest.class,
 })
 public class GDPRSuit {

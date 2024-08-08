@@ -26,15 +26,17 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+import org.robolectric.annotation.LooperMode;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -42,6 +44,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
+@LooperMode(LooperMode.Mode.LEGACY)
 public class RequestStorageTest {
     private static final String APP_ID_REQUEST_BODY =
             "{\"application\":\"testAppId\"," +
@@ -217,7 +221,7 @@ public class RequestStorageTest {
     @Test
     @SmallTest
     public void shouldNotFailIfDbThrowExceptiondAdd() {
-        doThrow(Exception.class)
+        doThrow(RuntimeException.class)
                 .when(db)
                 .insert(eq("REQUEST"), eq(null), any());
 
@@ -227,7 +231,7 @@ public class RequestStorageTest {
     @Test
     @SmallTest
     public void shouldNotFailIfDbThrowExceptiondGetAll() {
-        doThrow(Exception.class)
+        doThrow(RuntimeException.class)
                 .when(db)
                 .rawQuery(anyString(), any());
         requestStorage.get(0);
@@ -236,7 +240,7 @@ public class RequestStorageTest {
     @Test
     @SmallTest
     public void shouldNotFailIfDbThrowExceptiondRemove() {
-        doThrow(Exception.class)
+        doThrow(RuntimeException.class)
                 .when(db)
                 .delete(anyString(), anyString(), any());
         requestStorage.remove(TEST_KEY);

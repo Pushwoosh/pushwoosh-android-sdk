@@ -27,7 +27,8 @@
 package com.pushwoosh.repository;
 
 
-import com.pushwoosh.BuildConfig;
+import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.platform.ApplicationOpenDetector;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
@@ -39,10 +40,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 
 
@@ -50,14 +53,15 @@ import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
+@LooperMode(LooperMode.Mode.LEGACY)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class UpdateRegistrationTest {
 	private static final String PUSH_TOKEN = "test_pushToken";
 	public static final String TEST_PROJECT_ID = "testProjectId";
@@ -86,6 +90,7 @@ public class UpdateRegistrationTest {
 		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
 		Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
 
+
 		registrationPrefs.pushToken().set(PUSH_TOKEN);
 		registrationPrefs.forceRegister().set(true);
 		registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 10);
@@ -94,6 +99,8 @@ public class UpdateRegistrationTest {
 		// Steps:
 		platformTestManager.onApplicationCreated();
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+		EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
 
 		// Postconditions:
 		verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
@@ -117,10 +124,12 @@ public class UpdateRegistrationTest {
 
 		//Steps
 		platformTestManager.getNotificationManager().setAppId(newAppId);
+		EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
+
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		// Postconditions:
-		verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
+		verify(expectation, timeout(100).times(2)).fulfilled(requestCaptor.capture());
 		JSONObject params = requestCaptor.getValue();
 
 		assertThat(params.getString("application"), is(equalTo(newAppId)));
@@ -194,7 +203,7 @@ public class UpdateRegistrationTest {
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		// Postconditions:
-		verify(pushRegistrar).registerPW();
+		verify(pushRegistrar).registerPW(null);
 		assertThat(newSenderId, is(equalTo(registrationPrefs.projectId().get())));
 	}
 
@@ -213,7 +222,7 @@ public class UpdateRegistrationTest {
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		// Postconditions:
-		verify(pushRegistrar, never()).registerPW();
+		verify(pushRegistrar, never()).registerPW(null);
 		assertThat(newSenderId, is(equalTo(registrationPrefs.projectId().get())));
 	}
 
@@ -284,6 +293,8 @@ public class UpdateRegistrationTest {
 		// Steps:
 		platformTestManager.onApplicationCreated();
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+		EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
 
 		// Postconditions:
 		verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());

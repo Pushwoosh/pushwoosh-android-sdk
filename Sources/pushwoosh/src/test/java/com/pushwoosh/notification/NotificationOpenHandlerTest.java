@@ -46,17 +46,18 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.Iterator;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class NotificationOpenHandlerTest {
 
     private NotificationOpenHandler notificationOpenHandler;
@@ -128,8 +129,8 @@ public class NotificationOpenHandlerTest {
         verify(AndroidPlatformModule.getApplicationContext()).startActivity(intentArgumentCaptor.capture());
         Assert.assertEquals(1, intentArgumentCaptor.getAllValues().size());
         Intent intent = intentArgumentCaptor.getValue();
-        Assert.assertEquals("com.pushwoosh.MESSAGE", intent.getAction());
-        Assert.assertEquals("Bundle[{PUSH_RECEIVE_EVENT={\"one\":\"1\",\"l\":\"http:\\\\\\\\link\",\"two\":true,\"three\":3}}]",
+        Assert.assertEquals("com.pushwoosh.test.MESSAGE", intent.getAction());
+        Assert.assertEquals("Bundle[{PUSH_RECEIVE_EVENT={\"l\":\"http:\\\\\\\\link\",\"one\":\"1\",\"two\":true,\"three\":3}}]",
                 intent.getExtras().toString());
     }
 

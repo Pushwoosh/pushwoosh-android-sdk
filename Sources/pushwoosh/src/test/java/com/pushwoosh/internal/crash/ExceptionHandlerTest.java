@@ -23,6 +23,7 @@ import java.lang.ref.WeakReference;
 import static org.mockito.Mockito.mock;
 
 @RunWith(RobolectricTestRunner.class)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class ExceptionHandlerTest {
     private ExceptionHandler exceptionHandler;
     private Thread testThread;

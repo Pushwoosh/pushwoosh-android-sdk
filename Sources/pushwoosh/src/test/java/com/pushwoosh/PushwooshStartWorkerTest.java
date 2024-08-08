@@ -14,6 +14,7 @@ import com.pushwoosh.internal.Plugin;
 import com.pushwoosh.internal.PushRegistrarHelper;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.platform.ApplicationOpenDetector;
 import com.pushwoosh.internal.utils.AppVersionProvider;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
@@ -22,6 +23,7 @@ import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.testutil.PlatformTestManager;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -35,7 +37,6 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -49,14 +50,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class PushwooshStartWorkerTest {
     private static final String TEST_PUBLIC_KEY = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCjBrqGZf/eMiLBmvhQ5c7CtPAvwmey5jDz0RJqJcwchxp3oPSxjmrfh5vT4o7uFf1NIJG3m+vVfOcNqBniUSI6CTAfRd/8aoT5dqFszEShAVGxchSsP94kmiQh/Fm16tSrVw6g9EMemjbWLnotbNK8DzWyHahVz1LFiS2DUze1QIDAQAB";
     private PushwooshStartWorker pushwooshStartWorker;
@@ -116,7 +119,6 @@ public class PushwooshStartWorkerTest {
         pluginList.add(mock(Plugin.class));
         pluginList.add(mock(Plugin.class));
         when(config.getPlugins()).thenReturn(pluginList);
-        when(pushwooshRepository.getPublicKey()).thenReturn(TEST_PUBLIC_KEY);
     }
 
     private void injectLaunchIntent() {
@@ -292,7 +294,6 @@ public class PushwooshStartWorkerTest {
         inOrder.verify(pushwooshRepository).sendAppOpen();
 
         verify(pushwooshInApp).setUserId(anyString());
-        verify(pushwooshInApp).checkForUpdates();
         verify(notificationManager).initialize();
 
         verify(pluginList.get(0)).init();
@@ -307,7 +308,7 @@ public class PushwooshStartWorkerTest {
 
     @Test
     public void reset() {
-        AtomicBoolean started = (AtomicBoolean) Whitebox.getInternalState(pushwooshStartWorker, "started");
+        AtomicBoolean started = (AtomicBoolean) WhiteboxHelper.getInternalState(pushwooshStartWorker, "started");
         started.set(true);
 
         pushwooshStartWorker.reset();

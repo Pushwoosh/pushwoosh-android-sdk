@@ -91,6 +91,10 @@ public final class EventBus {
 		}
 	}
 
+    public static Map<Class<? extends Event>, List<EventListener<?>>> getSubscribersMap() { return SUBSCRIBERS_MAP; }
+    public static void clearSubscribersMap() {
+        SUBSCRIBERS_MAP.clear();
+    }
 
     private EventBus() {/*do nothing*/}
 

@@ -57,7 +57,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class ResourceMapperTest {
     String htmlData;
     Map<String,String> tags = new HashMap<>();

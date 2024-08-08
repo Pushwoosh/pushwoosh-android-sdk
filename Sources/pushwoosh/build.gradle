@@ -33,17 +33,16 @@ android {
     defaultConfig {
         versionName global_versionName
         minSdkVersion global_minSdkVersion
+        buildConfigField("String","VERSION_NAME","\"${defaultConfig.versionName}\"")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
-            buildConfigField("String","VERSION_NAME","\"${defaultConfig.versionName}\"")
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../proguard-common.txt',
                     'proguard/public.txt', 'proguard/protected.txt'
         }
         debug {
-            buildConfigField("String","VERSION_NAME","\"${defaultConfig.versionName}\"")
             minifyEnabled false
         }
         coverage {
@@ -62,6 +61,14 @@ android {
                 includeNoLocationClasses = true
             }
         }
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
+    tasks.withType(Test) {
+        jacoco.includeNoLocationClasses = true
+        jacoco.excludes = ['jdk.internal.*']
     }
 
     useLibrary 'android.test.runner'
@@ -75,29 +82,23 @@ dependencies {
     implementation "androidx.legacy:legacy-support-v4:${legacy_support_v4}"
 
     androidTestImplementation "androidx.annotation:annotation:${support}"
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test:rules:1.1.5'
-    androidTestImplementation 'junit:junit:4.12'
-    androidTestImplementation 'org.mockito:mockito-core:1.10.19'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'junit:junit:4.13.2'
+    androidTestImplementation "org.mockito:mockito-core:${mockito}"
 
     testImplementation "androidx.work:work-testing:${workManager}"
-    testImplementation 'junit:junit:4.12'
-    testImplementation 'org.mockito:mockito-core:1.10.19'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation "org.mockito:mockito-core:${mockito}"
     testImplementation files('testLibs/json.jar')
 
     testImplementation 'org.hamcrest:hamcrest-core:1.3'
     testImplementation 'org.hamcrest:hamcrest-integration:1.3'
     testImplementation 'org.hamcrest:hamcrest-library:1.3'
 
-    testImplementation 'org.robolectric:robolectric:3.8'
-    testImplementation 'org.robolectric:shadows-multidex:3.3.1'
-    testImplementation 'org.robolectric:shadows-play-services:3.3.1'
-    testImplementation 'org.robolectric:shadows-httpclient:3.3.1'
-
-    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
-    testImplementation 'org.powermock:powermock-module-junit4-rule:1.6.6'
-    testImplementation 'org.powermock:powermock-api-mockito2:1.6.6'
-    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
+    testImplementation 'org.robolectric:robolectric:4.13'
+    testImplementation 'org.robolectric:shadows-multidex:4.13'
+    testImplementation 'org.robolectric:shadows-httpclient:4.13'
 
     testImplementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
     testImplementation 'org.skyscreamer:jsonassert:1.5.0'

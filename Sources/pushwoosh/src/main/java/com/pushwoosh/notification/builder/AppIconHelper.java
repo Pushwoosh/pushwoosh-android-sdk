@@ -44,10 +44,10 @@ import androidx.annotation.RequiresApi;
 import com.pushwoosh.internal.utils.PWLog;
 
 @RequiresApi(Build.VERSION_CODES.M)
-class AppIconHelper {
+public class AppIconHelper {
 
 	@Nullable
-	static Icon getAppIcon(@Nullable Context context, String packageName) {
+	public static Icon getAppIcon(@Nullable Context context, String packageName) {
 		if (context == null) {
 			return null;
 		}

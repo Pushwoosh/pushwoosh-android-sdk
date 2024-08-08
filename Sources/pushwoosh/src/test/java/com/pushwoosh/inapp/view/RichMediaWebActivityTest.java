@@ -12,6 +12,7 @@ import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.richmedia.RichMediaStyle;
 import com.pushwoosh.richmedia.animation.RichMediaAnimationSlideTop;
 import com.pushwoosh.testutil.PlatformTestManager;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -23,17 +24,18 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.powermock.reflect.Whitebox;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class RichMediaWebActivityTest {
 
     private RichMediaWebActivity richMediaWebActivity;
@@ -132,8 +134,8 @@ public class RichMediaWebActivityTest {
     @Test
     public void onSaveInstanceStateShouldSaveAnimationSate(){
         Bundle bundle = new Bundle();
-        Whitebox.setInternalState(richMediaWebActivity, "isAnimated", true);
-        Whitebox.setInternalState(richMediaWebActivity, "isAnimatedClose", true);
+        WhiteboxHelper.setInternalState(richMediaWebActivity, "isAnimated", true);
+        WhiteboxHelper.setInternalState(richMediaWebActivity, "isAnimatedClose", true);
 
         richMediaWebActivity.onSaveInstanceState(bundle);
 

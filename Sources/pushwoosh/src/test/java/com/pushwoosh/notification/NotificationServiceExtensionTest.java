@@ -6,6 +6,7 @@ import android.os.Bundle;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.testutil.PlatformTestManager;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -16,15 +17,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.robolectric.RobolectricTestRunner;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 @RunWith(RobolectricTestRunner.class)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class NotificationServiceExtensionTest {
     private Bundle pushBundle;
     private NotificationServiceExtension notificationServiceExtension;
@@ -61,11 +62,11 @@ public class NotificationServiceExtensionTest {
         MockitoAnnotations.initMocks(this);
         pushBundle = new Bundle();
         notificationServiceExtension = new NotificationServiceExtensionTestable();
-        Whitebox.setInternalState(notificationServiceExtension, "pushMessageFactory", pushMessageFactory);
-        Whitebox.setInternalState(notificationServiceExtension, "applicationContext", context);
-        Whitebox.setInternalState(notificationServiceExtension, "notificationOpenHandler", notificationOpenHandler);
-        Whitebox.setInternalState(notificationServiceExtension, "pushMessageHandler", pushMessageHandler);
-        Whitebox.setInternalState(notificationServiceExtension,"pushNotificationManager", pushNotificationManager);
+        WhiteboxHelper.setInternalState(notificationServiceExtension, "pushMessageFactory", pushMessageFactory);
+        WhiteboxHelper.setInternalState(notificationServiceExtension, "applicationContext", context);
+        WhiteboxHelper.setInternalState(notificationServiceExtension, "notificationOpenHandler", notificationOpenHandler);
+        WhiteboxHelper.setInternalState(notificationServiceExtension, "pushMessageHandler", pushMessageHandler);
+        WhiteboxHelper.setInternalState(notificationServiceExtension,"pushNotificationManager", pushNotificationManager);
         Mockito.when(configMock.getSendPushStatIfShowForegroundDisabled()).thenReturn(true);
     }
 

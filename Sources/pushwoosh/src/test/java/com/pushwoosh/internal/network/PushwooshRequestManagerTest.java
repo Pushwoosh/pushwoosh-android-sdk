@@ -56,6 +56,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -71,10 +72,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
@@ -83,7 +84,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
-@org.robolectric.annotation.Config(constants = BuildConfig.class)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
+@LooperMode(LooperMode.Mode.LEGACY)
 public class PushwooshRequestManagerTest {
 
 	public static final int TIMEOUT_TEST = 10000;
@@ -114,6 +116,11 @@ public class PushwooshRequestManagerTest {
 			return "testMethod";
 		}
 
+		@Override
+		public boolean shouldUseJitter() {
+			return false;
+		}
+
 		@NonNull
 		@Override
 		protected String getHwid() throws InterruptedException {
@@ -140,6 +147,11 @@ public class PushwooshRequestManagerTest {
 		}
 
 		@Override
+		public boolean shouldUseJitter() {
+			return false;
+		}
+
+		@Override
 		protected void buildParams(JSONObject params) throws JSONException {
 			throw new JSONException("test invalid params");
 		}
@@ -157,6 +169,9 @@ public class PushwooshRequestManagerTest {
 		public String getMethod() {
 			return "testBadResponse";
 		}
+
+		@Override
+		public boolean shouldUseJitter() {return  false;}
 
 		@Override
 		public Void parseResponse(@NonNull JSONObject response) throws JSONException {
@@ -189,7 +204,7 @@ public class PushwooshRequestManagerTest {
 
 		ServerCommunicationManager serverCommunicationManager = mock(ServerCommunicationManager.class);
 		Mockito.when(serverCommunicationManager.isServerCommunicationAllowed()).thenReturn(true);
-		requestManager = new PushwooshRequestManager(registrationPrefs, null, serverCommunicationManager);
+		requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager);
 
 		pushRegistrarMock = mock(PushRegistrar.class);
 

@@ -56,7 +56,7 @@ public class PushwooshNotificationManager {
     private Config config;
     private AtomicBoolean pushesRescheduled = new AtomicBoolean(false);
     private AtomicBoolean appIdReadyEventSent = new AtomicBoolean(false);
-    private static final long EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 60;
+    private static final long EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 14;
     public PushwooshNotificationManager(PushRegistrar pushRegistrar, Config config) {
         this.config = config;
         this.pushRegistrar = pushRegistrar;
@@ -206,7 +206,7 @@ public class PushwooshNotificationManager {
 
             final String pushToken = registrationPrefs.pushToken().get();
 
-            long regDate = registrationPrefs.lastFirebaseRegistration().get();
+            long regDate = registrationPrefs.lastPushRegistration().get();
             long currentTime = System.currentTimeMillis();
 
             if (TextUtils.isEmpty(pushToken) || (currentTime - regDate) > EXPIRATION_TIME) {

@@ -43,6 +43,7 @@ import static org.junit.Assert.*;
  * Created by aevstefeev on 13/03/2018.
  */
 @RunWith(RobolectricTestRunner.class)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class PushBundleDataProviderTest {
     @Test
     public void getActions() throws Exception {

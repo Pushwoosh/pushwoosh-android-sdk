@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,7 @@ import java.util.Set;
  * Created by aevstefeev on 22/03/2018.
  */
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = "AndroidManifest.xml")
 public class DbLocalNotificationHelperTest extends BaseLocalNotificationTest {
     private DbLocalNotificationHelper dbLocalNotificationHelper;
 
