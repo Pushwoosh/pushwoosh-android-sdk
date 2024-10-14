@@ -33,8 +33,11 @@ import android.os.AsyncTask;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.storage.InAppFolderProvider;
+import com.pushwoosh.inapp.view.ModalRichMediaWindow;
 import com.pushwoosh.inapp.view.RichMediaWebActivity;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.internal.utils.RichMediaType;
+import com.pushwoosh.richmedia.RichMediaManager;
 
 import java.lang.ref.WeakReference;
 
@@ -61,8 +64,12 @@ class InAppDefaultViewStrategy implements ResourceViewStrategy {
 
 		new ShowInAppTask(this, resource, () -> {
 			if (inAppFolderProvider.isInAppDownloaded(resource.getCode())) {
-				Intent intent = RichMediaWebActivity.createInAppIntent(context,resource);
-				context.startActivity(intent);
+				if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.MODAL) {
+					ModalRichMediaWindow.showModalRichMediaWindow(resource, RichMediaManager.getDefaultRichMediaConfig());
+				} else if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.DEFAULT) {
+					Intent intent = RichMediaWebActivity.createInAppIntent(context,resource);
+					context.startActivity(intent);
+				}
 			} else {
 				PWLog.noise(TAG, "resource is not downloaded, abort show inApp");
 			}
@@ -95,8 +102,12 @@ class InAppDefaultViewStrategy implements ResourceViewStrategy {
 			super.onPostExecute(isInAppDownloaded);
 			if (isInAppDownloaded && weakRef.get() != null) {
 				Context context = weakRef.get().context;
-				Intent intent = RichMediaWebActivity.createInAppIntent(context, resource);
-				context.startActivity(intent);
+				if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.MODAL) {
+					ModalRichMediaWindow.showModalRichMediaWindow(resource, RichMediaManager.getDefaultRichMediaConfig());
+				} else if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.DEFAULT) {
+					Intent intent = RichMediaWebActivity.createInAppIntent(context, resource);
+					context.startActivity(intent);
+				}
 			} else {
 				callback.onFail();
 			}

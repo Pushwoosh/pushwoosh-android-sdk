@@ -17,6 +17,12 @@ RichMediaManager class is a manager responsible for Rich Media presentation.
 	<tr>
 		<td><a href="#1ae141ea9c528f8398dd87cd6f3596e395">public static RichMediaStyle getRichMediaStyle()</a></td>
 	</tr>
+	<tr>
+		<td><a href="#1a7051e6266f1bec73efa690bb104c4e6c">public static void setDefaultRichMediaConfig(ModalRichmediaConfig config)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1ad0d2d95837f6b76fe527f44f1e7f5b1d">public static ModalRichmediaConfig getDefaultRichMediaConfig()</a></td>
+	</tr>
 </table>
 
 
@@ -36,3 +42,15 @@ RichMediaManager class is a manager responsible for Rich Media presentation.
   
 
 #### <a name="1ae141ea9c528f8398dd87cd6f3596e395"></a>public static RichMediaStyle getRichMediaStyle()  
+
+
+----------  
+  
+
+#### <a name="1a7051e6266f1bec73efa690bb104c4e6c"></a>public static void setDefaultRichMediaConfig(ModalRichmediaConfig config)  
+
+
+----------  
+  
+
+#### <a name="1ad0d2d95837f6b76fe527f44f1e7f5b1d"></a>public static ModalRichmediaConfig getDefaultRichMediaConfig()  

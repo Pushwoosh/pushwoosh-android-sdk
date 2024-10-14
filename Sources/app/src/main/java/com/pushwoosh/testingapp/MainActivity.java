@@ -8,10 +8,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 
+import com.pushwoosh.inapp.view.config.ModalRichmediaConfig;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaDismissAnimationType;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaPresentAnimationType;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaSwipeGesture;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
 import com.pushwoosh.inbox.data.InboxMessage;
 import com.pushwoosh.inbox.ui.OnInboxMessageClickListener;
 import com.pushwoosh.inbox.ui.PushwooshInboxUi;
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle;
+import com.pushwoosh.richmedia.RichMediaManager;
 import com.pushwoosh.testingapp.helpers.ShowMessageHelper;
 
 import butterknife.ButterKnife;
@@ -46,6 +52,12 @@ public class MainActivity extends AppCompatActivity implements OnInboxMessageCli
         String appOpen = AppPreferencesStrings.APP_OPEN;
 
         PushwooshInboxUi.INSTANCE.setOnMessageClickListener(this);
+        RichMediaManager.setDefaultRichMediaConfig(new ModalRichmediaConfig()
+                .setSwipeGesture(ModalRichMediaSwipeGesture.DOWN)
+                .setViewPosition(ModalRichMediaViewPosition.BOTTOM)
+                .setDismissAnimationType(ModalRichMediaDismissAnimationType.FADE_OUT)
+                .setPresentAnimationType(ModalRichMediaPresentAnimationType.SLIDE_UP)
+                .setAnimationDuration(2000));
 
         ShowMessageHelper.setMessage("Application ready");
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

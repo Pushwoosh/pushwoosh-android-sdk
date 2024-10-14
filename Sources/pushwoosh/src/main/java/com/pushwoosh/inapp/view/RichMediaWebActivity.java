@@ -62,7 +62,7 @@ import com.pushwoosh.richmedia.RichMediaStyle;
 
 import java.lang.ref.WeakReference;
 
-public class RichMediaWebActivity extends WebActivity implements InAppFragment.OnRichMediaListener {
+public class RichMediaWebActivity extends WebActivity implements OnRichMediaListener {
     private static final String TAG = "[InApp]RichMediaWebAct";
     private static final String FRAGMENT_TAG = TAG + "pushwoosh.inAppFragment";
     private static final String KEY_IS_CLOSED = "IS_CLOSED";
@@ -184,14 +184,14 @@ public class RichMediaWebActivity extends WebActivity implements InAppFragment.O
     }
 
     @Override
-    public void startLoading() {
+    public void startLoadingRichMedia() {
         if (resourceWebView != null) {
             resourceWebView.showProgress();
         }
     }
 
     @Override
-    public void finishLoading() {
+    public void finishLoadingRichMedia() {
         if (resourceWebView != null) {
             resourceWebView.hideProgress();
         }

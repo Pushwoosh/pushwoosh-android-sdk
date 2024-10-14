@@ -41,6 +41,7 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.FileUtils;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.internal.utils.RichMediaType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,6 +60,7 @@ class AndroidManifestConfig implements Config {
 	private String apiToken = null;
 	private String logLevel = null;
 	private String requestUrl = null;
+	private String richMediaType = null;
 	private String[] trustedPackageNames = {};
 	private Class<?> notificationService;
 	private Class<?> notificationFactory;
@@ -119,6 +121,10 @@ class AndroidManifestConfig implements Config {
 
 		logLevel = getString(applicationInfo.metaData, "com.pushwoosh.log_level", "PW_LOG_LEVEL");
 		requestUrl = getString(applicationInfo.metaData, "com.pushwoosh.base_url", "PushwooshUrl");
+		richMediaType = getString(applicationInfo.metaData, "com.pushwoosh.rich_media_type", "RichMediaType");
+		if (richMediaType == null) {
+			richMediaType = "Default";
+		}
 
 		notificationService = getClass(applicationInfo.metaData, "com.pushwoosh.notification_service_extension");
 		notificationFactory = getClass(applicationInfo.metaData, "com.pushwoosh.notification_factory");
@@ -359,6 +365,11 @@ class AndroidManifestConfig implements Config {
 	@Override
 	public void setLazySdkInitialization(boolean value) {
 		lazySdkInitialization = value;
+	}
+
+	@Override
+	public RichMediaType getRichMediaType() {
+		return RichMediaType.fromString(richMediaType);
 	}
 
 	@Override

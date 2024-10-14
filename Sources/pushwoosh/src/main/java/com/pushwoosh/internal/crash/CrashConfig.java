@@ -54,7 +54,7 @@ final class CrashConfig {
 	/**
 	 * Rollbar api token.
 	 */
-	static final String API_TOKEN="TOKEN"
+	static final String API_TOKEN="__API_TOKEN__"
 
 	/**
 	 * Header name for api token.

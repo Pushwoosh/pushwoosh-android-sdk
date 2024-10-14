@@ -86,6 +86,9 @@
         <meta-data
             android:name="com.pushwoosh.foreground_service_notification_channel_name"
             android:value="My Forground #@$Service!!!" />
+        <meta-data
+            android:name="com.pushwoosh.rich_media_type"
+            android:value="Modal" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

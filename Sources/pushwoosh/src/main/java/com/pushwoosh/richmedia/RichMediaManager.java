@@ -27,7 +27,15 @@
 package com.pushwoosh.richmedia;
 
 import com.pushwoosh.PushwooshPlatform;
+import com.pushwoosh.inapp.view.config.ModalRichmediaConfig;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaDismissAnimationType;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaPresentAnimationType;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaSwipeGesture;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaWindowWidth;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.repository.NotificationPrefs;
+import com.pushwoosh.repository.RepositoryModule;
 
 /**
  * `RichMediaManager` class is a manager responsible for Rich Media presentation.
@@ -59,5 +67,30 @@ public class RichMediaManager {
         } else {
             return null;
         }
+    }
+
+    public static void setDefaultRichMediaConfig(ModalRichmediaConfig config) {
+        NotificationPrefs prefs = RepositoryModule.getNotificationPreferences();
+
+        prefs.richMediaDismissAnimation().set(config.getDismissAnimationType().getCode());
+        prefs.richMediaPresentAnimation().set(config.getPresentAnimationType().getCode());
+        prefs.richMediaSwipeGesture().set(config.getSwipeGesture().getCode());
+        prefs.richMediaViewPosition().set(config.getViewPosition().getCode());
+        prefs.richMediaWindowWidth().set(config.getWindowWidth().getCode());
+        prefs.richMediaStatusBarCovered().set(config.isStatusBarCovered());
+        prefs.richMediaAnimationDuration().set(config.getAnimationDuration());
+    }
+
+    public static ModalRichmediaConfig getDefaultRichMediaConfig() {
+        NotificationPrefs prefs = RepositoryModule.getNotificationPreferences();
+        ModalRichmediaConfig config = new ModalRichmediaConfig()
+                .setAnimationDuration(prefs.richMediaAnimationDuration().get())
+                .setDismissAnimationType(ModalRichMediaDismissAnimationType.getByCode(prefs.richMediaDismissAnimation().get()))
+                .setPresentAnimationType(ModalRichMediaPresentAnimationType.getByCode(prefs.richMediaPresentAnimation().get()))
+                .setSwipeGesture(ModalRichMediaSwipeGesture.getByCode(prefs.richMediaSwipeGesture().get()))
+                .setViewPosition(ModalRichMediaViewPosition.getByCode(prefs.richMediaViewPosition().get()))
+                .setWindowWidth(ModalRichMediaWindowWidth.getByCode(prefs.richMediaWindowWidth().get()))
+                .setStatusBarCovered(prefs.richMediaStatusBarCovered().get());
+        return config;
     }
 }

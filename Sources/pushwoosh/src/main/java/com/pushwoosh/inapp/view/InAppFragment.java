@@ -70,7 +70,7 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
 
 
     private AsyncTask<Void, Void, Result<HtmlData, ResourceParseException>> downloadHtmlDataTask;
-    private WeakReference<OnRichMediaListener> onRichMediaListener = new WeakReference<>(null);
+    private WeakReference<com.pushwoosh.inapp.view.OnRichMediaListener> onRichMediaListener = new WeakReference<>(null);
 
     private Status state = Status.NONE;
     private HtmlData htmlData;
@@ -148,42 +148,42 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
     }
 
     private void notifyListener(Result<HtmlData, ResourceParseException> result) {
-        OnRichMediaListener onRichMediaListener = this.onRichMediaListener.get();
+        com.pushwoosh.inapp.view.OnRichMediaListener onRichMediaListener = this.onRichMediaListener.get();
         if (onRichMediaListener == null) {
             return;
         }
 
         if (result.isSuccess()) {
             if (!onRichMediaListener.successLoadingHtmlData(result.getData())) {
-                onRichMediaListener.finishLoading();
+                onRichMediaListener.finishLoadingRichMedia();
             }
         } else {
-            onRichMediaListener.finishLoading();
+            onRichMediaListener.finishLoadingRichMedia();
             onRichMediaListener.failedLoadingHtmlData(result.getException());
         }
     }
 
     public void syncState() {
         if (getActivity() instanceof OnRichMediaListener) {
-            onRichMediaListener = new WeakReference<>((OnRichMediaListener) getActivity());
+            onRichMediaListener = new WeakReference<>((com.pushwoosh.inapp.view.OnRichMediaListener) getActivity());
         }
 
-        final OnRichMediaListener onRichMediaListener = this.onRichMediaListener.get();
+        final com.pushwoosh.inapp.view.OnRichMediaListener onRichMediaListener = this.onRichMediaListener.get();
         if (onRichMediaListener == null) {
             return;
         }
 
         switch (state) {
             case SUCCESS:
-                onRichMediaListener.finishLoading();
+                onRichMediaListener.finishLoadingRichMedia();
                 onRichMediaListener.successLoadingHtmlData(htmlData);
                 break;
             case ERROR:
                 onRichMediaListener.failedLoadingHtmlData(resourceParseException);
-                onRichMediaListener.finishLoading();
+                onRichMediaListener.finishLoadingRichMedia();
                 break;
             case LOADING:
-                onRichMediaListener.startLoading();
+                onRichMediaListener.startLoadingRichMedia();
                 break;
             default:
                 if (getArguments() == null) {
@@ -199,9 +199,9 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
     @Override
     public void startLoading() {
         this.state = LOADING;
-        final InAppFragment.OnRichMediaListener onRichMediaListener = InAppFragment.this.onRichMediaListener.get();
+        final com.pushwoosh.inapp.view.OnRichMediaListener onRichMediaListener = this.onRichMediaListener.get();
         if (onRichMediaListener != null) {
-            onRichMediaListener.startLoading();
+            onRichMediaListener.startLoadingRichMedia();
         }
 
     }
@@ -210,16 +210,5 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
     public void sendResult(Result<HtmlData, ResourceParseException> result) {
         updateState(result);
         notifyListener(result);
-    }
-
-
-    interface OnRichMediaListener {
-        void startLoading();
-
-        void finishLoading();
-
-        boolean successLoadingHtmlData(HtmlData htmlData);
-
-        void failedLoadingHtmlData(ResourceParseException exception);
     }
 }

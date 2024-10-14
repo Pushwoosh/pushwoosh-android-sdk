@@ -12,7 +12,8 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
 import com.pushwoosh.PushwooshPlatform;
-import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.inapp.event.ActivityBroughtOnTopEvent;
+import com.pushwoosh.internal.event.EventBus;
 
 class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
     private static final int SCREEN_OPENED_EVENT_DELAY = 100;
@@ -84,20 +85,29 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityResumed(Activity activity) {
+        PushwooshPlatform.getInstance().setTopActivity(activity);
+        EventBus.sendEvent(ActivityBroughtOnTopEvent.getInstance());
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
+        if (PushwooshPlatform.getInstance().getTopActivity() != null && PushwooshPlatform.getInstance().getTopActivity() == activity) {
+            PushwooshPlatform.getInstance().setTopActivity(null);
+        }
     }
 
     @Override
     public void onActivityStopped(Activity activity) {
+        if (PushwooshPlatform.getInstance().getTopActivity() != null && PushwooshPlatform.getInstance().getTopActivity() == activity) {
+            PushwooshPlatform.getInstance().setTopActivity(null);
+        }
         if (PushwooshPlatform.getInstance().getConfig().isCollectingLifecycleEventsAllowed()) {
             activitiesCount--;
         if (activitiesCount == 0) {
             callback.invoke(APPLICATION_CLOSED_EVENT, activityName);
         }
         }
+
     }
 
     @Override
@@ -106,6 +116,9 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityDestroyed(Activity activity) {
+        if (PushwooshPlatform.getInstance().getTopActivity() != null && PushwooshPlatform.getInstance().getTopActivity() == activity) {
+            PushwooshPlatform.getInstance().setTopActivity(null);
+        }
     }
 
     public interface LifeCycleCallback {

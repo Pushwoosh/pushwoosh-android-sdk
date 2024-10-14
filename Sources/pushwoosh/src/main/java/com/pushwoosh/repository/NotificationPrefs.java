@@ -37,6 +37,11 @@ package com.pushwoosh.repository;
 import android.content.SharedPreferences;
 
 import com.pushwoosh.Pushwoosh;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaDismissAnimationType;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaPresentAnimationType;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaSwipeGesture;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaWindowWidth;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.prefs.PrefsProvider;
 import com.pushwoosh.internal.platform.prefs.migration.MigrationScheme;
@@ -89,6 +94,15 @@ public class NotificationPrefs {
 	private static final String PROPERTY_IS_COLLECTING_DEVICE_MODEL_ALLOWED = "pw_is_collecting_device_model_allowed";
 	private static final String PROPERTY_HANDLE_NOTIFICATIONS_USING_WORK_MANAGER = "pw_handle_notifications_using_work_manager";
 	private static final String PROPERTY_SHOW_FULLSCREEN_RICHMEDIA = "pw_show_fullscreen_richmedia";
+	private static final String PROPERTY_RICHMEDIA_DISMISS_ANIMATION_TYPE = "pw_richmedia_dissmiss_animation";
+	private static final String PROPERTY_RICHMEDIA_PRESENT_ANIMATION_TYPE = "pw_richmedia_present_animation";
+	private static final String PROPERTY_RICHMEDIA_SWIPE_GESTURE = "pw_richmedia_swipe_gesture";
+	private static final String PROPERTY_RICHMEDIA_VIEW_POSITION = "pw_richmedia_view_position";
+	private static final String PROPERTY_RICHMEDIA_WINDOW_WIDTH = "pw_richmedia_window_width";
+	private static final String PROPERTY_RICHMEDIA_ANIMATION_DURATION = "pw_richmedia_animation_duration";
+	private static final String PROPERTY_RICHMEDIA_STATUS_BAR_COVERED = "pw_richmedia_status_bar_covered";
+
+
 
 	private final PreferenceBooleanValue multiMode;
 	private final PreferenceIntValue messageId;
@@ -116,6 +130,13 @@ public class NotificationPrefs {
 	private final PreferenceBooleanValue isCollectingDeviceModelAllowed;
 	private final PreferenceBooleanValue handleNotificationsUsingWorkManager;
 	private final PreferenceBooleanValue showFullscreenRichMedia;
+	private final PreferenceIntValue richMediaDismissAnimation;
+	private final PreferenceIntValue richMediaPresentAnimation;
+	private final PreferenceIntValue richMediaSwipeGesture;
+	private final PreferenceIntValue richMediaViewPosition;
+	private final PreferenceIntValue richmediaWindowWidth;
+	private final PreferenceIntValue richMediaAnimationDuration;
+	private final PreferenceBooleanValue richMediaStatusBarCovered;
 
 	NotificationPrefs(Config config) {
 		PWLog.noise("NotificationPrefs()...");
@@ -147,8 +168,32 @@ public class NotificationPrefs {
 		isCollectingDeviceLocaleAllowed = new PreferenceBooleanValue(preferences, PROPERTY_IS_COLLECTING_DEVICE_LOCALE_ALLOWED, config.isCollectingDeviceLocaleAllowed());
 		isCollectingDeviceModelAllowed = new PreferenceBooleanValue(preferences, PROPERTY_IS_COLLECTING_DEVICE_MODEL_ALLOWED, config.isCollectingDeviceModelAllowed());
 		showFullscreenRichMedia = new PreferenceBooleanValue(preferences, PROPERTY_SHOW_FULLSCREEN_RICHMEDIA, config.shouldShowFullscreenRichMedia());
+
+		richMediaDismissAnimation = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_DISMISS_ANIMATION_TYPE, ModalRichMediaDismissAnimationType.FADE_OUT.getCode());
+		richMediaPresentAnimation = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_PRESENT_ANIMATION_TYPE, ModalRichMediaPresentAnimationType.FADE_IN.getCode());
+		richMediaSwipeGesture = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_SWIPE_GESTURE, ModalRichMediaSwipeGesture.NONE.getCode());
+		richMediaViewPosition = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_VIEW_POSITION, ModalRichMediaViewPosition.CENTER.getCode());
+		richmediaWindowWidth = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_WINDOW_WIDTH, ModalRichMediaWindowWidth.FULL_SCREEN.getCode());
+
+		richMediaAnimationDuration = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_ANIMATION_DURATION, 1000);
+		richMediaStatusBarCovered = new PreferenceBooleanValue(preferences, PROPERTY_RICHMEDIA_STATUS_BAR_COVERED, false);
+
 		PWLog.noise("NotificationPrefs() done");
 	}
+
+	public PreferenceIntValue richMediaDismissAnimation() { return richMediaDismissAnimation; }
+
+	public PreferenceIntValue richMediaPresentAnimation() { return richMediaPresentAnimation; }
+
+	public PreferenceIntValue richMediaSwipeGesture() { return richMediaSwipeGesture; }
+
+	public PreferenceIntValue richMediaViewPosition() { return richMediaViewPosition; }
+
+	public PreferenceIntValue richMediaWindowWidth() { return richmediaWindowWidth; }
+
+	public PreferenceIntValue richMediaAnimationDuration() { return richMediaAnimationDuration; }
+
+	public PreferenceBooleanValue richMediaStatusBarCovered() { return richMediaStatusBarCovered; }
 
 	public PreferenceBooleanValue multiMode() {
 		return multiMode;

@@ -1,5 +1,7 @@
 package com.pushwoosh;
 
+import android.app.Activity;
+
 import com.pushwoosh.appevents.PushwooshDefaultEvents;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
@@ -66,6 +68,7 @@ public class PushwooshPlatform {
     private PushwooshStartWorker pushwooshStartWorker;
     private DeviceRegistrar deviceRegistrar;
     private RichMediaStyle richMediaStyle;
+    private Activity topActivity;
 
     private CommandApplayer commandApplayer;
     private PushStatNotificationOpenHandler pushStatNotificationOpenHandler;
@@ -235,5 +238,13 @@ public class PushwooshPlatform {
 
     public ServerCommunicationManager getServerCommunicationManager() {
         return serverCommunicationManager;
+    }
+
+    public Activity getTopActivity() {
+        return topActivity;
+    }
+
+    public void setTopActivity(Activity topActivity) {
+        this.topActivity = topActivity;
     }
 }

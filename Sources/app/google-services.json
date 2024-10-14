@@ -8,9 +8,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:245850018966:android:5bc6b0829a5c557ea7deb7",
+        "mobilesdk_app_id": "1:245850018966:android:628164e39a676312a7deb7",
         "android_client_info": {
-          "package_name": "city.mapxxyy"
+          "package_name": "com.demo"
         }
       },
       "oauth_client": [
@@ -44,9 +44,9 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:245850018966:android:628164e39a676312a7deb7",
+        "mobilesdk_app_id": "1:245850018966:android:50fa40ed0ce17c52a7deb7",
         "android_client_info": {
-          "package_name": "com.demo"
+          "package_name": "com.example.com_pushwoosh_newdemo"
         }
       },
       "oauth_client": [
@@ -254,50 +254,6 @@
         }
       },
       "oauth_client": [
-        {
-          "client_id": "245850018966-nvj7bc5rtm4b9qbopfg6cf5vq5ectot0.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCbXMs67a69fn-paDXSyScOYTTiKbG7zc4"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "245850018966-nvj7bc5rtm4b9qbopfg6cf5vq5ectot0.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "245850018966-g07jr5rqaoblqevi9e077ke7ephjbr3r.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.pushwooshDemo"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:245850018966:android:7add62a109600bc6",
-        "android_client_info": {
-          "package_name": "com.pushwoosh.globesfactory"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "245850018966-k91lbeil5n42qbdlibo4qgd0ljanf4n1.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.pushwoosh.globesfactory",
-            "certificate_hash": "fff778461417caf7de4f5955546c7ce29a80f688"
-          }
-        },
         {
           "client_id": "245850018966-nvj7bc5rtm4b9qbopfg6cf5vq5ectot0.apps.googleusercontent.com",
           "client_type": 3
@@ -902,50 +858,6 @@
         }
       },
       "oauth_client": [
-        {
-          "client_id": "245850018966-nvj7bc5rtm4b9qbopfg6cf5vq5ectot0.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCbXMs67a69fn-paDXSyScOYTTiKbG7zc4"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "245850018966-nvj7bc5rtm4b9qbopfg6cf5vq5ectot0.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "245850018966-g07jr5rqaoblqevi9e077ke7ephjbr3r.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.pushwooshDemo"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:245850018966:android:8d00ff9f534532ed",
-        "android_client_info": {
-          "package_name": "demoapp.pushwoosh.com.myapplication"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "245850018966-s2d0nnt72nt419db10dckcv8feo8cn4u.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "demoapp.pushwoosh.com.myapplication",
-            "certificate_hash": "fff778461417caf7de4f5955546c7ce29a80f688"
-          }
-        },
         {
           "client_id": "245850018966-nvj7bc5rtm4b9qbopfg6cf5vq5ectot0.apps.googleusercontent.com",
           "client_type": 3

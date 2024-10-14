@@ -61,7 +61,7 @@ import com.pushwoosh.richmedia.animation.RichMediaAnimation;
 public class ResourceWebView extends FrameLayout {
     private static final String LIGHT_BLACK_BG = "#40000000";
     private static final int ANIMATION_DURATION = 300;
-    private InAppLayout inAppLayout = InAppLayout.FULLSCREEN;
+    private InAppLayout inAppLayout = InAppLayout.DIALOG;
 
     protected FrameLayout container;
     private View loadingView;
@@ -74,14 +74,14 @@ public class ResourceWebView extends FrameLayout {
     int backgroundColor;
     boolean isInMultiWindowMode;
 
-    protected ResourceWebView(Context context) {
+    public ResourceWebView(Context context) {
         super(context);
-        init(InAppLayout.FULLSCREEN, PushwooshPlatform.getInstance().getRichMediaController().getRichMediaStyle(), context);
+        init(InAppLayout.DIALOG, PushwooshPlatform.getInstance().getRichMediaController().getRichMediaStyle(), context);
     }
 
     protected ResourceWebView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        init(InAppLayout.FULLSCREEN, PushwooshPlatform.getInstance().getRichMediaController().getRichMediaStyle(), context);
+        init(InAppLayout.DIALOG, PushwooshPlatform.getInstance().getRichMediaController().getRichMediaStyle(), context);
     }
 
     protected ResourceWebView(@NonNull Context context, InAppLayout inAppLayout, RichMediaStyle richMediaStyle, boolean isInMultiWindowMode) {
@@ -100,6 +100,7 @@ public class ResourceWebView extends FrameLayout {
         }
 
         container = new FrameLayout(getContext());
+        this.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         container.setLayoutParams(createWebViewParams(inAppLayout, 0));
         container.setBackgroundColor(Color.TRANSPARENT);
 
@@ -168,7 +169,7 @@ public class ResourceWebView extends FrameLayout {
         return layoutParams;
     }
 
-    protected void setWebViewClient(WebClient webViewClient) {
+    public void setWebViewClient(WebClient webViewClient) {
         webViewClient.attachToWebView(webView);
     }
 

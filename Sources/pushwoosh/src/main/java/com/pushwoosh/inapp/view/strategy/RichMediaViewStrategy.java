@@ -33,8 +33,11 @@ import android.os.Looper;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.network.model.Resource;
+import com.pushwoosh.inapp.view.ModalRichMediaWindow;
 import com.pushwoosh.inapp.view.RichMediaWebActivity;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.internal.utils.RichMediaType;
+import com.pushwoosh.richmedia.RichMediaManager;
 
 class RichMediaViewStrategy implements ResourceViewStrategy {
 	private static final String TAG = "[InApp]RichMediaViewStrategy";
@@ -60,8 +63,12 @@ class RichMediaViewStrategy implements ResourceViewStrategy {
 		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentInAppCode(null);
 
 		PWLog.debug(TAG, "presenting richMedia with code: " + resource.getCode() + ", url: " + resource.getUrl());
-		Intent intent = RichMediaWebActivity.createRichMediaIntent(context, resource);
 
-		handler.postDelayed(() -> context.startActivity(intent), delay);
+		if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.MODAL) {
+			ModalRichMediaWindow.showModalRichMediaWindow(resource, RichMediaManager.getDefaultRichMediaConfig());
+		} else if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.DEFAULT) {
+			Intent intent = RichMediaWebActivity.createRichMediaIntent(context, resource);
+			handler.postDelayed(() -> context.startActivity(intent), delay);
+		}
 	}
 }

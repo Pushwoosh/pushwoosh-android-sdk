@@ -161,4 +161,6 @@ public interface Config {
     String[] getTrustedPackageNames();
 
     void setLazySdkInitialization(boolean value);
+
+	RichMediaType getRichMediaType();
 }

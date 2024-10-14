@@ -339,11 +339,11 @@ public class NotificationBuilderManager {
 			List<StatusBarNotification> activeNotifications = NotificationBuilderManager.getActiveNotificationsForGroup(groupId);
 			for (StatusBarNotification statusBarNotification : activeNotifications) {
 				if (statusBarNotification.getId() == entry.getNotificationId()) {
-					statusBarNotification.getNotification().contentIntent.send();
+					statusBarNotification.getNotification().deleteIntent.send();
 					notificationManager.cancel(entry.getNotificationId());
 				}
 			}
-			if (getActiveNotifications().size() == 0) {
+			if (getActiveNotifications().isEmpty()) {
 				cancelGroupSummary(groupId);
 			}
 		}

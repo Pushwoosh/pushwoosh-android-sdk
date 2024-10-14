@@ -140,6 +140,10 @@
     public <methods>;
 }
 
+-keep public class com.pushwoosh.inapp.view.config.** {
+    public protected *;
+}
+
 -keep public class com.pushwoosh.inapp.view.inline.InlineInAppViewListener {
     *;
 }

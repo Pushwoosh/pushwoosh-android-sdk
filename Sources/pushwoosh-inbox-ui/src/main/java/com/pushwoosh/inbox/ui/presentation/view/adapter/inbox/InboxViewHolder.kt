@@ -35,9 +35,7 @@ import android.text.SpannableStringBuilder
 import android.text.TextUtils
 import android.text.style.TextAppearanceSpan
 import android.util.TypedValue
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
