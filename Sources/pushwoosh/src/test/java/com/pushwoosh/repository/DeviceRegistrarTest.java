@@ -26,6 +26,9 @@
 
 package com.pushwoosh.repository;
 
+import static com.pushwoosh.repository.DeviceRegistrar.PLATFORM_ANDROID;
+import static com.pushwoosh.repository.DeviceRegistrar.areNotificationsEnabled;
+
 import com.pushwoosh.RegisterForPushNotificationsResultData;
 import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Callback;
@@ -36,6 +39,7 @@ import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.PushRequest;
 import com.pushwoosh.internal.network.RequestManager;
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.event.DeregistrationErrorEvent;
 import com.pushwoosh.notification.event.DeregistrationSuccessEvent;
 import com.pushwoosh.notification.event.RegistrationErrorEvent;
@@ -59,9 +63,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import android.text.TextUtils;
+
+import java.util.Date;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
 public class DeviceRegistrarTest {
+    public static final String TAG = "DeviceRegistrarTest";
     public static final String TEST_ID = "testId";
     public static final String URL = "url";
     public static final String TEST_EXCEPTION = "test_exception";
@@ -99,7 +108,23 @@ public class DeviceRegistrarTest {
 
     @Test
     public void registerWithServer() throws JSONException {
-        DeviceRegistrar.registerWithServer(TEST_ID, null);
+        DeviceRegistrar.registerWithServer(TEST_ID, null, DeviceRegistrar.PLATFORM_ANDROID, result -> {
+            if (result.isSuccess()) {
+                registrationPrefs.registeredOnServer().set(true);
+
+                EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(TEST_ID, areNotificationsEnabled())));
+                registrationPrefs.lastPushRegistration().set(new Date().getTime());
+                PWLog.info(TAG, "Registered for push notifications: " + TEST_ID);
+            } else {
+                String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
+                if (TextUtils.isEmpty(errorDescription)) {
+                    errorDescription = "Pushwoosh registration error";
+                }
+
+                PWLog.error(TAG, "Registration error: " + errorDescription);
+                EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
+            }
+        });
 
         checkNormalReg();
     }
@@ -123,7 +148,23 @@ public class DeviceRegistrarTest {
 
     @Test
     public void registerWithServerError() {
-        DeviceRegistrar.registerWithServer(TEST_ID,null);
+        DeviceRegistrar.registerWithServer(TEST_ID,null, PLATFORM_ANDROID,result -> {
+            if (result.isSuccess()) {
+                registrationPrefs.registeredOnServer().set(true);
+
+                EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(TEST_ID, areNotificationsEnabled())));
+                registrationPrefs.lastPushRegistration().set(new Date().getTime());
+                PWLog.info(TAG, "Registered for push notifications: " + TEST_ID);
+            } else {
+                String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
+                if (TextUtils.isEmpty(errorDescription)) {
+                    errorDescription = "Pushwoosh registration error";
+                }
+
+                PWLog.error(TAG, "Registration error: " + errorDescription);
+                EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
+            }
+        });
         registrationPrefs.lastPushRegistration().set(1000L);
 
         checkFeilReg();

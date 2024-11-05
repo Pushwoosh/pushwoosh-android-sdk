@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import static com.pushwoosh.notification.PushBundleDataProvider.getLedColor;
 
+import com.pushwoosh.internal.utils.HashDecoder;
 import com.pushwoosh.internal.utils.JsonUtils;
 
 /**
@@ -290,5 +291,23 @@ public class PushMessage {
 	 */
 	public JSONObject toJson() {
 		return PushBundleDataProvider.asJson(extras);
+	}
+
+	public String getMessageCode() {
+		return HashDecoder.parseMessageHash(pushHash)[1];
+	}
+
+	public long getCampaignId() {
+		String[] parsedMessageHash = HashDecoder.parseMessageHash(pushHash);
+		if (parsedMessageHash[0] != null) {
+			return Long.parseLong(parsedMessageHash[2]);
+		} else return 0;
+	}
+
+	public long getMessageId() {
+		String[] parsedMessageHash = HashDecoder.parseMessageHash(pushHash);
+		if (parsedMessageHash[0] != null) {
+			return Long.parseLong(parsedMessageHash[0]);
+		} else return 0;
 	}
 }

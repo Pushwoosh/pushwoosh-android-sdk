@@ -250,6 +250,14 @@ public class Pushwoosh {
         registerForPushNotificationsInternal(callback, false, tagsBundle);
     }
 
+    public void registerWhatsappNumber(String number) {
+        notificationManager.registerWhatsappNumber(number);
+    }
+
+    public void registerSMSNumber(String number) {
+        notificationManager.registerSMSNumber(number);
+    }
+
     private void registerForPushNotificationsInternal(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, boolean shouldRequestPermission, TagsBundle tags) {
         if (RepositoryModule.getNotificationPreferences() != null &&
                 !RepositoryModule.getNotificationPreferences().isServerCommunicationAllowed().get()) {

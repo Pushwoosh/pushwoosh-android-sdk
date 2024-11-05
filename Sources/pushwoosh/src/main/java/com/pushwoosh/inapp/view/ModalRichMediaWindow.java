@@ -139,11 +139,14 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
 
     public static void showModalRichMediaWindow(Resource resource, ModalRichmediaConfig config) {
         Handler handler = new Handler(Looper.getMainLooper());
+        //if we have an instance of top activity we create popupwindow, otherwise we subscribe for event until there is one
+        //postDelayed has 1000ms delay to ensure activity is instantiated and has non-null WindowToken
         handler.postDelayed(()->{
             if (PushwooshPlatform.getInstance().getTopActivity() == null) {
                 EventBus.subscribe(ActivityBroughtOnTopEvent.class, new EventListener<ActivityBroughtOnTopEvent>() {
                     @Override
                     public void onReceive(ActivityBroughtOnTopEvent event) {
+                        //this event can be called multiple times before handler.postDelayed finishes, so we only count first event
                         if (event.count.get() <= 1) {
                             createPopupWindow(resource, config);
                         }

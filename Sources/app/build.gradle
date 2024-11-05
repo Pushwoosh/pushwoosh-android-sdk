@@ -79,7 +79,7 @@ task copyAarsToOutputDir(type: GradleBuild) {
 
 android.applicationVariants.all { variant ->
     if (variant.name == "release") {
-        def modulesList = [ "pushwoosh", "pushwoosh-badge", "pushwoosh-location", "pushwoosh-experimental",
+        def modulesList = [ "pushwoosh", "pushwoosh-badge", "pushwoosh-location",
                             "pushwoosh-firebase", "pushwoosh-inbox", "pushwoosh-inbox-ui", "pushwoosh-huawei", "pushwoosh-xiaomi" ]
 
         ArrayList<String> dependeciesList = new ArrayList<>();
@@ -108,7 +108,6 @@ dependencies {
     debugApi project(':pushwoosh')
     debugApi project(':pushwoosh-badge')
     debugApi project(':pushwoosh-location')
-    debugApi project(':pushwoosh-experimental')
 //    debugApi project(':pushwoosh-baidu')
     debugApi project(':pushwoosh-amazon')
     debugApi project(':pushwoosh-firebase')

@@ -69,6 +69,12 @@ Pushwoosh class is used to manage push registration, application tags and local 
 		<td><a href="#1a83bb611e9123928bd78ed08e1af1396f">public void registerForPushNotificationsWithTagsWithoutPermission(Callback&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback, TagsBundle tagsBundle)</a></td>
 	</tr>
 	<tr>
+		<td><a href="#1ab87303f51d7244e54e24cc62419a38c6">public void registerWhatsappNumber(String number)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1a836dd0e2620e4d2744f03c44f7b7b102">public void registerSMSNumber(String number)</a></td>
+	</tr>
+	<tr>
 		<td><a href="#1a4796ea2a1eddb6b308479e13261732db">public void setShowPushnotificationAlert(boolean showAlert)</a></td>
 	</tr>
 	<tr>
@@ -328,6 +334,18 @@ Registers device for push notifications<br/><br/><br/><strong>Parameters</strong
   
 
 #### <a name="1a83bb611e9123928bd78ed08e1af1396f"></a>public void registerForPushNotificationsWithTagsWithoutPermission(<a href="function/Callback.md">Callback</a>&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback, <a href="tags/TagsBundle.md">TagsBundle</a> tagsBundle)  
+
+
+----------  
+  
+
+#### <a name="1ab87303f51d7244e54e24cc62419a38c6"></a>public void registerWhatsappNumber(String number)  
+
+
+----------  
+  
+
+#### <a name="1a836dd0e2620e4d2744f03c44f7b7b102"></a>public void registerSMSNumber(String number)  
 
 
 ----------  

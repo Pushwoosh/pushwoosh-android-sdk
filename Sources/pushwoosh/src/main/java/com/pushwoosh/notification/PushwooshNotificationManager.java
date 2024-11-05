@@ -1,5 +1,7 @@
 package com.pushwoosh.notification;
 
+import static com.pushwoosh.repository.DeviceRegistrar.areNotificationsEnabled;
+
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -37,6 +39,7 @@ import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.tags.TagsBundle;
 
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import androidx.core.content.ContextCompat;
@@ -155,6 +158,36 @@ public class PushwooshNotificationManager {
                 context, new String[] {"android.permission.POST_NOTIFICATIONS"});
     }
 
+    public void registerSMSNumber(String phoneNumber) {
+        DeviceRegistrar.registerWithServer(phoneNumber, null, DeviceRegistrar.PLATFORM_SMS, result -> {
+            if (result.isSuccess()) {
+                PWLog.info(TAG, "Registered phone number: " + phoneNumber);
+            } else {
+                String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
+                if (TextUtils.isEmpty(errorDescription)) {
+                    errorDescription = "Pushwoosh registration error";
+                }
+
+                PWLog.error(TAG, "Phone number registration error: " + errorDescription);
+            }
+        });
+    }
+
+    public void registerWhatsappNumber(String phoneNumber) {
+        DeviceRegistrar.registerWithServer(phoneNumber, null, DeviceRegistrar.PLATFORM_WHATSAPP, result -> {
+            if (result.isSuccess()) {
+                PWLog.info(TAG, "Registered phone number for Whatsapp: " + phoneNumber);
+            } else {
+                String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
+                if (TextUtils.isEmpty(errorDescription)) {
+                    errorDescription = "Pushwoosh registration error";
+                }
+
+                PWLog.error(TAG, "Whatsapp registration error: " + errorDescription);
+            }
+        });
+    }
+
     public void registerForPushNotifications(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, boolean shouldRequestPermission, TagsBundle tags) {
         EventBus.subscribe(NotificationPermissionEvent.class, new EventListener<NotificationPermissionEvent>() {
             @Override
@@ -271,7 +304,23 @@ public class PushwooshNotificationManager {
 
     public void onRegisteredForRemoteNotifications(String pushToken, String tagsJson) {
         RepositoryModule.getRegistrationPreferences().pushToken().set(pushToken);
-        DeviceRegistrar.registerWithServer(pushToken, tagsJson);
+        DeviceRegistrar.registerWithServer(pushToken, tagsJson, DeviceRegistrar.PLATFORM_ANDROID, result -> {
+            if (result.isSuccess()) {
+                registrationPrefs.registeredOnServer().set(true);
+
+                EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
+                registrationPrefs.lastPushRegistration().set(new Date().getTime());
+                PWLog.info(TAG, "Registered for push notifications: " + pushToken);
+            } else {
+                String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
+                if (TextUtils.isEmpty(errorDescription)) {
+                    errorDescription = "Pushwoosh registration error";
+                }
+
+                PWLog.error(TAG, "Registration error: " + errorDescription);
+                EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
+            }
+        });
     }
 
     public void onFailedToRegisterForRemoteNotifications(String error) {

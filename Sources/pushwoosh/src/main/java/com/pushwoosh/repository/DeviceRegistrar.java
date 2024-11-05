@@ -43,7 +43,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.pushwoosh.RegisterForPushNotificationsResultData;
+import com.pushwoosh.function.Callback;
 import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -61,36 +63,23 @@ import java.util.Date;
  * TODO: to improve testablity need to make methods of this class non-static
  */
 public class DeviceRegistrar {
+	public static final int PLATFORM_ANDROID = 3;
+	public static final int PLATFORM_SMS = 18;
+	public static final int PLATFORM_WHATSAPP = 21;
+
 	private static final String TAG = "DeviceRegistrar";
 	private static final int COOLDOWN_MINUTES = 10;
 	
-	public static void registerWithServer(final String deviceRegistrationID, String tagsJson) {
-		PWLog.debug(TAG, "Registering for pushes...");
-		RegistrationPrefs registrationPrefs = RepositoryModule.getRegistrationPreferences();
+	public static void registerWithServer(final String deviceRegistrationID, String tagsJson, int platform, Callback<Void, NetworkException> callback) {
+		PWLog.debug(TAG, "Registering for platform " + platform + "...");
 
-		RegisterDeviceRequest request = new RegisterDeviceRequest(deviceRegistrationID, tagsJson);
+		RegisterDeviceRequest request = new RegisterDeviceRequest(deviceRegistrationID, tagsJson, platform);
 		RequestManager requestManager = NetworkModule.getRequestManager();
 		if (requestManager == null) {
 			EventBus.sendEvent(new RegistrationErrorEvent("Request manager is null"));
 			return;
 		}
-		requestManager.sendRequest(request, result -> {
-			if (result.isSuccess()) {
-				registrationPrefs.registeredOnServer().set(true);
-
-				EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(deviceRegistrationID,areNotificationsEnabled())));
-				registrationPrefs.lastPushRegistration().set(new Date().getTime());
-				PWLog.info(TAG, "Registered for push notifications: " + deviceRegistrationID);
-			} else {
-				String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
-				if (TextUtils.isEmpty(errorDescription)) {
-					errorDescription = "Pushwoosh registration error";
-				}
-
-				PWLog.error(TAG, "Registration error: " + errorDescription);
-				EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
-			}
-		});
+		requestManager.sendRequest(request, callback);
 	}
 
 	public static void unregisterWithServer(final String deviceRegistrationID) {
@@ -135,7 +124,23 @@ public class DeviceRegistrar {
 			boolean forceRegister = registrationPrefs.forceRegister().get();
 			registrationPrefs.forceRegister().set(false);
 			if (forceRegister || neededToRequestPushwooshServer()) {
-				registerWithServer(regId, null);
+				registerWithServer(regId, null, PLATFORM_ANDROID, result -> {
+					if (result.isSuccess()) {
+						registrationPrefs.registeredOnServer().set(true);
+
+						EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(regId,areNotificationsEnabled())));
+						registrationPrefs.lastPushRegistration().set(new Date().getTime());
+						PWLog.info(TAG, "Registered for push notifications: " + regId);
+					} else {
+						String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
+						if (TextUtils.isEmpty(errorDescription)) {
+							errorDescription = "Pushwoosh registration error";
+						}
+
+						PWLog.error(TAG, "Registration error: " + errorDescription);
+						EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
+					}
+				});
 			}
 		}
 	}
@@ -156,7 +161,7 @@ public class DeviceRegistrar {
 		return true;
 	}
 
-	private static boolean areNotificationsEnabled() {
+	public static boolean areNotificationsEnabled() {
 		try {
 			Context context = AndroidPlatformModule.getApplicationContext();
 			if (Build.VERSION.SDK_INT >= 33) {

@@ -95,6 +95,15 @@ Push message data class.
 	<tr>
 		<td><a href="#1a6d692864571ea73719d610499fb7ee4c">public JSONObject toJson()</a></td>
 	</tr>
+	<tr>
+		<td><a href="#1a45554133deb67eb6b7a0c177da84904c">public String getMessageCode()</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1a5d695e52658a72e115bd1d2fec19313b">public long getCampaignId()</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1ab77d055d97337c13ecf8467098f3b092">public long getMessageId()</a></td>
+	</tr>
 </table>
 
 
@@ -271,3 +280,20 @@ Push message data class.
 
 #### <a name="1a6d692864571ea73719d610499fb7ee4c"></a>public JSONObject toJson()  
 <strong>Returns</strong> JSON representation of push payload 
+
+----------  
+  
+
+#### <a name="1a45554133deb67eb6b7a0c177da84904c"></a>public String getMessageCode()  
+
+
+----------  
+  
+
+#### <a name="1a5d695e52658a72e115bd1d2fec19313b"></a>public long getCampaignId()  
+
+
+----------  
+  
+
+#### <a name="1ab77d055d97337c13ecf8467098f3b092"></a>public long getMessageId()  

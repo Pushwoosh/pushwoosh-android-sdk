@@ -37,12 +37,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 class RegisterDeviceRequest extends AppOpenRequest {
-	private final String pushToken;
+	private final String deviceId;
 	private final String tagsJson;
+	private final int platform;
 
-	RegisterDeviceRequest(String pushToken, String tagsJson) {
-		this.pushToken = pushToken;
+	RegisterDeviceRequest(String deviceId, String tagsJson, int platform) {
+		this.deviceId = deviceId;
 		this.tagsJson = tagsJson;
+		this.platform = platform;
 	}
 
 	@Override
@@ -57,7 +59,13 @@ class RegisterDeviceRequest extends AppOpenRequest {
 	protected void buildParams(JSONObject params) throws JSONException {
 		super.buildParams(params);
 
-		params.put("push_token", pushToken);
+		params.put("device_type", platform);
+		if (platform == DeviceRegistrar.PLATFORM_SMS) {
+			params.put("hwid", deviceId);
+		} else if (platform == DeviceRegistrar.PLATFORM_WHATSAPP) {
+			params.put("hwid", "whatsapp:"+deviceId);
+		}
+		params.put("push_token", deviceId);
 		if (!TextUtils.isEmpty(tagsJson)) {
 			JSONObject tagsObject = new JSONObject(tagsJson);
 			params.put("tags", tagsObject);
