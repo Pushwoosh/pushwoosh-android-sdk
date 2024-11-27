@@ -99,7 +99,7 @@ publishing {
                                         .with {
                                             appendNode('groupId', 'org.sonatype.plugins')
                                             appendNode('artifactId', 'nexus-staging-maven-plugin')
-                                            appendNode('version', '1.6.8')
+                                            appendNode('version', '1.6.13')
                                             appendNode('extensions', 'true')
                                             appendNode('configuration').with {
                                                 appendNode('serverId', 'ossrh')

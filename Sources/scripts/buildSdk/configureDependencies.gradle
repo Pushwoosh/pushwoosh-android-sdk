@@ -1,0 +1,47 @@
+tasks.register("buildPushwoosh", GradleBuild) {
+    buildFile = file('build.gradle')
+    buildName = "buildPushwooshTask"
+}
+
+tasks.register("copyAarsToOutputDir", GradleBuild) {
+    buildFile = file('build.gradle')
+    buildName = "copyAarsToOutputDir"
+}
+
+android.applicationVariants.configureEach { variant ->
+    if (variant.name == "release") {
+        def modulesList = [
+                "pushwoosh", "pushwoosh-badge", "pushwoosh-location",
+                "pushwoosh-firebase", "pushwoosh-inbox", "pushwoosh-inbox-ui",
+                "pushwoosh-huawei", "pushwoosh-xiaomi"
+        ]
+
+        ArrayList<String> dependenciesList = new ArrayList<>()
+        ArrayList<String> aarsTaskList = new ArrayList<>()
+        ArrayList<String> bundleReleaseAarList = new ArrayList<>()
+        for (String projectName in modulesList) {
+            dependenciesList.add(String.format(":%s:assembleRelease", projectName))
+            aarsTaskList.add(String.format(":%s:copyToGlobal", projectName))
+            bundleReleaseAarList.add(String.format(":%s:bundleReleaseAar", projectName))
+            dependencies {
+                releaseImplementation fileTree(include: ["*.aar"], dir: "../${projectName}/build/outputs/aar")
+            }
+        }
+
+        // Use the lazy API to get tasks by name
+        tasks.named("buildPushwoosh").configure { buildPushwoosh ->
+            buildPushwoosh.setTasks(dependenciesList)
+        }
+
+        tasks.named("copyAarsToOutputDir").configure { copyAars ->
+            copyAars.setTasks(aarsTaskList)
+        }
+
+        // Use lazy API for variant tasks
+        variant.preBuildProvider.configure {
+            it.dependsOn("buildPushwoosh")
+            it.dependsOn(bundleReleaseAarList)
+        }
+        variant.assembleProvider.configure { it.finalizedBy("copyAarsToOutputDir") }
+    }
+}

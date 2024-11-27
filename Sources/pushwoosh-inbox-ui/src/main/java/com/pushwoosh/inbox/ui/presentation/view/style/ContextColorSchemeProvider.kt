@@ -79,8 +79,8 @@ class ContextColorSchemeProvider(private val context: Context) : ColorSchemeProv
     private val drawableResources: Map<Int, Drawable?>
 
     private val states: Array<IntArray> = arrayOf(
-            intArrayOf(android.R.attr.state_selected),
-            intArrayOf()
+        intArrayOf(android.R.attr.state_selected),
+        intArrayOf()
     )
 
     @ColorRes
@@ -109,23 +109,23 @@ class ContextColorSchemeProvider(private val context: Context) : ColorSchemeProv
         }
 
         _imageColor = generateStateList(arrayOf(
-                Pair(PushwooshInboxStyle.imageTypeColor, provideColorByAttr(R.attr.inboxImageTypeColor)),
-                Pair(PushwooshInboxStyle.readImageTypeColor, provideColorByAttr(R.attr.inboxReadImageTypeColor))
+            Pair(PushwooshInboxStyle.imageTypeColor, provideColorByAttr(R.attr.inboxImageTypeColor)),
+            Pair(PushwooshInboxStyle.readImageTypeColor, provideColorByAttr(R.attr.inboxReadImageTypeColor))
         ))
 
         _titleColor = generateStateList(arrayOf(
-                Pair(PushwooshInboxStyle.titleColor, provideColorByAttr(R.attr.inboxTitleColor)),
-                Pair(PushwooshInboxStyle.readTitleColor, provideColorByAttr(R.attr.inboxReadTitleColor))
+            Pair(PushwooshInboxStyle.titleColor, provideColorByAttr(R.attr.inboxTitleColor)),
+            Pair(PushwooshInboxStyle.readTitleColor, provideColorByAttr(R.attr.inboxReadTitleColor))
         ))
 
         _descriptionColor = generateStateList(arrayOf(
-                Pair(PushwooshInboxStyle.descriptionColor, provideColorByAttr(R.attr.inboxDescriptionColor)),
-                Pair(PushwooshInboxStyle.readDescriptionColor, provideColorByAttr(R.attr.inboxReadDescriptionColor))
+            Pair(PushwooshInboxStyle.descriptionColor, provideColorByAttr(R.attr.inboxDescriptionColor)),
+            Pair(PushwooshInboxStyle.readDescriptionColor, provideColorByAttr(R.attr.inboxReadDescriptionColor))
         ))
 
         _dateColor = generateStateList(arrayOf(
-                Pair(PushwooshInboxStyle.dateColor, provideColorByAttr(R.attr.inboxDateColor)),
-                Pair(PushwooshInboxStyle.readDateColor, provideColorByAttr(R.attr.inboxReadDateColor))
+            Pair(PushwooshInboxStyle.dateColor, provideColorByAttr(R.attr.inboxDateColor)),
+            Pair(PushwooshInboxStyle.readDateColor, provideColorByAttr(R.attr.inboxReadDateColor))
         ))
 
         _cellBackground = provideCellBackground()
@@ -158,21 +158,21 @@ class ContextColorSchemeProvider(private val context: Context) : ColorSchemeProv
 
     private fun provideColorMap(): Map<Int, Int> {
         val colorArray = intArrayOf(R.attr.inboxAccentColor,
-                R.attr.inboxBackgroundColor,
-                R.attr.inboxHighlightColor,
-                R.attr.inboxImageTypeColor,
-                R.attr.inboxReadImageTypeColor,
-                R.attr.inboxTitleColor,
-                R.attr.inboxReadTitleColor,
-                R.attr.inboxDescriptionColor,
-                R.attr.inboxReadDescriptionColor,
-                R.attr.inboxDateColor,
-                R.attr.inboxReadDateColor,
-                R.attr.colorAccent,
-                R.attr.colorControlHighlight,
-                android.R.attr.windowBackground,
-                android.R.attr.textColorPrimary,
-                android.R.attr.textColorSecondary)
+            R.attr.inboxBackgroundColor,
+            R.attr.inboxHighlightColor,
+            R.attr.inboxImageTypeColor,
+            R.attr.inboxReadImageTypeColor,
+            R.attr.inboxTitleColor,
+            R.attr.inboxReadTitleColor,
+            R.attr.inboxDescriptionColor,
+            R.attr.inboxReadDescriptionColor,
+            R.attr.inboxDateColor,
+            R.attr.inboxReadDateColor,
+            androidx.appcompat.R.attr.colorAccent,
+            androidx.appcompat.R.attr.colorControlHighlight,
+            android.R.attr.windowBackground,
+            android.R.attr.textColorPrimary,
+            android.R.attr.textColorSecondary)
 
         val result = mutableMapOf<Int, Int>()
         provideFromResource(colorArray, { index, attr, typedArray ->
@@ -184,8 +184,8 @@ class ContextColorSchemeProvider(private val context: Context) : ColorSchemeProv
 
     private fun provideDrawableMap(): Map<Int, Drawable> {
         val drawableArray = intArrayOf(
-                android.R.attr.listDivider,
-                R.attr.inboxDefaultIcon)
+            android.R.attr.listDivider,
+            R.attr.inboxDefaultIcon)
 
         val result = mutableMapOf<Int, Drawable>()
         provideFromResource(drawableArray, { index, attr, typedArray ->
@@ -216,17 +216,17 @@ class ContextColorSchemeProvider(private val context: Context) : ColorSchemeProv
 
     private fun generateStateList(colorsState: Array<Pair<Int?, Int>>): ColorStateList {
         val colors: IntArray = colorsState
-                .map { it.first ?: it.second }
-                .toIntArray()
+            .map { it.first ?: it.second }
+            .toIntArray()
 
         return ColorStateList(states, colors)
     }
 
     private fun provideDefaultColor(@AttrRes attr: Int): Int {
         val defaultColor = when (attr) {
-            R.attr.inboxAccentColor -> provideColorByAttr(R.attr.colorAccent)
+            R.attr.inboxAccentColor -> provideColorByAttr(androidx.appcompat.R.attr.colorAccent)
             R.attr.inboxBackgroundColor -> provideColorByAttr(android.R.attr.windowBackground)
-            R.attr.inboxHighlightColor -> provideColorByAttr(R.attr.colorControlHighlight)
+            R.attr.inboxHighlightColor -> provideColorByAttr(androidx.appcompat.R.attr.colorControlHighlight)
             R.attr.inboxImageTypeColor -> provideColorByAttr(R.attr.inboxAccentColor)
             R.attr.inboxReadImageTypeColor -> provideColorByAttr(R.attr.inboxReadDateColor)
             R.attr.inboxTitleColor -> provideColorByAttr(android.R.attr.textColorPrimary)
@@ -242,5 +242,5 @@ class ContextColorSchemeProvider(private val context: Context) : ColorSchemeProv
     }
 
     private fun getResourceException(attr: Int): Exception =
-            IllegalArgumentException("Unknown attribute please set up ${context.resources.getResourceName(attr)} into your theme")
+        IllegalArgumentException("Unknown attribute please set up ${context.resources.getResourceName(attr)} into your theme")
 }

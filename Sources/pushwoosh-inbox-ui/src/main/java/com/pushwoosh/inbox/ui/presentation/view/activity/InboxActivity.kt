@@ -63,7 +63,7 @@ open class InboxActivity : AppCompatActivity() {
 
     private fun setColorHomeButton() {
         val barAccentColor: Int = PushwooshInboxStyle.barAccentColor ?: return
-        val drawable = ContextCompat.getDrawable(this, R.drawable.abc_ic_ab_back_material)
+        val drawable = ContextCompat.getDrawable(this, androidx.appcompat.R.drawable.abc_ic_ab_back_material)
         val porterDuffColorFilter = PorterDuffColorFilter(barAccentColor, PorterDuff.Mode.SRC_IN)
         drawable?.colorFilter = porterDuffColorFilter
         supportActionBar?.setHomeAsUpIndicator(drawable)

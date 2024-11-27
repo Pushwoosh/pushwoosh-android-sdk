@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<com.pushwoosh.inapp.view.inline.InlineInAppView xmlns:pushwoosh="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    pushwoosh:identifier="ad_banner"
-    android:id="@+id/inlineInApp"
-    android:layout_width="match_parent"
-    android:layout_height="80dp" />

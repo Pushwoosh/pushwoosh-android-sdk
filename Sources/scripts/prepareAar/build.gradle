@@ -42,7 +42,7 @@ ext {
 def outputsDir = file("${project.buildDir}/$outputs")
 def outputsTempDir = file("${project.buildDir}/$outputsTemp")
 
-task copyAar {
+tasks.register('copyAar') {
     doLast {
         def buildType = 'release'
         def buildDir = file("${project.buildDir}/outputs/aar/")
@@ -80,7 +80,7 @@ task copyAar {
     }
 }
 
-task copyMapping {
+tasks.register('copyMapping') {
     doLast {
         def buildType = 'release'
         def buildDir = file("${project.buildDir}/outputs/mapping/${buildType}")
@@ -95,7 +95,7 @@ task copyMapping {
     }
 }
 
-task unZipAar {
+tasks.register('unZipAar') {
     doLast {
         copy {
             from zipTree("$outputsDir/${aarName}_v${targetVersionName}.aar")
@@ -104,7 +104,7 @@ task unZipAar {
     }
 }
 
-task copyJarClass {
+tasks.register('copyJarClass') {
     doLast {
         copy {
             from(outputsTempDir)
@@ -119,7 +119,7 @@ task copyJarClass {
     }
 }
 
-task copyToGlobal {
+tasks.register('copyToGlobal') {
     doLast {
         def buildOutput = file(globalBuildOutput)
         def globalMapping = file(globalBuildOutputMapping)

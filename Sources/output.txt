@@ -1,0 +1,1032 @@
+
+> Configure project :amazon-stub
+WARNING: The option setting 'android.jetifier.ignorelist=bcprov-jdk18on-1.78.1.jar' is experimental.
+
+> Configure project :app
+--W- Build Environment: AGConnect plugin version is: 1.9.1.300, Gradle version is: 8.1, Android Plugin version is: 8.1.1
+--I- Using the AGConnect-Config file: /Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/app/agconnect-services.json
+--W- The variant: debug, Use the json file: /Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/app/agconnect-services.json
+--I- Using the AGConnect-Config file: /Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/app/agconnect-services.json
+--W- The variant: release, Use the json file: /Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/app/agconnect-services.json
+
+> Configure project :pushwoosh-amazon
+WARNING: API 'variantOutput.getPackageLibrary()' is obsolete and has been replaced with 'variant.getPackageLibraryProvider()'.
+It will be removed in version 9.0 of the Android Gradle plugin.
+For more information, see https://d.android.com/r/tools/task-configuration-avoidance.
+To determine what is calling variantOutput.getPackageLibrary(), use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+Task name = analyzeCoverageDependencies: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/analyze_dependencies_report/coverage/analyzeDependencies
+ ---- done with outputs for analyzeCoverageDependencies
+Task name = analyzeCoverageUnitTestDependencies: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/analyze_dependencies_report/coverageUnitTest/analyzeDependencies
+ ---- done with outputs for analyzeCoverageUnitTestDependencies
+Task name = analyzeDebugAndroidTestDependencies: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/analyze_dependencies_report/debugAndroidTest/analyzeDependencies
+ ---- done with outputs for analyzeDebugAndroidTestDependencies
+Task name = analyzeDebugDependencies: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/analyze_dependencies_report/debug/analyzeDependencies
+ ---- done with outputs for analyzeDebugDependencies
+Task name = analyzeDebugUnitTestDependencies: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/analyze_dependencies_report/debugUnitTest/analyzeDependencies
+ ---- done with outputs for analyzeDebugUnitTestDependencies
+Task name = analyzeReleaseDependencies: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/analyze_dependencies_report/release/analyzeDependencies
+ ---- done with outputs for analyzeReleaseDependencies
+Task name = analyzeReleaseUnitTestDependencies: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/analyze_dependencies_report/releaseUnitTest/analyzeDependencies
+ ---- done with outputs for analyzeReleaseUnitTestDependencies
+Task name = androidDependencies: 
+
+ ---- done with outputs for androidDependencies
+Task name = assemble: 
+
+ ---- done with outputs for assemble
+Task name = assembleAndroidTest: 
+
+ ---- done with outputs for assembleAndroidTest
+Task name = assembleCoverage: 
+
+ ---- done with outputs for assembleCoverage
+Task name = assembleCoverageUnitTest: 
+
+ ---- done with outputs for assembleCoverageUnitTest
+Task name = assembleDebug: 
+
+ ---- done with outputs for assembleDebug
+Task name = assembleDebugAndroidTest: 
+
+ ---- done with outputs for assembleDebugAndroidTest
+Task name = assembleDebugUnitTest: 
+
+ ---- done with outputs for assembleDebugUnitTest
+Task name = assembleRelease: 
+
+ ---- done with outputs for assembleRelease
+Task name = assembleReleaseUnitTest: 
+
+ ---- done with outputs for assembleReleaseUnitTest
+Task name = build: 
+
+ ---- done with outputs for build
+Task name = buildDependents: 
+
+ ---- done with outputs for buildDependents
+Task name = buildEnvironment: 
+
+ ---- done with outputs for buildEnvironment
+Task name = buildNeeded: 
+
+ ---- done with outputs for buildNeeded
+Task name = bundleCoverageAar: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/aar/pushwoosh-coverage.aar
+ ---- done with outputs for bundleCoverageAar
+Task name = bundleCoverageLocalLintAar: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/local_aar_for_lint/coverage/out.aar
+ ---- done with outputs for bundleCoverageLocalLintAar
+Task name = bundleDebugAar: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/aar/pushwoosh-debug.aar
+ ---- done with outputs for bundleDebugAar
+Task name = bundleDebugLocalLintAar: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/local_aar_for_lint/debug/out.aar
+ ---- done with outputs for bundleDebugLocalLintAar
+Task name = bundleLibCompileToJarCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_library_classes_jar/coverage/classes.jar
+ ---- done with outputs for bundleLibCompileToJarCoverage
+Task name = bundleLibCompileToJarDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_library_classes_jar/debug/classes.jar
+ ---- done with outputs for bundleLibCompileToJarDebug
+Task name = bundleLibCompileToJarRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_library_classes_jar/release/classes.jar
+ ---- done with outputs for bundleLibCompileToJarRelease
+Task name = bundleLibRuntimeToDirCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/runtime_library_classes_dir/coverage
+ ---- done with outputs for bundleLibRuntimeToDirCoverage
+Task name = bundleLibRuntimeToDirDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/runtime_library_classes_dir/debug
+ ---- done with outputs for bundleLibRuntimeToDirDebug
+Task name = bundleLibRuntimeToDirRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/runtime_library_classes_dir/release
+ ---- done with outputs for bundleLibRuntimeToDirRelease
+Task name = bundleLibRuntimeToJarCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/runtime_library_classes_jar/coverage/classes.jar
+ ---- done with outputs for bundleLibRuntimeToJarCoverage
+Task name = bundleLibRuntimeToJarDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/runtime_library_classes_jar/debug/classes.jar
+ ---- done with outputs for bundleLibRuntimeToJarDebug
+Task name = bundleLibRuntimeToJarRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/runtime_library_classes_jar/release/classes.jar
+ ---- done with outputs for bundleLibRuntimeToJarRelease
+Task name = bundleReleaseAar: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/aar/pushwoosh-release.aar
+ ---- done with outputs for bundleReleaseAar
+Task name = bundleReleaseLocalLintAar: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/local_aar_for_lint/release/out.aar
+ ---- done with outputs for bundleReleaseLocalLintAar
+Task name = check: 
+
+ ---- done with outputs for check
+Task name = checkCoverageManifest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/check_manifest_result/coverage/out
+ ---- done with outputs for checkCoverageManifest
+Task name = checkCoverageUnitTestAarMetadata: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_metadata_check/coverageUnitTest
+ ---- done with outputs for checkCoverageUnitTestAarMetadata
+Task name = checkDebugAndroidTestAarMetadata: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_metadata_check/debugAndroidTest
+ ---- done with outputs for checkDebugAndroidTestAarMetadata
+Task name = checkDebugAndroidTestDuplicateClasses: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/duplicate_classes_check/debugAndroidTest
+ ---- done with outputs for checkDebugAndroidTestDuplicateClasses
+Task name = checkDebugManifest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/check_manifest_result/debug/out
+ ---- done with outputs for checkDebugManifest
+Task name = checkDebugUnitTestAarMetadata: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_metadata_check/debugUnitTest
+ ---- done with outputs for checkDebugUnitTestAarMetadata
+Task name = checkJetifier: 
+
+ ---- done with outputs for checkJetifier
+Task name = checkReleaseManifest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/check_manifest_result/release/out
+ ---- done with outputs for checkReleaseManifest
+Task name = checkReleaseUnitTestAarMetadata: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_metadata_check/releaseUnitTest
+ ---- done with outputs for checkReleaseUnitTestAarMetadata
+Task name = clean: 
+
+ ---- done with outputs for clean
+Task name = compileCoverageJavaWithJavac: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/javac/coverage/classes/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/ap_generated_sources/coverage/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/tmp/compileCoverageJavaWithJavac/previous-compilation-data.bin
+ ---- done with outputs for compileCoverageJavaWithJavac
+Task name = compileCoverageLibraryResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compiled_local_resources/coverage/out
+ ---- done with outputs for compileCoverageLibraryResources
+Task name = compileCoverageShaders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/shader_assets/coverage/out
+ ---- done with outputs for compileCoverageShaders
+Task name = compileCoverageSources: 
+
+ ---- done with outputs for compileCoverageSources
+Task name = compileCoverageUnitTestJavaWithJavac: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/javac/coverageUnitTest/classes/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/ap_generated_sources/coverageUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/tmp/compileCoverageUnitTestJavaWithJavac/previous-compilation-data.bin
+ ---- done with outputs for compileCoverageUnitTestJavaWithJavac
+Task name = compileCoverageUnitTestSources: 
+
+ ---- done with outputs for compileCoverageUnitTestSources
+Task name = compileDebugAndroidTestJavaWithJavac: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/javac/debugAndroidTest/classes/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/ap_generated_sources/debugAndroidTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/tmp/compileDebugAndroidTestJavaWithJavac/previous-compilation-data.bin
+ ---- done with outputs for compileDebugAndroidTestJavaWithJavac
+Task name = compileDebugAndroidTestShaders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/shader_assets/debugAndroidTest/out
+ ---- done with outputs for compileDebugAndroidTestShaders
+Task name = compileDebugAndroidTestSources: 
+
+ ---- done with outputs for compileDebugAndroidTestSources
+Task name = compileDebugJavaWithJavac: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/javac/debug/classes/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/ap_generated_sources/debug/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin
+ ---- done with outputs for compileDebugJavaWithJavac
+Task name = compileDebugLibraryResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compiled_local_resources/debug/out
+ ---- done with outputs for compileDebugLibraryResources
+Task name = compileDebugShaders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/shader_assets/debug/out
+ ---- done with outputs for compileDebugShaders
+Task name = compileDebugSources: 
+
+ ---- done with outputs for compileDebugSources
+Task name = compileDebugUnitTestJavaWithJavac: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/javac/debugUnitTest/classes/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/ap_generated_sources/debugUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/tmp/compileDebugUnitTestJavaWithJavac/previous-compilation-data.bin
+ ---- done with outputs for compileDebugUnitTestJavaWithJavac
+Task name = compileDebugUnitTestSources: 
+
+ ---- done with outputs for compileDebugUnitTestSources
+Task name = compileLint: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint
+ ---- done with outputs for compileLint
+Task name = compileLintChecks: 
+
+ ---- done with outputs for compileLintChecks
+Task name = compileReleaseJavaWithJavac: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/javac/release/classes/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/ap_generated_sources/release/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/tmp/compileReleaseJavaWithJavac/previous-compilation-data.bin
+ ---- done with outputs for compileReleaseJavaWithJavac
+Task name = compileReleaseLibraryResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compiled_local_resources/release/out
+ ---- done with outputs for compileReleaseLibraryResources
+Task name = compileReleaseShaders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/shader_assets/release/out
+ ---- done with outputs for compileReleaseShaders
+Task name = compileReleaseSources: 
+
+ ---- done with outputs for compileReleaseSources
+Task name = compileReleaseUnitTestJavaWithJavac: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/javac/releaseUnitTest/classes/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/ap_generated_sources/releaseUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/tmp/compileReleaseUnitTestJavaWithJavac/previous-compilation-data.bin
+ ---- done with outputs for compileReleaseUnitTestJavaWithJavac
+Task name = compileReleaseUnitTestSources: 
+
+ ---- done with outputs for compileReleaseUnitTestSources
+Task name = components: 
+
+ ---- done with outputs for components
+Task name = compressDebugAndroidTestAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compressed_assets/debugAndroidTest/out
+ ---- done with outputs for compressDebugAndroidTestAssets
+Task name = connectedAndroidTest: 
+
+ ---- done with outputs for connectedAndroidTest
+Task name = connectedCheck: 
+
+ ---- done with outputs for connectedCheck
+Task name = connectedDebugAndroidTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/connected_android_test_additional_output/debugAndroidTest/connected/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/code_coverage/debugAndroidTest/connected/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/androidTests/connected/debug/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/androidTest-results/connected/debug
+ ---- done with outputs for connectedDebugAndroidTest
+Task name = consumeConfigAttr: 
+
+ ---- done with outputs for consumeConfigAttr
+Task name = copyAar: 
+
+ ---- done with outputs for copyAar
+Task name = copyCoverageJniLibsProjectAndLocalJars: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_and_local_jars_jni/coverage/jni
+ ---- done with outputs for copyCoverageJniLibsProjectAndLocalJars
+Task name = copyCoverageJniLibsProjectOnly: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_jni/coverage/jni
+ ---- done with outputs for copyCoverageJniLibsProjectOnly
+Task name = copyDebugJniLibsProjectAndLocalJars: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_and_local_jars_jni/debug/jni
+ ---- done with outputs for copyDebugJniLibsProjectAndLocalJars
+Task name = copyDebugJniLibsProjectOnly: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_jni/debug/jni
+ ---- done with outputs for copyDebugJniLibsProjectOnly
+Task name = copyJarClass: 
+
+ ---- done with outputs for copyJarClass
+Task name = copyMapping: 
+
+ ---- done with outputs for copyMapping
+Task name = copyReleaseJniLibsProjectAndLocalJars: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_and_local_jars_jni/release/jni
+ ---- done with outputs for copyReleaseJniLibsProjectAndLocalJars
+Task name = copyReleaseJniLibsProjectOnly: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_jni/release/jni
+ ---- done with outputs for copyReleaseJniLibsProjectOnly
+Task name = copyToGlobal: 
+
+ ---- done with outputs for copyToGlobal
+Task name = createCoverageUnitTestCoverageReport: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/coverage/test/coverage
+ ---- done with outputs for createCoverageUnitTestCoverageReport
+Task name = createCoverageVariantModel: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/variant_model/coverage/variant_model.json
+ ---- done with outputs for createCoverageVariantModel
+Task name = createDebugAndroidTestApkListingFileRedirect: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt
+ ---- done with outputs for createDebugAndroidTestApkListingFileRedirect
+Task name = createDebugVariantModel: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/variant_model/debug/variant_model.json
+ ---- done with outputs for createDebugVariantModel
+Task name = createFullJarCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/full_jar/coverage/full.jar
+ ---- done with outputs for createFullJarCoverage
+Task name = createFullJarDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/full_jar/debug/full.jar
+ ---- done with outputs for createFullJarDebug
+Task name = createFullJarRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/full_jar/release/full.jar
+ ---- done with outputs for createFullJarRelease
+Task name = createMockableJar: 
+
+ ---- done with outputs for createMockableJar
+Task name = createReleaseVariantModel: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/variant_model/release/variant_model.json
+ ---- done with outputs for createReleaseVariantModel
+Task name = dependencies: 
+
+ ---- done with outputs for dependencies
+Task name = dependencyInsight: 
+
+ ---- done with outputs for dependencyInsight
+Task name = dependentComponents: 
+
+ ---- done with outputs for dependentComponents
+Task name = desugarDebugAndroidTestFileDependencies: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/external_file_lib_dex_archives/debugAndroidTest
+ ---- done with outputs for desugarDebugAndroidTestFileDependencies
+Task name = deviceAndroidTest: 
+
+ ---- done with outputs for deviceAndroidTest
+Task name = deviceCheck: 
+
+ ---- done with outputs for deviceCheck
+Task name = dexBuilderDebugAndroidTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/external_libs_dex_archive_with_artifact_transforms/debugAndroidTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/external_libs_dex_archive/debugAndroidTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/mixed_scope_dex_archive/debugAndroidTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/project_dex_archive/debugAndroidTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/sub_project_dex_archive/debugAndroidTest/out
+ ---- done with outputs for dexBuilderDebugAndroidTest
+Task name = exportCoverageConsumerProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/consumer_proguard_dir/coverage
+ ---- done with outputs for exportCoverageConsumerProguardFiles
+Task name = exportDebugConsumerProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/consumer_proguard_dir/debug
+ ---- done with outputs for exportDebugConsumerProguardFiles
+Task name = exportReleaseConsumerProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/consumer_proguard_dir/release
+ ---- done with outputs for exportReleaseConsumerProguardFiles
+Task name = extractCoverageAnnotations: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotations_zip/coverage/annotations.zip/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotations_typedef_file/coverage/typedefs.txt
+ ---- done with outputs for extractCoverageAnnotations
+Task name = extractCoverageSupportedLocales: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/supported_locale_list/coverage/supported_locales.txt
+ ---- done with outputs for extractCoverageSupportedLocales
+Task name = extractDebugAnnotations: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotations_zip/debug/annotations.zip/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotations_typedef_file/debug/typedefs.txt
+ ---- done with outputs for extractDebugAnnotations
+Task name = extractDebugSupportedLocales: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/supported_locale_list/debug/supported_locales.txt
+ ---- done with outputs for extractDebugSupportedLocales
+Task name = extractDeepLinksCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/navigation_json/coverage/navigation.json
+ ---- done with outputs for extractDeepLinksCoverage
+Task name = extractDeepLinksDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/navigation_json/debug/navigation.json
+ ---- done with outputs for extractDeepLinksDebug
+Task name = extractDeepLinksForAarCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/navigation_json_for_aar/coverage/navigation.json
+ ---- done with outputs for extractDeepLinksForAarCoverage
+Task name = extractDeepLinksForAarDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/navigation_json_for_aar/debug/navigation.json
+ ---- done with outputs for extractDeepLinksForAarDebug
+Task name = extractDeepLinksForAarRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/navigation_json_for_aar/release/navigation.json
+ ---- done with outputs for extractDeepLinksForAarRelease
+Task name = extractDeepLinksRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/navigation_json/release/navigation.json
+ ---- done with outputs for extractDeepLinksRelease
+Task name = extractProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/default_proguard_files/global
+ ---- done with outputs for extractProguardFiles
+Task name = extractReleaseAnnotations: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotations_zip/release/annotations.zip/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotations_typedef_file/release/typedefs.txt
+ ---- done with outputs for extractReleaseAnnotations
+Task name = extractReleaseSupportedLocales: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/supported_locale_list/release/supported_locales.txt
+ ---- done with outputs for extractReleaseSupportedLocales
+Task name = generateCoverageAssets: 
+
+ ---- done with outputs for generateCoverageAssets
+Task name = generateCoverageBuildConfig: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/source/buildConfig/coverage
+ ---- done with outputs for generateCoverageBuildConfig
+Task name = generateCoverageExternalPublicTxt: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/public_android_resources_list/coverage/public.txt
+ ---- done with outputs for generateCoverageExternalPublicTxt
+Task name = generateCoverageLintModel: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_model/coverage
+ ---- done with outputs for generateCoverageLintModel
+Task name = generateCoverageRFile: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_r_class_jar/coverage/R.jar/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/symbol_list_with_package_name/coverage/package-aware-r.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_symbol_list/coverage/R.txt
+ ---- done with outputs for generateCoverageRFile
+Task name = generateCoverageResValues: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/res/resValues/coverage
+ ---- done with outputs for generateCoverageResValues
+Task name = generateCoverageResources: 
+
+ ---- done with outputs for generateCoverageResources
+Task name = generateCoverageSources: 
+
+ ---- done with outputs for generateCoverageSources
+Task name = generateCoverageUnitTestAssets: 
+
+ ---- done with outputs for generateCoverageUnitTestAssets
+Task name = generateCoverageUnitTestConfig: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/unit_test_config_directory/coverageUnitTest/out
+ ---- done with outputs for generateCoverageUnitTestConfig
+Task name = generateCoverageUnitTestResValues: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/res/resValues/test/coverage
+ ---- done with outputs for generateCoverageUnitTestResValues
+Task name = generateCoverageUnitTestResources: 
+
+ ---- done with outputs for generateCoverageUnitTestResources
+Task name = generateCoverageUnitTestSources: 
+
+ ---- done with outputs for generateCoverageUnitTestSources
+Task name = generateDebugAndroidTestAssets: 
+
+ ---- done with outputs for generateDebugAndroidTestAssets
+Task name = generateDebugAndroidTestBuildConfig: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/source/buildConfig/androidTest/debug
+ ---- done with outputs for generateDebugAndroidTestBuildConfig
+Task name = generateDebugAndroidTestResValues: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/res/resValues/androidTest/debug
+ ---- done with outputs for generateDebugAndroidTestResValues
+Task name = generateDebugAndroidTestResources: 
+
+ ---- done with outputs for generateDebugAndroidTestResources
+Task name = generateDebugAndroidTestSources: 
+
+ ---- done with outputs for generateDebugAndroidTestSources
+Task name = generateDebugAssets: 
+
+ ---- done with outputs for generateDebugAssets
+Task name = generateDebugBuildConfig: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/source/buildConfig/debug
+ ---- done with outputs for generateDebugBuildConfig
+Task name = generateDebugExternalPublicTxt: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/public_android_resources_list/debug/public.txt
+ ---- done with outputs for generateDebugExternalPublicTxt
+Task name = generateDebugLintModel: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_model/debug
+ ---- done with outputs for generateDebugLintModel
+Task name = generateDebugRFile: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_r_class_jar/debug/R.jar/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/symbol_list_with_package_name/debug/package-aware-r.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_symbol_list/debug/R.txt
+ ---- done with outputs for generateDebugRFile
+Task name = generateDebugResValues: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/res/resValues/debug
+ ---- done with outputs for generateDebugResValues
+Task name = generateDebugResources: 
+
+ ---- done with outputs for generateDebugResources
+Task name = generateDebugSources: 
+
+ ---- done with outputs for generateDebugSources
+Task name = generateDebugUnitTestAssets: 
+
+ ---- done with outputs for generateDebugUnitTestAssets
+Task name = generateDebugUnitTestConfig: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/unit_test_config_directory/debugUnitTest/out
+ ---- done with outputs for generateDebugUnitTestConfig
+Task name = generateDebugUnitTestResValues: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/res/resValues/test/debug
+ ---- done with outputs for generateDebugUnitTestResValues
+Task name = generateDebugUnitTestResources: 
+
+ ---- done with outputs for generateDebugUnitTestResources
+Task name = generateDebugUnitTestSources: 
+
+ ---- done with outputs for generateDebugUnitTestSources
+Task name = generateMetadataFileForReleasePublication: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/publications/release/module.json
+ ---- done with outputs for generateMetadataFileForReleasePublication
+Task name = generatePomFileForReleasePublication: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/publications/release/pom-default.xml
+ ---- done with outputs for generatePomFileForReleasePublication
+Task name = generateReleaseAssets: 
+
+ ---- done with outputs for generateReleaseAssets
+Task name = generateReleaseBuildConfig: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/source/buildConfig/release
+ ---- done with outputs for generateReleaseBuildConfig
+Task name = generateReleaseExternalPublicTxt: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/public_android_resources_list/release/public.txt
+ ---- done with outputs for generateReleaseExternalPublicTxt
+Task name = generateReleaseLibraryProguardRules: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aapt_proguard_file/release/aapt_rules.txt
+ ---- done with outputs for generateReleaseLibraryProguardRules
+Task name = generateReleaseLintModel: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_model/release
+ ---- done with outputs for generateReleaseLintModel
+Task name = generateReleaseRFile: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_r_class_jar/release/R.jar/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/symbol_list_with_package_name/release/package-aware-r.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_symbol_list/release/R.txt
+ ---- done with outputs for generateReleaseRFile
+Task name = generateReleaseResValues: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/res/resValues/release
+ ---- done with outputs for generateReleaseResValues
+Task name = generateReleaseResources: 
+
+ ---- done with outputs for generateReleaseResources
+Task name = generateReleaseSources: 
+
+ ---- done with outputs for generateReleaseSources
+Task name = generateReleaseUnitTestAssets: 
+
+ ---- done with outputs for generateReleaseUnitTestAssets
+Task name = generateReleaseUnitTestConfig: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/unit_test_config_directory/releaseUnitTest/out
+ ---- done with outputs for generateReleaseUnitTestConfig
+Task name = generateReleaseUnitTestResValues: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/res/resValues/test/release
+ ---- done with outputs for generateReleaseUnitTestResValues
+Task name = generateReleaseUnitTestResources: 
+
+ ---- done with outputs for generateReleaseUnitTestResources
+Task name = generateReleaseUnitTestSources: 
+
+ ---- done with outputs for generateReleaseUnitTestSources
+Task name = help: 
+
+ ---- done with outputs for help
+Task name = installDebugAndroidTest: 
+
+ ---- done with outputs for installDebugAndroidTest
+Task name = javaPreCompileCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotation_processor_list/coverage/annotationProcessors.json
+ ---- done with outputs for javaPreCompileCoverage
+Task name = javaPreCompileCoverageUnitTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotation_processor_list/coverageUnitTest/annotationProcessors.json
+ ---- done with outputs for javaPreCompileCoverageUnitTest
+Task name = javaPreCompileDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotation_processor_list/debug/annotationProcessors.json
+ ---- done with outputs for javaPreCompileDebug
+Task name = javaPreCompileDebugAndroidTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotation_processor_list/debugAndroidTest/annotationProcessors.json
+ ---- done with outputs for javaPreCompileDebugAndroidTest
+Task name = javaPreCompileDebugUnitTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotation_processor_list/debugUnitTest/annotationProcessors.json
+ ---- done with outputs for javaPreCompileDebugUnitTest
+Task name = javaPreCompileRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotation_processor_list/release/annotationProcessors.json
+ ---- done with outputs for javaPreCompileRelease
+Task name = javaPreCompileReleaseUnitTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/annotation_processor_list/releaseUnitTest/annotationProcessors.json
+ ---- done with outputs for javaPreCompileReleaseUnitTest
+Task name = javaToolchains: 
+
+ ---- done with outputs for javaToolchains
+Task name = lint: 
+
+ ---- done with outputs for lint
+Task name = lintAnalyzeCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_partial_results/coverage/out
+ ---- done with outputs for lintAnalyzeCoverage
+Task name = lintAnalyzeDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_partial_results/debug/out
+ ---- done with outputs for lintAnalyzeDebug
+Task name = lintAnalyzeRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_partial_results/release/out
+ ---- done with outputs for lintAnalyzeRelease
+Task name = lintCoverage: 
+
+ ---- done with outputs for lintCoverage
+Task name = lintDebug: 
+
+ ---- done with outputs for lintDebug
+Task name = lintFix: 
+
+ ---- done with outputs for lintFix
+Task name = lintFixCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/lintFixCoverage
+ ---- done with outputs for lintFixCoverage
+Task name = lintFixDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/lintFixDebug
+ ---- done with outputs for lintFixDebug
+Task name = lintFixRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/lintFixRelease
+ ---- done with outputs for lintFixRelease
+Task name = lintRelease: 
+
+ ---- done with outputs for lintRelease
+Task name = lintReportCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-coverage.html/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_intermediate_text_report/coverage/lint-results-coverage.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/lintReportCoverage/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_return_value/coverage/return-value-coverage.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-coverage.sarif/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-coverage.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-coverage.xml
+ ---- done with outputs for lintReportCoverage
+Task name = lintReportDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-debug.html/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_intermediate_text_report/debug/lint-results-debug.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/lintReportDebug/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_return_value/debug/return-value-debug.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-debug.sarif/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-debug.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-debug.xml
+ ---- done with outputs for lintReportDebug
+Task name = lintReportRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-release.html/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_intermediate_text_report/release/lint-results-release.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/lintReportRelease/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_return_value/release/return-value-release.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-release.sarif/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-release.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/lint-results-release.xml
+ ---- done with outputs for lintReportRelease
+Task name = mapCoverageSourceSetPaths: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/source_set_path_map/coverage/file-map.txt
+ ---- done with outputs for mapCoverageSourceSetPaths
+Task name = mapCoverageUnitTestSourceSetPaths: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/source_set_path_map/coverageUnitTest/file-map.txt
+ ---- done with outputs for mapCoverageUnitTestSourceSetPaths
+Task name = mapDebugAndroidTestSourceSetPaths: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/source_set_path_map/debugAndroidTest/file-map.txt
+ ---- done with outputs for mapDebugAndroidTestSourceSetPaths
+Task name = mapDebugSourceSetPaths: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/source_set_path_map/debug/file-map.txt
+ ---- done with outputs for mapDebugSourceSetPaths
+Task name = mapDebugUnitTestSourceSetPaths: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/source_set_path_map/debugUnitTest/file-map.txt
+ ---- done with outputs for mapDebugUnitTestSourceSetPaths
+Task name = mapReleaseSourceSetPaths: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/source_set_path_map/release/file-map.txt
+ ---- done with outputs for mapReleaseSourceSetPaths
+Task name = mapReleaseUnitTestSourceSetPaths: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/source_set_path_map/releaseUnitTest/file-map.txt
+ ---- done with outputs for mapReleaseUnitTestSourceSetPaths
+Task name = mergeCoverageAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/assets/coverage
+ ---- done with outputs for mergeCoverageAssets
+Task name = mergeCoverageConsumerProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_consumer_proguard_file/coverage/proguard.txt
+ ---- done with outputs for mergeCoverageConsumerProguardFiles
+Task name = mergeCoverageGeneratedProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/generated_proguard_file/coverage/proguard.txt
+ ---- done with outputs for mergeCoverageGeneratedProguardFiles
+Task name = mergeCoverageJavaResource: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/coverage-mergeJavaRes/zip-cache/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_java_res/coverage/feature-pushwoosh.jar
+ ---- done with outputs for mergeCoverageJavaResource
+Task name = mergeCoverageJniLibFolders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_jni_libs/coverage/out
+ ---- done with outputs for mergeCoverageJniLibFolders
+Task name = mergeCoverageNativeLibs: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_native_libs/coverage/out
+ ---- done with outputs for mergeCoverageNativeLibs
+Task name = mergeCoverageResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res_blame_folder/coverage/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/data_binding_layout_info_type_merge/coverage/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/coverage/mergeCoverageResources/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res/coverage
+ ---- done with outputs for mergeCoverageResources
+Task name = mergeCoverageShaders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_shaders/coverage/out
+ ---- done with outputs for mergeCoverageShaders
+Task name = mergeCoverageUnitTestAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/assets/coverageUnitTest
+ ---- done with outputs for mergeCoverageUnitTestAssets
+Task name = mergeCoverageUnitTestResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res_blame_folder/coverageUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/data_binding_layout_info_type_merge/coverageUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/coverageUnitTest/mergeCoverageUnitTestResources/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res/coverageUnitTest
+ ---- done with outputs for mergeCoverageUnitTestResources
+Task name = mergeDebugAndroidTestAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/assets/debugAndroidTest
+ ---- done with outputs for mergeDebugAndroidTestAssets
+Task name = mergeDebugAndroidTestGeneratedProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/generated_proguard_file/debugAndroidTest/proguard.txt
+ ---- done with outputs for mergeDebugAndroidTestGeneratedProguardFiles
+Task name = mergeDebugAndroidTestJavaResource: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/debugAndroidTest-mergeJavaRes/zip-cache/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_java_res/debugAndroidTest/feature-pushwoosh.jar
+ ---- done with outputs for mergeDebugAndroidTestJavaResource
+Task name = mergeDebugAndroidTestJniLibFolders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_jni_libs/debugAndroidTest/out
+ ---- done with outputs for mergeDebugAndroidTestJniLibFolders
+Task name = mergeDebugAndroidTestNativeLibs: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_native_libs/debugAndroidTest/out
+ ---- done with outputs for mergeDebugAndroidTestNativeLibs
+Task name = mergeDebugAndroidTestResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res_blame_folder/debugAndroidTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/data_binding_layout_info_type_merge/debugAndroidTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res/debugAndroidTest
+ ---- done with outputs for mergeDebugAndroidTestResources
+Task name = mergeDebugAndroidTestShaders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_shaders/debugAndroidTest/out
+ ---- done with outputs for mergeDebugAndroidTestShaders
+Task name = mergeDebugAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/assets/debug
+ ---- done with outputs for mergeDebugAssets
+Task name = mergeDebugConsumerProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_consumer_proguard_file/debug/proguard.txt
+ ---- done with outputs for mergeDebugConsumerProguardFiles
+Task name = mergeDebugGeneratedProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/generated_proguard_file/debug/proguard.txt
+ ---- done with outputs for mergeDebugGeneratedProguardFiles
+Task name = mergeDebugJavaResource: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/debug-mergeJavaRes/zip-cache/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_java_res/debug/feature-pushwoosh.jar
+ ---- done with outputs for mergeDebugJavaResource
+Task name = mergeDebugJniLibFolders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_jni_libs/debug/out
+ ---- done with outputs for mergeDebugJniLibFolders
+Task name = mergeDebugNativeLibs: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_native_libs/debug/out
+ ---- done with outputs for mergeDebugNativeLibs
+Task name = mergeDebugResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res_blame_folder/debug/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/data_binding_layout_info_type_merge/debug/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/debug/mergeDebugResources/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res/debug
+ ---- done with outputs for mergeDebugResources
+Task name = mergeDebugShaders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_shaders/debug/out
+ ---- done with outputs for mergeDebugShaders
+Task name = mergeDebugUnitTestAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/assets/debugUnitTest
+ ---- done with outputs for mergeDebugUnitTestAssets
+Task name = mergeDebugUnitTestResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res_blame_folder/debugUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/data_binding_layout_info_type_merge/debugUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/debugUnitTest/mergeDebugUnitTestResources/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res/debugUnitTest
+ ---- done with outputs for mergeDebugUnitTestResources
+Task name = mergeExtDexDebugAndroidTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/dex/debugAndroidTest/mergeExtDexDebugAndroidTest
+ ---- done with outputs for mergeExtDexDebugAndroidTest
+Task name = mergeLibDexDebugAndroidTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/dex/debugAndroidTest/mergeLibDexDebugAndroidTest
+ ---- done with outputs for mergeLibDexDebugAndroidTest
+Task name = mergeProjectDexDebugAndroidTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/dex/debugAndroidTest/mergeProjectDexDebugAndroidTest
+ ---- done with outputs for mergeProjectDexDebugAndroidTest
+Task name = mergeReleaseAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/assets/release
+ ---- done with outputs for mergeReleaseAssets
+Task name = mergeReleaseConsumerProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_consumer_proguard_file/release/proguard.txt
+ ---- done with outputs for mergeReleaseConsumerProguardFiles
+Task name = mergeReleaseGeneratedProguardFiles: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/generated_proguard_file/release/proguard.txt
+ ---- done with outputs for mergeReleaseGeneratedProguardFiles
+Task name = mergeReleaseJavaResource: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/release-mergeJavaRes/zip-cache/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_java_res/release/feature-pushwoosh.jar
+ ---- done with outputs for mergeReleaseJavaResource
+Task name = mergeReleaseJniLibFolders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_jni_libs/release/out
+ ---- done with outputs for mergeReleaseJniLibFolders
+Task name = mergeReleaseNativeLibs: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_native_libs/release/out
+ ---- done with outputs for mergeReleaseNativeLibs
+Task name = mergeReleaseResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res_blame_folder/release/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/data_binding_layout_info_type_merge/release/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/release/mergeReleaseResources/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res/release
+ ---- done with outputs for mergeReleaseResources
+Task name = mergeReleaseShaders: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_shaders/release/out
+ ---- done with outputs for mergeReleaseShaders
+Task name = mergeReleaseUnitTestAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/assets/releaseUnitTest
+ ---- done with outputs for mergeReleaseUnitTestAssets
+Task name = mergeReleaseUnitTestResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res_blame_folder/releaseUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/data_binding_layout_info_type_merge/releaseUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/releaseUnitTest/mergeReleaseUnitTestResources/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_res/releaseUnitTest
+ ---- done with outputs for mergeReleaseUnitTestResources
+Task name = minifyReleaseWithR8: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/mapping/release/mapping.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/mapping/release/missing_rules.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_art_profile/release/baseline-prof.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/shrunk_classes/release/shrunkClasses.jar/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_java_res/release/feature-pushwoosh.jar/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/mapping/release/configuration.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/mapping/release/seeds.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/mapping/release/usage.txt
+ ---- done with outputs for minifyReleaseWithR8
+Task name = model: 
+
+ ---- done with outputs for model
+Task name = outgoingVariants: 
+
+ ---- done with outputs for outgoingVariants
+Task name = packageCoverageAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_assets/coverage/out
+ ---- done with outputs for packageCoverageAssets
+Task name = packageCoverageRenderscript: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/renderscript_headers/coverage/out
+ ---- done with outputs for packageCoverageRenderscript
+Task name = packageCoverageResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/data_binding_layout_info_type_package/coverage/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/res/pngs/coverage/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/coverage/packageCoverageResources/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/packaged_res/coverage/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/public_res/coverage/public.txt
+ ---- done with outputs for packageCoverageResources
+Task name = packageCoverageUnitTestForUnitTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/apk_for_local_test/coverageUnitTest/apk-for-local-test.ap_
+ ---- done with outputs for packageCoverageUnitTestForUnitTest
+Task name = packageDebugAndroidTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/apk/androidTest/debug/output-metadata.json/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/packageDebugAndroidTest/tmp/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/apk/androidTest/debug
+ ---- done with outputs for packageDebugAndroidTest
+Task name = packageDebugAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_assets/debug/out
+ ---- done with outputs for packageDebugAssets
+Task name = packageDebugRenderscript: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/renderscript_headers/debug/out
+ ---- done with outputs for packageDebugRenderscript
+Task name = packageDebugResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/data_binding_layout_info_type_package/debug/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/res/pngs/debug/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/debug/packageDebugResources/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/packaged_res/debug/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/public_res/debug/public.txt
+ ---- done with outputs for packageDebugResources
+Task name = packageDebugUnitTestForUnitTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/apk_for_local_test/debugUnitTest/apk-for-local-test.ap_
+ ---- done with outputs for packageDebugUnitTestForUnitTest
+Task name = packageReleaseAssets: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_assets/release/out
+ ---- done with outputs for packageReleaseAssets
+Task name = packageReleaseRenderscript: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/renderscript_headers/release/out
+ ---- done with outputs for packageReleaseRenderscript
+Task name = packageReleaseResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/data_binding_layout_info_type_package/release/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/generated/res/pngs/release/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/release/packageReleaseResources/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/packaged_res/release/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/public_res/release/public.txt
+ ---- done with outputs for packageReleaseResources
+Task name = packageReleaseUnitTestForUnitTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/apk_for_local_test/releaseUnitTest/apk-for-local-test.ap_
+ ---- done with outputs for packageReleaseUnitTestForUnitTest
+Task name = parseCoverageLocalResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/local_only_symbol_list/coverage/R-def.txt
+ ---- done with outputs for parseCoverageLocalResources
+Task name = parseDebugLocalResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/local_only_symbol_list/debug/R-def.txt
+ ---- done with outputs for parseDebugLocalResources
+Task name = parseReleaseLocalResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/local_only_symbol_list/release/R-def.txt
+ ---- done with outputs for parseReleaseLocalResources
+Task name = pitest: 
+
+ ---- done with outputs for pitest
+Task name = pitestCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/pitest/coverage
+ ---- done with outputs for pitestCoverage
+Task name = pitestDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/pitest/debug
+ ---- done with outputs for pitestDebug
+Task name = pitestMockableAndroidJar: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/pitest-android-33.jar
+ ---- done with outputs for pitestMockableAndroidJar
+Task name = pitestRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/pitest/release
+ ---- done with outputs for pitestRelease
+Task name = preBuild: 
+
+ ---- done with outputs for preBuild
+Task name = preCoverageBuild: 
+
+ ---- done with outputs for preCoverageBuild
+Task name = preCoverageUnitTestBuild: 
+
+ ---- done with outputs for preCoverageUnitTestBuild
+Task name = preDebugAndroidTestBuild: 
+
+ ---- done with outputs for preDebugAndroidTestBuild
+Task name = preDebugBuild: 
+
+ ---- done with outputs for preDebugBuild
+Task name = preDebugUnitTestBuild: 
+
+ ---- done with outputs for preDebugUnitTestBuild
+Task name = preReleaseBuild: 
+
+ ---- done with outputs for preReleaseBuild
+Task name = preReleaseUnitTestBuild: 
+
+ ---- done with outputs for preReleaseUnitTestBuild
+Task name = prepareCoverageArtProfile: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_art_profile/coverage/baseline-prof.txt
+ ---- done with outputs for prepareCoverageArtProfile
+Task name = prepareDebugArtProfile: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_art_profile/debug/baseline-prof.txt
+ ---- done with outputs for prepareDebugArtProfile
+Task name = prepareLintJarForPublish: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_publish_jar/global/lint.jar
+ ---- done with outputs for prepareLintJarForPublish
+Task name = prepareReleaseArtProfile: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/library_art_profile/release/baseline-prof.txt
+ ---- done with outputs for prepareReleaseArtProfile
+Task name = processCoverageJavaRes: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/java_res/coverage/out
+ ---- done with outputs for processCoverageJavaRes
+Task name = processCoverageManifest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aapt_friendly_merged_manifests/coverage/aapt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_manifest/coverage/AndroidManifest.xml/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/manifest_merge_blame_file/coverage/manifest-merger-blame-coverage-report.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/logs/manifest-merger-coverage-report.txt
+ ---- done with outputs for processCoverageManifest
+Task name = processCoverageUnitTestJavaRes: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/java_res/coverageUnitTest/out
+ ---- done with outputs for processCoverageUnitTestJavaRes
+Task name = processCoverageUnitTestManifest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/manifest_merge_blame_file/coverageUnitTest/manifest-merger-blame-coverage-test-report.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/packaged_manifests/coverageUnitTest
+ ---- done with outputs for processCoverageUnitTestManifest
+Task name = processCoverageUnitTestResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/coverageUnitTest/R.jar/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/processed_res/coverageUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/symbol_list_with_package_name/coverageUnitTest/package-aware-r.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/runtime_symbol_list/coverageUnitTest/R.txt
+ ---- done with outputs for processCoverageUnitTestResources
+Task name = processDebugAndroidTestJavaRes: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/java_res/debugAndroidTest/out
+ ---- done with outputs for processDebugAndroidTestJavaRes
+Task name = processDebugAndroidTestManifest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/manifest_merge_blame_file/debugAndroidTest/manifest-merger-blame-debug-androidTest-report.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/packaged_manifests/debugAndroidTest
+ ---- done with outputs for processDebugAndroidTestManifest
+Task name = processDebugAndroidTestResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/processed_res/debugAndroidTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/symbol_list_with_package_name/debugAndroidTest/package-aware-r.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/runtime_symbol_list/debugAndroidTest/R.txt
+ ---- done with outputs for processDebugAndroidTestResources
+Task name = processDebugJavaRes: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/java_res/debug/out
+ ---- done with outputs for processDebugJavaRes
+Task name = processDebugManifest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aapt_friendly_merged_manifests/debug/aapt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_manifest/debug/AndroidManifest.xml/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/manifest_merge_blame_file/debug/manifest-merger-blame-debug-report.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/logs/manifest-merger-debug-report.txt
+ ---- done with outputs for processDebugManifest
+Task name = processDebugUnitTestJavaRes: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/java_res/debugUnitTest/out
+ ---- done with outputs for processDebugUnitTestJavaRes
+Task name = processDebugUnitTestManifest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/manifest_merge_blame_file/debugUnitTest/manifest-merger-blame-debug-test-report.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/packaged_manifests/debugUnitTest
+ ---- done with outputs for processDebugUnitTestManifest
+Task name = processDebugUnitTestResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/processed_res/debugUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/symbol_list_with_package_name/debugUnitTest/package-aware-r.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/runtime_symbol_list/debugUnitTest/R.txt
+ ---- done with outputs for processDebugUnitTestResources
+Task name = processReleaseJavaRes: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/java_res/release/out
+ ---- done with outputs for processReleaseJavaRes
+Task name = processReleaseManifest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aapt_friendly_merged_manifests/release/aapt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/merged_manifest/release/AndroidManifest.xml/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/manifest_merge_blame_file/release/manifest-merger-blame-release-report.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/logs/manifest-merger-release-report.txt
+ ---- done with outputs for processReleaseManifest
+Task name = processReleaseUnitTestJavaRes: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/java_res/releaseUnitTest/out
+ ---- done with outputs for processReleaseUnitTestJavaRes
+Task name = processReleaseUnitTestManifest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/manifest_merge_blame_file/releaseUnitTest/manifest-merger-blame-release-test-report.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/packaged_manifests/releaseUnitTest
+ ---- done with outputs for processReleaseUnitTestManifest
+Task name = processReleaseUnitTestResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/releaseUnitTest/R.jar/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/processed_res/releaseUnitTest/out/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/symbol_list_with_package_name/releaseUnitTest/package-aware-r.txt/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/runtime_symbol_list/releaseUnitTest/R.txt
+ ---- done with outputs for processReleaseUnitTestResources
+Task name = projects: 
+
+ ---- done with outputs for projects
+Task name = properties: 
+
+ ---- done with outputs for properties
+Task name = publish: 
+
+ ---- done with outputs for publish
+Task name = publishAllPublicationsToNexusRepository: 
+
+ ---- done with outputs for publishAllPublicationsToNexusRepository
+Task name = publishReleasePublicationToMavenLocal: 
+
+ ---- done with outputs for publishReleasePublicationToMavenLocal
+Task name = publishReleasePublicationToNexusRepository: 
+
+ ---- done with outputs for publishReleasePublicationToNexusRepository
+Task name = publishToMavenLocal: 
+
+ ---- done with outputs for publishToMavenLocal
+Task name = resolvableConfigurations: 
+
+ ---- done with outputs for resolvableConfigurations
+Task name = resolveConfigAttr: 
+
+ ---- done with outputs for resolveConfigAttr
+Task name = signReleasePublication: 
+
+ ---- done with outputs for signReleasePublication
+Task name = signingConfigWriterDebugAndroidTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/signing_config_data/debugAndroidTest/signing-config-data.json
+ ---- done with outputs for signingConfigWriterDebugAndroidTest
+Task name = signingReport: 
+
+ ---- done with outputs for signingReport
+Task name = sourceSets: 
+
+ ---- done with outputs for sourceSets
+Task name = stripCoverageDebugSymbols: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/stripped_native_libs/coverage/out
+ ---- done with outputs for stripCoverageDebugSymbols
+Task name = stripDebugDebugSymbols: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/stripped_native_libs/debug/out
+ ---- done with outputs for stripDebugDebugSymbols
+Task name = stripReleaseDebugSymbols: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/stripped_native_libs/release/out
+ ---- done with outputs for stripReleaseDebugSymbols
+Task name = syncCoverageLibJars: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_libs_directory/coverage/libs/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_main_jar/coverage/classes.jar
+ ---- done with outputs for syncCoverageLibJars
+Task name = syncDebugLibJars: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_libs_directory/debug/libs/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_main_jar/debug/classes.jar
+ ---- done with outputs for syncDebugLibJars
+Task name = syncReleaseLibJars: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_libs_directory/release/libs/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_main_jar/release/classes.jar
+ ---- done with outputs for syncReleaseLibJars
+Task name = tasks: 
+
+ ---- done with outputs for tasks
+Task name = test: 
+
+ ---- done with outputs for test
+Task name = testCoverageUnitTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/test-results/testCoverageUnitTest/binary/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/outputs/unit_test_code_coverage/coverageUnitTest/testCoverageUnitTest.exec/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/tests/testCoverageUnitTest/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/test-results/testCoverageUnitTest
+ ---- done with outputs for testCoverageUnitTest
+Task name = testDebugUnitTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/test-results/testDebugUnitTest/binary/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/jacoco/testDebugUnitTest.exec/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/tests/testDebugUnitTest/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/test-results/testDebugUnitTest
+ ---- done with outputs for testDebugUnitTest
+Task name = testReleaseUnitTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/test-results/testReleaseUnitTest/binary/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/jacoco/testReleaseUnitTest.exec/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/reports/tests/testReleaseUnitTest/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/test-results/testReleaseUnitTest
+ ---- done with outputs for testReleaseUnitTest
+Task name = unZipAar: 
+
+ ---- done with outputs for unZipAar
+Task name = uninstallAll: 
+
+ ---- done with outputs for uninstallAll
+Task name = uninstallDebugAndroidTest: 
+
+ ---- done with outputs for uninstallDebugAndroidTest
+Task name = updateLintBaseline: 
+
+ ---- done with outputs for updateLintBaseline
+Task name = updateLintBaselineCoverage: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/updateLintBaselineCoverage
+ ---- done with outputs for updateLintBaselineCoverage
+Task name = updateLintBaselineDebug: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/updateLintBaselineDebug
+ ---- done with outputs for updateLintBaselineDebug
+Task name = updateLintBaselineRelease: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/incremental/updateLintBaselineRelease
+ ---- done with outputs for updateLintBaselineRelease
+Task name = validateSigningDebugAndroidTest: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/validate_signing_config/debugAndroidTest
+ ---- done with outputs for validateSigningDebugAndroidTest
+Task name = verifyReleaseResources: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/verified_library_resources/release
+ ---- done with outputs for verifyReleaseResources
+Task name = writeCoverageAarMetadata: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_metadata/coverage/aar-metadata.properties
+ ---- done with outputs for writeCoverageAarMetadata
+Task name = writeCoverageLintModelMetadata: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_model_metadata/coverage/lint-model-metadata.properties
+ ---- done with outputs for writeCoverageLintModelMetadata
+Task name = writeDebugAarMetadata: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_metadata/debug/aar-metadata.properties
+ ---- done with outputs for writeDebugAarMetadata
+Task name = writeDebugAndroidTestSigningConfigVersions: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/signing_config_versions/debugAndroidTest/signing-config-versions.json
+ ---- done with outputs for writeDebugAndroidTestSigningConfigVersions
+Task name = writeDebugLintModelMetadata: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_model_metadata/debug/lint-model-metadata.properties
+ ---- done with outputs for writeDebugLintModelMetadata
+Task name = writeReleaseAarMetadata: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/aar_metadata/release/aar-metadata.properties
+ ---- done with outputs for writeReleaseAarMetadata
+Task name = writeReleaseLintModelMetadata: 
+/Users/vromanychev/Desktop/projects/PrivateForks/Android/Sources/pushwoosh/build/intermediates/lint_model_metadata/release/lint-model-metadata.properties
+ ---- done with outputs for writeReleaseLintModelMetadata
+
+> Task :pushwoosh:preBuild UP-TO-DATE
+> Task :pushwoosh:preReleaseBuild UP-TO-DATE
+> Task :pushwoosh:generateReleaseBuildConfig UP-TO-DATE
+> Task :pushwoosh:generateReleaseResValues UP-TO-DATE
+> Task :pushwoosh:generateReleaseResources UP-TO-DATE
+> Task :pushwoosh:packageReleaseResources UP-TO-DATE
+> Task :pushwoosh:parseReleaseLocalResources UP-TO-DATE
+> Task :pushwoosh:processReleaseManifest UP-TO-DATE
+> Task :pushwoosh:generateReleaseRFile UP-TO-DATE
+> Task :pushwoosh:javaPreCompileRelease UP-TO-DATE
+> Task :pushwoosh:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :pushwoosh:extractProguardFiles UP-TO-DATE
+> Task :pushwoosh:generateReleaseLibraryProguardRules UP-TO-DATE
+> Task :pushwoosh:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :pushwoosh:processReleaseJavaRes NO-SOURCE
+> Task :pushwoosh:mergeReleaseJavaResource
+
+> Task :pushwoosh:minifyReleaseWithR8 FAILED
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+See https://docs.gradle.org/8.1/userguide/command_line_interface.html#sec:command_line_warnings
+13 actionable tasks: 2 executed, 11 up-to-date

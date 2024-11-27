@@ -1,4 +1,5 @@
 include ':pushwoosh-huawei', ':pushwoosh-xiaomi'
-include ':app', ':pushwoosh', ':pushwoosh-badge', ':pushwoosh-location', ':pushwoosh-amazon', ':amazon-stub', ':pushwoosh-inbox-ui', ':pushwoosh-inbox', ':pushwoosh-baidu', ':pushwoosh-firebase', 'baidu-stub'
+include ':pushwoosh', ':pushwoosh-badge', ':pushwoosh-location', ':pushwoosh-amazon', ':amazon-stub', ':pushwoosh-inbox-ui', ':pushwoosh-inbox', ':pushwoosh-baidu', ':pushwoosh-firebase', 'baidu-stub'
 project(':amazon-stub').projectDir = new File('pushwoosh-amazon/amazon-stub')
 project(':baidu-stub').projectDir = new File('pushwoosh-baidu/baidu-stub')
+include ':demoapp'

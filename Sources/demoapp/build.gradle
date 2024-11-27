@@ -1,0 +1,70 @@
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+apply from: '../scripts/buildSdk/build.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
+apply from: '../scripts/buildSdk/configureDependencies.gradle'
+
+android {
+    namespace 'com.pushwoosh.demoapp'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.pushwoosh.demoapp"
+        minSdk 24
+        targetSdk 34
+        versionCode 2
+        versionName "1.1"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildFeatures {
+        viewBinding true
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation libs.google.services
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.constraintlayout
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.navigation.fragment
+    implementation libs.navigation.ui
+    implementation libs.firebase.messaging
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    debugApi project(':pushwoosh')
+    debugApi project(':pushwoosh-firebase')
+    debugApi project(':pushwoosh-badge')
+    debugApi project(':pushwoosh-location')
+    debugApi project(':pushwoosh-amazon')
+    debugApi project(':pushwoosh-huawei')
+    debugApi project(':pushwoosh-xiaomi')
+    debugApi project(':pushwoosh-inbox')
+    debugApi project(':pushwoosh-inbox-ui')
+
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
+
+apply {
+    libs.google.services
+}
+

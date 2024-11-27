@@ -29,11 +29,11 @@ ext {
     globalBuildOutputMapping = "${globalBuildOutput}/mapping"
 }
 
-task prepareMappingFile {
+tasks.register('prepareMappingFile') {
     doLast {
         def mappingFile = new File(file(globalBuildOutput), "mapping.txt")
         println mappingFile
-        if(mappingFile.exists()){
+        if (mappingFile.exists()) {
             mappingFile.delete()
         }
 
@@ -41,7 +41,7 @@ task prepareMappingFile {
     }
 }
 
-task concatMapping(type: ConcatFiles) {
+tasks.register('concatMapping', ConcatFiles) {
     files = fileTree(dir: globalBuildOutputMapping, include: '*.txt')
     target = file("${file(globalBuildOutput)}/mapping.txt")
 }
