@@ -29,7 +29,6 @@ package com.pushwoosh.firebase;
 import android.content.Context;
 import android.os.Bundle;
 
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.pushwoosh.PushwooshMessagingServiceHelper;

@@ -18,6 +18,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "pl.droidsonroids.gradle:gradle-pitest-plugin:$gradle_pitest_plugin_version"
         classpath "com.huawei.agconnect:agcp:$huawei_version"
+        classpath libs.google.services
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -37,7 +38,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 33
     ext.global_targetVersion = 34
-    ext.global_versionName = "6.7.15"
+    ext.global_versionName = "6.7.16"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"

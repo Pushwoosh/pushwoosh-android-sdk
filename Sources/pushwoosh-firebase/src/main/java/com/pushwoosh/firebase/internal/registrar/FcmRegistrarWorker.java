@@ -18,6 +18,7 @@ public class FcmRegistrarWorker extends Worker {
     public static final String DATA_UNREGISTER = "DATA_UNREGISTER";
     public static final String DATA_TAGS = "DATA_TAGS";
     public static final String TAG = "FcmRegistrarWorker";
+    public static final String PERIODIC_WORK_NAME = "FcmPeriodicRegistrarWorker";
 
     public FcmRegistrarWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -63,6 +64,7 @@ public class FcmRegistrarWorker extends Worker {
         boolean unregister = getInputData().getBoolean(DATA_UNREGISTER, false);
         String tagsJson = getInputData().getString(DATA_TAGS);
         if (register) {
+            PWLog.debug("do unique register work");
             registerPW(tagsJson);
         } else if (unregister) {
             unregisterPW();

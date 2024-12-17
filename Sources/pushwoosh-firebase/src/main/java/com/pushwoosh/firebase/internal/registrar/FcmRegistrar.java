@@ -36,19 +36,21 @@ import com.pushwoosh.firebase.internal.checker.FirebaseChecker;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.registrar.PushRegistrar;
-import com.pushwoosh.internal.utils.JsonUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.tags.TagsBundle;
 
 import androidx.work.Data;
+import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import static com.pushwoosh.internal.platform.AndroidPlatformModule.NULL_CONTEXT_MESSAGE;
 
-import org.json.JSONObject;
+import java.util.concurrent.TimeUnit;
 
 public class FcmRegistrar implements PushRegistrar {
 
@@ -114,18 +116,35 @@ public class FcmRegistrar implements PushRegistrar {
 			if (tags != null) {
 				tagsJson = tags.toJson().toString();
 			}
+
+			// PeriodicWorkRequest does not guarantee immediate execution, so first we register with
+			// OneTimeUniqueWork and then
 			Data inputData = new Data.Builder()
 					.putBoolean(FcmRegistrarWorker.DATA_REGISTER, true)
 					.putString(FcmRegistrarWorker.DATA_TAGS, tagsJson)
 					.build();
-			OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(FcmRegistrarWorker.class)
+			OneTimeWorkRequest immediateRequest = new OneTimeWorkRequest.Builder(FcmRegistrarWorker.class)
 					.setInputData(inputData)
 					.setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
 					.build();
-			PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(request, FcmRegistrarWorker.TAG, ExistingWorkPolicy.REPLACE);
+			PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(immediateRequest, FcmRegistrarWorker.TAG, ExistingWorkPolicy.REPLACE);
+
+			// Periodic work (PeriodicWorkRequest) - runs every 2 weeks after an initial delay
+			PeriodicWorkRequest periodicRequest = new PeriodicWorkRequest.Builder(
+					FcmRegistrarWorker.class,
+					14, TimeUnit.DAYS
+			)
+					.setInputData(inputData)
+					.setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
+					.setInitialDelay(14, TimeUnit.DAYS)
+					.build();
+
+			// Schedule periodic work, keeping the first scheduled execution intact
+			WorkManager.getInstance().enqueueUniquePeriodicWork(FcmRegistrarWorker.PERIODIC_WORK_NAME,ExistingPeriodicWorkPolicy.KEEP, periodicRequest);
 		}
 
 		void unregisterPW() {
+			PushwooshWorkManagerHelper.cancelPeriodicUniqueWork(FcmRegistrarWorker.TAG);
 			Data inputData = new Data.Builder()
 					.putBoolean(FcmRegistrarWorker.DATA_UNREGISTER, true)
 					.build();

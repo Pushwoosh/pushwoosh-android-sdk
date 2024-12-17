@@ -5,3 +5,5 @@
 }
 
 -keep enum com.pushwoosh.inbox.** { *; }
+
+-keep public class com.pushwoosh.inbox.internal.data.** { *; }

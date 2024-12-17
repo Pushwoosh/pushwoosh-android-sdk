@@ -55,6 +55,7 @@ import com.pushwoosh.inapp.storage.InAppStorage;
 import com.pushwoosh.inapp.view.InAppViewEvent;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.Subscription;
+import com.pushwoosh.internal.event.UserIdUpdatedEvent;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
@@ -248,6 +249,7 @@ public class InAppRepository {
                 return;
             }
             if (result.isSuccess()) {
+                EventBus.sendEvent(new UserIdUpdatedEvent());
                 callback.process(Result.fromData(true));
             } else {
                 String errorMessage = getRegisterUserErrorMessage(result);
@@ -265,6 +267,7 @@ public class InAppRepository {
             setUserId(userId, result -> {
                 if (result.isSuccess()) {
                     RepositoryModule.getRegistrationPreferences().userId().set(userId);
+                    EventBus.sendEvent(new UserIdUpdatedEvent());
                     setEmail(emails, setEmailResult -> {
                         if (callback == null) {
                             return;

@@ -4,8 +4,6 @@ package com.pushwoosh.inapp.network;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.pushwoosh.internal.event.EventBus;
-import com.pushwoosh.internal.event.UserIdUpdatedEvent;
 import com.pushwoosh.internal.network.PushRequest;
 
 import org.json.JSONException;
@@ -44,7 +42,6 @@ class RegisterEmailRequest extends PushRequest<Map<String, Object>> {
     @Nullable
     @Override
     public Map<String, Object> parseResponse(@NonNull JSONObject response) throws JSONException {
-        EventBus.sendEvent(new UserIdUpdatedEvent());
         return super.parseResponse(response);
     }
 }

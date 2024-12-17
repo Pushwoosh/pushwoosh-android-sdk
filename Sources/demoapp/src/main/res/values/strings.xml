@@ -2,5 +2,5 @@
     <string name="app_name">demoapp</string>
     <string name="title_home">Actions</string>
     <string name="title_notifications">Settings</string>
-    <string name="fcm_sender_id">XXXXXXXXXXXX</string>
+    <string name="fcm_sender_id">245850018966</string>
 </resources>

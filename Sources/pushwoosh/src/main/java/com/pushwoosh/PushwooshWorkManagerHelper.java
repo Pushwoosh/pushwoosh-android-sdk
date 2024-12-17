@@ -5,13 +5,14 @@ import android.content.Context;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 public final class PushwooshWorkManagerHelper {
@@ -20,6 +21,25 @@ public final class PushwooshWorkManagerHelper {
             getWorkManager().enqueueUniqueWork(uniqueWorkName, policy, request);
         } catch (Exception e) {
             PWLog.error("Failed to enqueue work.");
+            e.printStackTrace();
+        }
+    }
+
+    public static void enqueuePeriodicUniqueWork(PeriodicWorkRequest request, String uniqueWorkName, ExistingPeriodicWorkPolicy policy) {
+        try {
+            getWorkManager().enqueueUniquePeriodicWork(uniqueWorkName, policy, request);
+            PWLog.debug("periodic work enqueued");
+        } catch (Exception e) {
+            PWLog.error("Failed to enqueue periodic work.");
+            e.printStackTrace();
+        }
+    }
+
+    public static void cancelPeriodicUniqueWork(String uniqueWorkName) {
+        try {
+            getWorkManager().cancelUniqueWork(uniqueWorkName);
+        } catch (Exception e) {
+            PWLog.error("Failed to cancel unique periodic work.");
             e.printStackTrace();
         }
     }
