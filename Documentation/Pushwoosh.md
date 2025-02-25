@@ -159,13 +159,13 @@ Pushwoosh class is used to manage push registration, application tags and local 
 		<td><a href="#1a74f93e8d3d1f1bc555aa3c0ad4012f89">public void enableHuaweiPushNotifications()</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1ab4ce66aeda1306c42b8ad68a48af6fae">public void enableXiaomiPushNotifications()</a></td>
-	</tr>
-	<tr>
 		<td><a href="#1a37fedb306dd638f5f46575f4bec57698">public void startServerCommunication()</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a8895e1576c5614744f45f217e7166ef0">public void stopServerCommunication()</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1a54109e499c49ba95133ff67546586374">public void setAllowedExternalHosts(ArrayList&lt;String&gt; allowedExternalHosts)</a></td>
 	</tr>
 </table>
 
@@ -766,12 +766,6 @@ Enables Huawei push messaging in plugin-based applications. This method gives no
 ----------  
   
 
-#### <a name="1ab4ce66aeda1306c42b8ad68a48af6fae"></a>public void enableXiaomiPushNotifications()  
-
-
-----------  
-  
-
 #### <a name="1a37fedb306dd638f5f46575f4bec57698"></a>public void startServerCommunication()  
 Starts communication with Pushwoosh server. 
 
@@ -780,3 +774,8 @@ Starts communication with Pushwoosh server.
 
 #### <a name="1a8895e1576c5614744f45f217e7166ef0"></a>public void stopServerCommunication()  
 Stops communication with Pushwoosh server. 
+
+----------  
+  
+
+#### <a name="1a54109e499c49ba95133ff67546586374"></a>public void setAllowedExternalHosts(ArrayList&lt;String&gt; allowedExternalHosts)  

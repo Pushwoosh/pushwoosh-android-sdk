@@ -197,7 +197,7 @@ public class TagsBundle {
 		 * @return builder
 		 */
 		public Builder remove(String key) {
-			tags.put(key, null);
+			tags.put(key, NULL_PLACEHOLDER);
 			return this;
 		}
 
@@ -229,12 +229,24 @@ public class TagsBundle {
 		public TagsBundle build() {
 			return new TagsBundle(this);
 		}
+
+		public HashMap<String, Object> getTagsHashMap() {
+			HashMap<String, Object> finalMap = new HashMap<>();
+			for (Map.Entry<String, Object> entry : tags.entrySet()) {
+				finalMap.put(entry.getKey(),
+						entry.getValue() == NULL_PLACEHOLDER ? null : entry.getValue());
+			}
+			return finalMap;
+		}
 	}
 
+	//null placeholder is used to allow passing null to remove() method, while still utilizing
+	//concurrent hashmap to avoid race condition when modifying TagsBundle builder
+	private static final Object NULL_PLACEHOLDER = new Object();
 	private final Map<String, Object> tags;
 
 	private TagsBundle(Builder builder) {
-		tags = builder.tags;
+		tags = builder.getTagsHashMap();
 	}
 
 	/**
@@ -328,7 +340,5 @@ public class TagsBundle {
 		return JsonUtils.mapToJson(tags);
 	}
 
-	public Map<String, Object> getMap(){
-		return tags;
-	}
+	public Map<String, Object> getMap(){ return tags; }
 }

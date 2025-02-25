@@ -80,11 +80,7 @@ public class PrefsFactory {
 	 */
 	private PrefsProvider providePrefsProvider(int version) {
 		Context applicationContext = AndroidPlatformModule.getApplicationContext();
-		if (version == 1) {
-			return new ContextPrefsProvider(applicationContext);
-		} else if (version == 2) {
-			return new BinaryPrefsProvider(applicationContext);
-		} else if (version == 3) {
+		if (version == 1 || version == 3) {
 			return new ContextPrefsProvider(applicationContext);
 		}
 

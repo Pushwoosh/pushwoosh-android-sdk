@@ -54,10 +54,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
 	private static final String PROPERTY_APPLICATION_ID = "application_id";
 	private static final String PROPERTY_PROJECT_ID = "project_id";
-	private static final String PROPERTY_XIAOMI_APP_ID = "xiaomi_app_id";
-	private static final String PROPERTY_XIAOMI_APP_KEY = "xiaomi_app_key";
 
-	private static final String PROPERTY_XIAOMI_APP_REGION = "pw_xiaomi_app_region";
 	private static final String PROPERTY_PUSH_TOKEN = "registration_id";
 	private static final String PROPERTY_REGISTERED_ON_SERVER = "registered_on_server";
 	private static final String PROPERTY_FORCE_REGISTER = "force_register";
@@ -82,9 +79,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	private final PreferenceBooleanValue registeredOnServer;
 	private final PreferenceStringValue projectId;
 	private final PreferenceStringValue applicationId;
-	private final PreferenceStringValue xiaomiAppId;
-	private final PreferenceStringValue xiaomiAppKey;
-	private final PreferenceStringValue xiaomiAppRegion;
 	private final PreferenceLongValue lastPushRegistration;
 	private final PreferenceBooleanValue forceRegister;
 	private final PreferenceStringValue userId;
@@ -118,21 +112,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		projectId = new PreferenceStringValue(preferences, PROPERTY_PROJECT_ID, "");
 		if (projectId.get().isEmpty() && config.getProjectId() != null) {
 			projectId.set(config.getProjectId());
-		}
-
-		xiaomiAppId = new PreferenceStringValue(preferences, PROPERTY_XIAOMI_APP_ID, "");
-		if (xiaomiAppId.get().isEmpty() && config.getXiaomiAppId() != null) {
-			xiaomiAppId.set(config.getXiaomiAppId());
-		}
-
-		xiaomiAppKey = new PreferenceStringValue(preferences, PROPERTY_XIAOMI_APP_KEY, "");
-		if (xiaomiAppKey.get().isEmpty() && config.getXiaomiAppKey() != null) {
-			xiaomiAppKey.set(config.getXiaomiAppKey());
-		}
-
-		xiaomiAppRegion = new PreferenceStringValue(preferences, PROPERTY_XIAOMI_APP_REGION, "GLOBAL");
-		if (xiaomiAppRegion.get().isEmpty() && config.getXiaomiAppRegion() != null) {
-			xiaomiAppRegion.set(config.getXiaomiAppRegion());
 		}
 
 		pushToken = new PreferenceStringValue(preferences, PROPERTY_PUSH_TOKEN, "");
@@ -197,19 +176,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		return projectId;
 	}
 
-	@Override
-	public PreferenceStringValue xiaomiAppId() {
-		return xiaomiAppId;
-	}
-
-	@Override
-	public PreferenceStringValue xiaomiAppKey() {
-		return xiaomiAppKey;
-	}
-	@Override
-	public PreferenceStringValue xiaomiAppRegion() {
-		return xiaomiAppRegion;
-	}
 	public PreferenceStringValue pushToken() {
 		return pushToken;
 	}

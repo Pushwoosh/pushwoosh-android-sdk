@@ -101,6 +101,7 @@ public class NotificationPrefs {
 	private static final String PROPERTY_RICHMEDIA_WINDOW_WIDTH = "pw_richmedia_window_width";
 	private static final String PROPERTY_RICHMEDIA_ANIMATION_DURATION = "pw_richmedia_animation_duration";
 	private static final String PROPERTY_RICHMEDIA_STATUS_BAR_COVERED = "pw_richmedia_status_bar_covered";
+	private static final String PROPERTY_ALLOWED_EXTERNAL_HOSTS = "pw_allowed_external_hosts";
 
 
 
@@ -117,6 +118,7 @@ public class NotificationPrefs {
 	private final PreferenceVibrateTypeValue vibrateType;
 	private final PreferenceStringValue channelName;
 	private final PreferenceArrayListValue<String> pushHistory;
+	private final PreferenceArrayListValue<String> allowedExternalHosts;
 	private final PreferenceJsonObjectValue tags;
 	private final PreferenceClassValue notificationFactoryClass;
 	private final PreferenceClassValue summaryNotificationFactoryClass;
@@ -138,6 +140,7 @@ public class NotificationPrefs {
 	private final PreferenceIntValue richMediaAnimationDuration;
 	private final PreferenceBooleanValue richMediaStatusBarCovered;
 
+
 	NotificationPrefs(Config config) {
 		PWLog.noise("NotificationPrefs()...");
 
@@ -157,6 +160,7 @@ public class NotificationPrefs {
 		vibrateType = new PreferenceVibrateTypeValue(preferences, PROPERTY_VIBRATE_TYPE, VibrateType.DEFAULT_MODE);
 		channelName = new PreferenceStringValue(preferences, PROPERTY_CHANNEL_NAME, DEFAULT_CHANNEL_NAME);
 		pushHistory = new PreferenceArrayListValue<>(preferences, PROPERTY_PUSH_HISTORY, Pushwoosh.PUSH_HISTORY_CAPACITY, String.class);
+		allowedExternalHosts = new PreferenceArrayListValue<>(preferences, PROPERTY_ALLOWED_EXTERNAL_HOSTS, 256, String.class);
 		tags = new PreferenceJsonObjectValue(preferences, PROPERTY_CACHED_TAGS);
 		tagsMigrationDone = new PreferenceBooleanValue(preferences, PROPERTY_TAG_MIGRATION_DONE, false);
 		customData = new PreferenceStringValue(preferences, PROPERTY_CUSTOM_DATA, null);
@@ -255,6 +259,10 @@ public class NotificationPrefs {
 		return pushHistory;
 	}
 
+	public PreferenceArrayListValue<String> allowedExternalHosts() {
+		return allowedExternalHosts;
+	}
+
 	public PreferenceJsonObjectValue tags() {
 		return tags;
 	}
@@ -317,6 +325,7 @@ public class NotificationPrefs {
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.INT, PROPERTY_LED_COLOR);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_NOTIFICATION_FACTORY);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_PUSH_HISTORY);
+		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_ALLOWED_EXTERNAL_HOSTS);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_CACHED_TAGS);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.INT, PROPERTY_NOTIFICATION_BACKGROUND_COLOR);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_NOTIFICATION_HASH);

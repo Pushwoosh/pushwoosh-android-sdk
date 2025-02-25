@@ -55,7 +55,6 @@ dependencies {
     debugApi project(':pushwoosh-location')
     debugApi project(':pushwoosh-amazon')
     debugApi project(':pushwoosh-huawei')
-    debugApi project(':pushwoosh-xiaomi')
     debugApi project(':pushwoosh-inbox')
     debugApi project(':pushwoosh-inbox-ui')
 

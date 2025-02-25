@@ -47,6 +47,9 @@ TagsBundle.Builder class is used to generate TagsBundle instances
 	<tr>
 		<td><a href="#1a5d2f6e6ebf37e6b7fb642f6b8354546e">public TagsBundle build()</a></td>
 	</tr>
+	<tr>
+		<td><a href="#1a2ce941c6d91e6a6b435e8281d183e8d9">public HashMap&lt;String, Object&gt; getTagsHashMap()</a></td>
+	</tr>
 </table>
 
 
@@ -240,3 +243,8 @@ Adds all tags from key-value pairs of given json<br/><br/><br/><strong>Parameter
 
 #### <a name="1a5d2f6e6ebf37e6b7fb642f6b8354546e"></a>public <a href="../TagsBundle.md">TagsBundle</a> build()  
 Builds and returns TagsBundle.<br/><br/><br/><strong>Returns</strong> TagsBundle 
+
+----------  
+  
+
+#### <a name="1a2ce941c6d91e6a6b435e8281d183e8d9"></a>public HashMap&lt;String, Object&gt; getTagsHashMap()  

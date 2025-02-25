@@ -46,9 +46,6 @@ public interface Config {
 	 */
 	String getProjectId();
 
-	String getXiaomiAppId();
-	String getXiaomiAppKey();
-	String getXiaomiAppRegion();
 	String getApiToken();
 
 

@@ -13,7 +13,7 @@ android.applicationVariants.configureEach { variant ->
         def modulesList = [
                 "pushwoosh", "pushwoosh-badge", "pushwoosh-location",
                 "pushwoosh-firebase", "pushwoosh-inbox", "pushwoosh-inbox-ui",
-                "pushwoosh-huawei", "pushwoosh-xiaomi"
+                "pushwoosh-huawei"
         ]
 
         ArrayList<String> dependenciesList = new ArrayList<>()

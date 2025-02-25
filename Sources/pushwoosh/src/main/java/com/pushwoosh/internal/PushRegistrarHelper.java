@@ -30,8 +30,6 @@ public class PushRegistrarHelper {
     private final static String FIREBASE_PUSH_REGISTRAR_CLASS_NAME = "com.pushwoosh.firebase.internal.registrar.FcmRegistrar";
     private final static String HUAWEI_INITIALIZER_CLASS_NAME = "com.pushwoosh.huawei.HuaweiInitializer";
     private final static String HUAWEI_PUSH_REGISTRAR_CLASS_NAME = "com.pushwoosh.huawei.internal.registrar.HuaweiPushRegistrar";
-    private final static String XIAOMI_INITIALIZER_CLASS_NAME = "com.pushwoosh.xiaomi.XiaomiInitializer";
-    private final static String XIAOMI_PUSH_REGISTRAR_CLASS_NAME = "com.pushwoosh.xiaomi.internal.registrar.XiaomiPushRegistrar";
     private final PluginProvider pluginProvider;
     private final PushwooshNotificationManager pushwooshNotificationManager;
 
@@ -102,31 +100,6 @@ public class PushRegistrarHelper {
         initHuawei(context);
     }
 
-    public void enableXiaomiPushNotifications() {
-        if (pluginProvider == null) {
-            return;
-        }
-
-        // check it is a plugin
-        if (isNativePlugin(pluginProvider.getPluginType())) {
-            return;
-        }
-
-        // check context not null
-        Context context = AndroidPlatformModule.getApplicationContext();
-        if (context == null) {
-            return;
-        }
-
-        // check pushwoosh-huawei module has been added
-        if (!isXiaomiModuleAdded()) {
-            return;
-        }
-
-        // and then initialize it
-        initXiaomi(context);
-    }
-
     private boolean isNativePlugin(String pluginType) {
         return TextUtils.equals(pluginType, NativePluginProvider.NATIVE_PLUGIN_TYPE);
     }
@@ -142,8 +115,6 @@ public class PushRegistrarHelper {
     private boolean isHuaweiModuleAdded() {
         return isModuleAdded(HUAWEI_INITIALIZER_CLASS_NAME);
     }
-
-    private boolean isXiaomiModuleAdded() { return isModuleAdded(XIAOMI_INITIALIZER_CLASS_NAME); }
 
     private boolean isModuleAdded(String className) {
         try {
@@ -164,10 +135,6 @@ public class PushRegistrarHelper {
 
     private boolean initHuawei(Context context) {
         return initRegistrarClass(HUAWEI_INITIALIZER_CLASS_NAME, HUAWEI_PUSH_REGISTRAR_CLASS_NAME, context);
-    }
-
-    private boolean initXiaomi(Context context) {
-        return initRegistrarClass(XIAOMI_INITIALIZER_CLASS_NAME, XIAOMI_PUSH_REGISTRAR_CLASS_NAME, context);
     }
 
     @SuppressWarnings("unchecked")

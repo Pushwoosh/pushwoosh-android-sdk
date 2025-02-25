@@ -28,6 +28,7 @@ package com.pushwoosh.inbox.ui
 
 import android.content.res.ColorStateList
 import android.graphics.drawable.Drawable
+import android.graphics.Typeface
 import androidx.annotation.AnimRes
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
@@ -175,6 +176,39 @@ object PushwooshInboxStyle {
      * The date text size.
      */
     var dateTextSize : Float? = null
+
+    /**
+     * Set a custom title font.
+     */
+    private var titleFont: Typeface? = null
+
+    fun setTitleFont(typeface: Typeface) {
+        titleFont = typeface
+    }
+
+    internal fun getTitleFont(): Typeface? = titleFont
+
+    /**
+     * Set a custom date font.
+     */
+    private var dateFont: Typeface? = null
+
+    fun setDateFont(typeface: Typeface) {
+        dateFont = typeface
+    }
+
+    internal fun getDateFont(): Typeface? = dateFont
+
+    /**
+     * Set a custom description font.
+     */
+    private var descriptionFont: Typeface? = null
+
+    fun setDescriptionFont(typeface: Typeface) {
+        descriptionFont = typeface
+    }
+
+    internal fun getDescriptionFont(): Typeface? = descriptionFont
 
     /**
      * Clear all setting colors

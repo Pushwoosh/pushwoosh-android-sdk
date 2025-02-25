@@ -28,6 +28,7 @@ import com.pushwoosh.notification.LocalNotificationRequest;
 import com.pushwoosh.notification.PushMessage;
 import com.pushwoosh.notification.PushwooshNotificationManager;
 import com.pushwoosh.notification.event.RegistrationSuccessEvent;
+import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
@@ -698,12 +699,6 @@ public class Pushwoosh {
         }
     }
 
-    public void enableXiaomiPushNotifications() {
-        if (pushRegistrarHelper != null) {
-            pushRegistrarHelper.enableXiaomiPushNotifications();
-        }
-    }
-
     /**
      * Starts communication with Pushwoosh server.
      */
@@ -719,6 +714,17 @@ public class Pushwoosh {
     public void stopServerCommunication() {
         if (serverCommunicationManager != null) {
             serverCommunicationManager.stopServerCommunication();
+        }
+    }
+
+    public void setAllowedExternalHosts(ArrayList<String> allowedExternalHosts) {
+        if (!allowedExternalHosts.isEmpty()) {
+            NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+            for (String s : allowedExternalHosts) {
+                if (!TextUtils.isEmpty(s)) {
+                    notificationPrefs.allowedExternalHosts().add(s);
+                }
+            }
         }
     }
 

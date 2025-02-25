@@ -44,7 +44,10 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.PendingIntentUtils;
 import com.pushwoosh.notification.handlers.notification.PushNotificationOpenHandler;
+import com.pushwoosh.repository.NotificationPrefs;
+import com.pushwoosh.repository.RepositoryModule;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 class NotificationOpenHandler {
@@ -65,6 +68,20 @@ class NotificationOpenHandler {
 		}
 
 		try {
+			// do not handle specific hosts to allow system to handle app links
+
+			Uri uri = Uri.parse(link);
+			String host = uri.getHost();
+			NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+			ArrayList<String> allowedExternalHosts = notificationPrefs.allowedExternalHosts().get();
+
+			if (host != null && (allowedExternalHosts.contains(host))) {
+				Intent externalIntent = new Intent(Intent.ACTION_VIEW, uri);
+				externalIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				context.startActivity(externalIntent);
+				return true;
+			}
+
 			Intent notifyIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
 			PackageManager packageManager = context.getPackageManager();
 			if (notifyIntent.resolveActivity(packageManager) == null) {
