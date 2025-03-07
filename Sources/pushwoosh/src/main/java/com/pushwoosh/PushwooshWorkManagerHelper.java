@@ -28,7 +28,6 @@ public final class PushwooshWorkManagerHelper {
     public static void enqueuePeriodicUniqueWork(PeriodicWorkRequest request, String uniqueWorkName, ExistingPeriodicWorkPolicy policy) {
         try {
             getWorkManager().enqueueUniquePeriodicWork(uniqueWorkName, policy, request);
-            PWLog.debug("periodic work enqueued");
         } catch (Exception e) {
             PWLog.error("Failed to enqueue periodic work.");
             e.printStackTrace();

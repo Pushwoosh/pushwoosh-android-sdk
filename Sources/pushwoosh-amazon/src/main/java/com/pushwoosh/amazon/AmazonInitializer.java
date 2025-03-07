@@ -15,7 +15,7 @@ public class AmazonInitializer {
                     .build(AmazonUtils.isAmazonDevice());
         } else {
             final String message = "This is not an Amazon device. The service is not available.";
-            PWLog.error(message);
+            PWLog.debug(message);
         }
     }
 }

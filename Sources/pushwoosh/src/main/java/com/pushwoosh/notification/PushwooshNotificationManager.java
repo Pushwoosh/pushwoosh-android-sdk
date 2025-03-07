@@ -88,8 +88,6 @@ public class PushwooshNotificationManager {
     }
 
     public void setAppId(String appId) {
-        PWLog.info(TAG, "App ID: " + appId);
-
         if (TextUtils.isEmpty(appId)) {
             throw new IllegalArgumentException("Application id is empty");
         }
@@ -125,8 +123,6 @@ public class PushwooshNotificationManager {
     }
 
     public void setSenderId(String senderId) {
-        PWLog.info(TAG, "Sender ID: " + senderId);
-
         if (TextUtils.isEmpty(senderId)) {
             throw new IllegalArgumentException("Sender id is empty");
         }
@@ -229,7 +225,7 @@ public class PushwooshNotificationManager {
         try {
             boolean communicationEnable = registrationPrefs.communicationEnable().get();
             if (!communicationEnable) {
-                PWLog.debug(TAG, "Communication with Pushwoosh is disabled");
+                PWLog.info(TAG, "Communication with Pushwoosh is disabled");
                 return;
             }
             registrationPrefs.isRegisteredForPush().set(true);

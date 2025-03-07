@@ -75,7 +75,7 @@ public class InAppDownloader {
 			for (Resource inapp : localResource) {
 				if (downloadAndDeployResource(inapp)) {
 					deployed.add(inapp);
-					PWLog.info(TAG, inapp.getCode() + " deployed");
+					PWLog.debug(TAG, inapp.getCode() + " deployed");
 					EventBus.sendEvent(new InAppEvent(InAppEvent.EventType.DEPLOYED, inapp));
 				} else {
 					failed.add(inapp);

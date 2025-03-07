@@ -44,6 +44,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 
@@ -128,6 +129,10 @@ public class ResourceWebView extends FrameLayout {
         webView = createWebView();
 
         webView.getSettings().setJavaScriptEnabled(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            webView.getSettings().setForceDark(WebSettings.FORCE_DARK_OFF);
+            webView.setForceDarkAllowed(false);
+        }
         webView.setLayoutParams(createWebViewParams(inAppLayout, getStatusBarHeight()));
         webView.setBackgroundColor(Color.TRANSPARENT);
 

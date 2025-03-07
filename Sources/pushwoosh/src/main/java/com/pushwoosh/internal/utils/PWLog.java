@@ -26,7 +26,7 @@ public final class PWLog {
 
 	private static boolean initialized = false;
 
-	private static Level currentLevel = Level.DEBUG;
+	private static Level currentLevel = Level.INFO;
 	private static LogsUpdateListener logsUpdateListener;
 
 	private static boolean isEnabled(Level l) {
@@ -44,7 +44,7 @@ public final class PWLog {
 				currentLevel = Level.valueOf(level);
 				if (currentLevel == Level.INTERNAL) {
 					// internal level is prohibited in manifest
-					currentLevel = Level.DEBUG;
+					currentLevel = Level.INFO;
 				}
 			} catch (IllegalArgumentException e) {
 				error("Unrecognized log level: " + level);
@@ -53,6 +53,12 @@ public final class PWLog {
 
 		info("Log level: " + currentLevel.name());
 		initialized = true;
+	}
+
+	public static void updateLogLevel(String level) {
+		if (!level.isEmpty() && Level.INTERNAL != Level.valueOf(level)) {
+			currentLevel = Level.valueOf(level);
+		}
 	}
 
 	private static boolean isErrorLevel() {

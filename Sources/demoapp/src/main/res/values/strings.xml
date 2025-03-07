@@ -2,5 +2,7 @@
     <string name="app_name">demoapp</string>
     <string name="title_home">Actions</string>
     <string name="title_notifications">Settings</string>
-    <string name="fcm_sender_id">245850018966</string>
+    <string name="pushwoosh_app_id">_YOUR_PUSHWOOSH_APP_ID_</string>
+    <string name="fcm_sender_id">_YOUR_FIREBASE_PROJECT_ID_</string>
+    <string name="pushwoosh_api_token">_YOUR_PUSHWOOSH_API_TOKEN_</string>
 </resources>

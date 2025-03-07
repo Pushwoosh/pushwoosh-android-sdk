@@ -186,9 +186,11 @@ class AndroidManifestConfig implements Config {
 	private String getString(Bundle metadata, String key, String deprecatedKey) {
 		String result = metadata.getString(key);
 		if (result == null) {
-			result = metadata.getString(deprecatedKey);
+			Object resultObject = metadata.get(key);
+			result = (resultObject != null) ? String.valueOf(resultObject) : metadata.getString(deprecatedKey);
+
 			if (result != null) {
-				PWLog.warn("'" + deprecatedKey + "' is deprecated consider using '" + key + "'");
+				PWLog.warn("'" + deprecatedKey + "' is deprecated, consider using '" + key + "'");
 			}
 		}
 		return result;

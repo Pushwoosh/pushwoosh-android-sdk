@@ -16,6 +16,7 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.platform.ApplicationOpenDetector;
 import com.pushwoosh.internal.platform.utils.DeviceUtils;
+import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.AppVersionProvider;
 import com.pushwoosh.internal.utils.Config;
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class PushwooshStartWorker {
     public static final String TAG = PushwooshStartWorker.class.getSimpleName();
+    public static final String INIT_TAG = "Pushwoosh";
 
     private final AtomicBoolean appOpen = new AtomicBoolean(false);
     private final AtomicBoolean appReady = new AtomicBoolean(false);
@@ -96,7 +98,6 @@ public class PushwooshStartWorker {
 
     private void initHwid(Subscription<ApplicationOpenDetector.ApplicationOpenEvent> subscriberAppOpen,
                           Subscription<PushwooshNotificationManager.ApplicationIdReadyEvent> subscriberAppReady) {
-        PWLog.debug("initHwid");
         DeviceUtils.getDeviceUUID(hwid -> onGetHwid(hwid, subscriberAppOpen, subscriberAppReady));
     }
 
@@ -146,6 +147,14 @@ public class PushwooshStartWorker {
     }
 
     private void onApplicationOpenAndHwidReady() {
+        // Mandatory log
+        android.util.Log.i(INIT_TAG, "Pushwoosh SDK initialized successfully");
+        android.util.Log.i(INIT_TAG, "HWID: " + registrationPrefs.hwid().get());
+        android.util.Log.i(INIT_TAG, "APP_CODE: " + registrationPrefs.applicationId().get());
+        android.util.Log.i(INIT_TAG, "PUSHWOOSH_SDK_VERSION: " + GeneralUtils.SDK_VERSION);
+        android.util.Log.i(INIT_TAG, "FIREBASE_PROJECT_ID: " +         registrationPrefs.projectId().get());
+        android.util.Log.i(INIT_TAG, "API_TOKEN: " + PushwooshPlatform.getInstance().getConfig().getApiToken());
+        android.util.Log.i(INIT_TAG, "PUSH_TOKEN: " + registrationPrefs.pushToken().get());
         if (started.compareAndSet(false, true)) {
             EventBus.subscribe(ApplicationOpenDetector.ApplicationOpenEvent.class, event -> {
                 deviceRegistrar.updateRegistration();
@@ -155,12 +164,6 @@ public class PushwooshStartWorker {
     }
 
     private void initPlugins() {
-        // Mandatory log
-        android.util.Log.i("Pushwoosh", "HWID: " + registrationPrefs.hwid().get());
-
-        PWLog.debug("PushwooshModule", "onApplicationCreated");
-        PWLog.info(TAG, String.format("This is %s device", DeviceSpecificProvider.getInstance().type()));
-
         for (Plugin plugin : config.getPlugins()) {
             plugin.init();
         }
@@ -168,7 +171,6 @@ public class PushwooshStartWorker {
 
     private void subscribeForEvent() {
         EventBus.subscribe(ApplicationOpenDetector.ApplicationOpenEvent.class, event -> onAppOpen());
-        PWLog.debug("appOpen:"+appOpen.get()+" onAppReady:"+appReady.get());
         if (appOpen.get()) {
             if (appReady.get()) {
                 sendAppOpenIfHwidReady();
@@ -187,7 +189,6 @@ public class PushwooshStartWorker {
     }
 
     private void onAppOpen() {
-        PWLog.debug("onAppOpen");
         appVersionProvider.handleLaunch();
         appOpen.set(true);
         if (appReady.get()) {
@@ -197,7 +198,6 @@ public class PushwooshStartWorker {
     }
 
     private void onAppReady() {
-        PWLog.debug("onAppReady");
         if (appOpen.get()) {
             sendAppOpenIfHwidReady();
             registerUserIdWhenAppReady();
@@ -205,7 +205,6 @@ public class PushwooshStartWorker {
     }
 
     private void sendAppOpenIfHwidReady() {
-        PWLog.debug("sendAppOpenEndTagMigrate");
         if (!hwid.get().isEmpty()) {
             pushwooshRepository.sendAppOpen();
         }

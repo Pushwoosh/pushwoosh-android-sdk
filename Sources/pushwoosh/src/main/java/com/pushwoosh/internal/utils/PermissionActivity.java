@@ -40,7 +40,7 @@ public class PermissionActivity extends TranslucentActivity implements ActivityC
 		}
 
 		if (needRequestPermissions) {
-			PWLog.debug(TAG, "Request permissions");
+			PWLog.info(TAG, "Requesting permissions");
 			Intent intent = new Intent(context, PermissionActivity.class);
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			intent.putExtra(EXTRA_PERMISSIONS, permissions);
@@ -71,8 +71,6 @@ public class PermissionActivity extends TranslucentActivity implements ActivityC
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-		PWLog.debug(TAG, "onRequestPermissionsResult");
-
 		switch (requestCode) {
 			case REQUEST_CODE:
 				handlePermissionsResult(permissions, grantResults);

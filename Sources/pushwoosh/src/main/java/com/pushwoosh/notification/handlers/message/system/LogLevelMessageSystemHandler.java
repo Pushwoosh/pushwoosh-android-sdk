@@ -29,6 +29,7 @@ package com.pushwoosh.notification.handlers.message.system;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushBundleDataProvider;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
@@ -38,6 +39,8 @@ class LogLevelMessageSystemHandler extends CommandMessageSystemHandler {
 	private static final String KEY_SET_LOG_LEVEL = "setLogLevel";
 	private final RegistrationPrefs registrationPrefs;
 
+	//Send push with the following root params to change log level:
+	//{"pw_system_push":1, "pw_command":"setLogLevel", "value":"INFO"}
 	LogLevelMessageSystemHandler() {
 		registrationPrefs = RepositoryModule.getRegistrationPreferences();
 	}
@@ -46,7 +49,10 @@ class LogLevelMessageSystemHandler extends CommandMessageSystemHandler {
 	protected boolean handleCommand(final Bundle pushBundle, final String command) {
 		if (TextUtils.equals(KEY_SET_LOG_LEVEL, command)) {
 			String logLevel = PushBundleDataProvider.getValue(pushBundle);
-			registrationPrefs.logLevel().set(logLevel);
+			if (logLevel != null) {
+				registrationPrefs.logLevel().set(logLevel);
+				PWLog.updateLogLevel(logLevel);
+			}
 			return true;
 		}
 

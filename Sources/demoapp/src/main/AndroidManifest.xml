@@ -15,16 +15,16 @@
 
         tools:targetApi="31">
 
-        <meta-data android:name="com.pushwoosh.appid" android:value="11C10-EF18D" />
+        <meta-data android:name="com.pushwoosh.appid" android:value="@string/pushwoosh_app_id" />
         <meta-data android:name="com.pushwoosh.senderid" android:value="@string/fcm_sender_id" />
+        <meta-data android:name="com.pushwoosh.apitoken" android:value="@string/pushwoosh_api_token"/>
         <meta-data
             android:name="com.pushwoosh.notification_service_extension"
             android:value="com.pushwoosh.demoapp.NotificationServiceExtensionDemo" />
 
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:label="@string/app_name">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

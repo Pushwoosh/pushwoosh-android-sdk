@@ -117,7 +117,7 @@ public class HandleMessageTest {
 
 		//Steps:
 		Bundle testBundle = new Bundle();
-		testBundle.putString("pw_msg", "2");
+		testBundle.putString("pw_system_push", "1");
 		testBundle.putString("pw_command", "setLogLevel");
 		testBundle.putString("value", testLogLevel);
 

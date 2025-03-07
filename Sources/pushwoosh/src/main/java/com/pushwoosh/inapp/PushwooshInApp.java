@@ -4,12 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.Pushwoosh;
-import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.exception.MergeUserException;
 import com.pushwoosh.exception.PostEventException;
 import com.pushwoosh.function.Callback;
-import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
-import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.tags.TagsBundle;
 
 /**
@@ -41,11 +38,11 @@ public class PushwooshInApp {
 
     /**
      * @deprecated
-     * @see InAppManager#postEvent(String, TagsBundle)
+     * @see InAppManager#postEvent(String, TagsBundle, boolean)
      */
     @Deprecated
     public void postEvent(@NonNull String event, TagsBundle attributes) {
-        InAppManager.getInstance().postEvent(event, attributes);
+        InAppManager.getInstance().postEvent(event, attributes, false);
     }
 
     /**

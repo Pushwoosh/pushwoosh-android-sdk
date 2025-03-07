@@ -74,7 +74,7 @@ public class NotificationServiceExtension {
             return;
         }
 
-        PWLog.info(TAG, "handleMessage: " + pushBundle.toString());
+        PWLog.debug(TAG, "handleMessage: " + pushBundle.toString());
 
         if (pushMessageHandler.preHandleMessage(pushBundle)) {
             return;

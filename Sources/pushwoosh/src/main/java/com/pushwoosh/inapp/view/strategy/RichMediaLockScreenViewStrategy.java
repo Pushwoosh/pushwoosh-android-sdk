@@ -52,7 +52,7 @@ class RichMediaLockScreenViewStrategy implements ResourceViewStrategy {
 			return;
 		}
 
-		PWLog.debug(TAG, "presenting richMedia with code: " + resource.getCode() + ", url: " + resource.getUrl());
+		PWLog.info(TAG, "presenting richMedia with code: " + resource.getCode() + ", url: " + resource.getUrl());
 		Intent intent = RichMediaWebActivity.createRichMediaLockScreenIntent(context, resource, sound);
 		context.startActivity(intent);
 	}

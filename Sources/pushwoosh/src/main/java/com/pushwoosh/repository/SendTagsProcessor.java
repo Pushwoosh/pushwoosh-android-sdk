@@ -36,6 +36,7 @@ import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.utils.Accumulator;
 import com.pushwoosh.internal.utils.JsonUtils;
+import com.pushwoosh.internal.utils.PWLog;
 
 import org.json.JSONObject;
 
@@ -96,6 +97,7 @@ public class SendTagsProcessor implements Accumulator.Completion<SendTagsProcess
 						sendTagsInvocation.getHandler().process(Result.fromData(null));
 					}
 				}
+				PWLog.info("Tags successfully sent to Pushwoosh");
 			} else {
 				failedAccumulatedData(data, result.getException());
 			}

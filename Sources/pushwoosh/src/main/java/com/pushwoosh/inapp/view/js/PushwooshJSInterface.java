@@ -322,7 +322,7 @@ public class PushwooshJSInterface {
                 } else {
                     invokeCallback(errorCb, result.getException().getLocalizedMessage());
                 }
-            });
+            }, false);
         } catch (Exception e) {
             PWLog.error("postEvent method was failed", e);
             invokeCallback(errorCb, e.getLocalizedMessage());

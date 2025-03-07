@@ -245,14 +245,18 @@ public class InAppRepository {
         }
 
         requestManager.sendRequest(request, result -> {
-            if (callback == null) {
+            if (result.isSuccess()) {
+                PWLog.info("User ID \"" + userId + "\" successfully set");
+                EventBus.sendEvent(new UserIdUpdatedEvent());
+
+                if (callback != null) {
+                    callback.process(Result.fromData(true));
+                }
                 return;
             }
-            if (result.isSuccess()) {
-                EventBus.sendEvent(new UserIdUpdatedEvent());
-                callback.process(Result.fromData(true));
-            } else {
-                String errorMessage = getRegisterUserErrorMessage(result);
+
+            String errorMessage = getRegisterUserErrorMessage(result);
+            if (callback != null) {
                 callback.process(Result.fromException(new SetUserIdException(errorMessage)));
             }
         });

@@ -189,7 +189,6 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
 
                 @Override
                 public void onAnimationEnd(@NonNull Animator animator) {
-                    PWLog.debug("animation ended");
                     window.dismiss();
                 }
 

@@ -250,6 +250,7 @@ public class PushwooshRepository {
     }
 
     public void sendPushOpened(String hash, String metadata) {
+        PWLog.info("Sending push open statistics for push " + hash);
         if (hash != null && TextUtils.equals(hash, notificationPrefs.lastNotificationHash().get())) {
             PWLog.warn("Push stat for (" + hash + ") already sent");
             return;
@@ -265,6 +266,7 @@ public class PushwooshRepository {
     }
 
     public void sendPushDelivered(String hash, String metaData) {
+        PWLog.info("Sending push received statistics for push " + hash);
         MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData);
         if (requestManager == null) {
             return;

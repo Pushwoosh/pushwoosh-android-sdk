@@ -16,7 +16,7 @@ public class HuaweiInitializer {
                     .build(true);
         } else {
             final String message = "This is not a Huawei device. The service is not available.";
-            PWLog.error(message);
+            PWLog.debug(message);
         }
     }
 }

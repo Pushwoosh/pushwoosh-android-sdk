@@ -21,7 +21,7 @@ public class RequestPermissionHelper {
         }
 
         if (needRequestPermissions) {
-            PWLog.debug(TAG, "Request permissions");
+            PWLog.info(TAG, "Requesting permissions");
             Intent intent = new Intent(context, cls);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra(EXTRA_PERMISSIONS, permissions);

@@ -17,8 +17,6 @@ public class BootReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		PWLog.debug("BootReceiver", "onReceive");
-
 		try {
 			if (intent == null || !TextUtils.equals(Intent.ACTION_BOOT_COMPLETED, intent.getAction())) {
 				PWLog.warn("BootReceiver", "Received unexpected action");

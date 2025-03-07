@@ -10,8 +10,6 @@ import com.pushwoosh.location.internal.event.LocationPermissionEvent;
 public class LocationPermissionActivity extends PermissionActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        PWLog.debug(TAG, "onRequestPermissionsResult");
-
         switch (requestCode) {
             case REQUEST_CODE:
                 handlePermissionsResult(permissions, grantResults);

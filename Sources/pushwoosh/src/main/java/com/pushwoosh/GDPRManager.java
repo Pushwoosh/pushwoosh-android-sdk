@@ -86,7 +86,7 @@ public class GDPRManager {
                 .build();
 
         pushwooshInApp.postEvent(GDPR_CONSENT, tagsBundle,
-                result -> onPostEventGDPRConsent(enable, result, callback));
+                result -> onPostEventGDPRConsent(enable, result, callback), false);
     }
 
     private void proccessException(Callback<Void, PushwooshException> callback) {
@@ -145,7 +145,7 @@ public class GDPRManager {
 
         if (pushwooshInApp != null) {
             pushwooshInApp.postEvent(GDPR_DELETE, tagsBundle,
-                    result -> onPostEventGDPRDelete(result, callback));
+                    result -> onPostEventGDPRDelete(result, callback), false);
         }
     }
 

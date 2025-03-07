@@ -1,14 +1,11 @@
 package com.pushwoosh.appevents;
 
-import android.os.Looper;
-
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.InAppManager;
 import com.pushwoosh.inapp.PushwooshInApp;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
-import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.config.Event;
 import com.pushwoosh.tags.TagsBundle;
@@ -80,13 +77,13 @@ public class PushwooshDefaultEventsTest {
 			TagsBundle attributes = PushwooshDefaultEvents.buildAttributes(PushwooshDefaultEvents.APPLICATION_OPENED_EVENT, "activityName");
 
 			pushwooshDefaultEvents.postEvent(PushwooshDefaultEvents.APPLICATION_OPENED_EVENT, attributes);
-			verify(InAppManager.getInstance(), times(1)).postEvent(PushwooshDefaultEvents.APPLICATION_OPENED_EVENT, attributes);
+			verify(InAppManager.getInstance(), times(1)).postEvent(PushwooshDefaultEvents.APPLICATION_OPENED_EVENT, attributes, true);
 
 			pushwooshDefaultEvents.postEvent(PushwooshDefaultEvents.SCREEN_OPENED_EVENT, attributes);
-			verify(InAppManager.getInstance(), times(1)).postEvent(PushwooshDefaultEvents.SCREEN_OPENED_EVENT, attributes);
+			verify(InAppManager.getInstance(), times(1)).postEvent(PushwooshDefaultEvents.SCREEN_OPENED_EVENT, attributes, true);
 
 			pushwooshDefaultEvents.postEvent(PushwooshDefaultEvents.APPLICATION_CLOSED_EVENT, attributes);
-			verify(InAppManager.getInstance(), times(1)).postEvent(PushwooshDefaultEvents.APPLICATION_CLOSED_EVENT, attributes);
+			verify(InAppManager.getInstance(), times(1)).postEvent(PushwooshDefaultEvents.APPLICATION_CLOSED_EVENT, attributes, true);
 		}
 	}
 

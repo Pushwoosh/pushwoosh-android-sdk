@@ -33,7 +33,7 @@ public class FcmRegistrarWorker extends Worker {
             }
             final String token = FirebaseTokenHelper.getFirebaseToken();
             if (token != null) {
-                PWLog.info(TAG, "FCM token is " + token);
+                PWLog.debug(TAG, "FCM token is " + token);
                 NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token, tagsJson);
             } else {
                 PWLog.info(TAG, "FCM token is empty");
@@ -64,7 +64,6 @@ public class FcmRegistrarWorker extends Worker {
         boolean unregister = getInputData().getBoolean(DATA_UNREGISTER, false);
         String tagsJson = getInputData().getString(DATA_TAGS);
         if (register) {
-            PWLog.debug("do unique register work");
             registerPW(tagsJson);
         } else if (unregister) {
             unregisterPW();

@@ -41,7 +41,6 @@ import com.pushwoosh.exception.SetUserIdException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.network.InAppRepository;
-import com.pushwoosh.inapp.network.RichMediaActionRequest;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
 import com.pushwoosh.internal.event.EventBus;
@@ -103,10 +102,17 @@ public class PushwooshInAppImpl {
 		EventBus.subscribe(ServerCommunicationStartedEvent.class, checkForUpdatesWhenServerCommunicationStartsEvent);
 	}
 
-	public void postEvent(@NonNull String event, @Nullable TagsBundle attributes, @Nullable final Callback<Void, PostEventException> callback) {
+	public void postEvent(@NonNull String event, @Nullable TagsBundle attributes, @Nullable final Callback<Void, PostEventException> callback, boolean isInternal) {
 		inAppRepository.postEvent(event, attributes, result -> {
 			if (result.isSuccess()) {
 				Resource resource = result.getData();
+
+				if (!isInternal) {
+					PWLog.info("Posted event " + event);
+					if (attributes != null) {
+						PWLog.info("Event attributes: "+ attributes.toJson());
+					}
+				}
 
 				if (callback != null) {
 					callback.process(Result.fromData(null));
@@ -121,6 +127,9 @@ public class PushwooshInAppImpl {
 				}
 			} else {
 				if (callback != null) {
+					if (!isInternal) {
+						PWLog.info("Failed to post event " + event);
+					}
 					callback.process(Result.fromException(result.getException()));
 				}
 

@@ -148,13 +148,6 @@ class PushwooshRequestManager implements RequestManager {
 
 			statusCode = result.getStatus();
 			pushwooshStatusCode = result.getPushwooshStatus();
-
-			//postEvent might return 404 if wrong event name is provided, so in that case we want to
-			// avoid handling it further
-			if (NetworkResult.STATUS_NOT_FOUND == statusCode) {
-				return Result.from(null, null);
-			}
-
 			if (NetworkResult.STATUS_OK == statusCode && NetworkResult.STATUS_OK == pushwooshStatusCode) {
 				PWLog.debug(TAG, request.getMethod() + " response success");
 
@@ -218,7 +211,7 @@ class PushwooshRequestManager implements RequestManager {
 			}
 
 			NetworkResult networkResult = getNetworkResultFromConnection(connection);
-			PWLog.info(TAG, "\n"
+			PWLog.debug(TAG, "\n"
 					+ "x\n"
 					+ "|     Pushwoosh request:\n"
 					+ "| Url: " + url.toString() + "\n"

@@ -131,7 +131,7 @@ public class PushManagerJSInterface {
                         }
                     }
                 }
-            });
+            }, false);
         } catch (JSONException e) {
             PWLog.error("Invalid arguments", e);
         }

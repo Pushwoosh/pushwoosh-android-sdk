@@ -69,7 +69,8 @@ public final class PushBundleDataProvider {
 	}
 
 	public static boolean isSystemPush(Bundle pushBundle) {
-		return isPwMessageWithKey(pushBundle, 2);
+		int pwMsg = getStringInteger(pushBundle, "pw_system_push", 0);
+		return pwMsg == 1;
 	}
 
 	private static boolean isPwMessageWithKey(final Bundle pushBundle, final int key) {

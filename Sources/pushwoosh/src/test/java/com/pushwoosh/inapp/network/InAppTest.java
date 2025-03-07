@@ -28,7 +28,6 @@ package com.pushwoosh.inapp.network;
 
 import androidx.annotation.NonNull;
 
-import com.pushwoosh.BuildConfig;
 import com.pushwoosh.exception.PostEventException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
@@ -47,7 +46,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -111,7 +109,7 @@ public class InAppTest {
 
 		// Steps:
 		pushwooshInApp.setUserId("userId");
-		pushwooshInApp.postEvent("eventName", Tags.intTag("intTag", 5), callback);
+		pushwooshInApp.postEvent("eventName", Tags.intTag("intTag", 5), callback, false);
 
 
 		// Postconditions:
@@ -138,7 +136,7 @@ public class InAppTest {
 
 		// Steps:
 		pushwooshInApp.setUserId("userId");
-		pushwooshInApp.postEvent("eventName", Tags.intTag("intTag", 5), callback);
+		pushwooshInApp.postEvent("eventName", Tags.intTag("intTag", 5), callback, false);
 
 
 		// Postconditions:
@@ -156,7 +154,7 @@ public class InAppTest {
 
 		// Steps:
 		pushwooshInApp.setUserId("userId");
-		pushwooshInApp.postEvent("eventName", Tags.intTag("intTag", 5), null);
+		pushwooshInApp.postEvent("eventName", Tags.intTag("intTag", 5), null, false);
 
 
 		// Postconditions:
@@ -182,7 +180,7 @@ public class InAppTest {
 
 		// Steps:
 		pushwooshInApp.setUserId("userId");
-		pushwooshInApp.postEvent("eventName", null, callback);
+		pushwooshInApp.postEvent("eventName", null, callback, false);
 
 
 		// Postconditions:
