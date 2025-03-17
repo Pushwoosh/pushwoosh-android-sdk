@@ -162,10 +162,18 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
 
     private static void createPopupWindow(Resource resource, ModalRichmediaConfig config) {
         Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
-        View parentView = ModalRichMediaWindowUtils.getParentView();
-        if (parentView.getWindowToken() != null) {
-            //window itself will be shown later when resource web view is loaded
-            ModalRichMediaWindow popupWindow = new ModalRichMediaWindow(topActivity, resource, config);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            ModalRichMediaWindowUtils.getParentViewAsync(view -> {
+                if (view.getWindowToken() != null) {
+                    ModalRichMediaWindow popupWindow = new ModalRichMediaWindow(topActivity, resource, config);
+                }
+            });
+        } else {
+            View parentView = ModalRichMediaWindowUtils.getParentView();
+            if (parentView.getWindowToken() != null) {
+                //window itself will be shown later when resource web view is loaded
+                ModalRichMediaWindow popupWindow = new ModalRichMediaWindow(topActivity, resource, config);
+            }
         }
     }
 
@@ -211,7 +219,7 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
     }
 
     @Override
-    public void onPageLoaded() {
+        public void onPageLoaded() {
         if (resourceWebView != null) {
             resourceWebView.hideProgress();
 
@@ -219,11 +227,39 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
             int yCoordinate = ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config);
             int gravity = ModalRichMediaWindowUtils.getModalRichMediaWindowGravity(config);
 
-            this.showAtLocation(ModalRichMediaWindowUtils.getParentView(), gravity, xCoordinate, yCoordinate);
-            ValueAnimator animator = ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(this, config);
-            animator.setDuration(config.getAnimationDuration());
-            animator.start();
-            EventBus.sendEvent(new InAppViewEvent(resource));
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    ModalRichMediaWindowUtils.getParentViewAsync(view -> {
+                        showAtLocationOrSubscribeToActivityBroughtOnTop(view, gravity, xCoordinate, yCoordinate);
+                    });
+                } else {
+                    if (ModalRichMediaWindowUtils.getParentView() != null) {
+                        showAtLocationOrSubscribeToActivityBroughtOnTop(ModalRichMediaWindowUtils.getParentView(), gravity, xCoordinate, yCoordinate);
+                    }
+                }
+
+                ValueAnimator animator = ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(this, config);
+                animator.setDuration(config.getAnimationDuration());
+                animator.start();
+                EventBus.sendEvent(new InAppViewEvent(resource));
+
+            } catch (Exception e) {
+                PWLog.error(TAG, "Failed to show modal rich media: " + e);
+            }
+        }
+    }
+
+    private void showAtLocationOrSubscribeToActivityBroughtOnTop(View parentView, int gravity, int xCoordinate, int yCoordinate) {
+        if (PushwooshPlatform.getInstance().getTopActivity() != null) {
+            this.showAtLocation(parentView, gravity, xCoordinate, yCoordinate);
+        } else {
+            EventBus.subscribe(ActivityBroughtOnTopEvent.class, new EventListener<ActivityBroughtOnTopEvent>() {
+                @Override
+                public void onReceive(ActivityBroughtOnTopEvent event) {
+                    EventBus.unsubscribe(ActivityBroughtOnTopEvent.class, this);
+                    ModalRichMediaWindow.this.onPageLoaded();
+                }
+            });
         }
     }
 

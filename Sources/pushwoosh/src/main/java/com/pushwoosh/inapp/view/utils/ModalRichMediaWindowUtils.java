@@ -7,6 +7,10 @@ import android.content.res.Resources;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+
+import androidx.annotation.Nullable;
+import androidx.core.util.Consumer;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.view.ModalRichMediaWindow;
@@ -24,9 +28,41 @@ public class ModalRichMediaWindowUtils {
     static int screenHeight = Resources.getSystem().getDisplayMetrics().heightPixels;
     static int statusBarInset = 0;
 
+    @Nullable
     public static View getParentView() {
-        return PushwooshPlatform.getInstance().getTopActivity().getWindow().getDecorView().findViewById(android.R.id.content);
+        Activity activity = PushwooshPlatform.getInstance().getTopActivity();
+        if (activity == null) {
+            return null;
+        }
+
+        Window window = activity.getWindow();
+        if (window == null) {
+            return null;
+        }
+
+        View decorView = window.getDecorView();
+
+        return decorView.findViewById(android.R.id.content);
     }
+
+
+    public static void getParentViewAsync(Consumer<View> callback) {
+        Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
+        if (topActivity != null) {
+            Window window = topActivity.getWindow();
+            if (window != null) {
+                window.getDecorView().post(() -> {
+                    View parentView = window.getDecorView().findViewById(android.R.id.content);
+                    callback.accept(parentView);
+                });
+            } else {
+                callback.accept(null);
+            }
+        } else {
+            callback.accept(null);
+        }
+    }
+
 
     public static ValueAnimator dismissWindowWithFadeOutAnimation(ModalRichMediaWindow window) {
         ValueAnimator fadeInAnimator = ValueAnimator.ofFloat(1f, 0f);
