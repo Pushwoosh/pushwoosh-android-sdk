@@ -50,4 +50,10 @@
 	<attr name="inboxHighlightColor" format="color" />
 
 	<attr name="inboxDefaultIcon" format="reference" />
+
+	<attr name="inboxTitleAppearance" format="reference" />
+
+	<attr name="inboxDateAppearance" format="reference" />
+
+	<attr name="inboxDescriptionAppearance" format="reference" />
 </resources>

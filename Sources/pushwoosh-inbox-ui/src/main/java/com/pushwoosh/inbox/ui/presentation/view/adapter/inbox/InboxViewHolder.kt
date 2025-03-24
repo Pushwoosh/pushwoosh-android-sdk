@@ -28,6 +28,7 @@ package com.pushwoosh.inbox.ui.presentation.view.adapter.inbox
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.text.Spannable
 import android.text.SpannableString
@@ -36,6 +37,7 @@ import android.text.TextUtils
 import android.text.style.TextAppearanceSpan
 import android.util.TypedValue
 import android.view.View
+import androidx.appcompat.R as AppCompatR
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -122,20 +124,30 @@ class InboxViewHolder(adapter: InboxAdapter,
         val ssb = SpannableStringBuilder()
         if (title != null && !TextUtils.isEmpty(title)) {
             val titleSpannable = SpannableString(title)
+            val styledAttrs = context.theme.obtainStyledAttributes(intArrayOf(R.attr.inboxTitleAppearance))
+            val titleStyle = styledAttrs.getResourceId(0, AppCompatR.style.TextAppearance_AppCompat_Subhead)
+            styledAttrs.recycle()
+            
             val titleAppearanceSpan = getTextAppearanceSpan(context,
-                    R.style.TextAppearance_Inbox_InboxTitle,
+                    titleStyle,
                     PushwooshInboxStyle.titleTextSize,
-                    titleColor)
+                    titleColor,
+                    PushwooshInboxStyle.getTitleFont())
             titleSpannable.setSpan(titleAppearanceSpan, 0, title.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             ssb.append(titleSpannable)
             ssb.append("  ")
         }
         if (date != null && !TextUtils.isEmpty(date)) {
             val dateSpannable = SpannableString(date)
+            val styledAttrs = context.theme.obtainStyledAttributes(intArrayOf(R.attr.inboxDateAppearance))
+            val dateStyle = styledAttrs.getResourceId(0, AppCompatR.style.TextAppearance_AppCompat_Caption)
+            styledAttrs.recycle()
+            
             val dateAppearanceSpan = getTextAppearanceSpan(context,
-                    R.style.TextAppearance_Inbox_InboxDate,
+                    dateStyle,
                     PushwooshInboxStyle.dateTextSize,
-                    dateColor)
+                    dateColor,
+                    PushwooshInboxStyle.getDateFont())
             dateSpannable.setSpan(dateAppearanceSpan, 0, date.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
             ssb.append(dateSpannable)
             ssb.append(" ")
@@ -143,14 +155,18 @@ class InboxViewHolder(adapter: InboxAdapter,
         return ssb
     }
 
-    private fun getTextAppearanceSpan(context: Context, appearance : Int, textSizeSp: Float?, colorStateList: ColorStateList) : TextAppearanceSpan {
+    private fun getTextAppearanceSpan(context: Context, appearance : Int, textSizeSp: Float?, colorStateList: ColorStateList, customFont: Typeface? = null) : TextAppearanceSpan {
+
         val tempSpan = TextAppearanceSpan(context, appearance)
         val textSize = if (textSizeSp != null) spToPx(textSizeSp) else tempSpan.textSize
-        return TextAppearanceSpan(tempSpan.family,
-                tempSpan.textStyle,
-                textSize,
-                colorStateList,
-                colorStateList)
+        
+        return TextAppearanceSpan(
+            null,
+            customFont?.style ?: Typeface.NORMAL,
+            textSize,
+            colorStateList,
+            null
+        )
     }
 
     private fun spToPx(sp: Float) : Int {

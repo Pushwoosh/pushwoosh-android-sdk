@@ -340,6 +340,9 @@ public class InAppRepository {
                         callback.process(Result.fromException(new PushwooshException(errorMessage)));
                     }
                 });
+            } else {
+                String errorMessage = getRegisterEmailErrorMessage(result);
+                callback.process(Result.fromException(new PushwooshException(errorMessage)));
             }
         });
     }
@@ -415,12 +418,14 @@ public class InAppRepository {
                 return;
             }
 
+            if (result.isSuccess()) {
             PostEventResponse data = result.getData();
-            if (data != null) {
-                if (data.getResource() != null || !data.isRequired()) {
-                    callback.process(Result.fromData(data.getResource()));
-                } else {
-                    callback.process(Result.fromData(new Resource(data.getCode(), data.isRequired())));
+                if (data != null) {
+                    if (data.getResource() != null || !data.isRequired()) {
+                        callback.process(Result.fromData(data.getResource()));
+                    } else {
+                        callback.process(Result.fromData(new Resource(data.getCode(), data.isRequired())));
+                    }
                 }
             } else {
                 final NetworkException exception = result.getException();

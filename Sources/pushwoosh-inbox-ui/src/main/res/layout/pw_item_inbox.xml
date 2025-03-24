@@ -53,7 +53,7 @@
 
         <TextView
             android:id="@+id/inboxLabelTextView"
-            tools:style="@style/TextAppearance.Inbox.InboxTitle"
+            style="@style/TextAppearance.Inbox.InboxTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="@dimen/pw_normal_margin"

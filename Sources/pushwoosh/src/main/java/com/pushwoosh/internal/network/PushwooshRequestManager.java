@@ -333,7 +333,14 @@ class PushwooshRequestManager implements RequestManager {
 				return;
 			}
 			if (callback != null) {
-				callback.process(result);
+				try {
+					callback.process(result);
+				}
+				// Additional protection in case result.getData() is called somewhere in callback overrides
+				// without checking if it has an exception first
+				catch (Exception e) {
+					PWLog.error(TAG, "Error while processing request callback: " + e.getMessage());
+				}
 			}
 		}
 	}

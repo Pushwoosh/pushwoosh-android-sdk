@@ -300,23 +300,25 @@ public class PushwooshNotificationManager {
 
     public void onRegisteredForRemoteNotifications(String pushToken, String tagsJson) {
         RepositoryModule.getRegistrationPreferences().pushToken().set(pushToken);
-        DeviceRegistrar.registerWithServer(pushToken, tagsJson, DeviceRegistrar.PLATFORM_ANDROID, result -> {
-            if (result.isSuccess()) {
-                registrationPrefs.registeredOnServer().set(true);
+        if (DeviceSpecificProvider.getInstance() != null) {
+            DeviceRegistrar.registerWithServer(pushToken, tagsJson, DeviceSpecificProvider.getInstance().deviceType(), result -> {
+                if (result.isSuccess()) {
+                    registrationPrefs.registeredOnServer().set(true);
 
-                EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
-                registrationPrefs.lastPushRegistration().set(new Date().getTime());
-                PWLog.info(TAG, "Registered for push notifications: " + pushToken);
-            } else {
-                String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
-                if (TextUtils.isEmpty(errorDescription)) {
-                    errorDescription = "Pushwoosh registration error";
+                    EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
+                    registrationPrefs.lastPushRegistration().set(new Date().getTime());
+                    PWLog.info(TAG, "Registered for push notifications: " + pushToken);
+                } else {
+                    String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
+                    if (TextUtils.isEmpty(errorDescription)) {
+                        errorDescription = "Pushwoosh registration error";
+                    }
+
+                    PWLog.error(TAG, "Registration error: " + errorDescription);
+                    EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
                 }
-
-                PWLog.error(TAG, "Registration error: " + errorDescription);
-                EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
-            }
-        });
+            });
+        }
     }
 
     public void onFailedToRegisterForRemoteNotifications(String error) {
