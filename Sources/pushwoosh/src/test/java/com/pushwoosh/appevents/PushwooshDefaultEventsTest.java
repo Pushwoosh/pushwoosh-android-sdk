@@ -77,13 +77,13 @@ public class PushwooshDefaultEventsTest {
 			TagsBundle attributes = PushwooshDefaultEvents.buildAttributes(PushwooshDefaultEvents.APPLICATION_OPENED_EVENT, "activityName");
 
 			pushwooshDefaultEvents.postEvent(PushwooshDefaultEvents.APPLICATION_OPENED_EVENT, attributes);
-			verify(InAppManager.getInstance(), times(1)).postEvent(PushwooshDefaultEvents.APPLICATION_OPENED_EVENT, attributes, true);
+			verify(InAppManager.getInstance(), times(1)).postEventInternal(PushwooshDefaultEvents.APPLICATION_OPENED_EVENT, attributes);
 
 			pushwooshDefaultEvents.postEvent(PushwooshDefaultEvents.SCREEN_OPENED_EVENT, attributes);
-			verify(InAppManager.getInstance(), times(1)).postEvent(PushwooshDefaultEvents.SCREEN_OPENED_EVENT, attributes, true);
+			verify(InAppManager.getInstance(), times(1)).postEventInternal(PushwooshDefaultEvents.SCREEN_OPENED_EVENT, attributes);
 
 			pushwooshDefaultEvents.postEvent(PushwooshDefaultEvents.APPLICATION_CLOSED_EVENT, attributes);
-			verify(InAppManager.getInstance(), times(1)).postEvent(PushwooshDefaultEvents.APPLICATION_CLOSED_EVENT, attributes, true);
+			verify(InAppManager.getInstance(), times(1)).postEventInternal(PushwooshDefaultEvents.APPLICATION_CLOSED_EVENT, attributes);
 		}
 	}
 

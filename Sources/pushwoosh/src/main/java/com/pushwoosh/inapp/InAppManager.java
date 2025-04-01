@@ -48,9 +48,14 @@ public class InAppManager {
     /**
      * {@link #postEvent(String, TagsBundle, Callback)}
      */
-    public void postEvent(@NonNull String event, TagsBundle attributes, boolean isInternal) {
+    public void postEvent(@NonNull String event, TagsBundle attributes) {
         if (impl != null)
-            impl.postEvent(event, attributes, null, isInternal);
+            impl.postEvent(event, attributes, null, false);
+    }
+
+    public void postEventInternal(@NonNull String event, TagsBundle attributes) {
+        if (impl != null)
+            impl.postEvent(event, attributes, null, true);
     }
 
     /**

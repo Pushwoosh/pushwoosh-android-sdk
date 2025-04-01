@@ -15,7 +15,10 @@ InAppManager is responsible for In-App messaging functionality.<br/><em>See also
 		<td><a href="#1a5ade44e97fd373900a99145fd37d19b1">public void postEvent(@NonNull String event)</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1a1a8a9722e5e904191c7ce5ae58c29c8a">public void postEvent(@NonNull String event, TagsBundle attributes, boolean isInternal)</a></td>
+		<td><a href="#1ab5b819238fb00b05d751f9ce732e1325">public void postEvent(@NonNull String event, TagsBundle attributes)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1a0dcc51a00e1854e140141ca9a00085a4">public void postEventInternal(@NonNull String event, TagsBundle attributes)</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1ad74b43d9963f9d858160da6486268292">public void postEvent(@NonNull String event, @Nullable TagsBundle attributes, Callback&lt;Void, PostEventException&gt; callback)</a></td>
@@ -56,8 +59,14 @@ postEvent(String, TagsBundle, Callback)
 ----------  
   
 
-#### <a name="1a1a8a9722e5e904191c7ce5ae58c29c8a"></a>public void postEvent(@NonNull String event, <a href="../tags/TagsBundle.md">TagsBundle</a> attributes, boolean isInternal)  
+#### <a name="1ab5b819238fb00b05d751f9ce732e1325"></a>public void postEvent(@NonNull String event, <a href="../tags/TagsBundle.md">TagsBundle</a> attributes)  
 postEvent(String, TagsBundle, Callback)
+
+----------  
+  
+
+#### <a name="1a0dcc51a00e1854e140141ca9a00085a4"></a>public void postEventInternal(@NonNull String event, <a href="../tags/TagsBundle.md">TagsBundle</a> attributes)  
+
 
 ----------  
   

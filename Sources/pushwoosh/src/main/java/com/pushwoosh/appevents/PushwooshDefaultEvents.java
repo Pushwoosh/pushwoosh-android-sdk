@@ -34,7 +34,7 @@ public class PushwooshDefaultEvents {
     }
 
     private void postEventInternal(String eventName, TagsBundle attributes) {
-        InAppManager.getInstance().postEvent(eventName, attributes, true);
+        InAppManager.getInstance().postEventInternal(eventName, attributes);
     }
 
     static TagsBundle buildAttributes(String eventName, String activityName) {

@@ -60,7 +60,7 @@ PushwooshInApp is responsible for In-App messages functionality.<br/><em>See als
   
 
 #### <a name="1ac4f379b76b87440194b3f2025e6619e5"></a>public void postEvent(@NonNull String event, <a href="../tags/TagsBundle.md">TagsBundle</a> attributes)  
-<em>See also:</em> InAppManager::postEvent(String, TagsBundle, boolean) 
+<em>See also:</em> InAppManager::postEvent(String, TagsBundle) 
 
 ----------  
   

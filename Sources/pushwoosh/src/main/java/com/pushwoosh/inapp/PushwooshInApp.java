@@ -38,11 +38,11 @@ public class PushwooshInApp {
 
     /**
      * @deprecated
-     * @see InAppManager#postEvent(String, TagsBundle, boolean)
+     * @see InAppManager#postEvent(String, TagsBundle)
      */
     @Deprecated
     public void postEvent(@NonNull String event, TagsBundle attributes) {
-        InAppManager.getInstance().postEvent(event, attributes, false);
+        InAppManager.getInstance().postEvent(event, attributes);
     }
 
     /**
