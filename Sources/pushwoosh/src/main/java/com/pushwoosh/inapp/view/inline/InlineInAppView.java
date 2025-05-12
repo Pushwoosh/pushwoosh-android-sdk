@@ -45,7 +45,7 @@ public class InlineInAppView extends ResourceWebView {
     private List<InlineInAppViewListener> listeners = new ArrayList<>();
 
     public InlineInAppView(@NonNull Context context) {
-        super(context);
+        super(context, InAppLayout.DIALOG);
         init();
     }
 

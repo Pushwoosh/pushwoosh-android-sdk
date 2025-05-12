@@ -75,9 +75,9 @@ public class ResourceWebView extends FrameLayout {
     int backgroundColor;
     boolean isInMultiWindowMode;
 
-    public ResourceWebView(Context context) {
+    public ResourceWebView(Context context, InAppLayout inAppLayout) {
         super(context);
-        init(InAppLayout.DIALOG, PushwooshPlatform.getInstance().getRichMediaController().getRichMediaStyle(), context);
+        init(inAppLayout, PushwooshPlatform.getInstance().getRichMediaController().getRichMediaStyle(), context);
     }
 
     protected ResourceWebView(Context context, AttributeSet attributeSet) {
@@ -101,7 +101,12 @@ public class ResourceWebView extends FrameLayout {
         }
 
         container = new FrameLayout(getContext());
-        this.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        if (inAppLayout == InAppLayout.FULLSCREEN) {
+            this.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        }
+        else {
+            this.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
         container.setLayoutParams(createWebViewParams(inAppLayout, 0));
         container.setBackgroundColor(Color.TRANSPARENT);
 
@@ -147,6 +152,7 @@ public class ResourceWebView extends FrameLayout {
         switch (mode) {
             case FULLSCREEN: {
                 layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+                layoutParams.gravity = Gravity.CENTER;
                 break;
             }
             case BOTTOM: {

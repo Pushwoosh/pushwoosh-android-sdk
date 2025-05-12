@@ -176,7 +176,7 @@ public class NotificationPrefs {
 		richMediaDismissAnimation = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_DISMISS_ANIMATION_TYPE, ModalRichMediaDismissAnimationType.FADE_OUT.getCode());
 		richMediaPresentAnimation = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_PRESENT_ANIMATION_TYPE, ModalRichMediaPresentAnimationType.FADE_IN.getCode());
 		richMediaSwipeGesture = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_SWIPE_GESTURE, ModalRichMediaSwipeGesture.NONE.getCode());
-		richMediaViewPosition = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_VIEW_POSITION, ModalRichMediaViewPosition.CENTER.getCode());
+		richMediaViewPosition = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_VIEW_POSITION, ModalRichMediaViewPosition.FULLSCREEN.getCode());
 		richmediaWindowWidth = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_WINDOW_WIDTH, ModalRichMediaWindowWidth.FULL_SCREEN.getCode());
 
 		richMediaAnimationDuration = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_ANIMATION_DURATION, 1000);

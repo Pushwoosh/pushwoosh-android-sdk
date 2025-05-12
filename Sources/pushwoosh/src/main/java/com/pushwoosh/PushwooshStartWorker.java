@@ -152,8 +152,12 @@ public class PushwooshStartWorker {
         android.util.Log.i(INIT_TAG, "HWID: " + registrationPrefs.hwid().get());
         android.util.Log.i(INIT_TAG, "APP_CODE: " + registrationPrefs.applicationId().get());
         android.util.Log.i(INIT_TAG, "PUSHWOOSH_SDK_VERSION: " + GeneralUtils.SDK_VERSION);
-        android.util.Log.i(INIT_TAG, "FIREBASE_PROJECT_ID: " +         registrationPrefs.projectId().get());
-        android.util.Log.i(INIT_TAG, "API_TOKEN: " + PushwooshPlatform.getInstance().getConfig().getApiToken());
+        android.util.Log.i(INIT_TAG, "FIREBASE_PROJECT_ID: " + registrationPrefs.projectId().get());
+        String apiToken = PushwooshPlatform.getInstance().getConfig().getApiToken();
+        if (apiToken != null) {
+            String obfuscatedApiToken = apiToken.substring(0, 4) + "............" + apiToken.substring(apiToken.length() - 6);
+            android.util.Log.i(INIT_TAG, "API_TOKEN: " + obfuscatedApiToken);
+        }
         android.util.Log.i(INIT_TAG, "PUSH_TOKEN: " + registrationPrefs.pushToken().get());
         if (started.compareAndSet(false, true)) {
             EventBus.subscribe(ApplicationOpenDetector.ApplicationOpenEvent.class, event -> {

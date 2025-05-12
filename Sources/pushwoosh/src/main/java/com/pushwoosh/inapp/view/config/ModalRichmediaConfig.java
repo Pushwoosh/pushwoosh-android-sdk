@@ -7,7 +7,7 @@ import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaWindowWidth;
 
 public class ModalRichmediaConfig {
-    private ModalRichMediaViewPosition viewPosition = ModalRichMediaViewPosition.CENTER;
+    private ModalRichMediaViewPosition viewPosition = ModalRichMediaViewPosition.FULLSCREEN;
     private ModalRichMediaSwipeGesture swipeGesture = ModalRichMediaSwipeGesture.NONE;
     private ModalRichMediaPresentAnimationType presentAnimationType = ModalRichMediaPresentAnimationType.FADE_IN;
     private ModalRichMediaDismissAnimationType dismissAnimationType = ModalRichMediaDismissAnimationType.FADE_OUT;

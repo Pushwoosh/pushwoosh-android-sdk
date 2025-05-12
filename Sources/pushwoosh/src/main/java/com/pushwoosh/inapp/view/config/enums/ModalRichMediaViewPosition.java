@@ -5,7 +5,8 @@ import com.pushwoosh.internal.utils.PWLog;
 public enum ModalRichMediaViewPosition {
     TOP(0),
     CENTER(1),
-    BOTTOM(2);
+    BOTTOM(2),
+    FULLSCREEN(3);
 
     private final int code;
 

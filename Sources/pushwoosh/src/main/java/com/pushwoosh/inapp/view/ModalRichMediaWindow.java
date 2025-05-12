@@ -26,6 +26,7 @@ import com.pushwoosh.inapp.event.ActivityBroughtOnTopEvent;
 import com.pushwoosh.inapp.event.RichMediaCloseEvent;
 import com.pushwoosh.inapp.exception.ResourceParseException;
 import com.pushwoosh.inapp.model.HtmlData;
+import com.pushwoosh.inapp.network.model.InAppLayout;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.config.ModalRichmediaConfig;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
@@ -69,7 +70,12 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
         } else if (config.getWindowWidth() == ModalRichMediaWindowWidth.WRAP_CONTENT) {
             this.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
         }
-        this.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (config.getViewPosition() == ModalRichMediaViewPosition.FULLSCREEN) {
+            this.setHeight(ViewGroup.LayoutParams.MATCH_PARENT);
+            this.setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
+        } else {
+            this.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
         this.setFocusable(true);
         this.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         this.setInputMethodMode(PopupWindow.INPUT_METHOD_NEEDED);
@@ -130,7 +136,11 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
         this.onRichMediaListener = new WeakReference<>(this);
 
         // Initialize resourceWebView
-        resourceWebView = new ResourceWebView(context);
+        if (config.getViewPosition() == ModalRichMediaViewPosition.FULLSCREEN) {
+            resourceWebView = new ResourceWebView(context, InAppLayout.FULLSCREEN);
+        } else {
+            resourceWebView = new ResourceWebView(context, InAppLayout.DIALOG);
+        }
         resourceWebView.setWebViewClient(new WebClient(this, resource));
         downloadHtmlData(resource);
         setContentView(resourceWebView);
