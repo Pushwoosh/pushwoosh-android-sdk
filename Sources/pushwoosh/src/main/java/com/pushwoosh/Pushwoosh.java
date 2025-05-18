@@ -728,6 +728,11 @@ public class Pushwoosh {
         }
     }
 
+    public void setApiToken(String token) {
+        RegistrationPrefs registrationPrefs = PushwooshPlatform.getInstance().getRegistrationPrefs();
+        registrationPrefs.setApiToken(token);
+    }
+
     /**
      * Sends push message delivery statistics to Pushwoosh server. This method
      * is called internally by Pushwoosh SDK.

@@ -74,6 +74,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	private static final String REMOVE_ALL_DEVICE_DATA = "pw_remove_all_device_data";
 	private static final String GDPR_ENABLE = "pw_gdpr_enable";
 	private static final String HWID = "pw_hwid";
+	private static final String API_TOKEN = "pw_api_token";
 
 	private final PreferenceStringValue pushToken;
 	private final PreferenceBooleanValue registeredOnServer;
@@ -90,6 +91,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	private final PreferenceBooleanValue removeAllDeviceData;
 	private final PreferenceBooleanValue gdprEnable;
 	private final PreferenceStringValue hwid;
+	private final PreferenceStringValue apiToken;
 	private final PreferenceStringValue language;
 
 	private final Config config;
@@ -147,6 +149,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		baseUrl.set(computeBaseUrl(baseUrl.get()));
 
 		hwid = new PreferenceStringValue(preferences, HWID, "");
+		apiToken = new PreferenceStringValue(preferences, API_TOKEN, config.getApiToken());
 		String defaultLocale = "en";
 		language = new PreferenceStringValue(preferences, PROPERTY_LANGUAGE,
 				config.isCollectingDeviceLocaleAllowed()
@@ -219,6 +222,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		return hwid;
 	}
 
+	public PreferenceStringValue apiToken() { return apiToken; }
+
 	public PreferenceStringValue language() {
 		return language;
 	}
@@ -273,6 +278,13 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
 		lastPushRegistration().set(0);
 		deviceRegistrar.updateRegistration();
+	}
+
+	public void setApiToken(String apiToken) {
+		if (apiToken == null) {
+			return;
+		}
+		apiToken().set(apiToken);
 	}
 
 	public void removeSenderId() {

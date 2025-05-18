@@ -154,7 +154,7 @@ public class PushwooshStartWorker {
         android.util.Log.i(INIT_TAG, "PUSHWOOSH_SDK_VERSION: " + GeneralUtils.SDK_VERSION);
         android.util.Log.i(INIT_TAG, "FIREBASE_PROJECT_ID: " + registrationPrefs.projectId().get());
         String apiToken = PushwooshPlatform.getInstance().getConfig().getApiToken();
-        if (apiToken != null) {
+        if (apiToken != null && apiToken.length() > 6) {
             String obfuscatedApiToken = apiToken.substring(0, 4) + "............" + apiToken.substring(apiToken.length() - 6);
             android.util.Log.i(INIT_TAG, "API_TOKEN: " + obfuscatedApiToken);
         }

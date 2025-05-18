@@ -167,6 +167,9 @@ Pushwoosh class is used to manage push registration, application tags and local 
 	<tr>
 		<td><a href="#1a54109e499c49ba95133ff67546586374">public void setAllowedExternalHosts(ArrayList&lt;String&gt; allowedExternalHosts)</a></td>
 	</tr>
+	<tr>
+		<td><a href="#1a76ec2d5fd3bb77a0675ee06b870f796d">public void setApiToken(String token)</a></td>
+	</tr>
 </table>
 
 
@@ -779,3 +782,9 @@ Stops communication with Pushwoosh server.
   
 
 #### <a name="1a54109e499c49ba95133ff67546586374"></a>public void setAllowedExternalHosts(ArrayList&lt;String&gt; allowedExternalHosts)  
+
+
+----------  
+  
+
+#### <a name="1a76ec2d5fd3bb77a0675ee06b870f796d"></a>public void setApiToken(String token)  
