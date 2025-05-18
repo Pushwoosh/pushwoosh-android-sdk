@@ -186,7 +186,7 @@ class PushwooshRequestManager implements RequestManager {
 	}
 
 	private String getApiToken() {
-		return "Token " + PushwooshPlatform.getInstance().getConfig().getApiToken();
+		return "Token " + registrationPrefs.apiToken().get();
 	}
 
 	private NetworkResult makeRequest(final String baseUrl, JSONObject data, String methodName) throws Exception {
