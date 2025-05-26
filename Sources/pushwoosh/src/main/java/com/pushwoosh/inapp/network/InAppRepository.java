@@ -285,7 +285,9 @@ public class InAppRepository {
                     });
                 } else {
                     String errorMessage = getRegisterUserErrorMessage(result);
-                    callback.process(Result.fromException(new SetUserException(errorMessage)));
+                    if (callback != null) {
+                        callback.process(Result.fromException(new SetUserException(errorMessage)));
+                    }
                 }
             });
         } else {
@@ -342,7 +344,9 @@ public class InAppRepository {
                 });
             } else {
                 String errorMessage = getRegisterEmailErrorMessage(result);
-                callback.process(Result.fromException(new PushwooshException(errorMessage)));
+                if (callback != null) {
+                    callback.process(Result.fromException(new PushwooshException(errorMessage)));
+                }
             }
         });
     }
