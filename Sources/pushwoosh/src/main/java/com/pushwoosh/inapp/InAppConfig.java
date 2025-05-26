@@ -55,6 +55,8 @@ public class InAppConfig {
 		return parseLocalizedStrings(localizedStrings);
 	}
 
+	
+
 	private Map<String, String> parseLocalizedStrings(JSONObject json) throws JSONException {
 		Map<String, String> result = new HashMap<>();
 
