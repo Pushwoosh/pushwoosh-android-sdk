@@ -62,7 +62,7 @@ public class LocalNotificationStorage {
         if (dbLocalNotificationHelper != null) {
             dbLocalNotificationHelper.enumerateDbLocalNotificationList(enumeratorLocalNotification);
         }else {
-            PWLog.error(TAG, "dbLocalNotificationHelper is null, cant enumerate local notification list");
+            PWLog.error(TAG, "dbLocalNotificationHelper is null, can't enumerate local notification list");
         }
     }
 
@@ -70,7 +70,7 @@ public class LocalNotificationStorage {
         PWLog.noise(TAG, "Removed dbLocalNotification: " + id);
         try {
             if (dbLocalNotificationHelper == null) {
-                PWLog.error("dbLocalNotificationHelper is null, cant remove local push");
+                PWLog.error("dbLocalNotificationHelper is null, can't remove local push");
                 return;
             }
             dbLocalNotificationHelper.removeDbLocalNotification(id);
@@ -98,7 +98,7 @@ public class LocalNotificationStorage {
 
     public void removeLocalNotificationShown(int notificationId, String notificationTag) {
         if (dbLocalNotificationHelper == null) {
-            PWLog.error("dbLocalNotificationHelper is null, cant removeLocalNotificationShown");
+            PWLog.error("dbLocalNotificationHelper is null, can't removeLocalNotificationShown");
             return;
         }
         DbLocalNotification dbLocalNotification = dbLocalNotificationHelper.getDbLocalNotificationShown(notificationId, notificationTag);
@@ -117,7 +117,7 @@ public class LocalNotificationStorage {
 
     public DbLocalNotification getLocalNotificationShown(int requestId) {
         if (dbLocalNotificationHelper == null) {
-            PWLog.error("dbLocalNotificationHelper is null, cant get Notification");
+            PWLog.error("dbLocalNotificationHelper is null, can't get Notification");
             return null;
         }
         String requestIdString = Integer.toString(requestId);

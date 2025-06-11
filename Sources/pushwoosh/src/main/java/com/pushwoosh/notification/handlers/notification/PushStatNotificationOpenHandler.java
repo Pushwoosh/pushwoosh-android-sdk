@@ -27,34 +27,27 @@
 package com.pushwoosh.notification.handlers.notification;
 
 import android.os.Bundle;
-import android.util.Pair;
 
-import com.pushwoosh.internal.command.CommandApplayer;
-import com.pushwoosh.internal.command.CommandParams;
-import com.pushwoosh.notification.NotificationServiceExtension;
+import com.pushwoosh.PushwooshPlatform;
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushBundleDataProvider;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.pushwoosh.repository.PushwooshRepository;
 
 public class PushStatNotificationOpenHandler implements PushNotificationOpenHandler {
-    private CommandApplayer commandApplayer;
-
-    public PushStatNotificationOpenHandler(CommandApplayer commandApplayer) {
-        this.commandApplayer = commandApplayer;
-    }
 
     @Override
     public void postHandleNotification(Bundle pushBundle) {
         if (PushBundleDataProvider.isLocal(pushBundle) || PushBundleDataProvider.isSilent(pushBundle)) {
             return;
         }
+
         String pushHash = PushBundleDataProvider.getPushHash(pushBundle);
         String metadata = PushBundleDataProvider.getPushMetadata(pushBundle);
-        Pair<String, String> pushStatParams = new Pair<>(pushHash, metadata);
-        if (commandApplayer != null) {
-            commandApplayer.applyCommand(() -> "pushStat",
-                    new CommandParams<>(pushStatParams));
-        }
+
+        PWLog.debug("PushStatNotificationOpenHandler", String.format("postHandleNotification, pushHash: %s, metadata: %s", pushHash, metadata));
+
+        PushwooshRepository pushwooshRepository = PushwooshPlatform.getInstance().pushwooshRepository();
+        pushwooshRepository.setCurrentSessionHash(pushHash);
+        pushwooshRepository.sendPushOpened(pushHash, metadata);
     }
 }

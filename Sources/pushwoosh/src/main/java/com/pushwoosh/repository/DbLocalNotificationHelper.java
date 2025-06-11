@@ -180,7 +180,7 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
                 return getDbLocalNotification(cursor);
             }
         }
-        PWLog.noise(TAG, "cant find local notification in table " + table + " by id " + requestId);
+        PWLog.noise(TAG, "can't find local notification in table " + table + " by id " + requestId);
         return null;
     }
 

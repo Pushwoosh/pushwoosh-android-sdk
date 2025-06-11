@@ -36,7 +36,6 @@ import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
-import com.pushwoosh.GDPRManager;
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.network.model.Resource;
@@ -160,18 +159,6 @@ public class PushwooshJSInterface {
                     + "        pushwooshImpl.getTags(successCbId, errorCbId);"
                     + "    },"
                     + ""
-                    + "    isCommunicationEnabled: function() {"
-                    + "        return pushwooshImpl.isCommunicationEnabled();"
-                    + "    },"
-                    + ""
-                    + "    setCommunicationEnabled: function(enabled) {"
-                    + "        pushwooshImpl.setCommunicationEnabled(enabled);"
-                    + "    },"
-                    + ""
-                    + "    removeAllDeviceData: function() {"
-                    + "        pushwooshImpl.removeAllDeviceData();"
-                    + "    },"
-                    + ""
                     + "    log: function(str) {"
                     + "        pushwooshImpl.log(str);"
                     + "    },"
@@ -288,26 +275,6 @@ public class PushwooshJSInterface {
                 resource.isInApp() ? resource.getCode() : ""
         );
         webView.loadUrl(url);
-    }
-
-    @JavascriptInterface
-    public void setCommunicationEnabled(boolean enabled) {
-        GDPRManager.getInstance().setCommunicationEnabled(enabled, null);
-    }
-
-    @JavascriptInterface
-    public void removeAllDeviceData() {
-        GDPRManager.getInstance().removeAllDeviceData(null);
-    }
-
-    @JavascriptInterface
-    public boolean isCommunicationEnabled() {
-        return GDPRManager.getInstance().isCommunicationEnabled();
-    }
-
-    @JavascriptInterface
-    public boolean isDeviceDataRemoved() {
-        return GDPRManager.getInstance().isDeviceDataRemoved();
     }
 
     @JavascriptInterface

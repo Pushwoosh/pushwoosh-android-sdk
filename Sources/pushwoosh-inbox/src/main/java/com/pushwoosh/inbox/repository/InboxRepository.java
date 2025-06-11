@@ -35,6 +35,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import android.util.Pair;
 
+import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
@@ -55,8 +56,6 @@ import com.pushwoosh.inbox.network.data.UpdateInboxMessageStatusRequest;
 import com.pushwoosh.inbox.repository.data.LoadResult;
 import com.pushwoosh.inbox.storage.InboxStorage;
 import com.pushwoosh.inbox.storage.data.MergeResult;
-import com.pushwoosh.internal.command.CommandApplayer;
-import com.pushwoosh.internal.command.CommandParams;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.UserIdUpdatedEvent;
 import com.pushwoosh.internal.network.NetworkException;
@@ -75,7 +74,6 @@ public class InboxRepository {
 
 	private final RequestManager requestManager;
 	private final InboxStorage inboxStorage;
-	private final CommandApplayer commandApplayer;
 
 	private final InternalInboxMessagesToInboxMessagesMapper mapper = new InternalInboxMessagesToInboxMessagesMapper();
 	private final NeedUpdateChecker needUpdateMessages = new NeedUpdateChecker(InboxConfig.getInboxUpdateTime());
@@ -91,11 +89,9 @@ public class InboxRepository {
 	private final Handler handler = new Handler(Looper.getMainLooper());
 
 	public InboxRepository(RequestManager requestManager,
-						   InboxStorage inboxStorage,
-						   CommandApplayer commandApplayer) {
+						   InboxStorage inboxStorage) {
 		this.requestManager = requestManager;
 		this.inboxStorage = inboxStorage;
-		this.commandApplayer = commandApplayer;
 
 		initListenerHelpers();
 		initObserverHelpers();
@@ -374,9 +370,7 @@ public class InboxRepository {
 	}
 
 	private void sendPushStat(String pushHash, String metadata) {
-		Pair<String, String> pushStatParams = new Pair<>(pushHash, metadata);
-		commandApplayer.applyCommand(() -> "pushStat",
-				new CommandParams<>(pushStatParams));
+		PushwooshPlatform.getInstance().pushwooshRepository().sendPushOpened(pushHash, metadata);
 	}
 
 	@WorkerThread

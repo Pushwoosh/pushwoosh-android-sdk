@@ -10,6 +10,10 @@ import com.pushwoosh.internal.platform.ApplicationOpenDetector.ApplicationOpenEv
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.tags.TagsBundle;
 
+/**
+ * Handles default application events with additional metadata.
+ * Tracks application lifecycle events and enriches them with device and app information.
+ */
 public class PushwooshDefaultEvents {
     private static volatile Application.ActivityLifecycleCallbacks activityLifecycleCallbacks;
     private static final Object ACTIVITY_LIFECYCLE_CALLBACKS_MUTEX = new Object();
@@ -18,8 +22,9 @@ public class PushwooshDefaultEvents {
     static final String SCREEN_OPENED_EVENT = "PW_ScreenOpen";
     static final String APPLICATION_CLOSED_EVENT = "PW_ApplicationMinimized";
 
-    private boolean isConfigLoaded = false;
-
+    /**
+     * Initializes event tracking by registering activity lifecycle callbacks
+     */
     public void init() {
         registerActivityLifecycleCallbacks();
     }
@@ -29,14 +34,21 @@ public class PushwooshDefaultEvents {
         registerActivityLifecycleCallbacks();
     };
 
+    /**
+     * Posts event with attributes to InApp manager
+     * @param eventName Name of the event
+     * @param attributes Additional event attributes
+     */
     void postEvent(String eventName, TagsBundle attributes) {
-                postEventInternal(eventName, attributes);
-    }
-
-    private void postEventInternal(String eventName, TagsBundle attributes) {
         InAppManager.getInstance().postEventInternal(eventName, attributes);
     }
 
+    /**
+     * Builds attributes bundle for event with device and app information
+     * @param eventName Name of the event
+     * @param activityName Name of the activity (for screen events)
+     * @return Bundle with event attributes
+     */
     static TagsBundle buildAttributes(String eventName, String activityName) {
         TagsBundle.Builder attributes = new TagsBundle.Builder();
         attributes.putInt("device_type", DeviceSpecificProvider.getInstance().deviceType());
@@ -50,6 +62,9 @@ public class PushwooshDefaultEvents {
         return attributes.build();
     }
 
+    /**
+     * Registers activity lifecycle callbacks to track application events
+     */
     private void registerActivityLifecycleCallbacks() {
         synchronized (ACTIVITY_LIFECYCLE_CALLBACKS_MUTEX) {
             if (activityLifecycleCallbacks == null) {

@@ -9,7 +9,6 @@ import com.pushwoosh.inapp.PushwooshInAppServiceImpl;
 import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
 import com.pushwoosh.inapp.view.strategy.ResourceViewStrategyFactory;
 import com.pushwoosh.internal.PushRegistrarHelper;
-import com.pushwoosh.internal.command.CommandApplayer;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.network.RequestStorage;
@@ -26,7 +25,6 @@ import com.pushwoosh.internal.utils.UUIDFactory;
 import com.pushwoosh.notification.NotificationServiceExtension;
 import com.pushwoosh.notification.PushMessageFactory;
 import com.pushwoosh.notification.PushwooshNotificationManager;
-import com.pushwoosh.notification.handlers.notification.PushStatNotificationOpenHandler;
 import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.PushwooshRepository;
@@ -62,25 +60,17 @@ public class PushwooshPlatform {
     private final BusinessCasesManager businessCasesManager;
     private final ServerCommunicationManager serverCommunicationManager;
     private NotificationServiceExtension notificationServiceExtension;
-    private GDPRManager gdprManager;
     private RichMediaController richMediaController;
     private AppVersionProvider appVersionProvider;
     private PushwooshStartWorker pushwooshStartWorker;
     private DeviceRegistrar deviceRegistrar;
     private RichMediaStyle richMediaStyle;
     private Activity topActivity;
-
-    private CommandApplayer commandApplayer;
-    private PushStatNotificationOpenHandler pushStatNotificationOpenHandler;
     private PushwooshDefaultEvents pushwooshDefaultEvents;
     private PushRegistrarHelper pushRegistrarHelper;
     
     public PushMessageFactory getPushMessageFactory() {
         return pushMessageFactory;
-    }
-    
-    public PushStatNotificationOpenHandler pushStatNotificationOpenHandler() {
-        return pushStatNotificationOpenHandler;
     }
 
     public static class Builder {
@@ -106,8 +96,6 @@ public class PushwooshPlatform {
     private PushwooshPlatform(Builder builder) {
         UUIDFactory = new UUIDFactory();
         config = builder.config;
-        commandApplayer = new CommandApplayer();
-        pushStatNotificationOpenHandler = new PushStatNotificationOpenHandler(commandApplayer);
         deviceRegistrar = new DeviceRegistrar();
         RepositoryModule.init(config, UUIDFactory, deviceRegistrar);
         registrationPrefs = RepositoryModule.getRegistrationPreferences();
@@ -131,7 +119,6 @@ public class PushwooshPlatform {
         RequestStorage requestStorage = RepositoryModule.getRequestStorage();
         pushwooshRepository = new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage, serverCommunicationManager);
 
-        gdprManager = new GDPRManager(pushwooshRepository, notificationManager, pushwooshInApp);
         richMediaStyle = new RichMediaStyle(0, new RichMediaAnimationSlideBottom());
         richMediaController = new RichMediaController(
                 new ResourceViewStrategyFactory(),
@@ -182,10 +169,6 @@ public class PushwooshPlatform {
 
     public BusinessCasesManager getBusinessCasesManager() {
         return businessCasesManager;
-    }
-
-    public GDPRManager getGdprManager() {
-        return gdprManager;
     }
 
     public UUIDFactory getUUIDFactory() {

@@ -63,6 +63,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public class PushwooshRepository {
+    private static final String TAG = "PushwooshRepository";
+
     @Nullable
     private final RequestManager requestManager;
     private final SendTagsProcessor sendTagsProcessor;
@@ -94,7 +96,7 @@ public class PushwooshRepository {
                 return;
             }
 
-            PWLog.debug("Resending application tags");
+            PWLog.debug(TAG, "Resending application tags");
 
             sendTagsProcessor.sendTags(tags, result -> {
                 if (result.isSuccess()) {
@@ -179,7 +181,7 @@ public class PushwooshRepository {
         RequestManager requestManager = NetworkModule.getRequestManager();
         if (requestManager == null) {
             NetworkException exception = new NetworkException("Request manager is null");
-            PWLog.warn("Cannot send email tags", exception);
+            PWLog.warn(TAG, "Cannot send email tags", exception);
             return;
         }
 
@@ -242,17 +244,17 @@ public class PushwooshRepository {
 
         inAppRepository.postEvent("PW_InAppPurchase", attributes, result -> {
             if (result.isSuccess()) {
-                PWLog.noise("In-app purchase data sent successfully");
+                PWLog.noise(TAG, "In-app purchase data sent successfully");
             } else if (result.getException() != null) {
-                PWLog.error("Failed to send in-app purchase data", result.getException());
+                PWLog.error(TAG, "Failed to send in-app purchase data", result.getException());
             }
         });
     }
 
     public void sendPushOpened(String hash, String metadata) {
-        PWLog.info("Sending push open statistics for push " + hash);
+        PWLog.info(TAG, "Sending PushStatRequest, hash: " + hash);
         if (hash != null && TextUtils.equals(hash, notificationPrefs.lastNotificationHash().get())) {
-            PWLog.warn("Push stat for (" + hash + ") already sent");
+            PWLog.warn(TAG,"Push stat for (" + hash + ") already sent");
             return;
         }
 
@@ -260,15 +262,17 @@ public class PushwooshRepository {
 
         PushStatRequest request = new PushStatRequest(hash, metadata);
         if (requestManager == null) {
+            PWLog.error(TAG,"Request manager is null");
             return;
         }
         requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
     }
 
     public void sendPushDelivered(String hash, String metaData) {
-        PWLog.info("Sending push received statistics for push " + hash);
+        PWLog.info(TAG,"Sending MessageDeliveredRequest, hash: " + hash);
         MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData);
         if (requestManager == null) {
+            PWLog.error(TAG, "Request manager is null");
             return;
         }
         requestManager.sendRequest(request, null, new CacheFailedRequestCallback<>(request, requestStorage));

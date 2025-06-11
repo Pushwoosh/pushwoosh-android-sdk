@@ -31,7 +31,6 @@ import java.lang.ref.WeakReference;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
-import com.pushwoosh.GDPRManager;
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.internal.utils.PWLog;
@@ -135,28 +134,6 @@ public class PushManagerJSInterface {
         } catch (JSONException e) {
             PWLog.error("Invalid arguments", e);
         }
-    }
-
-
-
-    @JavascriptInterface
-    public void setCommunicationEnabled(boolean enabled) {
-        GDPRManager.getInstance().setCommunicationEnabled(enabled, null);
-    }
-
-    @JavascriptInterface
-    public void removeAllDeviceData() {
-        GDPRManager.getInstance().removeAllDeviceData(null);
-    }
-
-    @JavascriptInterface
-    public boolean isCommunicationEnabled() {
-        return GDPRManager.getInstance().isCommunicationEnabled();
-    }
-
-    @JavascriptInterface
-    public boolean isDeviceDataRemoved() {
-        return GDPRManager.getInstance().isDeviceDataRemoved();
     }
 
     /**

@@ -44,7 +44,7 @@ public class NotificationServiceExtension {
     private Config config;
     @Nullable
     private Context applicationContext;
-    private PushStatNotificationOpenHandler pushStatNotificationOpenHandler;
+    private final PushStatNotificationOpenHandler pushStatNotificationOpenHandler;
 
     public NotificationServiceExtension() {
         pushMessageFactory = PushwooshPlatform.getInstance().getPushMessageFactory();
@@ -53,8 +53,7 @@ public class NotificationServiceExtension {
         notificationOpenHandler = new NotificationOpenHandler(NotificationOpenHandlerChainProvider.getNotificationOpenHandlerChain());
         pushMessageHandler = new PushMessageHandler(MessageSystemHandleChainProvider.getMessageSystemChain(), MessageHandleChainProvider.getHandleProcessor());
         config = PushwooshPlatform.getInstance().getConfig();
-        pushStatNotificationOpenHandler = PushwooshPlatform.getInstance().pushStatNotificationOpenHandler();
-
+        pushStatNotificationOpenHandler = new PushStatNotificationOpenHandler();
     }
 
     /**
@@ -87,6 +86,7 @@ public class NotificationServiceExtension {
 
         boolean isNeedSendPushStat = isHandled && config.getSendPushStatIfShowForegroundDisabled();
         if (isNeedSendPushStat) {
+            PWLog.debug(TAG, String.format("pushStatNotificationOpenHandler.postHandleNotification: %s", pushBundle));
             pushStatNotificationOpenHandler.postHandleNotification(pushBundle);
         }
 

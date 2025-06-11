@@ -218,7 +218,11 @@ public class PushwooshNotificationManager {
             PWLog.exception(e);
             EventBus.sendEvent(new RegistrationErrorEvent(e.getMessage()));
         }
+    }
 
+    public void registerExistingToken(String token, Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
+        RegistrationCallbackHolder.setCallback(callback, false);
+        this.onRegisteredForRemoteNotifications(token, null);
     }
 
     private void registerForPushesInternal(Callback callback, boolean notificationsAllowed, TagsBundle tags) {
@@ -304,18 +308,14 @@ public class PushwooshNotificationManager {
             DeviceRegistrar.registerWithServer(pushToken, tagsJson, DeviceSpecificProvider.getInstance().deviceType(), result -> {
                 if (result.isSuccess()) {
                     registrationPrefs.registeredOnServer().set(true);
-
-                    EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
                     registrationPrefs.lastPushRegistration().set(new Date().getTime());
+                    EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
+
                     PWLog.info(TAG, "Registered for push notifications: " + pushToken);
                 } else {
-                    String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
-                    if (TextUtils.isEmpty(errorDescription)) {
-                        errorDescription = "Pushwoosh registration error";
-                    }
+                    EventBus.sendEvent(new RegistrationErrorEvent("can't register device"));
 
-                    PWLog.error(TAG, "Registration error: " + errorDescription);
-                    EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
+                    PWLog.error(TAG, "can't register device", result.getException());
                 }
             });
         }

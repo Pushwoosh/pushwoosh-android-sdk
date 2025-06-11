@@ -123,7 +123,7 @@ public class PushwooshInAppImpl {
 				if (registrationPrefs.communicationEnable().get()) {
 						showResource(resource);
 				} else {
-					PWLog.error(TAG, "cant show inApp because all communication disable");
+					PWLog.error(TAG, "can't show inApp because all communication disable");
 				}
 			} else {
 				if (callback != null) {

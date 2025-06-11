@@ -53,6 +53,7 @@ public final class NotificationRegistrarHelper {
 	}
 
 	public static void onRegisteredForRemoteNotifications(final String registrationId, String tagsJson) {
+		// this if checks whether device is registered with Pushwoosh and does not allow passing a token if it is not
 		if (!isRegisteredForRemoteNotifications()) {
 			return;
 		}

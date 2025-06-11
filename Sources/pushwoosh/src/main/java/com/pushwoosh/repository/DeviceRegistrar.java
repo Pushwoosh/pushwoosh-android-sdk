@@ -164,12 +164,18 @@ public class DeviceRegistrar {
 	public static boolean areNotificationsEnabled() {
 		try {
 			Context context = AndroidPlatformModule.getApplicationContext();
+			if (context == null) {
+				PWLog.warn(TAG, "areNotificationsEnabled: context is null");
+				return true;
+			}
+
 			if (Build.VERSION.SDK_INT >= 33) {
 				return ActivityCompat.checkSelfPermission(context,
 						"android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED;
 			} else {
 				return NotificationManagerCompat.from(context).areNotificationsEnabled();
 			}
+
 		} catch (Exception e) {
 			PWLog.exception(e);
 			return true; // fall back to default behavior

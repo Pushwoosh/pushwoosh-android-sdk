@@ -33,7 +33,6 @@ import com.pushwoosh.inbox.repository.InboxRepository;
 import com.pushwoosh.inbox.storage.InboxStorage;
 import com.pushwoosh.inbox.storage.db.DbInboxStorage;
 import com.pushwoosh.inbox.storage.db.InboxDbHelper;
-import com.pushwoosh.internal.command.CommandApplayer;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.prefs.PrefsProvider;
 
@@ -48,7 +47,6 @@ public class PushwooshInboxModule {
 	private static final Object sStorageMutex = new Object();
 	private static InboxDbHelper sInboxDbHelper;
 	private static RequestManager sRequestManager;
-	private static CommandApplayer sCommandApplayer;
 
 	public static InboxRepository getInboxRepository() {
 		if (sInboxRepository == null) {
@@ -57,11 +55,8 @@ public class PushwooshInboxModule {
 					if (sRequestManager == null) {
 						throw new IllegalArgumentException("Incorrect state.");
 					}
-					if(sCommandApplayer == null){
-						throw new IllegalArgumentException("Incorrect state.");
-					}
 
-					sInboxRepository = new InboxRepository(sRequestManager, getInboxStorage(), sCommandApplayer);
+					sInboxRepository = new InboxRepository(sRequestManager, getInboxStorage());
 					sRequestManager = null;
 				}
 			}
@@ -89,7 +84,6 @@ public class PushwooshInboxModule {
 	public static void init(InboxDbHelper inboxDbHelper, RequestManager requestManager, PrefsProvider prefsProvider) {
 		sInboxDbHelper = inboxDbHelper;
 		sRequestManager = requestManager;
-		sCommandApplayer = new CommandApplayer();
 
 		SharedPreferences sharedPreferences = prefsProvider.providePrefs(TAG);
 

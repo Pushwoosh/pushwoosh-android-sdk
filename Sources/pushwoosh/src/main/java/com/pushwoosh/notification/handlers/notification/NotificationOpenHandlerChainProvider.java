@@ -28,7 +28,6 @@ package com.pushwoosh.notification.handlers.notification;
 
 import androidx.annotation.NonNull;
 
-import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.internal.chain.Chain;
 
 public final class NotificationOpenHandlerChainProvider {
@@ -55,7 +54,7 @@ public final class NotificationOpenHandlerChainProvider {
 	private static Chain<PushNotificationOpenHandler> generateDefault() {
 
 		return new NotificationOpenHandlerChain.Builder()
-				.addMessagePreHandler(PushwooshPlatform.getInstance().pushStatNotificationOpenHandler())
+				.addMessagePreHandler(new PushStatNotificationOpenHandler())
 				.addMessagePreHandler(new RichMediaPushNotificationOpenHandler())
 				.addMessagePreHandler(new LaunchActivityPushNotificationOpenHandler())
 				.build();

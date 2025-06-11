@@ -6,10 +6,6 @@
     void sendPushStat(android.os.Bundle);
 }
 
--keep public class com.pushwoosh.GDPRManager {
-    public protected *;
-}
-
 -keep public class com.pushwoosh.notification.LocalNotification {
     public protected *;
 }

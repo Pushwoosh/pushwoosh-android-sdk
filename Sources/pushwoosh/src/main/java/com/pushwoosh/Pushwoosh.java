@@ -1,5 +1,6 @@
 package com.pushwoosh;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 
@@ -22,6 +23,7 @@ import com.pushwoosh.internal.PushRegistrarHelper;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.Subscription;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
+import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.LocalNotification;
 import com.pushwoosh.notification.LocalNotificationRequest;
@@ -38,7 +40,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Pushwoosh class is used to manage push registration, application tags and local notifications.<br>
@@ -82,28 +83,22 @@ public class Pushwoosh {
 
     private final PushwooshNotificationManager notificationManager;
     private final PushwooshRepository pushwooshRepository;
-    private final GDPRManager gdprManager;
     private final InAppRepository inAppRepository;
     private final PushRegistrarHelper pushRegistrarHelper;
     private final ServerCommunicationManager serverCommunicationManager;
     private Subscription<RegistrationSuccessEvent> subscriberRegister;
-    private AtomicBoolean isSubscriptionSegmentsCasePresented;
-
     private Pushwoosh() {
         PushwooshPlatform pushwooshPlatform = PushwooshPlatform.getInstance();
         if (pushwooshPlatform == null) {
             PushwooshPlatform.notifyNotInitialized();
             notificationManager = null;
             pushwooshRepository = null;
-            gdprManager = null;
             inAppRepository = null;
             pushRegistrarHelper = null;
             serverCommunicationManager = null;
         } else {
             notificationManager = pushwooshPlatform.notificationManager();
             pushwooshRepository = pushwooshPlatform.pushwooshRepository();
-            gdprManager = pushwooshPlatform.getGdprManager();
-            isSubscriptionSegmentsCasePresented = new AtomicBoolean();
             inAppRepository = InAppModule.getInAppRepository();
             pushRegistrarHelper = pushwooshPlatform.getPushRegistrarHelper();
             serverCommunicationManager = pushwooshPlatform.getServerCommunicationManager();
@@ -249,6 +244,22 @@ public class Pushwoosh {
 
     public void registerForPushNotificationsWithTagsWithoutPermission(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, TagsBundle tagsBundle) {
         registerForPushNotificationsInternal(callback, false, tagsBundle);
+    }
+
+    public void registerExistingToken(@NonNull String token, Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
+        PWLog.debug("Pushwoosh", "Sending token + " + token + " to Pushwoosh");
+
+        Context context = AndroidPlatformModule.getApplicationContext();
+        if (context == null) {
+            PWLog.error("Pushwoosh", "can't register device with existing token: context is null");
+            return;
+        }
+
+        try {
+            PushwooshPlatform.getInstance().notificationManager().registerExistingToken(token, callback);
+        } catch (Exception e) {
+            PWLog.error("Pushwoosh", "can't register device with existing token", e);
+        }
     }
 
     public void registerWhatsappNumber(String number) {
@@ -715,6 +726,18 @@ public class Pushwoosh {
         if (serverCommunicationManager != null) {
             serverCommunicationManager.stopServerCommunication();
         }
+    }
+
+    /**
+     * Check if communication with Pushwoosh server is allowed.
+     *
+     * @return true if communication with Pushwoosh server is allowed
+     */
+    public boolean isServerCommunicationAllowed() {
+        if (serverCommunicationManager != null) {
+            return serverCommunicationManager.isServerCommunicationAllowed();
+        }
+        return true;
     }
 
     public void setAllowedExternalHosts(ArrayList<String> allowedExternalHosts) {

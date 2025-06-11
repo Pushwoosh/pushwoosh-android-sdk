@@ -48,6 +48,7 @@ dependencies {
     implementation libs.navigation.ui
     implementation libs.firebase.messaging
 
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     debugApi project(':pushwoosh')
     debugApi project(':pushwoosh-firebase')

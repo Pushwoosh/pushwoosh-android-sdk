@@ -69,6 +69,9 @@ Pushwoosh class is used to manage push registration, application tags and local 
 		<td><a href="#1a83bb611e9123928bd78ed08e1af1396f">public void registerForPushNotificationsWithTagsWithoutPermission(Callback&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback, TagsBundle tagsBundle)</a></td>
 	</tr>
 	<tr>
+		<td><a href="#1a5a36f3f0301f6483f58c7c83351a2711">public void registerExistingToken(@NonNull String token, Callback&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback)</a></td>
+	</tr>
+	<tr>
 		<td><a href="#1ab87303f51d7244e54e24cc62419a38c6">public void registerWhatsappNumber(String number)</a></td>
 	</tr>
 	<tr>
@@ -163,6 +166,9 @@ Pushwoosh class is used to manage push registration, application tags and local 
 	</tr>
 	<tr>
 		<td><a href="#1a8895e1576c5614744f45f217e7166ef0">public void stopServerCommunication()</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1affb3246b61e4a3ce804c67506672d881">public boolean isServerCommunicationAllowed()</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a54109e499c49ba95133ff67546586374">public void setAllowedExternalHosts(ArrayList&lt;String&gt; allowedExternalHosts)</a></td>
@@ -337,6 +343,12 @@ Registers device for push notifications<br/><br/><br/><strong>Parameters</strong
   
 
 #### <a name="1a83bb611e9123928bd78ed08e1af1396f"></a>public void registerForPushNotificationsWithTagsWithoutPermission(<a href="function/Callback.md">Callback</a>&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback, <a href="tags/TagsBundle.md">TagsBundle</a> tagsBundle)  
+
+
+----------  
+  
+
+#### <a name="1a5a36f3f0301f6483f58c7c83351a2711"></a>public void registerExistingToken(@NonNull String token, <a href="function/Callback.md">Callback</a>&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback)  
 
 
 ----------  
@@ -777,6 +789,12 @@ Starts communication with Pushwoosh server.
 
 #### <a name="1a8895e1576c5614744f45f217e7166ef0"></a>public void stopServerCommunication()  
 Stops communication with Pushwoosh server. 
+
+----------  
+  
+
+#### <a name="1affb3246b61e4a3ce804c67506672d881"></a>public boolean isServerCommunicationAllowed()  
+Check if communication with Pushwoosh server is allowed.<br/><br/><br/><strong>Returns</strong> true if communication with Pushwoosh server is allowed 
 
 ----------  
   

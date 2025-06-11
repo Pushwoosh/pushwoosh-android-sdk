@@ -113,19 +113,6 @@
 }
 
 ## Internal
-#Commands
--keep public class com.pushwoosh.internal.command.CommandApplayer {
-    * ;
-}
-
--keep public class com.pushwoosh.internal.command.CommandType {
-    * ;
-}
-
--keep public class com.pushwoosh.internal.command.CommandParams {
-    * ;
-}
-
 
 -keep public class com.pushwoosh.internal.richmedia.ResourceAction {
   public protected *;
@@ -296,10 +283,6 @@
     *;
 }
 
--keep class com.pushwoosh.appevents.PushwooshAppEvents {
-    public <methods>;
-}
-
 -keep public class com.pushwoosh.notification.SummaryNotificationUtils {
     public protected *;
 }
@@ -338,10 +321,6 @@
     public void onFailedToRegisterForRemoteNotifications(java.lang.String);
     public void onUnregisteredFromRemoteNotifications(java.lang.String);
     public void onFailedToUnregisterFromRemoteNotifications(java.lang.String);
-}
-
--keepclassmembers class com.pushwoosh.internal.crypto.KeyProvider {
-    <init>();
 }
 
 -keep public class com.pushwoosh.PushwooshMessagingServiceHelper {

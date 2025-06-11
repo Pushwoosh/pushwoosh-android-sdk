@@ -9,7 +9,7 @@
 
 <table>
 	<tr>
-		<td><a href="#1a22619a3702b474794ef5073a2b542039">public static void onTokenRefresh(@Nullable String ignored)</a></td>
+		<td><a href="#1ac4612a82c00c05d6e57ee592dacce9d1">public static void onTokenRefresh(@Nullable String token)</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a3afbf08a5733de7e6344869b29b6d520">public static boolean onMessageReceived(Context context, RemoteMessage remoteMessage)</a></td>
@@ -26,7 +26,7 @@
 ----------  
   
 
-#### <a name="1a22619a3702b474794ef5073a2b542039"></a>public static void onTokenRefresh(@Nullable String ignored)  
+#### <a name="1ac4612a82c00c05d6e57ee592dacce9d1"></a>public static void onTokenRefresh(@Nullable String token)  
 if you use custom FirebaseMessagingService call this method when FirebaseMessagingService#onNewToken(String token) is invoked 
 
 ----------  

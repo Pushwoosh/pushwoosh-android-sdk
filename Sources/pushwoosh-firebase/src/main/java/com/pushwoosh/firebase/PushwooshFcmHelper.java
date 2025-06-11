@@ -55,7 +55,7 @@ public class PushwooshFcmHelper {
 	 * if you use custom {@link FirebaseMessagingService}
 	 * call this method when {@link FirebaseMessagingService#onNewToken(String token)} is invoked
 	 */
-	public static void onTokenRefresh(@Nullable String ignored) {
+	public static void onTokenRefresh(@Nullable String token) {
 		RepositoryModule.getRegistrationPreferences().lastPushRegistration().set(new Date().getTime());
 		Context context = AndroidPlatformModule.getApplicationContext();
 		if (context == null) {
@@ -65,7 +65,6 @@ public class PushwooshFcmHelper {
 
 		if (DeviceSpecificProvider.getInstance().pushRegistrar() instanceof FcmRegistrar) {
 			try {
-				String token = FirebaseTokenHelper.getFirebaseToken();
 				PWLog.debug(TAG, "onTokenRefresh");
 				if (token != null && token.equals(RepositoryModule.getRegistrationPreferences().pushToken().get())) {
 					return;

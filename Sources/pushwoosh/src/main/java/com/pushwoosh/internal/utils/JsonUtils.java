@@ -322,7 +322,7 @@ public final class JsonUtils {
             } else if (value instanceof Map) {
                 bundle.putBundle(key, mapToBundle((Map<String, Object>) value));
             } else {
-                throw new IllegalArgumentException("cant parse value by key:" + key + " value:" + value);
+                throw new IllegalArgumentException("can't parse value by key:" + key + " value:" + value);
             }
         }
         return bundle;

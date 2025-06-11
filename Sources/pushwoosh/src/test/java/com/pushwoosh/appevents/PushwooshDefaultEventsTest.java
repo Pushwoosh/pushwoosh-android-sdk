@@ -72,7 +72,6 @@ public class PushwooshDefaultEventsTest {
 			inAppManagerMockedStatic.when(InAppManager::getInstance).thenReturn(mock(InAppManager.class));
 
 			PushwooshDefaultEvents pushwooshDefaultEvents = new PushwooshDefaultEvents();
-			WhiteboxHelper.setInternalState(pushwooshDefaultEvents, "isConfigLoaded", true);
 
 			TagsBundle attributes = PushwooshDefaultEvents.buildAttributes(PushwooshDefaultEvents.APPLICATION_OPENED_EVENT, "activityName");
 
