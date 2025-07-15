@@ -105,7 +105,7 @@ public class AppIconHelper {
 		return null;
 	}
 
-	static int getAppIconResId(Context context) {
+	public static int getAppIconResId(Context context) {
 		return context.getApplicationInfo().icon;
 	}
 } 

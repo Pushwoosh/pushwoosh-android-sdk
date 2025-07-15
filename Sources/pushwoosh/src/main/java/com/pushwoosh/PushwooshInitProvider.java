@@ -4,6 +4,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -18,10 +19,15 @@ public class PushwooshInitProvider extends ContentProvider {
 	@SuppressWarnings("ConstantConditions")
 	@Override
 	public boolean onCreate() {
-		CheckerProvider.getInstance().check();
-		PushwooshInitializer.init(getContext());
-		return true;
-	}
+		try {
+			CheckerProvider.getInstance().check();
+			PushwooshInitializer.init(getContext());
+			return true;
+		} catch (Exception e) {
+			Log.e("PushwooshInitProvider", "can't initialize pushwoosh sdk", e);
+			return false;
+		}
+    }
 
 	@Override
 	public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {

@@ -38,6 +38,11 @@ class UnregisterDeviceRequest extends PushRequest<Void> {
 		userId = RepositoryModule.getRegistrationPreferences().userId().get();
 	}
 
+	UnregisterDeviceRequest(String appId) {
+		this.appId = appId;
+		this.userId = RepositoryModule.getRegistrationPreferences().userId().get();
+	}
+
 	@Override
 	protected String getApplicationId() {
 		return appId;

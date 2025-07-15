@@ -36,99 +36,96 @@ import com.pushwoosh.firebase.internal.RemoteMessageUtils;
 import com.pushwoosh.firebase.internal.mapper.RemoteMessageMapper;
 import com.pushwoosh.firebase.internal.registrar.FcmRegistrar;
 import com.pushwoosh.firebase.internal.specific.FcmDeviceSpecificIniter;
-import com.pushwoosh.firebase.internal.utils.FirebaseTokenHelper;
-import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.internal.utils.SdkStatusChecker;
 import com.pushwoosh.repository.RepositoryModule;
 
-import java.util.Date;
 import java.util.Map;
-
-import androidx.annotation.Nullable;
 
 @SuppressWarnings("WeakerAccess")
 public class PushwooshFcmHelper {
-	private static final String TAG = "FcmHelper";
+    /**
+     * if you use custom {@link FirebaseMessagingService}
+     * call this method when {@link FirebaseMessagingService#onNewToken(String token)} is invoked
+     */
+    public static void onTokenRefresh(String token) {
+        PWLog.noise("PushwooshFcmHelper", String.format("onTokenRefresh: %s", token));
 
-	/**
-	 * if you use custom {@link FirebaseMessagingService}
-	 * call this method when {@link FirebaseMessagingService#onNewToken(String token)} is invoked
-	 */
-	public static void onTokenRefresh(@Nullable String token) {
-		RepositoryModule.getRegistrationPreferences().lastPushRegistration().set(new Date().getTime());
-		Context context = AndroidPlatformModule.getApplicationContext();
-		if (context == null) {
-			PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
-			return;
-		}
+        if (!SdkStatusChecker.isInitialized()) {
+            PWLog.error("PushwooshFcmHelper", "can't refresh token: sdk is not initialized");
+            return;
+        }
 
-		if (DeviceSpecificProvider.getInstance().pushRegistrar() instanceof FcmRegistrar) {
-			try {
-				PWLog.debug(TAG, "onTokenRefresh");
-				if (token != null && token.equals(RepositoryModule.getRegistrationPreferences().pushToken().get())) {
-					return;
-				}
+        if (!(DeviceSpecificProvider.getInstance().pushRegistrar() instanceof FcmRegistrar)) {
+            PWLog.error("PushwooshFcmHelper", "can't refresh token: pushRegistrar is not FcmRegistrar");
+            return;
+        }
 
-				PushwooshMessagingServiceHelper.onTokenRefresh(token);
-			} catch (Exception e) {
-				String error = e.getMessage();
-				PWLog.error("PushwooshFcmHelper", "FCM registration error:" + error);
-			}
-		}
-	}
+        try {
+            String previousToken = RepositoryModule.getRegistrationPreferences().pushToken().get();
+            if (token == null || token.equals(previousToken)) {
+                PWLog.debug("PushwooshFcmHelper", "token is null or equals previous token");
+                return;
+            }
 
-	/**
-	 * if you use custom {@link com.google.firebase.messaging.FirebaseMessagingService}
-	 * call this method when {@link com.google.firebase.messaging.FirebaseMessagingService#onMessageReceived(RemoteMessage)} is invoked
-	 *
-	 * @return true if the remoteMessage was sent via Pushwoosh and was successfully processed; otherwise false
-	 */
-	@SuppressWarnings("UnusedReturnValue")
-	public static boolean onMessageReceived(Context context, RemoteMessage remoteMessage) {
+            PushwooshMessagingServiceHelper.onTokenRefresh(token);
+        } catch (Exception e) {
+            PWLog.error("PushwooshFcmHelper", "can't refresh token", e);
+        }
+    }
 
-		//Fix for PUSH-32760
-		try {
-			if (DeviceSpecificProvider.getInstance() == null) {
-				new DeviceSpecificProvider.Builder()
-						.setDeviceSpecific(FcmDeviceSpecificIniter.create())
-						.build(true);
-			}
+    /**
+     * if you use custom {@link com.google.firebase.messaging.FirebaseMessagingService}
+     * call this method when {@link com.google.firebase.messaging.FirebaseMessagingService#onMessageReceived(RemoteMessage)} is invoked
+     *
+     * @return true if the remoteMessage was sent via Pushwoosh and was successfully processed; otherwise false
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public static boolean onMessageReceived(Context context, RemoteMessage remoteMessage) {
 
-			if (!isPushwooshMessage(remoteMessage) || !DeviceSpecificProvider.getInstance().isFirebase()) {
-				return false;
-			}
-		} catch (NullPointerException e) {
-			PWLog.error("Firebase provider is not initialized, unsafe to handle received push");
-			return false;
-		}
+        //Fix for PUSH-32760
+        try {
+            if (DeviceSpecificProvider.getInstance() == null) {
+                new DeviceSpecificProvider.Builder()
+                        .setDeviceSpecific(FcmDeviceSpecificIniter.create())
+                        .build(true);
+            }
 
-		String from = remoteMessage.getFrom();
-		Map<String, String> data = remoteMessage.getData();
+            if (!isPushwooshMessage(remoteMessage) || !DeviceSpecificProvider.getInstance().isFirebase()) {
+                return false;
+            }
+        } catch (NullPointerException e) {
+            PWLog.error("Firebase provider is not initialized, unsafe to handle received push");
+            return false;
+        }
 
-		PWLog.info(TAG, "Received message: " + data.toString() + " from: " + from);
+        String from = remoteMessage.getFrom();
+        Map<String, String> data = remoteMessage.getData();
 
-		Bundle pushBundle = RemoteMessageMapper.mapToBundle(remoteMessage);
+        PWLog.info("PushwooshFcmHelper", "Received message: " + data.toString() + " from: " + from);
 
-		return PushwooshMessagingServiceHelper.onMessageReceived(context, pushBundle);
-	}
+        Bundle pushBundle = RemoteMessageMapper.mapToBundle(remoteMessage);
 
-	/**
-	 * Check if the remoteMessage was sent via Pushwoosh
-	 *
-	 * @return true if remoteMessage was sent via Pushwoosh
-	 */
-	public static boolean isPushwooshMessage(RemoteMessage remoteMessage) {
-		return RemoteMessageUtils.isPushwooshMessage(remoteMessage);
-	}
+        return PushwooshMessagingServiceHelper.onMessageReceived(context, pushBundle);
+    }
 
-	/**
-	 * Convert RemoteMessage to Bundle object
-	 *
-	 * @param remoteMessage - message received from Firebase
-	 * @return Bundle created from RemoteMessage
-	 */
-	public static Bundle messageToBundle(RemoteMessage remoteMessage) {
-		return RemoteMessageMapper.mapToBundle(remoteMessage);
-	}
+    /**
+     * Check if the remoteMessage was sent via Pushwoosh
+     *
+     * @return true if remoteMessage was sent via Pushwoosh
+     */
+    public static boolean isPushwooshMessage(RemoteMessage remoteMessage) {
+        return RemoteMessageUtils.isPushwooshMessage(remoteMessage);
+    }
+
+    /**
+     * Convert RemoteMessage to Bundle object
+     *
+     * @param remoteMessage - message received from Firebase
+     * @return Bundle created from RemoteMessage
+     */
+    public static Bundle messageToBundle(RemoteMessage remoteMessage) {
+        return RemoteMessageMapper.mapToBundle(remoteMessage);
+    }
 }

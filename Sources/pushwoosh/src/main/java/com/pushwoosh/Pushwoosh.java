@@ -262,6 +262,15 @@ public class Pushwoosh {
         }
     }
 
+    public void addAlternativeAppCode(String appCode) {
+        RepositoryModule.getRegistrationPreferences().registerAlternativeAppCode(appCode);
+        PWLog.info("Added "+ appCode + " as an alternative app code for registration");
+    }
+
+    public void resetAlternativeAppCodes() {
+        RepositoryModule.getRegistrationPreferences().resetAlternativeAppCodes();
+    }
+
     public void registerWhatsappNumber(String number) {
         notificationManager.registerWhatsappNumber(number);
     }

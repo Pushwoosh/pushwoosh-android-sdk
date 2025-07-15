@@ -11,7 +11,8 @@ lifecycleLivedataKtx = "2.8.0"
 lifecycleViewmodelKtx = "2.8.0"
 navigationFragment = "2.7.7"
 navigationUi = "2.7.7"
-pushwooshFirebase = "6.7.26"
+coreKtx = "1.10.1"
+pushwooshFirebase = "6.7.27"
 
 [libraries]
 firebase-messaging = { module = "com.google.firebase:firebase-messaging", version.ref = "firebaseMessaging" }
@@ -27,3 +28,4 @@ lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-view
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
 pushwoosh-firebase = { module = "com.pushwoosh:pushwoosh-firebase", version.ref = "pushwooshFirebase" }
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

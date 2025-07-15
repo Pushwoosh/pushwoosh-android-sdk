@@ -27,14 +27,15 @@
 package com.pushwoosh.repository;
 
 import android.content.SharedPreferences;
-import androidx.annotation.Nullable;
-
 import android.text.TextUtils;
+
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.prefs.PrefsProvider;
 import com.pushwoosh.internal.platform.prefs.migration.MigrationScheme;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
+import com.pushwoosh.internal.preference.PreferenceArrayListValue;
 import com.pushwoosh.internal.preference.PreferenceBooleanValue;
 import com.pushwoosh.internal.preference.PreferenceIntValue;
 import com.pushwoosh.internal.preference.PreferenceLongValue;
@@ -42,6 +43,7 @@ import com.pushwoosh.internal.preference.PreferenceStringValue;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class RegistrationPrefs implements RegistrationPrefsInterface {
@@ -56,6 +58,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	private static final String PROPERTY_PROJECT_ID = "project_id";
 
 	private static final String PROPERTY_PUSH_TOKEN = "registration_id";
+	private static final String PROPERTY_ALTERNATIVE_APPCODES = "alternative_tokens";
 	private static final String PROPERTY_REGISTERED_ON_SERVER = "registered_on_server";
 	private static final String PROPERTY_FORCE_REGISTER = "force_register";
 	private static final String PROPERTY_LAST_REGISTRATION = "last_registration_change";
@@ -93,6 +96,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	private final PreferenceStringValue hwid;
 	private final PreferenceStringValue apiToken;
 	private final PreferenceStringValue language;
+	private final PreferenceArrayListValue<String> alternativeAppCodes;
 
 	private final Config config;
 	private final DeviceRegistrar deviceRegistrar;
@@ -156,6 +160,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 						? languageCode()
 						: defaultLocale);
 
+		alternativeAppCodes = new PreferenceArrayListValue<String>(preferences, PROPERTY_ALTERNATIVE_APPCODES, 128);
+
 		PWLog.noise("RegistrationPrefs() done");
 	}
 
@@ -182,6 +188,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	public PreferenceStringValue pushToken() {
 		return pushToken;
 	}
+
+	public PreferenceArrayListValue<String> alternativeAppCodes() { return alternativeAppCodes; }
 
 	public PreferenceBooleanValue registeredOnServer() {
 		return registeredOnServer;
@@ -304,6 +312,21 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	public PreferenceBooleanValue hasUserDeniedNotificationPermission() {
 		return userDeniedNotificationPermission;
 	}
+
+	public void registerAlternativeAppCode(String appCode) {
+		if (!alternativeAppCodes.get().contains(appCode)) {
+			alternativeAppCodes().add(appCode);
+		}
+	}
+
+	public ArrayList<String> getAlternativeAppCodes() {
+		return alternativeAppCodes().get();
+	}
+
+	public void resetAlternativeAppCodes() {
+		alternativeAppCodes().clear();
+	}
+
 	/**
 	 * Create {@link com.pushwoosh.internal.platform.prefs.migration.MigrationScheme} associated with this class.
 	 * Don't forget add field here if it will be added to this class

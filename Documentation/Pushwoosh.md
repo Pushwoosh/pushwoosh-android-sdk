@@ -72,6 +72,12 @@ Pushwoosh class is used to manage push registration, application tags and local 
 		<td><a href="#1a5a36f3f0301f6483f58c7c83351a2711">public void registerExistingToken(@NonNull String token, Callback&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback)</a></td>
 	</tr>
 	<tr>
+		<td><a href="#1aea45f4c233897028e053ccb0e559ae8b">public void addAlternativeAppCode(String appCode)</a></td>
+	</tr>
+	<tr>
+		<td><a href="#1aa0a7960136d28e20ccfbe92c2dbcab1e">public void resetAlternativeAppCodes()</a></td>
+	</tr>
+	<tr>
 		<td><a href="#1ab87303f51d7244e54e24cc62419a38c6">public void registerWhatsappNumber(String number)</a></td>
 	</tr>
 	<tr>
@@ -349,6 +355,18 @@ Registers device for push notifications<br/><br/><br/><strong>Parameters</strong
   
 
 #### <a name="1a5a36f3f0301f6483f58c7c83351a2711"></a>public void registerExistingToken(@NonNull String token, <a href="function/Callback.md">Callback</a>&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback)  
+
+
+----------  
+  
+
+#### <a name="1aea45f4c233897028e053ccb0e559ae8b"></a>public void addAlternativeAppCode(String appCode)  
+
+
+----------  
+  
+
+#### <a name="1aa0a7960136d28e20ccfbe92c2dbcab1e"></a>public void resetAlternativeAppCodes()  
 
 
 ----------  

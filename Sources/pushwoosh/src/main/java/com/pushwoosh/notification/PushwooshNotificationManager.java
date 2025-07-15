@@ -8,6 +8,10 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.text.TextUtils;
 
+import androidx.core.content.ContextCompat;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.PushwooshWorkManagerHelper;
 import com.pushwoosh.RegisterForPushNotificationsResultData;
@@ -41,10 +45,6 @@ import com.pushwoosh.tags.TagsBundle;
 
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import androidx.core.content.ContextCompat;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
 
 public class PushwooshNotificationManager {
     private static final String TAG = "NotificationManager";
@@ -303,15 +303,22 @@ public class PushwooshNotificationManager {
     }
 
     public void onRegisteredForRemoteNotifications(String pushToken, String tagsJson) {
-        RepositoryModule.getRegistrationPreferences().pushToken().set(pushToken);
+        PWLog.noise("PushwooshNotificationManager", String.format("onRegisteredForRemoteNotifications: %s", pushToken));
+        //todo: probably we should move this into `if (result.isSuccess) { ... }`
+        registrationPrefs.pushToken().set(pushToken);
         if (DeviceSpecificProvider.getInstance() != null) {
             DeviceRegistrar.registerWithServer(pushToken, tagsJson, DeviceSpecificProvider.getInstance().deviceType(), result -> {
                 if (result.isSuccess()) {
                     registrationPrefs.registeredOnServer().set(true);
                     registrationPrefs.lastPushRegistration().set(new Date().getTime());
-                    EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
+                    EventBus.sendEvent(new RegistrationSuccessEvent(
+                            new RegisterForPushNotificationsResultData(
+                                    pushToken,
+                                    areNotificationsEnabled()
+                            )
+                    ));
 
-                    PWLog.info(TAG, "Registered for push notifications: " + pushToken);
+                    PWLog.info(TAG, String.format("successfully registered for push notifications: %s", pushToken));
                 } else {
                     EventBus.sendEvent(new RegistrationErrorEvent("can't register device"));
 

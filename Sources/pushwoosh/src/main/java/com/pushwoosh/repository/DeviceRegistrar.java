@@ -55,6 +55,7 @@ import com.pushwoosh.notification.event.DeregistrationSuccessEvent;
 import com.pushwoosh.notification.event.RegistrationErrorEvent;
 import com.pushwoosh.notification.event.RegistrationSuccessEvent;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -70,16 +71,40 @@ public class DeviceRegistrar {
 	private static final String TAG = "DeviceRegistrar";
 	private static final int COOLDOWN_MINUTES = 10;
 	
-	public static void registerWithServer(final String deviceRegistrationID, String tagsJson, int platform, Callback<Void, NetworkException> callback) {
-		PWLog.debug(TAG, "Registering for platform " + platform + "...");
+	public static void registerWithServer(
+			final String deviceRegistrationID,
+			String tagsJson,
+			int platform,
+			Callback<Void, NetworkException> callback) {
+		PWLog.noise(TAG, String.format("registerWithServer: token=%s", deviceRegistrationID));
 
+		// registration with main app code
 		RegisterDeviceRequest request = new RegisterDeviceRequest(deviceRegistrationID, tagsJson, platform);
 		RequestManager requestManager = NetworkModule.getRequestManager();
+		//todo: move this not null check in getRequestManager() and throw Exception
 		if (requestManager == null) {
+			//todo: don't send event, call callback instead
 			EventBus.sendEvent(new RegistrationErrorEvent("Request manager is null"));
+			PWLog.error(TAG, "request manager is null");
 			return;
 		}
 		requestManager.sendRequest(request, callback);
+
+		// register token for alternative app codes if needed
+		ArrayList<String> alternativeAppCodes = RepositoryModule.
+				getRegistrationPreferences().alternativeAppCodes().get();
+		if (!alternativeAppCodes.isEmpty()) {
+			for (String appCode : alternativeAppCodes) {
+				PWLog.noise("Registering token for app code: " + appCode);
+				RegisterDeviceRequest altRequest = new RegisterDeviceRequest(
+						deviceRegistrationID,
+						tagsJson,
+						platform,
+						appCode);
+
+				requestManager.sendRequest(altRequest, callback);
+			}
+		}
 	}
 
 	public static void unregisterWithServer(final String deviceRegistrationID) {
@@ -114,6 +139,18 @@ public class DeviceRegistrar {
 				EventBus.sendEvent(new DeregistrationErrorEvent(errorDescription));
 			}
 		});
+
+		// unregister token for alternative app codes if needed
+		ArrayList<String> alternativeAppCodes = RepositoryModule.
+				getRegistrationPreferences().alternativeAppCodes().get();
+		if (!alternativeAppCodes.isEmpty()) {
+			for (String appCode : alternativeAppCodes) {
+				PWLog.noise("Unregistering token from app code: " + appCode);
+				UnregisterDeviceRequest altRequest = new UnregisterDeviceRequest(appCode);
+
+				requestManager.sendRequest(altRequest);
+			}
+		}
 	}
 
 	public void updateRegistration() {

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000">
+
+    <!-- Top info container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/caller_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unknown Caller"
+            android:textSize="24sp"
+            android:textColor="@android:color/white"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/incoming_call_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Incoming Call"
+            android:textSize="16sp"
+            android:textColor="#CCCCCC"
+            android:layout_marginTop="4dp"
+            android:gravity="center" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="2" />
+    </LinearLayout>
+
+    <!-- Buttons near bottom -->
+    <LinearLayout
+        android:id="@+id/button_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="48dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btn_accept"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/round_call_24_white"
+            android:background="@drawable/round_green"
+            android:contentDescription="Accept"
+            android:layout_marginEnd="64dp" />
+
+        <ImageButton
+            android:id="@+id/btn_reject"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/round_call_end_24_white"
+            android:background="@drawable/round_red"
+            android:contentDescription="Decline"
+            android:layout_marginStart="64dp" />
+    </LinearLayout>
+</FrameLayout>

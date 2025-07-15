@@ -26,22 +26,25 @@
 
 package com.pushwoosh.firebase;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.pushwoosh.internal.utils.PWLog;
 
 public class PushFcmIntentService extends FirebaseMessagingService {
 
 	@Override
 	@WorkerThread
-	public void onMessageReceived(RemoteMessage remoteMessage) {
+	public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
 		super.onMessageReceived(remoteMessage);
 		PushwooshFcmHelper.onMessageReceived(getApplicationContext(), remoteMessage);
 	}
 
 	@Override
-	public void onNewToken(String token) {
+	public void onNewToken(@NonNull String token) {
+		PWLog.noise("PushFcmIntentService", String.format("onNewToken: %s", token));
 		super.onNewToken(token);
 		PushwooshFcmHelper.onTokenRefresh(token);
 	}

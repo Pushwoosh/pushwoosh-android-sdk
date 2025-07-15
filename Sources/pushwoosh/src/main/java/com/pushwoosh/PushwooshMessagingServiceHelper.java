@@ -3,20 +3,15 @@ package com.pushwoosh;
 import android.content.Context;
 import android.os.Bundle;
 
-import com.pushwoosh.internal.event.EventBus;
-import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushBundleDataProvider;
-import com.pushwoosh.notification.event.RegistrationSuccessEvent;
+
 
 public class PushwooshMessagingServiceHelper {
     public static void onTokenRefresh(String token) {
-        Context context = AndroidPlatformModule.getApplicationContext();
-        PushwooshInitializer.init(context);
-
+        PWLog.noise("PushwooshMessagingServiceHelper", String.format("onTokenRefresh: %s", token));
         NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token, null);
-        EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(token,true)));
     }
 
     public static boolean onMessageReceived(Context context, Bundle pushBundle) {

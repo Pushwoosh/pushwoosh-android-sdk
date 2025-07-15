@@ -26,12 +26,7 @@
 
 package com.pushwoosh.internal.platform;
 
-import android.app.Application;
 import android.content.Context;
-import android.os.Build;
-import android.text.TextUtils;
-import android.util.Log;
-import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -86,7 +81,7 @@ public final class AndroidPlatformModule {
     	init(context, false);
 	}
 
-    private static boolean isInit() {
+    public static boolean isInit() {
         return ANDROID_PLATFORM_MODULE.context != null && ANDROID_PLATFORM_MODULE.context.get() != null;
     }
 

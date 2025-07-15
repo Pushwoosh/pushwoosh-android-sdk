@@ -40,11 +40,20 @@ class RegisterDeviceRequest extends AppOpenRequest {
 	private final String deviceId;
 	private final String tagsJson;
 	private final int platform;
+	private final String appCode;
 
 	RegisterDeviceRequest(String deviceId, String tagsJson, int platform) {
 		this.deviceId = deviceId;
 		this.tagsJson = tagsJson;
 		this.platform = platform;
+		this.appCode = RepositoryModule.getRegistrationPreferences().applicationId().get();
+	}
+
+	RegisterDeviceRequest(String deviceId, String tagsJson, int platform, String appCode) {
+		this.deviceId = deviceId;
+		this.tagsJson = tagsJson;
+		this.platform = platform;
+		this.appCode = appCode;
 	}
 
 	@Override
@@ -60,6 +69,7 @@ class RegisterDeviceRequest extends AppOpenRequest {
 		super.buildParams(params);
 
 		params.put("device_type", platform);
+		params.put("application", appCode);
 		if (platform == DeviceRegistrar.PLATFORM_SMS) {
 			params.put("hwid", deviceId);
 		} else if (platform == DeviceRegistrar.PLATFORM_WHATSAPP) {

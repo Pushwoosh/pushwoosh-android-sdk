@@ -1,0 +1,60 @@
+ext{
+    targetArtefactIdDev = "pushwoosh-calls-dev"
+    targetArtefactId = "pushwoosh-calls"
+    targetName = "Pushwoosh Calls"
+    targetDescription = "Pushwoosh Calls"
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
+apply from: '../scripts/quality/quality.gradle'
+apply from: '../scripts/buildSdk/publish.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
+
+android {
+    compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.calls"
+    testNamespace "com.pushwoosh.calls.test"
+
+    defaultConfig {
+        versionName global_versionName
+        minSdkVersion global_minSdkVersion
+        targetSdkVersion global_targetVersion
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../proguard-common.txt',
+                    'proguard/public.txt', 'proguard/protected.txt'        }
+        debug {
+            minifyEnabled false
+        }
+        coverage {
+            testCoverageEnabled true
+            minifyEnabled false
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+        freeCompilerArgs = ["-Xstring-concat=inline"]
+    }
+}
+
+dependencies {
+    api project(':pushwoosh')
+
+    implementation libs.core.ktx
+    implementation libs.appcompat
+    implementation libs.material
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}

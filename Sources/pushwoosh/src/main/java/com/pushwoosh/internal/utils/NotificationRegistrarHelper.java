@@ -29,6 +29,11 @@ package com.pushwoosh.internal.utils;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import androidx.work.BackoffPolicy;
+import androidx.work.Data;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+
 import com.pushwoosh.HandleMessageWorker;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.PushwooshWorkManagerHelper;
@@ -39,10 +44,6 @@ import com.pushwoosh.repository.RepositoryModule;
 
 import java.util.concurrent.TimeUnit;
 
-import androidx.work.BackoffPolicy;
-import androidx.work.Data;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
 
 public final class NotificationRegistrarHelper {
 
@@ -53,8 +54,11 @@ public final class NotificationRegistrarHelper {
 	}
 
 	public static void onRegisteredForRemoteNotifications(final String registrationId, String tagsJson) {
+		PWLog.noise("NotificationRegistrarHelper", String.format("onRegisteredForRemoteNotifications: %s", registrationId));
 		// this if checks whether device is registered with Pushwoosh and does not allow passing a token if it is not
+		//todo: remove this check
 		if (!isRegisteredForRemoteNotifications()) {
+			PWLog.warn("NotificationRegistrarHelper", "device should be registered directly for continue, abort");
 			return;
 		}
 

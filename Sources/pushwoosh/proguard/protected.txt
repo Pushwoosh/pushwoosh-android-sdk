@@ -326,3 +326,12 @@
 -keep public class com.pushwoosh.PushwooshMessagingServiceHelper {
     *;
 }
+
+#Calls utils
+-keep class com.pushwoosh.internal.platform.app.AppInfoProvider {
+    public protected *;
+}
+-keep class com.pushwoosh.notification.builder.AppIconHelper {
+    public protected *;
+}
+

@@ -53,6 +53,7 @@ dependencies {
     debugApi project(':pushwoosh')
     debugApi project(':pushwoosh-firebase')
     debugApi project(':pushwoosh-badge')
+    debugApi project(':pushwoosh-calls')
     debugApi project(':pushwoosh-location')
     debugApi project(':pushwoosh-amazon')
     debugApi project(':pushwoosh-huawei')
