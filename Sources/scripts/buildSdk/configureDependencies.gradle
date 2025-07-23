@@ -11,7 +11,7 @@ tasks.register("copyAarsToOutputDir", GradleBuild) {
 android.applicationVariants.configureEach { variant ->
     if (variant.name == "release") {
         def modulesList = [
-                "pushwoosh", "pushwoosh-badge", "pushwoosh-location",
+                "pushwoosh", "pushwoosh-badge", "pushwoosh-location", "pushwoosh-amazon",
                 "pushwoosh-firebase", "pushwoosh-inbox", "pushwoosh-inbox-ui",
                 "pushwoosh-huawei", "pushwoosh-calls"
         ]

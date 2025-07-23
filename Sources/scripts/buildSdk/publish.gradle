@@ -11,8 +11,8 @@ def LIB_ARTIFACT_ID = targetArtefactId
 def LIB_VERSION = global_versionName
 def POM_NAME = targetName
 def POM_DESCRIPTION = targetDescription
-def REPOSITORY_URL = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
-def SNAPSHOT_URL = 'https://oss.sonatype.org/content/repositories/snapshots'
+def REPOSITORY_URL = 'https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/'
+def SNAPSHOT_URL = 'https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots'
 def POM_URL = "https://github.com:${repoOwner}/${repoName}"
 def SCM_CONNECTION = "scm:git:git@github.com:${repoOwner}/${repoName}.git"
 def SCM_DEVELOPER_CONNECTION = "scm:git:git@github.com:${repoOwner}/${repoName}.git"
@@ -20,15 +20,16 @@ def SCM_URL = "git@github.com:${repoOwner}/${repoName}.git"
 
 def legacySupportV4Version = "1.0.0"
 def androidAnnotationVersion = "[1.0.0, 1.3.99]"
-def androidAppCompatVersion = "[1.0.0, 1.4.99]"
+def androidAppCompatVersion = "[1.0.0, 1.6.99]"
 def androidRecyclerViewVersion = "[1.0.0, 1.2.99]"
-def androidMaterialVersion = "[1.0.0, 1.5.99]"
+def androidMaterialVersion = "[1.0.0, 1.12.99]"
 def constraintLayoutVersion = "(1.0.1, 1.1.99]"
 def playServicesVersion = "[21.0.1, 21.0.99]"
 def glideVersion = "[4.4.0, 4.11.0]"
 def pushwooshVersion = global_versionName
-def workManagerVersion = "[2.0.0, 2.7.99]"
+def workManagerVersion = "[2.0.0, 2.8.99]"
 def swipeRefreshLayoutVersion = "[1.0.0, 1.1.99]"
+def coreKtxVersion = "1.10.1"
 
 def addDependency(node, groupId, artifactId, version, type = 'aar', scope = 'compile') {
     node.appendNode('dependency').with {
@@ -40,124 +41,159 @@ def addDependency(node, groupId, artifactId, version, type = 'aar', scope = 'com
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            name = 'Nexus'
-            url = pushwooshVersion.endsWith('SNAPSHOT') ? SNAPSHOT_URL : REPOSITORY_URL
-            credentials {
-                username = ossrhUsername
-                password = ossrhPassword
+afterEvaluate {
+    publishing {
+        repositories {
+            maven {
+                name = 'ossrh-staging-api'
+                url = pushwooshVersion.endsWith('SNAPSHOT') ? SNAPSHOT_URL : REPOSITORY_URL
+                credentials {
+                    username = ossrhUsername
+                    password = ossrhPassword
+                }
             }
         }
-    }
-    publications {
-        release(MavenPublication) {
-            groupId = LIB_GROUP_ID
-            artifactId = LIB_ARTIFACT_ID
-            version = LIB_VERSION
-            artifact("$buildDir/outputs/aar/$LIB_ARTIFACT_ID-release.aar")
-            pom {
-                name = POM_NAME
-                description = POM_DESCRIPTION
-                url = POM_URL
-                packaging = 'aar'
+        publications {
+            release(MavenPublication) {
+                artifactId = LIB_ARTIFACT_ID
+                groupId = "com.pushwoosh"
+                version = LIB_VERSION
+                artifact("$buildDir/outputs/aar/$LIB_ARTIFACT_ID-release.aar")
+                pom {
+                    name = POM_NAME
+                    description = POM_DESCRIPTION
+                    url = POM_URL
+                    packaging = 'aar'
 
-                licenses {
-                    license {
-                        name = 'Pushwoosh License'
-                        url = 'https://github.com/Pushwoosh/pushwoosh-android-sdk/blob/master/LICENSE'
+                    licenses {
+                        license {
+                            name = 'Pushwoosh License'
+                            url = 'https://github.com/Pushwoosh/pushwoosh-android-sdk/blob/master/LICENSE'
+                        }
                     }
-                }
-                developers {
-                    developer {
-                        id = 'vromanychev'
-                        name = 'Vitaly Romanychev'
-                        email = 'vromanychev@pushwoosh.com'
-                        organization = 'Pushwoosh'
-                        organizationUrl = 'http://www.pushwoosh.com/'
+                    developers {
+                        developer {
+                            id = 'vromanychev'
+                            name = 'Vitaly Romanychev'
+                            email = 'vromanychev@pushwoosh.com'
+                            organization = 'Pushwoosh'
+                            organizationUrl = 'http://www.pushwoosh.com/'
+                        }
                     }
-                }
-                scm {
-                    connection = SCM_CONNECTION
-                    developerConnection = SCM_DEVELOPER_CONNECTION
-                    url = SCM_URL
-                }
-
-                withXml {
-                    asNode().dependencies.'*'.findAll {
-                        it.artifactId.text().contains('pushwoosh')
-                    }.each {
-                        it.groupId*.value = LIB_GROUP_ID
-                        it.version*.value = LIB_VERSION
+                    scm {
+                        connection = SCM_CONNECTION
+                        developerConnection = SCM_DEVELOPER_CONNECTION
+                        url = SCM_URL
                     }
 
-                    asNode().appendNode('build')
-                            .appendNode('plugins')
-                            .with {
-                                appendNode('plugin')
-                                        .with {
-                                            appendNode('groupId', 'org.sonatype.plugins')
-                                            appendNode('artifactId', 'nexus-staging-maven-plugin')
-                                            appendNode('version', '1.6.13')
-                                            appendNode('extensions', 'true')
-                                            appendNode('configuration').with {
-                                                appendNode('serverId', 'ossrh')
-                                                appendNode('nexusUrl', 'https://oss.sonatype.org/')
-                                                appendNode('autoReleaseAfterClose', 'false')
-                                            }
-                                        }
-                                appendNode('plugin')
-                                        .with {
-                                            appendNode('groupId', 'com.simpligility.maven.plugins')
-                                            appendNode('artifactId', 'android-maven-plugin')
-                                            appendNode('version', '4.1.0')
-                                            appendNode('extensions', 'true')
-                                            appendNode('configuration').with {
-                                                appendNode('sign').with {
-                                                    appendNode('debug', 'false')
+                    withXml {
+                        asNode().dependencies.'*'.findAll {
+                            it.artifactId.text().contains('pushwoosh')
+                        }.each {
+                            it.groupId*.value = LIB_GROUP_ID
+                            it.version*.value = LIB_VERSION
+                        }
+
+                        asNode().appendNode('build')
+                                .appendNode('plugins')
+                                .with {
+                                    appendNode('plugin')
+                                            .with {
+                                                appendNode('groupId', 'org.sonatype.plugins')
+                                                appendNode('artifactId', 'nexus-staging-maven-plugin')
+                                                appendNode('version', '1.6.13')
+                                                appendNode('extensions', 'true')
+                                                appendNode('configuration').with {
+                                                    appendNode('serverId', 'ossrh')
+                                                    appendNode('nexusUrl', 'https://oss.sonatype.org/')
+                                                    appendNode('autoReleaseAfterClose', 'false')
                                                 }
                                             }
-                                        }
-                            }
+                                    appendNode('plugin')
+                                            .with {
+                                                appendNode('groupId', 'com.simpligility.maven.plugins')
+                                                appendNode('artifactId', 'android-maven-plugin')
+                                                appendNode('version', '4.1.0')
+                                                appendNode('extensions', 'true')
+                                                appendNode('configuration').with {
+                                                    appendNode('sign').with {
+                                                        appendNode('debug', 'false')
+                                                    }
+                                                }
+                                            }
+                                }
 
-                    def dependenciesNode = asNode().appendNode('dependencies')
-                    switch (project.name) {
-                        case 'pushwoosh':
-                            addDependency(dependenciesNode, 'androidx.legacy', 'legacy-support-v4', legacySupportV4Version)
-                            addDependency(dependenciesNode, 'androidx.work', 'work-runtime', workManagerVersion)
-                            break
-                        case 'pushwoosh-amazon':
-                            addDependency(dependenciesNode, 'androidx.annotation', 'annotation', androidAnnotationVersion, 'jar')
-                            addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
-                            break
-                        case 'pushwoosh-location':
-                            addDependency(dependenciesNode, 'androidx.legacy', 'legacy-support-v4', legacySupportV4Version)
-                            addDependency(dependenciesNode, 'com.google.android.gms', 'play-services-location', playServicesVersion)
-                            addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
-                            break
-                        case 'pushwoosh-inbox':
-                            addDependency(dependenciesNode, 'androidx.annotation', 'annotation', androidAnnotationVersion, 'jar')
-                            addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
-                            break
-                        case 'pushwoosh-inbox-ui':
-                            addDependency(dependenciesNode, 'androidx.appcompat', 'appcompat', androidAppCompatVersion)
-                            addDependency(dependenciesNode, 'androidx.recyclerview', 'recyclerview', androidRecyclerViewVersion)
-                            addDependency(dependenciesNode, 'com.google.android.material', 'material', androidMaterialVersion)
-                            addDependency(dependenciesNode, 'androidx.constraintlayout', 'constraintlayout', constraintLayoutVersion)
-                            addDependency(dependenciesNode, 'androidx.swiperefreshlayout', 'swiperefreshlayout', swipeRefreshLayoutVersion)
-                            addDependency(dependenciesNode, 'com.github.bumptech.glide', 'glide', glideVersion)
-                            addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh-inbox', pushwooshVersion)
-                            break
-                        default:
-                            addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+                        def dependenciesNode = asNode().appendNode('dependencies')
+                        switch (project.name) {
+                            case 'pushwoosh':
+                                addDependency(dependenciesNode, 'androidx.legacy', 'legacy-support-v4', legacySupportV4Version)
+                                addDependency(dependenciesNode, 'androidx.work', 'work-runtime', workManagerVersion)
+                                break
+                            case 'pushwoosh-amazon':
+                                addDependency(dependenciesNode, 'androidx.annotation', 'annotation', androidAnnotationVersion, 'jar')
+                                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+                                break
+                            case 'pushwoosh-location':
+                                addDependency(dependenciesNode, 'androidx.legacy', 'legacy-support-v4', legacySupportV4Version)
+                                addDependency(dependenciesNode, 'com.google.android.gms', 'play-services-location', playServicesVersion)
+                                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+                                break
+                            case 'pushwoosh-inbox':
+                                addDependency(dependenciesNode, 'androidx.annotation', 'annotation', androidAnnotationVersion, 'jar')
+                                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+                                break
+                            case 'pushwoosh-inbox-ui':
+                                addDependency(dependenciesNode, 'androidx.appcompat', 'appcompat', androidAppCompatVersion)
+                                addDependency(dependenciesNode, 'androidx.recyclerview', 'recyclerview', androidRecyclerViewVersion)
+                                addDependency(dependenciesNode, 'com.google.android.material', 'material', androidMaterialVersion)
+                                addDependency(dependenciesNode, 'androidx.constraintlayout', 'constraintlayout', constraintLayoutVersion)
+                                addDependency(dependenciesNode, 'androidx.swiperefreshlayout', 'swiperefreshlayout', swipeRefreshLayoutVersion)
+                                addDependency(dependenciesNode, 'com.github.bumptech.glide', 'glide', glideVersion)
+                                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh-inbox', pushwooshVersion)
+                                break
+                            case 'pushwoosh-calls':
+                                addDependency(dependenciesNode, 'androidx.appcompat', 'appcompat', androidAppCompatVersion)
+                                addDependency(dependenciesNode, 'androidx.core', 'core-ktx', coreKtxVersion)
+                                addDependency(dependenciesNode, 'com.google.android.material', 'material', androidMaterialVersion)
+                                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+                                break
+                            default:
+                                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+                        }
                     }
                 }
             }
         }
     }
 }
-
 signing {
     sign publishing.publications
 }
+
+def ossrhToken = project.ossrhToken
+def ossrhNamespace = "com.pushwoosh"
+def ossrhPostUrl = "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${ossrhNamespace}"
+
+task notifyOssrhUpload {
+    doLast {
+        println "Notifying OSSRH upload completion for namespace: $ossrhNamespace"
+
+        URL url = new URL(ossrhPostUrl)
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection()
+        connection.setRequestMethod("POST")
+        connection.setRequestProperty("Authorization", "Bearer $ossrhToken")
+        connection.setRequestProperty("Content-Type", "application/json")
+        connection.setDoOutput(true)
+
+        int responseCode = connection.responseCode
+        println "Response code from OSSRH: $responseCode"
+
+        if (responseCode >= 200 && responseCode < 300) {
+            println "Successfully notified OSSRH"
+        } else {
+            println "Failed to notify OSSRH: ${connection.errorStream?.text}"
+            throw new GradleException("OSSRH upload notification failed with status $responseCode")
+        }
+    }
+}
+

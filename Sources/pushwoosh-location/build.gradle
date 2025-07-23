@@ -69,6 +69,9 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
+    publishing {
+        singleVariant("release")
+    }
 }
 
 dependencies {

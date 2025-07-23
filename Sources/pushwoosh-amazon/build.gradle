@@ -63,6 +63,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    publishing {
+        singleVariant("release")
+    }
 }
 
 // com.android.library plugin includes all local libraries (both compile and provided) in resulting aar

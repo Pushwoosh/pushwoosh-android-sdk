@@ -1,2 +1,4 @@
 -keep public class com.pushwoosh.calls.PushwooshCallSettings {*;}
--keep class  com.pushwoosh.calls.PushwooshCallPlugin { *; }
+-keep public class com.pushwoosh.calls.listener.CallEventListener { *; }
+-keep class com.pushwoosh.calls.PushwooshVoIPMessage { *; }
+-keep class com.pushwoosh.calls.PushwooshCallPlugin { *; }

@@ -42,9 +42,15 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+    kotlin {
+        jvmToolchain(17)
+    }
     kotlinOptions {
         jvmTarget = '11'
         freeCompilerArgs = ["-Xstring-concat=inline"]
+    }
+    publishing {
+        singleVariant("release")
     }
 }
 

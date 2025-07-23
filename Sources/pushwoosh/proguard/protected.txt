@@ -311,6 +311,8 @@
     public static void init(android.content.Context);
 }
 
+-keep public class com.pushwoosh.internal.utils.SdkStatusChecker { *; }
+
 -keep public class com.pushwoosh.PushwooshPlatform {
     public static com.pushwoosh.PushwooshPlatform getInstance();
     public com.pushwoosh.notification.PushwooshNotificationManager notificationManager();

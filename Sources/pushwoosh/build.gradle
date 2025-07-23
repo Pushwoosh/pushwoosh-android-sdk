@@ -74,6 +74,10 @@ android {
     useLibrary 'android.test.runner'
     useLibrary 'android.test.base'
     useLibrary 'android.test.mock'
+
+    publishing {
+        singleVariant("release")
+    }
 }
 
 dependencies {
