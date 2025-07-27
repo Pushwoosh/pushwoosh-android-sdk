@@ -26,8 +26,11 @@
 
 package com.pushwoosh.repository;
 
-import static com.pushwoosh.repository.DeviceRegistrar.PLATFORM_ANDROID;
 import static com.pushwoosh.repository.DeviceRegistrar.areNotificationsEnabled;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+
+import android.text.TextUtils;
 
 import com.pushwoosh.RegisterForPushNotificationsResultData;
 import com.pushwoosh.exception.PushwooshException;
@@ -39,6 +42,7 @@ import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.PushRequest;
 import com.pushwoosh.internal.network.RequestManager;
+import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.event.DeregistrationErrorEvent;
 import com.pushwoosh.notification.event.DeregistrationSuccessEvent;
@@ -58,12 +62,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
-import android.text.TextUtils;
 
 import java.util.Date;
 
@@ -108,7 +106,7 @@ public class DeviceRegistrarTest {
 
     @Test
     public void registerWithServer() throws JSONException {
-        DeviceRegistrar.registerWithServer(TEST_ID, null, DeviceRegistrar.PLATFORM_ANDROID, result -> {
+        DeviceRegistrar.registerWithServer(TEST_ID, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
             if (result.isSuccess()) {
                 registrationPrefs.registeredOnServer().set(true);
 
@@ -148,7 +146,7 @@ public class DeviceRegistrarTest {
 
     @Test
     public void registerWithServerError() {
-        DeviceRegistrar.registerWithServer(TEST_ID,null, PLATFORM_ANDROID,result -> {
+        DeviceRegistrar.registerWithServer(TEST_ID,null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
             if (result.isSuccess()) {
                 registrationPrefs.registeredOnServer().set(true);
 

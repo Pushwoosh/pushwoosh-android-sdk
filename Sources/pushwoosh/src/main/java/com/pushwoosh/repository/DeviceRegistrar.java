@@ -49,6 +49,7 @@ import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.event.DeregistrationErrorEvent;
 import com.pushwoosh.notification.event.DeregistrationSuccessEvent;
@@ -64,7 +65,6 @@ import java.util.Date;
  * TODO: to improve testablity need to make methods of this class non-static
  */
 public class DeviceRegistrar {
-	public static final int PLATFORM_ANDROID = 3;
 	public static final int PLATFORM_SMS = 18;
 	public static final int PLATFORM_WHATSAPP = 21;
 
@@ -161,7 +161,7 @@ public class DeviceRegistrar {
 			boolean forceRegister = registrationPrefs.forceRegister().get();
 			registrationPrefs.forceRegister().set(false);
 			if (forceRegister || neededToRequestPushwooshServer()) {
-				registerWithServer(regId, null, PLATFORM_ANDROID, result -> {
+				registerWithServer(regId, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
 					if (result.isSuccess()) {
 						registrationPrefs.registeredOnServer().set(true);
 
