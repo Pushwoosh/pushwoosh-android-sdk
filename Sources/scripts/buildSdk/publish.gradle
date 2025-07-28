@@ -1,3 +1,6 @@
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
@@ -5,6 +8,10 @@ def repoOwner = project.hasProperty('repoOwner') ? project.repoOwner : ''
 def repoName = project.hasProperty('repoName') ? project.repoName : ''
 def ossrhUsername = project.hasProperty('ossrhUsername') ? project.ossrhUsername : ''
 def ossrhPassword = project.hasProperty('ossrhPassword') ? project.ossrhPassword : ''
+def ossrhToken = project.hasProperty('ossrhToken') ? project.ossrhToken : ''
+def ossrhNamespace = "com.pushwoosh"
+def ossrhPostUrl = "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${ossrhNamespace}"
+def centralPublisherApiUrl = "https://central.sonatype.com/api/v1/publisher/deployment"
 
 def LIB_GROUP_ID = global_targetGroupId
 def LIB_ARTIFACT_ID = targetArtefactId
@@ -170,30 +177,184 @@ signing {
     sign publishing.publications
 }
 
-def ossrhToken = project.ossrhToken
-def ossrhNamespace = "com.pushwoosh"
-def ossrhPostUrl = "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${ossrhNamespace}"
+/*
+*  helper function, creates an authorized HttpUrlConnection with a given URL and METHOD,
+*  adds optional payload to PUT and POST requests
+*/
+def httpRequest(String method, String url, String token, String body = null) {
+    def connection = new URL(url).openConnection() as HttpURLConnection
+    connection.setRequestMethod(method)
+    connection.setRequestProperty("Authorization", "Bearer $token")
 
-task notifyOssrhUpload {
-    doLast {
-        println "Notifying OSSRH upload completion for namespace: $ossrhNamespace"
-
-        URL url = new URL(ossrhPostUrl)
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection()
-        connection.setRequestMethod("POST")
-        connection.setRequestProperty("Authorization", "Bearer $ossrhToken")
+    if (method in ["POST", "PUT"]) {
         connection.setRequestProperty("Content-Type", "application/json")
         connection.setDoOutput(true)
+        if (body) {
+            connection.outputStream.withWriter("UTF-8") { it << body }
+        }
+    } else if (method in ["GET", "DELETE"]) {
+        connection.setRequestProperty("Accept", "application/json")
+    }
 
-        int responseCode = connection.responseCode
-        println "Response code from OSSRH: $responseCode"
+    return connection
+}
 
-        if (responseCode >= 200 && responseCode < 300) {
-            println "Successfully notified OSSRH"
-        } else {
-            println "Failed to notify OSSRH: ${connection.errorStream?.text}"
-            throw new GradleException("OSSRH upload notification failed with status $responseCode")
+// helper function that obtains a list of all active deployments in maven central
+def fetchOssrhDeployments(String token) {
+    def connection = httpRequest(
+            "GET",
+            "https://ossrh-staging-api.central.sonatype.com/manual/search/repositories",
+            token
+    )
+
+    int responseCode = connection.responseCode
+    if (responseCode < 200 || responseCode >= 300) {
+        def errorText = connection.errorStream?.text
+        throw new GradleException("Failed to fetch deployments: $errorText")
+    }
+
+    def parsed = new JsonSlurper().parseText(connection.inputStream.text)
+    return parsed.repositories
+}
+
+// OSSRH API used to make publications in OSSRH Staging visible in Maven Central
+if (!rootProject.tasks.findByName("notifyOssrhUpload")) {
+    rootProject.tasks.register("notifyOssrhUpload") {
+        group = "publishing"
+        description = "Notify OSSRH after all modules are published"
+
+        doLast {
+            println "Notifying OSSRH upload for namespace: $ossrhNamespace"
+
+            def payload = new JsonBuilder([
+                    publishing_type: "portal_api"
+            ]).toString()
+
+            def connection = httpRequest("POST", ossrhPostUrl, ossrhToken, payload)
+
+            int responseCode = connection.responseCode
+            println "OSSRH Response Code: $responseCode"
+            println "OSSRH Message: ${connection.responseMessage}"
+
+            if (responseCode >= 200 && responseCode < 300) {
+                println "Successfully notified OSSRH"
+            } else {
+                def errorText = connection.errorStream?.text
+                println "Failed to notify OSSRH: $errorText"
+                throw new GradleException("OSSRH upload notification failed with status $responseCode")
+            }
         }
     }
 }
+
+// Gets the last uploaded deployment and releases it if there is exactly 1 deployment
+if (!rootProject.tasks.findByName("releaseCurrentDeployment")) {
+    rootProject.tasks.register("releaseCurrentDeployment") {
+        group = "publishing"
+        description = "Releases the only deployment in OSSRH if exactly one exists"
+
+        doLast {
+            def deployments = fetchOssrhDeployments(ossrhToken)
+
+            if (!deployments || deployments.isEmpty()) {
+                throw new GradleException("No deployments found in OSSRH.")
+            }
+
+            if (deployments.size() > 1) {
+                println "Multiple deployments found (${deployments.size()}):"
+                deployments.eachWithIndex { repo, i ->
+                    println "  ${i + 1}) ID: ${repo.portal_deployment_id}, Key: ${repo.key}, State: ${repo.state}"
+                }
+                throw new GradleException("Expected exactly 1 deployment. Found ${deployments.size()}. Aborting release.")
+            }
+
+            def deployment = deployments[0]
+            def deploymentId = deployment.portal_deployment_id
+
+            println "Found single deployment:"
+            println "   ID: ${deploymentId}"
+            println "   Key: ${deployment.key}"
+            println "   State: ${deployment.state}"
+
+            def releaseUrl = "${centralPublisherApiUrl}/${deploymentId}"
+            def connection = httpRequest("POST", releaseUrl, ossrhToken)
+
+            println "Releasing deployment to Central..."
+            int responseCode = connection.responseCode
+
+            if (responseCode == 204) {
+                println "Deployment released successfully"
+            } else {
+                def errorText = connection.errorStream?.text
+                throw new GradleException("Failed to release deployment: $errorText")
+            }
+        }
+    }
+}
+
+//drops all existing deployments, should be run before publishing a new deployment to OSSRH Staging
+if (!rootProject.tasks.findByName("dropAllDeployments")) {
+    rootProject.tasks.register("dropAllDeployments") {
+        group = "publishing"
+        description = "Drops all deployments from Central, regardless of status"
+
+        doLast {
+            def deployments = fetchOssrhDeployments(ossrhToken)
+
+            if (!deployments || deployments.isEmpty()) {
+                println "No deployments found to drop."
+                return
+            }
+
+            println "Dropping all ${deployments.size()} deployments..."
+
+            deployments.each { deployment ->
+                def id = deployment.portal_deployment_id
+                def dropUrl = "${centralPublisherApiUrl}/${id}"
+                def connection = httpRequest("DELETE", dropUrl, ossrhToken)
+
+                int responseCode = connection.responseCode
+                if (responseCode == 204) {
+                    println "Dropped deployment: ${id}"
+                } else {
+                    def errorText = connection.errorStream?.text
+                    println "Failed to drop ${id}: $errorText"
+                }
+            }
+        }
+    }
+}
+
+// debug task that gets all currently active deployments
+if (!rootProject.tasks.findByName("listOssrhRepositories")) {
+    rootProject.tasks.register("listOssrhRepositories") {
+        group = "publishing"
+        description = "Query OSSRH staging repositories for the current namespace"
+
+        doLast {
+            def deployments = fetchOssrhDeployments(ossrhToken)
+
+            println "Found ${deployments.size()} repositories:"
+            deployments.each { repo ->
+                println "   ID: ${repo.portal_deployment_id}"
+                println "   Key: ${repo.key}"
+                println "   State: ${repo.state}"
+                println "   --------------------------------"
+            }
+        }
+    }
+}
+
+afterEvaluate {
+    def publishTask = tasks.findByName("publishReleasePublicationToOssrh-staging-apiRepository")
+    def notifyTask = rootProject.tasks.findByName("notifyOssrhUpload")
+
+    if (publishTask != null && notifyTask != null) {
+        notifyTask.mustRunAfter(publishTask)
+        publishTask.finalizedBy(notifyTask)
+    }
+}
+
+
+
 
