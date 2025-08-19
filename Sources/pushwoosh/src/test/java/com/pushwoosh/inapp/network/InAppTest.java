@@ -26,6 +26,18 @@
 
 package com.pushwoosh.inapp.network;
 
+import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import android.os.Handler;
+
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.exception.PostEventException;
@@ -41,6 +53,7 @@ import com.pushwoosh.testutil.CallbackWrapper;
 import com.pushwoosh.testutil.Expectation;
 import com.pushwoosh.testutil.PlatformTestManager;
 import com.pushwoosh.testutil.RequestManagerMock;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,17 +67,11 @@ import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 import org.skyscreamer.jsonassert.JSONAssert;
 
-import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
 
 @SuppressWarnings("unchecked")
 @RunWith(RobolectricTestRunner.class)
@@ -89,6 +96,19 @@ public class InAppTest {
 		requestManagerMock = platformTestManager.getRequestManager();
 		pushwooshInApp = platformTestManager.getPushwooshInApp();
 		pushwooshRepository = platformTestManager.getPushwooshRepository();
+
+		Handler inlineMain = mock(Handler.class);
+		when(inlineMain.post(any())).thenAnswer(inv -> {
+			Runnable r = inv.getArgument(0);
+			r.run(); // run immediately on the test thread
+			return true;
+		});
+		ExecutorService directIo = InAppExecutorServiceHelper.createExecutorService();
+
+		InAppRepository repository = (InAppRepository) WhiteboxHelper.getInternalState(pushwooshInApp, "inAppRepository");
+
+		WhiteboxHelper.setInternalState(repository,"main", inlineMain);
+		WhiteboxHelper.setInternalState(repository, "io", directIo);
 	}
 
 	@After
@@ -105,7 +125,6 @@ public class InAppTest {
 		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
 		JSONObject jsonObject = createPostEventResponse();
 		requestManagerMock.setResponse(jsonObject, PostEventRequest.class);
-
 
 		// Steps:
 		pushwooshInApp.setUserId("userId");

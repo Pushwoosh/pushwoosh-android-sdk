@@ -29,16 +29,16 @@ package com.pushwoosh.repository;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-import com.pushwoosh.PushwooshPlatform;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.pushwoosh.exception.GetTagsException;
 import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.CacheFailedRequestCallback;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.InAppModule;
-import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
 import com.pushwoosh.inapp.network.InAppRepository;
-import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.event.ServerCommunicationStartedEvent;
 import com.pushwoosh.internal.network.NetworkException;
@@ -59,13 +59,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 public class PushwooshRepository {
     private static final String TAG = "PushwooshRepository";
 
-    @Nullable
     private final RequestManager requestManager;
     private final SendTagsProcessor sendTagsProcessor;
     private final RegistrationPrefs registrationPrefs;
@@ -89,6 +85,11 @@ public class PushwooshRepository {
         this.notificationPrefs = notificationPrefs;
         this.requestStorage = requestStorage;
         this.serverCommunicationManager = serverCommunicationManager;
+
+        if (requestManager == null) {
+            PWLog.error(TAG, "requestManager can't be null");
+            return;
+        }
 
         if (registrationPrefs.setTagsFailed().get()) {
             JSONObject tags = notificationPrefs.tags().get();
@@ -132,37 +133,36 @@ public class PushwooshRepository {
     }
 
     public void sendAppOpen() {
-        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
-            subscribeSendAppOpenWhenServerCommunicationStartsEvent();
-            return;
-        }
-
+//        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
+//            subscribeSendAppOpenWhenServerCommunicationStartsEvent();
+//            return;
+//        }
+        PWLog.noise(TAG, "sendAppOpen()");
         AppOpenRequest request = new AppOpenRequest();
-        if (requestManager == null) {
-            return;
-        }
+        requestManager.sendRequest(
+                request,
+                new CacheFailedRequestCallback<>(request, requestStorage)
+                );
 
-        requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
-
-        BusinessCasesManager businessCasesManager = PushwooshPlatform.getInstance().getBusinessCasesManager();
-        businessCasesManager.triggerCase(BusinessCasesManager.WELCOME_CASE, null);
-        businessCasesManager.triggerCase(BusinessCasesManager.APP_UPDATE_CASE, null);
+//        BusinessCasesManager businessCasesManager = PushwooshPlatform.getInstance().getBusinessCasesManager();
+//        businessCasesManager.triggerCase(BusinessCasesManager.WELCOME_CASE, null);
+//        businessCasesManager.triggerCase(BusinessCasesManager.APP_UPDATE_CASE, null);
 
     }
 
-    private void subscribeSendAppOpenWhenServerCommunicationStartsEvent() {
-        if (sendAppOpenWhenServerCommunicationStartsEvent != null) {
-            return;
-        }
-        sendAppOpenWhenServerCommunicationStartsEvent = new EventListener<ServerCommunicationStartedEvent>() {
-            @Override
-            public void onReceive(ServerCommunicationStartedEvent event) {
-                EventBus.unsubscribe(ServerCommunicationStartedEvent.class, this);
-                sendAppOpen();
-            }
-        };
-        EventBus.subscribe(ServerCommunicationStartedEvent.class, sendAppOpenWhenServerCommunicationStartsEvent);
-    }
+//    private void subscribeSendAppOpenWhenServerCommunicationStartsEvent() {
+//        if (sendAppOpenWhenServerCommunicationStartsEvent != null) {
+//            return;
+//        }
+//        sendAppOpenWhenServerCommunicationStartsEvent = new EventListener<ServerCommunicationStartedEvent>() {
+//            @Override
+//            public void onReceive(ServerCommunicationStartedEvent event) {
+//                EventBus.unsubscribe(ServerCommunicationStartedEvent.class, this);
+//                sendAppOpen();
+//            }
+//        };
+//        EventBus.subscribe(ServerCommunicationStartedEvent.class, sendAppOpenWhenServerCommunicationStartsEvent);
+//    }
 
     public void sendTags(@NonNull TagsBundle tags, Callback<Void, PushwooshException> listener) {
         JSONObject jsonTags = tags.toJson();

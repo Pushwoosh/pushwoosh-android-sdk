@@ -38,6 +38,10 @@ public class LocalNotificationReceiver extends BroadcastReceiver {
 
             LocalNotificationStorage storage = RepositoryModule.getLocalNotificationStorage();
             String pushId = extras.getString(EXTRA_NOTIFICATION_ID);
+            if (pushId == null) {
+                PWLog.warn(TAG, "local notification without local_push_id");
+                return;
+            }
             storage.removeLocalNotification(Integer.parseInt(pushId));
 
             new HandleMessageTask(extras).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);

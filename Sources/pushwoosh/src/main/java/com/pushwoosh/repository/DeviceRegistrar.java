@@ -154,31 +154,33 @@ public class DeviceRegistrar {
 	}
 
 	public void updateRegistration() {
-		RegistrationPrefs registrationPrefs = RepositoryModule.getRegistrationPreferences();
-		final String regId = registrationPrefs.pushToken().get();
-		if (regId != null && !regId.isEmpty()) {
-			//if we need to re-register on Pushwoosh because of Pushwoosh App Id change
-			boolean forceRegister = registrationPrefs.forceRegister().get();
-			registrationPrefs.forceRegister().set(false);
-			if (forceRegister || neededToRequestPushwooshServer()) {
-				registerWithServer(regId, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
-					if (result.isSuccess()) {
-						registrationPrefs.registeredOnServer().set(true);
+		PWLog.noise(TAG, "updateRegistration()");
 
-						EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(regId,areNotificationsEnabled())));
-						registrationPrefs.lastPushRegistration().set(new Date().getTime());
-						PWLog.info(TAG, "Registered for push notifications: " + regId);
-					} else {
-						String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
-						if (TextUtils.isEmpty(errorDescription)) {
-							errorDescription = "Pushwoosh registration error";
-						}
+		RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
 
-						PWLog.error(TAG, "Registration error: " + errorDescription);
-						EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
-					}
-				});
-			}
+		final String pushToken = prefs.pushToken().get();
+		if (pushToken == null || pushToken.isEmpty()) {
+			return;
+		}
+
+		//if we need to re-register on Pushwoosh because of Pushwoosh App Id change
+		boolean forceRegister = prefs.forceRegister().get();
+		prefs.forceRegister().set(false);
+
+		if (forceRegister || neededToRequestPushwooshServer()) {
+			registerWithServer(pushToken, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
+				if (result.isSuccess()) {
+					PWLog.info(TAG, "Device has been updated on server: " + pushToken);
+
+					prefs.registeredOnServer().set(true);
+					prefs.lastPushRegistration().set(new Date().getTime());
+
+					EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
+				} else {
+					PWLog.error(TAG, "Can't update device on server: " + result.getException());
+					EventBus.sendEvent(new RegistrationErrorEvent("Can't update device on server"));
+				}
+			});
 		}
 	}
 

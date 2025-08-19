@@ -3,6 +3,7 @@ package com.pushwoosh;
 import android.content.Context;
 import android.os.Bundle;
 
+import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushBundleDataProvider;
@@ -11,14 +12,20 @@ import com.pushwoosh.notification.PushBundleDataProvider;
 public class PushwooshMessagingServiceHelper {
     public static void onTokenRefresh(String token) {
         PWLog.noise("PushwooshMessagingServiceHelper", String.format("onTokenRefresh: %s", token));
-        NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token, null);
+        SdkStateProvider.getInstance().executeOrQueue(
+                () -> {NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token, null);}
+        );
     }
 
     public static boolean onMessageReceived(Context context, Bundle pushBundle) {
+        PWLog.noise("PushwooshMessagingServiceHelper", "onMessageReceived()");
         PushwooshInitializer.init(context);
-        sendMessageDeliveryEvent(pushBundle);
-        NotificationRegistrarHelper.handleMessage(pushBundle);
-
+        SdkStateProvider.getInstance().executeOrQueue(
+                () -> {
+                    sendMessageDeliveryEvent(pushBundle);
+                    NotificationRegistrarHelper.handleMessage(pushBundle);
+                }
+        );
         return true;
     }
 

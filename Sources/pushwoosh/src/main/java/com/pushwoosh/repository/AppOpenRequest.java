@@ -30,11 +30,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.PermissionController;
-import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
 import com.pushwoosh.internal.network.PushRequest;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.DeviceUtils;
-import com.pushwoosh.internal.platform.utils.GeneralUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -81,7 +79,7 @@ class AppOpenRequest extends PushRequest<Void> {
     @Nullable
     @Override
     public Void parseResponse(@NonNull JSONObject response) throws JSONException {
-        BusinessCasesManager.processBusinessCasesData(response.optJSONObject("required_inapps"));
+//        BusinessCasesManager.processBusinessCasesData(response.optJSONObject("required_inapps"));
         return super.parseResponse(response);
     }
 }

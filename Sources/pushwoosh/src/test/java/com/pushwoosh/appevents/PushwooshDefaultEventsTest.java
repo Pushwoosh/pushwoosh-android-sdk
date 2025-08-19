@@ -1,15 +1,19 @@
 package com.pushwoosh.appevents;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.InAppManager;
-import com.pushwoosh.inapp.PushwooshInApp;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.config.Event;
 import com.pushwoosh.tags.TagsBundle;
-import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -20,12 +24,6 @@ import org.mockito.MockedStatic;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class PushwooshDefaultEventsTest {
 
@@ -58,18 +56,16 @@ public class PushwooshDefaultEventsTest {
 	@Test
 	public void checkPostEvent() {
 		try (
-				MockedStatic<PushwooshInApp> pushwooshInAppMockedStatic = mockStatic(PushwooshInApp.class);
+				MockedStatic<InAppManager> pushwooshInAppMockedStatic = mockStatic(InAppManager.class);
 				MockedStatic<PushwooshPlatform> pushwooshPlatformMockedStatic = mockStatic(PushwooshPlatform.class);
 				MockedStatic<DeviceSpecificProvider> deviceSpecificProviderMockedStatic = mockStatic(DeviceSpecificProvider.class);
 				MockedStatic<AndroidPlatformModule> platformModuleMockedStatic = mockStatic(AndroidPlatformModule.class);
-				MockedStatic<InAppManager> inAppManagerMockedStatic = mockStatic(InAppManager.class)
 		) {
-			pushwooshInAppMockedStatic.when(PushwooshInApp::getInstance).thenReturn(mock(PushwooshInApp.class));
+			pushwooshInAppMockedStatic.when(InAppManager::getInstance).thenReturn(mock(InAppManager.class));
 			deviceSpecificProviderMockedStatic.when(DeviceSpecificProvider::getInstance).thenReturn(deviceSpecificProvider);
 			platformModuleMockedStatic.when(AndroidPlatformModule::getAppInfoProvider).thenReturn(appInfoProvider);
 			pushwooshPlatformMockedStatic.when(PushwooshPlatform::getInstance).thenReturn(pushwooshPlatform);
 			when(pushwooshPlatform.pushwooshRepository()).thenReturn(pushwooshRepository);
-			inAppManagerMockedStatic.when(InAppManager::getInstance).thenReturn(mock(InAppManager.class));
 
 			PushwooshDefaultEvents pushwooshDefaultEvents = new PushwooshDefaultEvents();
 

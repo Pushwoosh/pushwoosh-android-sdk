@@ -26,7 +26,14 @@
 
 package com.pushwoosh.inapp.network;
 
-import com.pushwoosh.BuildConfig;
+import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyString;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.storage.InAppStorage;
 import com.pushwoosh.internal.network.PushRequestHelper;
@@ -43,15 +50,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 import org.skyscreamer.jsonassert.JSONAssert;
-
-
-import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 @org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
@@ -100,19 +98,9 @@ public class PostEventRequestTest {
 		when(inAppStorage.getResource(testCode)).thenReturn(new Resource(testCode, null, null, 0, null, null, false, -1, null, null));
 
 		PostEventRequest request = new PostEventRequest("", "", Tags.empty());
-		Resource code = request.parseResponse(response).getResource();
+		String code = request.parseResponse(response).getCode();
 		assert code != null;
-		assertThat(code.getCode(), is(equalTo(testCode)));
-	}
-
-	@Test
-	public void testParseResponseWithNotStoredCode() throws Exception {
-		final String testCode = "1234-5678";
-		JSONObject response = new JSONObject("{ \"code\" : \"" + testCode + "\" }");
-
-		PostEventRequest request = new PostEventRequest("", "", Tags.empty());
-		Resource code = request.parseResponse(response).getResource();
-		assertThat(code, is(nullValue()));
+		assertThat(code, is(equalTo(testCode)));
 	}
 
 	@Test
@@ -128,7 +116,7 @@ public class PostEventRequestTest {
 		JSONObject response = new JSONObject("{}");
 
 		PostEventRequest request = new PostEventRequest("", "", Tags.empty());
-		Resource code = request.parseResponse(response).getResource();
-		assertThat(code, is(nullValue()));
+		String code = request.parseResponse(response).getCode();
+		assertThat(code, is(isEmptyString()));
 	}
 }

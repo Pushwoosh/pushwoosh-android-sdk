@@ -26,7 +26,11 @@
 
 package com.pushwoosh.internal.utils;
 
-import com.google.common.reflect.TypeToken;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 import org.junit.Test;
 
@@ -34,12 +38,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 
 public class ObjectSerializerTest {
 
@@ -113,7 +111,7 @@ public class ObjectSerializerTest {
     @Test
     public void testNullSerialization() throws Exception {
         String serialized = ObjectSerializer.serialize(null);
-        Entry deserialized = ObjectSerializer.deserialize(serialized, null);
+        Entry deserialized = ObjectSerializer.deserialize(serialized, (Class<?>[]) null);
 
         assertThat(deserialized, is(nullValue()));
     }

@@ -16,6 +16,7 @@ import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.platform.prefs.PrefsProvider;
+import com.pushwoosh.internal.platform.utils.DeviceUtils;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.utils.AppVersionProvider;
 import com.pushwoosh.internal.utils.Config;
@@ -98,6 +99,7 @@ public class PushwooshPlatform {
         config = builder.config;
         deviceRegistrar = new DeviceRegistrar();
         RepositoryModule.init(config, UUIDFactory, deviceRegistrar);
+        PWLog.init();
         registrationPrefs = RepositoryModule.getRegistrationPreferences();
         serverCommunicationManager = new ServerCommunicationManager();
 
@@ -133,14 +135,13 @@ public class PushwooshPlatform {
         pushwooshStartWorker = new PushwooshStartWorker(
                 config,
                 registrationPrefs,
-                appVersionProvider,
                 pushwooshRepository,
                 notificationManager,
                 pushwooshInApp,
                 deviceRegistrar,
                 pushwooshDefaultEvents,
                 pushRegistrarHelper,
-                serverCommunicationManager);
+                DeviceUtils::getDeviceUUID);
     }
 
     public static PushwooshPlatform getInstance() {
@@ -200,13 +201,6 @@ public class PushwooshPlatform {
     public void onApplicationCreated() {
         pushwooshStartWorker.onApplicationCreated();
     }
-
-
-
-    public void reset() {
-        pushwooshStartWorker.reset();
-    }
-
     AppVersionProvider getAppVersionProvider() {
         return appVersionProvider;
     }

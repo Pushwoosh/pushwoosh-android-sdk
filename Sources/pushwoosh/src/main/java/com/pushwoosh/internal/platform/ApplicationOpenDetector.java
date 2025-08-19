@@ -33,6 +33,7 @@ import android.os.Bundle;
 
 import com.pushwoosh.internal.event.Event;
 import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.utils.PWLog;
 
 import java.util.Date;
 
@@ -60,6 +61,7 @@ public class ApplicationOpenDetector {
         if (isFirstLaunch) {
             EventBus.sendEvent(new ApplicationOpenEvent());
             firstLaunchDate = new Date();
+            PWLog.debug("ApplicationOpenDetector", "First launch, ApplicationOpenEvent fired");
         }
         context.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             private int activityCreatedDestroyedCount;
@@ -74,10 +76,12 @@ public class ApplicationOpenDetector {
                     long timePassedFromFirstLaunch = new Date().getTime() - firstLaunchDate.getTime();
                     if (timePassedFromFirstLaunch >= appOpenEventTimeoutOnFirstLaunch) {
                         EventBus.sendEvent(new ApplicationOpenEvent());
+                        PWLog.debug("ApplicationOpenDetector", "ApplicationOpenEvent fired");
                     }
                     firstLaunchDate = null;
                 } else if (activityCreatedDestroyedCount == 0) {
                     EventBus.sendEvent(new ApplicationOpenEvent());
+                    PWLog.debug("ApplicationOpenDetector", "ApplicationOpenEvent fired");
                 }
                 activityCreatedDestroyedCount++;
             }

@@ -1,23 +1,17 @@
 package com.pushwoosh.internal.network;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.pushwoosh.Pushwoosh;
-import com.pushwoosh.internal.event.EventBus;
-import com.pushwoosh.internal.event.InitHwidEvent;
-import com.pushwoosh.internal.event.Subscription;
-import com.pushwoosh.internal.platform.utils.DeviceUtils;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.repository.RepositoryModule;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public abstract class PushRequest<S> {
 
@@ -47,21 +41,7 @@ public abstract class PushRequest<S> {
 
     @NonNull
     protected String getHwid() throws InterruptedException {
-        String hwid = Pushwoosh.getInstance().getHwid();
-
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        Subscription<InitHwidEvent> subscriber =
-                EventBus.subscribe(InitHwidEvent.class, event -> countDownLatch.countDown());
-        if (hwid.isEmpty()) {
-            countDownLatch.await(5, TimeUnit.SECONDS);
-        }
-        subscriber.unsubscribe();
-
-        hwid = Pushwoosh.getInstance().getHwid();
-        if (hwid.isEmpty()) {
-            hwid = DeviceUtils.getDeviceUUID();
-        }
-        return hwid;
+        return PushwooshPlatform.getInstance().pushwooshRepository().getHwid();
     }
 
     protected String getUserId() {

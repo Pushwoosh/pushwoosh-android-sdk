@@ -26,8 +26,6 @@
 
 package com.pushwoosh.inapp.view.js;
 
-import java.lang.ref.WeakReference;
-
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
@@ -39,6 +37,8 @@ import com.pushwoosh.tags.TagsBundle;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.lang.ref.WeakReference;
 
 /**
  * PushManager inApps javascript interface
@@ -189,7 +189,7 @@ public class PushManagerJSInterface {
             TagsBundle tagsBundle = new TagsBundle.Builder()
                     .putAll(tagsJSObject)
                     .build();
-            Pushwoosh.getInstance().sendTags(tagsBundle);
+            Pushwoosh.getInstance().setTags(tagsBundle);
         } catch (JSONException e) {
             PWLog.error("Invalid tags format, expected object with string properties", e);
         }

@@ -38,7 +38,6 @@ import com.pushwoosh.firebase.internal.registrar.FcmRegistrar;
 import com.pushwoosh.firebase.internal.specific.FcmDeviceSpecificIniter;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.internal.utils.SdkStatusChecker;
 import com.pushwoosh.repository.RepositoryModule;
 
 import java.util.Map;
@@ -52,11 +51,6 @@ public class PushwooshFcmHelper {
     public static void onTokenRefresh(String token) {
         PWLog.noise("PushwooshFcmHelper", String.format("onTokenRefresh: %s", token));
 
-        if (!SdkStatusChecker.isInitialized()) {
-            PWLog.error("PushwooshFcmHelper", "can't refresh token: sdk is not initialized");
-            return;
-        }
-
         if (!(DeviceSpecificProvider.getInstance().pushRegistrar() instanceof FcmRegistrar)) {
             PWLog.error("PushwooshFcmHelper", "can't refresh token: pushRegistrar is not FcmRegistrar");
             return;
@@ -68,7 +62,6 @@ public class PushwooshFcmHelper {
                 PWLog.debug("PushwooshFcmHelper", "token is null or equals previous token");
                 return;
             }
-
             PushwooshMessagingServiceHelper.onTokenRefresh(token);
         } catch (Exception e) {
             PWLog.error("PushwooshFcmHelper", "can't refresh token", e);
@@ -83,6 +76,7 @@ public class PushwooshFcmHelper {
      */
     @SuppressWarnings("UnusedReturnValue")
     public static boolean onMessageReceived(Context context, RemoteMessage remoteMessage) {
+        PWLog.noise("PushwooshFcmHelper", "onMessageReceived()");
 
         //Fix for PUSH-32760
         try {
@@ -103,8 +97,7 @@ public class PushwooshFcmHelper {
         String from = remoteMessage.getFrom();
         Map<String, String> data = remoteMessage.getData();
 
-        PWLog.info("PushwooshFcmHelper", "Received message: " + data.toString() + " from: " + from);
-
+        PWLog.info("PushwooshFcmHelper", String.format("Received message: %s from: %s", data, from));
         Bundle pushBundle = RemoteMessageMapper.mapToBundle(remoteMessage);
 
         return PushwooshMessagingServiceHelper.onMessageReceived(context, pushBundle);

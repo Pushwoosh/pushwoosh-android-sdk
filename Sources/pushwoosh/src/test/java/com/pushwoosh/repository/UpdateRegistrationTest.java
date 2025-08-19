@@ -27,6 +27,17 @@
 package com.pushwoosh.repository;
 
 
+import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.platform.ApplicationOpenDetector;
 import com.pushwoosh.internal.registrar.PushRegistrar;
@@ -40,24 +51,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
-
-
-import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -122,9 +121,10 @@ public class UpdateRegistrationTest {
 		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
 		Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
 
-		//Steps
-		platformTestManager.getNotificationManager().setAppId(newAppId);
 		EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
+
+		//Steps
+		SdkStateProvider.getInstance().executeOrQueue(() -> {platformTestManager.getNotificationManager().setAppId(newAppId);});
 
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 

@@ -26,14 +26,7 @@
 
 package com.pushwoosh.inapp.network;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
-
-import com.pushwoosh.inapp.InAppModule;
-import com.pushwoosh.inapp.exception.ResourceParseException;
-import com.pushwoosh.inapp.network.model.Resource;
-import com.pushwoosh.inapp.storage.InAppStorage;
-import com.pushwoosh.internal.utils.PWLog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,7 +34,6 @@ import org.json.JSONObject;
 public class PostEventResponse {
 	private final String code;
 	private final String richMediaJson;
-	private final Resource resource;
 	private final boolean isRequired;
 
 	@WorkerThread
@@ -49,44 +41,17 @@ public class PostEventResponse {
 		code = response.optString("code");
 		richMediaJson = response.optString("richmedia");
 		isRequired = response.optBoolean("required", false);
-		if (!code.isEmpty()) {
-			InAppStorage inAppStorage = InAppModule.getInAppStorage();
-			if(inAppStorage == null){
-				resource = null;
-			} else {
-				resource = inAppStorage.getResource(code);
-			}
-		} else if (!richMediaJson.isEmpty()) {
-			if (InAppModule.getInAppRepository() != null) {
-				InAppModule.getInAppRepository().prefetchRichMedia(richMediaJson);
-				resource = tryParseRichMedia(richMediaJson);
-			} else {
-				resource = null;
-			}
-		} else {
-			resource = null;
-		}
-	}
-
-	@Nullable
-	public Resource getResource() {
-		return resource;
 	}
 
 	public String getCode() {
 		return code;
 	}
 
-	public boolean isRequired() {
-		return isRequired;
+	public String getRichMediaJson() {
+		return richMediaJson;
 	}
 
-	private Resource tryParseRichMedia(String richMediaJson) {
-		try {
-			return Resource.parseRichMedia(richMediaJson);
-		} catch (ResourceParseException e) {
-			PWLog.error("Failed to parse rich media json", e);
-			return null;
-		}
+	public boolean isRequired() {
+		return isRequired;
 	}
 }

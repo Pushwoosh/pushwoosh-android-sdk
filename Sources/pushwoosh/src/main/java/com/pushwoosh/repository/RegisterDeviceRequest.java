@@ -36,7 +36,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-class RegisterDeviceRequest extends AppOpenRequest {
+public class RegisterDeviceRequest extends AppOpenRequest {
 	private final String deviceId;
 	private final String tagsJson;
 	private final int platform;

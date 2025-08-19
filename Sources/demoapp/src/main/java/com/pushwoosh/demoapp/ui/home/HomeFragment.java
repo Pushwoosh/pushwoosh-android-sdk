@@ -17,7 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.textfield.TextInputEditText;
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.demoapp.databinding.FragmentHomeBinding;
-import com.pushwoosh.inapp.PushwooshInApp;
+import com.pushwoosh.inapp.InAppManager;
 import com.pushwoosh.tags.TagsBundle;
 
 import java.util.Objects;
@@ -109,9 +109,9 @@ public class HomeFragment extends Fragment {
                     int value2 = 10;
                     TagsBundle attributes = new TagsBundle.Builder().putInt(value1, value2)
                             .build();
-                    PushwooshInApp.getInstance().postEvent(eventName, attributes);
+                    InAppManager.getInstance().postEvent(eventName, attributes);
                 } else {
-                    PushwooshInApp.getInstance().postEvent(eventName);
+                    InAppManager.getInstance().postEvent(eventName);
                 }
             }
         });

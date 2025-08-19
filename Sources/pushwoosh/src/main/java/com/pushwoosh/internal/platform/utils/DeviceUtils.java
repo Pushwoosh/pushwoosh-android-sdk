@@ -41,9 +41,10 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.PushwooshSharedDataProvider;
@@ -301,9 +302,13 @@ public class DeviceUtils {
 
         @NonNull
         private static List<ProviderInfo> getVendorProviderInfos(List<ProviderInfo> providerInfos) {
+            List<ProviderInfo> vendorProviderInfos = new ArrayList<>();
+            if (providerInfos == null) {
+                return vendorProviderInfos;
+            }
+
             String[] trustedPackageNames = PushwooshPlatform.getInstance().getConfig().getTrustedPackageNames();
 
-            List<ProviderInfo> vendorProviderInfos = new ArrayList<>();
             for (ProviderInfo providerInfo : providerInfos) {
                 for (String trustedPackageName : trustedPackageNames) {
                     if (!TextUtils.isEmpty(providerInfo.packageName)

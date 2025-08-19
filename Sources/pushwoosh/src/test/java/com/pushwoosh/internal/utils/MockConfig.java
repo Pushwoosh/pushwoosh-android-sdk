@@ -46,6 +46,7 @@ public class MockConfig {
 		when(pluginProvider.richMediaStartDelay()).thenReturn(40);
 		when(configMock.getPluginProvider()).thenReturn(pluginProvider);
 		when(configMock.getAppId()).thenReturn(appId);
+		when(configMock.isServerCommunicationAllowed()).thenReturn(true);
 		return configMock;
 	}
 }

@@ -26,15 +26,17 @@
 
 package com.pushwoosh.inapp.view.js;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
-import androidx.annotation.Nullable;
-
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.PushwooshPlatform;
@@ -50,8 +52,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 /**
  * Pushwoosh inApps javascript interface
@@ -338,7 +338,7 @@ public class PushwooshJSInterface {
             TagsBundle tagsBundle = new TagsBundle.Builder()
                     .putAll(tagsJSObject)
                     .build();
-            Pushwoosh.getInstance().sendTags(tagsBundle);
+            Pushwoosh.getInstance().setTags(tagsBundle);
         } catch (JSONException e) {
             PWLog.error("Invalid tags format, expected object with string properties", e);
         }

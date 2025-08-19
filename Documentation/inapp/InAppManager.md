@@ -33,9 +33,6 @@ InAppManager is responsible for In-App messaging functionality.<br/><em>See also
 		<td><a href="#1aea84ded35a2122ff7b1a742d60662a6c">public void registerJavascriptInterface(@NonNull String className, @NonNull String name)</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1acebd9eaf8d63b3623dac869283b34894">public void resetBusinessCasesFrequencyCapping()</a></td>
-	</tr>
-	<tr>
 		<td><a href="#1a7a35318e8fbceca7956ec64f16e1e6c4">public void reloadInApps()</a></td>
 	</tr>
 	<tr>
@@ -124,12 +121,6 @@ Removes object registered with addJavascriptInterface(Object, String)<br/><br/><
 
 #### <a name="1aea84ded35a2122ff7b1a742d60662a6c"></a>public void registerJavascriptInterface(@NonNull String className, @NonNull String name)  
 Same as addJavascriptInterface(Object, String) but uses class name instead of object 
-
-----------  
-  
-
-#### <a name="1acebd9eaf8d63b3623dac869283b34894"></a>public void resetBusinessCasesFrequencyCapping()  
-
 
 ----------  
   

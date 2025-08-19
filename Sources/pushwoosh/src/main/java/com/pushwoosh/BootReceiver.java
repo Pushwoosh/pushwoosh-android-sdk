@@ -12,11 +12,13 @@ import com.pushwoosh.internal.utils.PWLog;
 public class BootReceiver extends BroadcastReceiver {
 
 	public static class DeviceBootedEvent implements Event {
-		private DeviceBootedEvent() {/*do nothing*/}
+		public DeviceBootedEvent() {/*do nothing*/}
 	}
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		PWLog.noise("BootReceiver", "onReceive()");
+
 		try {
 			if (intent == null || !TextUtils.equals(Intent.ACTION_BOOT_COMPLETED, intent.getAction())) {
 				PWLog.warn("BootReceiver", "Received unexpected action");
@@ -25,7 +27,7 @@ public class BootReceiver extends BroadcastReceiver {
 
 			EventBus.sendEvent(new DeviceBootedEvent());
 		} catch (Exception e) {
-			PWLog.exception(e);
+			PWLog.error("BootReceiver", "can't send DeviceBootedEvent", e);
 		}
 	}
 }

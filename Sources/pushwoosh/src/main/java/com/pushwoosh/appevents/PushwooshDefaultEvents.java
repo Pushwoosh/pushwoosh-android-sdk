@@ -3,6 +3,7 @@ package com.pushwoosh.appevents;
 import android.app.Application;
 
 import com.pushwoosh.inapp.InAppManager;
+import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -73,17 +74,21 @@ public class PushwooshDefaultEvents {
                     EventBus.subscribe(ApplicationOpenEvent.class, applicationOpenEventListener);
                 } else {
                     activityLifecycleCallbacks = new com.pushwoosh.appevents.PushwooshAppLifecycleCallbacks((eventName, activityName) -> {
-                        switch (eventName) {
-                            case PushwooshAppLifecycleCallbacks.APPLICATION_OPENED_EVENT:
-                                postEvent(APPLICATION_OPENED_EVENT, buildAttributes(APPLICATION_OPENED_EVENT, activityName));
-                                break;
-                            case PushwooshAppLifecycleCallbacks.APPLICATION_CLOSED_EVENT:
-                                postEvent(APPLICATION_CLOSED_EVENT, buildAttributes(APPLICATION_CLOSED_EVENT, activityName));
-                                break;
-                            case PushwooshAppLifecycleCallbacks.SCREEN_OPENED_EVENT:
-                                postEvent(SCREEN_OPENED_EVENT, buildAttributes(SCREEN_OPENED_EVENT, activityName));
-                                break;
-                        }
+
+                        SdkStateProvider.getInstance().executeOrQueue(() -> {
+                            switch (eventName) {
+                                case PushwooshAppLifecycleCallbacks.APPLICATION_OPENED_EVENT:
+                                    postEvent(APPLICATION_OPENED_EVENT, buildAttributes(APPLICATION_OPENED_EVENT, activityName));
+                                    break;
+                                case PushwooshAppLifecycleCallbacks.APPLICATION_CLOSED_EVENT:
+                                    postEvent(APPLICATION_CLOSED_EVENT, buildAttributes(APPLICATION_CLOSED_EVENT, activityName));
+                                    break;
+                                case PushwooshAppLifecycleCallbacks.SCREEN_OPENED_EVENT:
+                                    postEvent(SCREEN_OPENED_EVENT, buildAttributes(SCREEN_OPENED_EVENT, activityName));
+                                    break;
+                            }
+                        });
+
                     });
                     app.registerActivityLifecycleCallbacks(activityLifecycleCallbacks);
                 }

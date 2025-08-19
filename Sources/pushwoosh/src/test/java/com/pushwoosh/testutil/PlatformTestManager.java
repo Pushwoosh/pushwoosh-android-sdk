@@ -26,9 +26,19 @@
 
 package com.pushwoosh.testutil;
 
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 import android.content.Context;
 import android.media.AudioManager;
 import android.util.Log;
+
+import androidx.work.Configuration;
+import androidx.work.testing.SynchronousExecutor;
+import androidx.work.testing.WorkManagerTestInitHelper;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.InAppModule;
@@ -39,9 +49,7 @@ import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.inapp.network.downloader.InAppDownloader;
 import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.storage.InAppStorage;
-import com.pushwoosh.internal.event.Event;
-import com.pushwoosh.internal.event.EventBus;
-import com.pushwoosh.internal.event.EventListener;
+import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModuleTest;
@@ -62,16 +70,8 @@ import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.shadows.ShadowLog;
 
-import java.util.List;
-import java.util.Map;
-
-import androidx.work.Configuration;
-import androidx.work.testing.SynchronousExecutor;
-import androidx.work.testing.WorkManagerTestInitHelper;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class PlatformTestManager {
 	private final RequestManagerMock requestManagerMock;
@@ -100,7 +100,7 @@ public class PlatformTestManager {
 				RuntimeEnvironment.application, workConfig);
 
 		registrationPrefs = Mockito.mock(RegistrationPrefs.class);
-		// when(config.getNotificationFactory()).thenReturn(NotificationFactoryMock.class); does not work :(
+
 		when(config.getNotificationFactory()).thenAnswer((invocation) -> NotificationFactoryMock.class);
 		when(config.getNotificationService()).thenAnswer((invocation) -> NotificationServiceMock.class);
 
@@ -197,11 +197,22 @@ public class PlatformTestManager {
 	}
 
 	public void setUp() {
-	//	pushwooshPlatform.onApplicationCreated();
 	}
 
-	public void onApplicationCreated() {
+	public void onApplicationCreated(){
+		try {
+			startUp();
+		} catch (InterruptedException e) {
+			fail("SDK is not initialized");
+		}
+	}
+
+	private void startUp() throws InterruptedException {
 		pushwooshPlatform.onApplicationCreated();
+		// Wait until SDK is initialized and block for 1 second
+		CountDownLatch latch = new CountDownLatch(1);
+		SdkStateProvider.getInstance().executeOrQueue(latch::countDown);
+		assertTrue("SDK should be initialized", latch.await(1, TimeUnit.SECONDS));
 	}
 
 	public InAppRepository getInAppRepository() {
@@ -219,7 +230,6 @@ public class PlatformTestManager {
 
 	public void tearDown() {
 		PrefsHelper.tearDownPrefs();
-//		Map<Class<? extends Event>, List<EventListener<?>>> mapEvent = (Map<Class<? extends Event>, List<EventListener<?>>>) WhiteboxHelper.getInternalState(EventBus.class, "SUBSCRIBERS_MAP");
-//		mapEvent.clear();
+		SdkStateProvider.getInstance().resetForTesting();
 	}
 }

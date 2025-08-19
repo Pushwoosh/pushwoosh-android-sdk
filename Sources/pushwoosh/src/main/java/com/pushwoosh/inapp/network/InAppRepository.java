@@ -26,6 +26,8 @@
 
 package com.pushwoosh.inapp.network;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -42,7 +44,6 @@ import com.pushwoosh.exception.SetUserException;
 import com.pushwoosh.exception.SetUserIdException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
-import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
 import com.pushwoosh.inapp.event.InAppEvent;
 import com.pushwoosh.inapp.exception.ResourceParseException;
 import com.pushwoosh.inapp.mapper.ResourceMapper;
@@ -70,6 +71,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -87,6 +90,8 @@ public class InAppRepository {
     private final AtomicBoolean inAppLoaded = new AtomicBoolean(false);
     private final RegistrationPrefs registrationPrefs;
 
+    private final ExecutorService io = Executors.newSingleThreadExecutor();
+    private final Handler main = new Handler(Looper.getMainLooper());
 
     public InAppRepository(@Nullable RequestManager requestManager,
                            InAppStorage inAppStorage,
@@ -118,35 +123,15 @@ public class InAppRepository {
     public Result<Void, NetworkException> loadInApps() {
         List<Resource> data = null;
         try {
-            GetInAppsRequest request = new GetInAppsRequest();
-
-            if (!updateRequestManagerIfNeeded() || requestManager == null) {
-                return Result.fromException(new NetworkException("Request Manager is null"));
-            }
-
-            Result<List<Resource>, NetworkException> getInAppsResult = requestManager.sendRequestSync(request);
-
-            data = getInAppsResult.getData();
-            if (!getInAppsResult.isSuccess()) {
-                return Result.fromException(getInAppsResult.getException());
-            }
+            data = getInAppsList();
 
             if (data == null || data.isEmpty()) {
                 return Result.fromData(null);
             }
 
-            List<String> updateResource = new ArrayList<>();
-            updateResource.addAll(inAppStorage.saveOrUpdateResources(data));
-
-            BusinessCasesManager.processInAppsData(data);
-
-
-            for (String code : updateResource) {
-                inAppDownloader.removeResourceFiles(code);
-            }
-            checkEnableGDPR(data);
-
+            updateInAppStorage(data);
             downloadOrUpdate(data);
+
             return Result.fromData(null);
         } finally {
             inAppLoaded.set(true);
@@ -407,6 +392,7 @@ public class InAppRepository {
             }
         });
     }
+    
     public void postEvent(String event, TagsBundle attributes, @Nullable Callback<Resource, PostEventException> callback) {
         String currentSessionHash = PushwooshPlatform.getInstance().pushwooshRepository().getCurrentSessionHash();
 
@@ -418,28 +404,7 @@ public class InAppRepository {
             return;
         }
         requestManager.sendRequest(request, result -> {
-            if (callback == null) {
-                return;
-            }
-
-            if (result.isSuccess()) {
-            PostEventResponse data = result.getData();
-                if (data != null) {
-                    if (data.getResource() != null || !data.isRequired()) {
-                        callback.process(Result.fromData(data.getResource()));
-                    } else {
-                        callback.process(Result.fromData(new Resource(data.getCode(), data.isRequired())));
-                    }
-                }
-            } else {
-                final NetworkException exception = result.getException();
-
-                if (exception == null) {
-                    return;
-                }
-                callback.process(Result.fromException(new PostEventException(exception.getMessage())));
-                PWLog.warn(TAG, exception.getMessage(), exception);
-            }
+            handlePostEventResponse(result, callback);
         });
     }
 
@@ -539,6 +504,104 @@ public class InAppRepository {
         return result.getException() == null || TextUtils.isEmpty(result.getException().getMessage())
                 ? defaultErrorMessage
                 : result.getException().getMessage();
+    }
+
+    @WorkerThread
+    @Nullable
+    private Resource getResourceFromPostEvent(PostEventResponse response) {
+        try {
+            String code = response.getCode();
+            String richMediaJson = response.getRichMediaJson();
+
+            Resource fromStorage = inAppStorage.getResource(code);
+            if (fromStorage != null) return fromStorage;
+
+            if (code != null && !code.isEmpty()) {
+                List<Resource> list = this.getInAppsList();
+
+                for (Resource r: list) {
+                    if (code.equals(r.getCode())) {
+                        updateInAppStorage(Collections.singletonList(r));
+                        this.downloadIfNeeded(r);
+                        return r;
+                    }
+                }
+                PWLog.error(TAG, "Failed to get rich media resource: InApp code is not registered");
+                return null;
+            } else if (richMediaJson != null && !richMediaJson.isEmpty()) {
+                this.prefetchRichMedia(richMediaJson);
+                return Resource.parseRichMedia(richMediaJson);
+            }
+        } catch (Exception e) {
+            PWLog.error(TAG, "Could not load resource from server by inapp or richmedia code", e);
+            return null;
+        }
+        PWLog.noise(TAG, "No inapp data received");
+        return null;
+    }
+
+    @WorkerThread
+    List<Resource> getInAppsList() {
+        GetInAppsRequest request = new GetInAppsRequest();
+        if (!updateRequestManagerIfNeeded() || requestManager == null) {
+            PWLog.error(TAG, "Failed to get list of inapps: RequestManager is not valid");
+            return Collections.emptyList();
+        }
+
+        Result<List<Resource>, NetworkException> getInAppsResult = requestManager.sendRequestSync(request);
+        if (!getInAppsResult.isSuccess()) {
+            PWLog.error(TAG, "Failed to get rich media resource: getInApps request failed");
+            return Collections.emptyList();
+        }
+
+        List<Resource> resultData = getInAppsResult.getData();
+        if (resultData == null || resultData.isEmpty()) {
+            PWLog.noise(TAG, "GetInApps response has no inapp data");
+            return Collections.emptyList();
+        }
+        return resultData;
+    }
+
+    @WorkerThread
+    private void updateInAppStorage(List<Resource> data) {
+        List<String> updateResource = new ArrayList<>();
+        updateResource.addAll(inAppStorage.saveOrUpdateResources(data));
+
+        for (String code : updateResource) {
+            inAppDownloader.removeResourceFiles(code);
+        }
+    }
+
+    private void handlePostEventResponse(
+            Result<PostEventResponse, NetworkException> result,
+            Callback<Resource, PostEventException> callback
+            ) {
+        if (callback == null) {
+            return;
+        }
+
+        if (result.isSuccess()) {
+            PostEventResponse data = result.getData();
+            if (data != null) {
+                // downloading missing resources requires network operation, should be done in
+                // worker thread
+                io.submit(() -> {
+                    Resource postEventResource = getResourceFromPostEvent(result.getData());
+                    // presenting rich media is UI operation, should be done in main thread
+                    main.post(() -> {
+                        callback.process(Result.fromData(postEventResource));
+                    });
+                });
+            }
+        } else {
+            final NetworkException exception = result.getException();
+
+            if (exception == null) {
+                return;
+            }
+            callback.process(Result.fromException(new PostEventException(exception.getMessage())));
+            PWLog.warn(TAG, exception.getMessage(), exception);
+        }
     }
 
     private class SetEmailListSuccessCallbackCounter {

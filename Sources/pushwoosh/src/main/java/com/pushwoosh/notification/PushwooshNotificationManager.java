@@ -12,7 +12,6 @@ import androidx.core.content.ContextCompat;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 
-import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.PushwooshWorkManagerHelper;
 import com.pushwoosh.RegisterForPushNotificationsResultData;
 import com.pushwoosh.exception.RegisterForPushNotificationsException;
@@ -44,13 +43,14 @@ import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.tags.TagsBundle;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PushwooshNotificationManager {
     private static final String TAG = "NotificationManager";
 
     public static class ApplicationIdReadyEvent implements Event {
-        ApplicationIdReadyEvent() {/*do nothing*/}
+        public ApplicationIdReadyEvent() {/*do nothing*/}
     }
 
     private final RegistrationPrefs registrationPrefs;
@@ -67,12 +67,15 @@ public class PushwooshNotificationManager {
     }
 
     public void initialize() {
+        PWLog.noise(TAG, "initialize()");
+
         MessageHandleChainProvider.init();
         MessageSystemHandleChainProvider.init();
         NotificationOpenHandlerChainProvider.init();
 
         String appId = TextUtils.isEmpty(config.getAppId()) ? registrationPrefs.applicationId().get() : config.getAppId();
         String projectId = DeviceSpecificProvider.getInstance().projectId();
+        PWLog.debug(TAG, "initialized with app id: " + appId + ", sender id: " + projectId);;
 
         if (!TextUtils.isEmpty(projectId)) {
             setSenderId(projectId);
@@ -88,24 +91,25 @@ public class PushwooshNotificationManager {
     }
 
     public void setAppId(String appId) {
+        PWLog.noise(TAG, "setAppId()");
         if (TextUtils.isEmpty(appId)) {
             throw new IllegalArgumentException("Application id is empty");
         }
 
         String oldAppId = registrationPrefs.applicationId().get();
         boolean needUpdateUrl = false;
-        if (!oldAppId.equals(appId)) {
+
+        if (!Objects.equals(oldAppId, appId)) {
             appIdReadyEventSent.set(false);
             if (registrationPrefs.registeredOnServer().get()) {
-                PWLog.info(TAG, "App id changed unregister form previous application");
                 DeviceRegistrar.unregisterWithServer(registrationPrefs.pushToken().get(), registrationPrefs.baseUrl().get());
             }
 
-            PushwooshPlatform.getInstance().reset();
             new ClearRequestStorageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             registrationPrefs.removeAppId();
             needUpdateUrl = true;
             registrationPrefs.forceRegister().set(registrationPrefs.isRegisteredForPush().get());
+            registrationPrefs.setAppId(appId);
             EventBus.sendEvent(new AppIdChangedEvent(appId, oldAppId));
         }
 
@@ -185,6 +189,8 @@ public class PushwooshNotificationManager {
     }
 
     public void registerForPushNotifications(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, boolean shouldRequestPermission, TagsBundle tags) {
+        PWLog.noise(TAG, "registerForPushNotifications()");
+
         EventBus.subscribe(NotificationPermissionEvent.class, new EventListener<NotificationPermissionEvent>() {
             @Override
             public void onReceive(NotificationPermissionEvent event) {
@@ -226,6 +232,8 @@ public class PushwooshNotificationManager {
     }
 
     private void registerForPushesInternal(Callback callback, boolean notificationsAllowed, TagsBundle tags) {
+        PWLog.noise(TAG, "registerForPushesInternal()");
+
         try {
             boolean communicationEnable = registrationPrefs.communicationEnable().get();
             if (!communicationEnable) {

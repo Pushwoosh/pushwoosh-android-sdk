@@ -33,9 +33,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.PushwooshPlatform;
-import com.pushwoosh.exception.ReloadInAppsException;
 import com.pushwoosh.exception.MergeUserException;
 import com.pushwoosh.exception.PostEventException;
+import com.pushwoosh.exception.ReloadInAppsException;
 import com.pushwoosh.exception.RichMediaActionException;
 import com.pushwoosh.exception.SetUserIdException;
 import com.pushwoosh.function.Callback;

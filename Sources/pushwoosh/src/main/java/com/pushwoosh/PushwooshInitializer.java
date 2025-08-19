@@ -36,7 +36,6 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.LockScreenReceiver;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.repository.RepositoryModule;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -111,7 +110,6 @@ public class PushwooshInitializer {
 		} else {
 			context.registerReceiver(lockScreenReceiver, filter);
 		}
-		PWLog.noise(TAG, "Pushwoosh init finished");
 	}
 
 	private static void initFirebaseInXamarinPlugin(Context context) {

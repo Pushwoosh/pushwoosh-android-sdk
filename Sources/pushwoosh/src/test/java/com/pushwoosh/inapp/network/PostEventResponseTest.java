@@ -36,10 +36,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import static org.mockito.Mockito.when;
 
 public class PostEventResponseTest {
 
@@ -53,7 +50,6 @@ public class PostEventResponseTest {
     public void setUp(){
         MockitoAnnotations.initMocks(this);
         InAppModule.setInAppStorage(inAppStorageMock);
-        when(inAppStorageMock.getResource(CODE_1)).thenReturn(resourceMock);
     }
 
     @Test
@@ -66,7 +62,6 @@ public class PostEventResponseTest {
 
         Assert.assertEquals("code1", postEventResponse.getCode());
         Assert.assertEquals(true, postEventResponse.isRequired());
-        Assert.assertEquals(resourceMock, postEventResponse.getResource());
     }
 
     @Test
@@ -78,7 +73,6 @@ public class PostEventResponseTest {
 
         Assert.assertEquals("",postEventResponse.getCode());
         Assert.assertEquals(true, postEventResponse.isRequired());
-        Assert.assertNull(postEventResponse.getResource());
     }
 
     @Test
@@ -92,6 +86,5 @@ public class PostEventResponseTest {
 
         Assert.assertEquals("code1", postEventResponse.getCode());
         Assert.assertEquals(true, postEventResponse.isRequired());
-        Assert.assertNull(postEventResponse.getResource());
     }
 }

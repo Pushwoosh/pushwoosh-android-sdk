@@ -1,22 +1,19 @@
 package com.pushwoosh;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.network.CreateTestDeviceRequest;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.utils.DeviceUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.TranslucentActivity;
-import com.pushwoosh.repository.RepositoryModule;
 
 import java.util.Locale;
 
@@ -27,34 +24,59 @@ public class DeepLinkActivity extends TranslucentActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		Intent intent = getIntent();
-		String action = intent.getAction();
-		Uri data = intent.getData();
+		try {
+			Intent intent = getIntent();
+			String action = intent.getAction();
+			Uri data = intent.getData();
 
-		if (TextUtils.equals(action, Intent.ACTION_VIEW)) {
-			openUrl(data);
+			if (data == null) {
+				return;
+			}
+
+			if (TextUtils.equals(action, Intent.ACTION_VIEW)) {
+				SdkStateProvider.getInstance().executeOrQueue(() -> {openUrl(data);});
+			}
+
+		} catch (Exception e) {
+			PWLog.error(TAG, "can't open url", e);
+		} finally {
+			finish();
+
 		}
-
-		finish();
 	}
 
 	private void openUrl(Uri uri) {
-		String scheme = uri.getScheme().toLowerCase(Locale.getDefault());
-		String host = uri.getHost();
+		PWLog.noise(TAG, "openUrl()");
 
-		if (scheme.startsWith("pushwoosh-")) {
-			if (host.equals("createTestDevice")) {
-				PWLog.debug(TAG, "createTestDevice");
-				createTestDevice(getApplicationContext());
-			} else {
-				PWLog.error(TAG, "unrecognized pushwoosh command");
-			}
+		String scheme = uri.getScheme();
+		String host = uri.getHost();
+		if (scheme == null) {
+			PWLog.warn(TAG, "scheme is null");
+			return;
+		}
+		scheme = scheme.toLowerCase(Locale.getDefault());
+
+		if (host == null) {
+			PWLog.warn(TAG, "host is null");
+			return;
+		}
+
+		if (!scheme.startsWith("pushwoosh-")) {
+			PWLog.warn(TAG, "scheme is not belongs to pushwoosh");
+			return;
+		}
+
+		if (host.equals("createTestDevice")) {
+			createTestDevice(getApplicationContext());
 		} else {
-			PWLog.error(TAG, "This is not pushwoosh scheme");
+			PWLog.error(TAG, "unrecognized pushwoosh command");
 		}
 	}
 
 	private void createTestDevice(final Context context) {
+		PWLog.noise(TAG, "createTestDevice()");
+
+		//todo: move to PushwooshRepository
 		CreateTestDeviceRequest request = new CreateTestDeviceRequest(DeviceUtils.getDeviceName(), "Imported from the app");
 		RequestManager requestManager = NetworkModule.getRequestManager();
 		if (requestManager == null) {

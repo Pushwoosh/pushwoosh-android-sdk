@@ -1,14 +1,13 @@
 package com.pushwoosh.inapp;
 
-import com.pushwoosh.PushwooshPlatform;
-import com.pushwoosh.exception.ReloadInAppsException;
-import com.pushwoosh.exception.PostEventException;
-import com.pushwoosh.function.Callback;
-import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
-import com.pushwoosh.tags.TagsBundle;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.pushwoosh.PushwooshPlatform;
+import com.pushwoosh.exception.PostEventException;
+import com.pushwoosh.exception.ReloadInAppsException;
+import com.pushwoosh.function.Callback;
+import com.pushwoosh.tags.TagsBundle;
 
 /**
  * InAppManager is responsible for In-App messaging functionality.
@@ -97,16 +96,6 @@ public class InAppManager {
     public void registerJavascriptInterface(@NonNull String className, @NonNull String name) {
         if (impl != null)
             impl.registerJavascriptInterface(className, name);
-    }
-
-    public void resetBusinessCasesFrequencyCapping() {
-        PushwooshPlatform pushwooshPlatform = PushwooshPlatform.getInstance();
-        if (pushwooshPlatform != null) {
-            BusinessCasesManager businessCasesManager = pushwooshPlatform.getBusinessCasesManager();
-            if (businessCasesManager != null) {
-                businessCasesManager.resetBusinessCasesFrequencyCapping();
-            }
-        }
     }
 
     public void reloadInApps() {

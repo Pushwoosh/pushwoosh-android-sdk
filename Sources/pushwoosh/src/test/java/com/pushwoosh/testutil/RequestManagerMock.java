@@ -26,11 +26,9 @@
 
 package com.pushwoosh.testutil;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import android.os.Handler;
 import android.os.Looper;
+
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.function.Callback;
@@ -40,10 +38,14 @@ import com.pushwoosh.internal.network.PushRequest;
 import com.pushwoosh.internal.network.PushRequestHelper;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
+import com.pushwoosh.internal.utils.PWLog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.mockito.Mockito;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class RequestManagerMock implements RequestManager {
@@ -64,6 +66,7 @@ public class RequestManagerMock implements RequestManager {
 
 	@Override
 	public <Response> void sendRequest(final PushRequest<Response> request, final String baseUrl, final Callback<Response, NetworkException> callback) {
+		PWLog.noise("RequestManagerMock", "sendRequest: " + request.getMethod());
 		Result<Response, NetworkException> result = sendRequestSync(request);
 
 		if (callback != null) {

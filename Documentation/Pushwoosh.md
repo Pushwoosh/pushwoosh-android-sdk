@@ -81,7 +81,7 @@ Pushwoosh class is used to manage push registration, application tags and local 
 		<td><a href="#1ab87303f51d7244e54e24cc62419a38c6">public void registerWhatsappNumber(String number)</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1a836dd0e2620e4d2744f03c44f7b7b102">public void registerSMSNumber(String number)</a></td>
+		<td><a href="#1adf8a82319c80e4af9c62af406179470f">public void registerSMSNumber(@NonNull String number)</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1a4796ea2a1eddb6b308479e13261732db">public void setShowPushnotificationAlert(boolean showAlert)</a></td>
@@ -378,7 +378,7 @@ Registers device for push notifications<br/><br/><br/><strong>Parameters</strong
 ----------  
   
 
-#### <a name="1a836dd0e2620e4d2744f03c44f7b7b102"></a>public void registerSMSNumber(String number)  
+#### <a name="1adf8a82319c80e4af9c62af406179470f"></a>public void registerSMSNumber(@NonNull String number)  
 
 
 ----------  
@@ -542,7 +542,7 @@ Gets tags associated with current device <br/><br/>
 ```Java
 pushwoosh.getTags((result) -> {
     if (result.isSuccess()) {
-         // tags sucessfully received
+         // tags successfully received
          int intTag = result.getInt("intTag");
     }
     else {

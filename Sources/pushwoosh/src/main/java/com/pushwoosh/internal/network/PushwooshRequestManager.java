@@ -11,10 +11,11 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.pushwoosh.PushwooshPlatform;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
-import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 
@@ -29,13 +30,7 @@ import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Date;
 import java.util.Random;
-
-import javax.net.ssl.HttpsURLConnection;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 
 /**
@@ -213,10 +208,10 @@ class PushwooshRequestManager implements RequestManager {
 			NetworkResult networkResult = getNetworkResultFromConnection(connection);
 			PWLog.debug(TAG, "\n"
 					+ "x\n"
-					+ "|     Pushwoosh request:\n"
-					+ "| Url: " + url.toString() + "\n"
-					+ "| Payload: " + requestJson.toString() + "\n"
-					+ "| Response: " + networkResult.getResponse().toString() + "\n"
+					+ "| Pushwoosh request:\n"
+					+ "| - URL: " + url.toString() + "\n"
+					+ "| - Payload: " + requestJson.toString() + "\n"
+					+ "| - Response: " + networkResult.getResponse().toString() + "\n"
 					+ "x");
 
 			return networkResult;
