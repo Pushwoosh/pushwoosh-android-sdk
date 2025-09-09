@@ -26,6 +26,11 @@
 
 package com.pushwoosh.notification.handlers.message.user;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -33,7 +38,6 @@ import android.content.Intent;
 
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
-import com.pushwoosh.internal.platform.manager.ContextManagerProvider;
 import com.pushwoosh.internal.platform.manager.ManagerProvider;
 import com.pushwoosh.internal.preference.PreferenceArrayListValue;
 import com.pushwoosh.internal.preference.PreferenceBooleanValue;
@@ -58,11 +62,6 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.Serializable;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by aevstefeev on 13/03/2018.
@@ -97,6 +96,8 @@ public class ShowNotificationMessageHandlerTest {
                 MockedStatic<RepositoryModule> repositoryModuleMockedStatic = Mockito.mockStatic(RepositoryModule.class);
                 MockedStatic<SummaryNotificationUtils> summaryNotificationUtils = Mockito.mockStatic(SummaryNotificationUtils.class)
         ) {
+            notificationUtilsMockedStatic.when(() -> NotificationUtils.rebuildWithDefaultValuesIfNeeded(Mockito.any(Notification.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
             platformModuleMockedStatic.when(AndroidPlatformModule::getApplicationContext).thenReturn(RuntimeEnvironment.application);
             String groupId = "groupId";
             summaryNotificationUtils.when(() -> SummaryNotificationUtils.getNotificationIdForGroup(groupId)).thenReturn(1);

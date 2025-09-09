@@ -44,6 +44,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.pushwoosh.RegisterForPushNotificationsResultData;
 import com.pushwoosh.function.Callback;
+import com.pushwoosh.function.RetriableRequestCallback;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
@@ -70,16 +71,21 @@ public class DeviceRegistrar {
 
 	private static final String TAG = "DeviceRegistrar";
 	private static final int COOLDOWN_MINUTES = 10;
-	
-	public static void registerWithServer(
-			final String deviceRegistrationID,
-			String tagsJson,
-			int platform,
-			Callback<Void, NetworkException> callback) {
-		PWLog.noise(TAG, String.format("registerWithServer: token=%s", deviceRegistrationID));
 
-		// registration with main app code
-		RegisterDeviceRequest request = new RegisterDeviceRequest(deviceRegistrationID, tagsJson, platform);
+	public static void registerWithServerWithRetries(String token, String tags, int platform,
+													 Callback<Void, NetworkException> callback) {
+		registerWithServerInternal(token, tags, platform, callback, true);
+	}
+
+	public static void registerWithServer(String token, String tags, int platform,
+													 Callback<Void, NetworkException> callback) {
+		registerWithServerInternal(token, tags, platform, callback, false);
+	}
+
+	private static void registerWithServerInternal(
+			String token, String tags, int platform, Callback<Void, NetworkException> callback,
+			boolean withRetries) {
+		PWLog.noise(TAG, "registerWithServerInternal");
 		RequestManager requestManager = NetworkModule.getRequestManager();
 		//todo: move this not null check in getRequestManager() and throw Exception
 		if (requestManager == null) {
@@ -88,22 +94,26 @@ public class DeviceRegistrar {
 			PWLog.error(TAG, "request manager is null");
 			return;
 		}
+
+		// Main registration
+		RegisterDeviceRequest request = new RegisterDeviceRequest(token, tags, platform);
+		if (withRetries) {
+			callback = new RetriableRequestCallback<>(callback, request);
+		}
+
 		requestManager.sendRequest(request, callback);
 
-		// register token for alternative app codes if needed
-		ArrayList<String> alternativeAppCodes = RepositoryModule.
-				getRegistrationPreferences().alternativeAppCodes().get();
-		if (!alternativeAppCodes.isEmpty()) {
-			for (String appCode : alternativeAppCodes) {
-				PWLog.noise("Registering token for app code: " + appCode);
-				RegisterDeviceRequest altRequest = new RegisterDeviceRequest(
-						deviceRegistrationID,
-						tagsJson,
-						platform,
-						appCode);
+		// Alternative app code registration
+		ArrayList<String> alternativeAppCodes = RepositoryModule.getRegistrationPreferences().alternativeAppCodes().get();
+		for (String appCode : alternativeAppCodes) {
+			PWLog.noise("Registering token for app code: " + appCode);
+			RegisterDeviceRequest altRequest = new RegisterDeviceRequest(token, tags, platform, appCode);
 
-				requestManager.sendRequest(altRequest, callback);
-			}
+			// we do not need callbacks for alternative app codes
+			Callback<Void, NetworkException> altCallback = withRetries
+					? new RetriableRequestCallback<>(null, altRequest)
+					: null;
+			requestManager.sendRequest(altRequest, altCallback);
 		}
 	}
 

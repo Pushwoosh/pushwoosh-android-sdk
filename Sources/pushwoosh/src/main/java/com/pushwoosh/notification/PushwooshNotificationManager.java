@@ -8,7 +8,9 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 
@@ -17,14 +19,17 @@ import com.pushwoosh.RegisterForPushNotificationsResultData;
 import com.pushwoosh.exception.RegisterForPushNotificationsException;
 import com.pushwoosh.exception.UnregisterForPushNotificationException;
 import com.pushwoosh.function.Callback;
+import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.event.AppIdChangedEvent;
 import com.pushwoosh.internal.event.Event;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.event.NotificationPermissionEvent;
+import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.registrar.ExistingTokenRegistrarWorker;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.Config;
@@ -226,9 +231,28 @@ public class PushwooshNotificationManager {
         }
     }
 
-    public void registerExistingToken(String token, Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
+    public void registerExistingToken(
+            String token,
+            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback
+    ) {
+        PWLog.noise(TAG, "RegisterExistingToken");
+        if (TextUtils.isEmpty(token)) {
+            PWLog.error(TAG, "Token is empty, ignoring method call");
+            return;
+        }
         RegistrationCallbackHolder.setCallback(callback, false);
-        this.onRegisteredForRemoteNotifications(token, null);
+        Data inputData = new Data.Builder()
+                .putString(ExistingTokenRegistrarWorker.TOKEN, token)
+                .build();
+        OneTimeWorkRequest existingWorkerRequest = new OneTimeWorkRequest.Builder(ExistingTokenRegistrarWorker.class)
+                .setInputData(inputData)
+                .setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
+                .build();
+        PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                existingWorkerRequest,
+                ExistingTokenRegistrarWorker.TAG,
+                ExistingWorkPolicy.REPLACE
+        );
     }
 
     private void registerForPushesInternal(Callback callback, boolean notificationsAllowed, TagsBundle tags) {
@@ -310,12 +334,34 @@ public class PushwooshNotificationManager {
         pushesRescheduled.set(true);
     }
 
-    public void onRegisteredForRemoteNotifications(String pushToken, String tagsJson) {
+    public void onExistingTokenReceived(String pushToken, String tagsJson) {
+        onRegisteredForRemoteNotifications(pushToken, tagsJson, true);
+    }
+
+    public void onRemoteTokenReceived(String pushToken, String tagsJson) {
+        onRegisteredForRemoteNotifications(pushToken, tagsJson, false);
+    }
+
+    private void onRegisteredForRemoteNotifications(String pushToken, String tagsJson, boolean shouldRetryRegistration) {
         PWLog.noise("PushwooshNotificationManager", String.format("onRegisteredForRemoteNotifications: %s", pushToken));
         //todo: probably we should move this into `if (result.isSuccess) { ... }`
         registrationPrefs.pushToken().set(pushToken);
         if (DeviceSpecificProvider.getInstance() != null) {
-            DeviceRegistrar.registerWithServer(pushToken, tagsJson, DeviceSpecificProvider.getInstance().deviceType(), result -> {
+            if (shouldRetryRegistration) {
+                DeviceRegistrar.registerWithServerWithRetries(
+                        pushToken,tagsJson,DeviceSpecificProvider.getInstance().deviceType(), provideServerRegistrationCallback(pushToken));
+            } else {
+                DeviceRegistrar.registerWithServer(
+                        pushToken,tagsJson,DeviceSpecificProvider.getInstance().deviceType(), provideServerRegistrationCallback(pushToken));
+            }
+        }
+    }
+
+    private Callback<Void, NetworkException> provideServerRegistrationCallback(String pushToken) {
+        PWLog.noise(TAG, "provideServerRegistrationCallback");
+        return new Callback<Void, NetworkException>() {
+            @Override
+            public void process(@NonNull Result<Void, NetworkException> result) {
                 if (result.isSuccess()) {
                     registrationPrefs.registeredOnServer().set(true);
                     registrationPrefs.lastPushRegistration().set(new Date().getTime());
@@ -332,8 +378,8 @@ public class PushwooshNotificationManager {
 
                     PWLog.error(TAG, "can't register device", result.getException());
                 }
-            });
-        }
+            }
+        };
     }
 
     public void onFailedToRegisterForRemoteNotifications(String error) {

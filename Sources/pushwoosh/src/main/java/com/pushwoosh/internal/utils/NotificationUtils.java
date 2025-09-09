@@ -2,6 +2,9 @@ package com.pushwoosh.internal.utils;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -11,16 +14,20 @@ import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.PowerManager;
-import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
+
 import com.pushwoosh.PushwooshPlatform;
-import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.fileprovider.PWFileProvider;
+import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.notification.SoundType;
+import com.pushwoosh.notification.builder.AppIconHelper;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
@@ -208,17 +215,14 @@ public class NotificationUtils {
     }
 
     @SuppressLint("NewApi")
-    public static boolean isNotificationEnabled() {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.KITKAT) {
-            return true;
-        }
-
+    public static boolean areNotificationsEnabled() {
         Context context = AndroidPlatformModule.getApplicationContext();
         if (context == null) {
             PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
             return false;
-        }
-        return NotificationManagerCompat.from(context).areNotificationsEnabled();
+        } else return Build.VERSION.SDK_INT >= 33 ? ActivityCompat.checkSelfPermission(context,
+                        "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED :
+                NotificationManagerCompat.from(context).areNotificationsEnabled();
     }
 
     public static void turnScreenOn() {
@@ -332,6 +336,43 @@ public class NotificationUtils {
         if (!handleUsingWorkManager) {
             int twoSeconds = 2000;
             connection.setConnectTimeout(twoSeconds);
+        }
+    }
+
+    public static Notification rebuildWithDefaultValuesIfNeeded(Notification notification) {
+        Context context = AndroidPlatformModule.getApplicationContext();
+        boolean isEmptyGroup = TextUtils.isEmpty(notification.getGroup());
+        boolean isNullIcon = notification.getSmallIcon() == null;
+        boolean isEmptyChannel=false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            isEmptyChannel = TextUtils.isEmpty(notification.getChannelId());
+        }
+
+        if (!isEmptyGroup && !isEmptyChannel && !isNullIcon) {
+            return notification;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            Notification.Builder notificationBuilder = Notification.Builder.
+                    recoverBuilder(context, notification);
+            if (isEmptyGroup) notificationBuilder.setGroup(NotificationPrefs.DEFAULT_NOTIFICATION_GROUP);
+            if (isNullIcon) notificationBuilder.setSmallIcon(
+                    AppIconHelper.getAppIcon(context,AndroidPlatformModule.getAppInfoProvider().getPackageName()));
+            if (isEmptyChannel) {
+                final NotificationManager nm =
+                        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                if (nm.getNotificationChannel(NotificationPrefs.DEFAULT_CHANNEL_NAME) == null) {
+                    nm.createNotificationChannel(
+                            new NotificationChannel(NotificationPrefs.DEFAULT_CHANNEL_NAME,
+                                    NotificationPrefs.DEFAULT_CHANNEL_NAME,
+                                    NotificationManager.IMPORTANCE_DEFAULT)
+                    );
+                }
+                notificationBuilder.setChannelId(NotificationPrefs.DEFAULT_CHANNEL_NAME);
+            }
+
+            return notificationBuilder.build();
+        } else {
+            return notification;
         }
     }
 }

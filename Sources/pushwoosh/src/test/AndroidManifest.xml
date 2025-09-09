@@ -1,0 +1,114 @@
+<manifest
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <!-- Keeps the processor from sleeping when a message is received. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- FCM connects to Firebase Services. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- This app has permission to register and receive data message. -->
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+
+    <!-- Android 13+ devices require this permission to show notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Vibration in push notification -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="http"/>
+        </intent>
+    </queries>
+
+
+
+    <application>
+        <!-- Remove AndroidX Startup provider so WorkManager isn't auto-initialized in tests -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            tools:node="remove" />
+
+        <!-- Explicitly disable WorkManager's initializer via AndroidX Startup -->
+        <meta-data
+            android:name="androidx.work.WorkManagerInitializer"
+            android:value="false" />
+
+        <activity
+            android:name="com.pushwoosh.inapp.view.RichMediaWebActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <activity
+            android:name="com.pushwoosh.notification.NotificationOpenActivity"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="false" />
+
+        <receiver
+            android:name="com.pushwoosh.BootReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name="com.pushwoosh.internal.utils.PermissionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <activity
+            android:name="com.pushwoosh.internal.utils.NotificationPermissionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <receiver android:name="com.pushwoosh.notification.LocalNotificationReceiver" />
+
+        <!-- uses applicationId -->
+        <provider
+            android:name="com.pushwoosh.PushwooshInitProvider"
+            android:authorities="${applicationId}.pushwooshinitprovider"
+            android:enabled="true"
+            android:exported="false"
+            android:initOrder="50" />
+        <!-- uses applicationId end -->
+        <provider
+            android:name="com.pushwoosh.PushwooshSharedDataProvider"
+            android:authorities="${applicationId}.PushwooshSharedDataProvider"
+            android:enabled="true"
+            android:exported="true"
+            android:initOrder="60"
+            />
+        <receiver
+            android:name="com.pushwoosh.NotificationUpdateReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <provider
+            android:name="com.pushwoosh.internal.fileprovider.PWFileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/pw_provider_paths"/>
+        </provider>
+    </application>
+</manifest>

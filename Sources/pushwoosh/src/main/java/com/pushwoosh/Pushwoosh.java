@@ -23,6 +23,7 @@ import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.Subscription;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
+import com.pushwoosh.internal.utils.NotificationUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.LocalNotification;
 import com.pushwoosh.notification.LocalNotificationRequest;
@@ -334,16 +335,23 @@ public class Pushwoosh {
         registerForPushNotificationsInternal(callback, false, tagsBundle);
     }
 
-    public void registerExistingToken(@NonNull String token, Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
+    public void registerExistingToken(@NonNull String token, @Nullable Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().registerExistingToken()");
         try {
             if (!ensureInitialized()) {
                 return;
             }
 
-            if (Objects.isNull(token) || TextUtils.isEmpty(token)) {
+            if (TextUtils.isEmpty(token)) {
                 PWLog.warn("Pushwoosh", "token is empty");
                 safeProcessCallback(callback, Result.fromException(new RegisterForPushNotificationsException("token is empty")));
+                return;
+            }
+
+            if (token.equals(registrationPrefs.pushToken().get())) {
+                RegisterForPushNotificationsResultData data =
+                        new RegisterForPushNotificationsResultData(token, NotificationUtils.areNotificationsEnabled());
+                safeProcessCallback(callback, Result.fromData(data));
                 return;
             }
 

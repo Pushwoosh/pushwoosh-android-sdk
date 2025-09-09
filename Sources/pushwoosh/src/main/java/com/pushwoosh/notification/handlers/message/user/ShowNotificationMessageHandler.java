@@ -26,6 +26,11 @@
 
 package com.pushwoosh.notification.handlers.message.user;
 
+import static com.pushwoosh.internal.platform.AndroidPlatformModule.getApplicationContext;
+import static com.pushwoosh.notification.NotificationIntentHelper.EXTRA_GROUP_ID;
+import static com.pushwoosh.notification.NotificationIntentHelper.EXTRA_NOTIFICATION_ROW_ID;
+import static com.pushwoosh.notification.SummaryNotificationUtils.getNotificationIdForGroup;
+
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -33,10 +38,10 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationManagerCompat;
-
-import android.text.TextUtils;
 
 import com.pushwoosh.NotificationUpdateReceiver;
 import com.pushwoosh.internal.event.EventBus;
@@ -44,7 +49,13 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.NotificationUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.PendingIntentUtils;
-import com.pushwoosh.notification.*;
+import com.pushwoosh.notification.LocalNotificationReceiver;
+import com.pushwoosh.notification.NotificationFactory;
+import com.pushwoosh.notification.NotificationIntentHelper;
+import com.pushwoosh.notification.PushMessage;
+import com.pushwoosh.notification.PushwooshNotificationFactory;
+import com.pushwoosh.notification.SummaryNotificationFactory;
+import com.pushwoosh.notification.SummaryNotificationUtils;
 import com.pushwoosh.notification.builder.NotificationBuilderManager;
 import com.pushwoosh.repository.LocalNotificationStorage;
 import com.pushwoosh.repository.NotificationPrefs;
@@ -52,11 +63,6 @@ import com.pushwoosh.repository.RepositoryModule;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.pushwoosh.internal.platform.AndroidPlatformModule.getApplicationContext;
-import static com.pushwoosh.notification.NotificationIntentHelper.EXTRA_GROUP_ID;
-import static com.pushwoosh.notification.NotificationIntentHelper.EXTRA_NOTIFICATION_ROW_ID;
-import static com.pushwoosh.notification.SummaryNotificationUtils.getNotificationIdForGroup;
 
 class ShowNotificationMessageHandler extends NotificationMessageHandler {
 	private final static String TAG = ShowNotificationMessageHandler.class.getSimpleName();
@@ -99,12 +105,15 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 		if (notification == null) {
 			return;
 		}
+		notification = NotificationUtils.rebuildWithDefaultValuesIfNeeded(notification);
 		// generate summary notification only for Android.N and newer versions
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 			List<StatusBarNotification> activeNotifications = NotificationBuilderManager.getActiveNotifications();
 
+			// notification has to be effectively final to call Notification.getGroup()
+			Notification finalNotification = notification;
 			List<StatusBarNotification> notificationsWithGroupId = activeNotifications.stream()
-					.filter(statusBarNotification -> TextUtils.equals(statusBarNotification.getNotification().getGroup(), notification.getGroup()))
+					.filter(statusBarNotification -> TextUtils.equals(statusBarNotification.getNotification().getGroup(), finalNotification.getGroup()))
 					.collect(Collectors.toList());
 
 			if (notificationsWithGroupId.size() >= 1) {

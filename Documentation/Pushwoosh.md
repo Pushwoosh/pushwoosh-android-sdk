@@ -69,7 +69,7 @@ Pushwoosh class is used to manage push registration, application tags and local 
 		<td><a href="#1a83bb611e9123928bd78ed08e1af1396f">public void registerForPushNotificationsWithTagsWithoutPermission(Callback&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback, TagsBundle tagsBundle)</a></td>
 	</tr>
 	<tr>
-		<td><a href="#1a5a36f3f0301f6483f58c7c83351a2711">public void registerExistingToken(@NonNull String token, Callback&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback)</a></td>
+		<td><a href="#1ace72513bee94f340fbf8d8d8dfaa3987">public void registerExistingToken(@NonNull String token, @Nullable Callback&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback)</a></td>
 	</tr>
 	<tr>
 		<td><a href="#1aea45f4c233897028e053ccb0e559ae8b">public void addAlternativeAppCode(String appCode)</a></td>
@@ -354,7 +354,7 @@ Registers device for push notifications<br/><br/><br/><strong>Parameters</strong
 ----------  
   
 
-#### <a name="1a5a36f3f0301f6483f58c7c83351a2711"></a>public void registerExistingToken(@NonNull String token, <a href="function/Callback.md">Callback</a>&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback)  
+#### <a name="1ace72513bee94f340fbf8d8d8dfaa3987"></a>public void registerExistingToken(@NonNull String token, @Nullable <a href="function/Callback.md">Callback</a>&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; callback)  
 
 
 ----------  

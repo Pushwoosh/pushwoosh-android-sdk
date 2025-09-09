@@ -6,7 +6,6 @@ import androidx.annotation.ColorInt;
 
 import com.pushwoosh.PushwooshInitializer;
 import com.pushwoosh.PushwooshPlatform;
-import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.NotificationUtils;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
@@ -109,7 +108,7 @@ public class PushwooshNotificationSettings {
 	 */
 	public static boolean areNotificationsEnabled() {
 		if (checkIfInitializaed()) {
-			return NotificationUtils.isNotificationEnabled() && PREFERENCES.notificationEnabled().get();
+			return NotificationUtils.areNotificationsEnabled() && PREFERENCES.notificationEnabled().get();
 		}
 		return false;
 	}

@@ -27,6 +27,15 @@
 package com.pushwoosh.repository;
 
 
+import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+
 import com.ibm.icu.util.Calendar;
 import com.pushwoosh.RegisterForPushNotificationsResultData;
 import com.pushwoosh.exception.RegisterForPushNotificationsException;
@@ -58,16 +67,6 @@ import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
-
-
-import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
 
 
 @RunWith(RobolectricTestRunner.class)
@@ -186,7 +185,7 @@ public class RegistrationTest {
 		notificationManager.registerForPushNotifications(callback, true, null);
 		assertThat(notificationManager.getPushToken(), is(nullValue())); // intermediate condition
 
-		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN, null);
+		notificationManager.onRemoteTokenReceived(PUSH_TOKEN, null);
 
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
@@ -215,7 +214,7 @@ public class RegistrationTest {
 
 		// Steps:
 		notificationManager.registerForPushNotifications(null, true, null);
-		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN, null);
+		notificationManager.onRemoteTokenReceived(PUSH_TOKEN, null);
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		// Postcondition:
@@ -254,7 +253,7 @@ public class RegistrationTest {
 
 		// Steps:
 		notificationManager.registerForPushNotifications(callback, true, null);
-		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN, null);
+		notificationManager.onRemoteTokenReceived(PUSH_TOKEN, null);
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		verify(pushRegistrarMock, timeout(1000)).registerPW(null);
@@ -271,7 +270,7 @@ public class RegistrationTest {
 
 		// Steps:
 		notificationManager.registerForPushNotifications(null, true, null);
-		notificationManager.onRegisteredForRemoteNotifications(PUSH_TOKEN, null);
+		notificationManager.onRemoteTokenReceived(PUSH_TOKEN, null);
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		// Postcondition:

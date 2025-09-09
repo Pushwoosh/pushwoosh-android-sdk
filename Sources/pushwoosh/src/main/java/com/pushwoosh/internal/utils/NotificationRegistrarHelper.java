@@ -58,12 +58,15 @@ public final class NotificationRegistrarHelper {
 		// this if checks whether device is registered with Pushwoosh and does not allow passing a token if it is not
 		//todo: remove this check
 		if (!isRegisteredForRemoteNotifications()) {
-			PWLog.warn("NotificationRegistrarHelper", "device should be registered directly for continue, abort");
+			PWLog.warn(
+					"NotificationRegistrarHelper",
+					"Device should be registered directly to continue registration, token change ignored"
+			);
 			return;
 		}
 
 		PushwooshNotificationManager notificationManager = PushwooshPlatform.getInstance().notificationManager();
-		notificationManager.onRegisteredForRemoteNotifications(registrationId, tagsJson);
+		notificationManager.onRemoteTokenReceived(registrationId, tagsJson);
 	}
 
 	public static void clearToken() {
