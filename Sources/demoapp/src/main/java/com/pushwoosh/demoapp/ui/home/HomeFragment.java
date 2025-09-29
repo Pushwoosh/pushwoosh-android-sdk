@@ -1,6 +1,7 @@
 package com.pushwoosh.demoapp.ui.home;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.demoapp.databinding.FragmentHomeBinding;
 import com.pushwoosh.inapp.InAppManager;
+import com.pushwoosh.inbox.ui.presentation.view.activity.InboxActivity;
 import com.pushwoosh.tags.TagsBundle;
 
 import java.util.Objects;
@@ -68,6 +70,9 @@ public class HomeFragment extends Fragment {
 
         // CLEAR NOTIFICATION CENTER ELEMENT
         Button clearNotificationCenter = binding.button9;
+
+        // OPEN INBOX ELEMENT
+        Button openInbox = binding.buttonInbox;
 
         attributes.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -160,6 +165,14 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Pushwoosh.getInstance().clearLaunchNotification();
+            }
+        });
+
+        openInbox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), InboxActivity.class);
+                startActivity(intent);
             }
         });
 

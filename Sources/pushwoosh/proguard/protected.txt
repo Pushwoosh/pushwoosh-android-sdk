@@ -181,10 +181,6 @@
   public protected *;
 }
 
--keep public class com.pushwoosh.internal.event.* {
-  public protected *;
-}
-
 -keep class com.pushwoosh.notification.handlers.message.user.NotificationCreatedEvent {
     public protected *;
 }
@@ -311,11 +307,17 @@
     public static void init(android.content.Context);
 }
 
+# Keep ContentProvider to ensure automatic initialization works in release builds
+-keep public class com.pushwoosh.PushwooshInitProvider {
+    public protected *;
+    # Keep default constructor for ContentProvider instantiation
+    public <init>();
+}
+
 -keep public class com.pushwoosh.internal.utils.SdkStatusChecker { *; }
 
 -keep public class com.pushwoosh.PushwooshPlatform {
-    public static com.pushwoosh.PushwooshPlatform getInstance();
-    public com.pushwoosh.notification.PushwooshNotificationManager notificationManager();
+    public protected *;
 }
 
 -keep public class com.pushwoosh.notification.PushwooshNotificationManager {

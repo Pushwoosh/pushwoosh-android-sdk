@@ -8,9 +8,11 @@ import android.os.Bundle
 import android.telecom.PhoneAccountHandle
 import android.telecom.TelecomManager
 import com.pushwoosh.calls.service.PushwooshConnectionService
+import com.pushwoosh.calls.util.CallPrefs
 import com.pushwoosh.calls.util.Constants.Companion.PW_NOTIFICATION_ID_INCOMING
 import com.pushwoosh.calls.util.PushwooshCallUtils
 import com.pushwoosh.internal.platform.AndroidPlatformModule
+import com.pushwoosh.internal.utils.PWLog
 import com.pushwoosh.notification.handlers.message.system.MessageSystemHandler
 
 
@@ -18,6 +20,14 @@ class CallNotificationHandler : MessageSystemHandler {
     override fun preHandleMessage(pushBundle: Bundle?): Boolean {
         val voipKey = pushBundle?.get("voip").toBoolean()
         if(voipKey) {
+            PushwooshCallUtils.syncCallPermissionWithSystem()
+            
+            val permissionStatus = PushwooshCallPlugin.instance.callPrefs.getCallPermissionStatus()
+            if (permissionStatus == CallPrefs.PERMISSION_STATUS_DENIED) {
+                PWLog.warn("CallNotificationHandler", "VoIP call received but permissions are denied, ignoring call")
+                return true
+            }
+            
             val context = AndroidPlatformModule.getApplicationContext()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (context != null) {
@@ -46,7 +56,6 @@ class CallNotificationHandler : MessageSystemHandler {
         return false
     }
 
-    // helper function to read different values of "voip" flag and convert to boolean if needed
     private fun Any?.toBoolean(): Boolean {
         return when (this) {
             is Boolean -> this

@@ -143,3 +143,27 @@
 -keep public class com.pushwoosh.inapp.view.inline.InlineInAppViewListener {
     *;
 }
+
+-keep public class com.pushwoosh.PushwooshPlatform {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.repository.PushwooshRepository {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.event.* {
+    public protected *;
+}
+
+-keep public class com.pushwoosh.internal.utils.RequestPermissionHelper {
+    public protected *;
+}
+
+-keep class com.pushwoosh.internal.utils.PWLog {
+    public protected *;
+}
+
+-keep class com.pushwoosh.internal.Plugin {
+    public protected *;
+}

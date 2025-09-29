@@ -21,6 +21,8 @@ import com.pushwoosh.inapp.view.config.enums.ModalRichMediaSwipeGesture;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 
+import java.util.Set;
+
 public class ModalRichMediaWindowUtils {
     private static final float SWIPE_THRESHOLD_FACTOR = 0.5f;
 
@@ -313,24 +315,22 @@ public class ModalRichMediaWindowUtils {
 
         // Check horizontal swipe (left or right)
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            // Left swipe: check if more than half of the window has moved off the left screen
-            if (config.getSwipeGesture() == ModalRichMediaSwipeGesture.LEFT && (windowLocation[0] + windowWidth*SWIPE_THRESHOLD_FACTOR) < 0) {
+            Set<ModalRichMediaSwipeGesture> gestures = config.getSwipeGestures();
+            if (gestures.contains(ModalRichMediaSwipeGesture.LEFT) && (windowLocation[0] + windowWidth * SWIPE_THRESHOLD_FACTOR) < 0) {
                 isDismiss = true;
             }
-            // Right swipe: check if more than half of the window has moved off the right screen
-            if (config.getSwipeGesture() == ModalRichMediaSwipeGesture.RIGHT && (windowLocation[0] + windowWidth * SWIPE_THRESHOLD_FACTOR) > screenWidth) {
+            if (gestures.contains(ModalRichMediaSwipeGesture.RIGHT) && (windowLocation[0] + windowWidth * SWIPE_THRESHOLD_FACTOR) > screenWidth) {
                 isDismiss = true;
             }
         }
 
         // Check vertical swipe (up or down)
         if (Math.abs(deltaY) > Math.abs(deltaX)) {
-            // Up swipe: check if more than half of the window has moved off the top of the screen
-            if (config.getSwipeGesture() == ModalRichMediaSwipeGesture.UP && (windowLocation[1] + windowHeight * SWIPE_THRESHOLD_FACTOR) < 0) {
+            Set<ModalRichMediaSwipeGesture> gestures = config.getSwipeGestures();
+            if (gestures.contains(ModalRichMediaSwipeGesture.UP) && (windowLocation[1] + windowHeight * SWIPE_THRESHOLD_FACTOR) < 0) {
                 isDismiss = true;
             }
-            // Down swipe: check if more than half of the window has moved off the bottom of the screen
-            if (config.getSwipeGesture() == ModalRichMediaSwipeGesture.DOWN && (windowLocation[1] + windowHeight * SWIPE_THRESHOLD_FACTOR) > screenHeight + getSystemWindowInsetTop() + getSystemWindowInsetBottom()) {
+            if (gestures.contains(ModalRichMediaSwipeGesture.DOWN) && (windowLocation[1] + windowHeight * SWIPE_THRESHOLD_FACTOR) > screenHeight + getSystemWindowInsetTop() + getSystemWindowInsetBottom()) {
                 isDismiss = true;
             }
         }
@@ -345,15 +345,17 @@ public class ModalRichMediaWindowUtils {
     }
 
     public static void movePopupOnDragEvent(ModalRichMediaWindow window, int dx, int dy, ModalRichmediaConfig config) {
-        //if window has Gravity.BOTTOM, window's "anchor point" is the bottom of the screen, so positive values move it upwards,
-        //and we need to invert the value
+        //if window has Gravity.BOTTOM, window's "anchor point" is the bottom of the screen,
+        // so positive values move it upwards, and we need to invert the value
         if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
             dy = -dy;
         }
-        if (config.getSwipeGesture() != ModalRichMediaSwipeGesture.NONE) {
-            //ignore dx if swipe gesture is vertical and dy if horizontal
-            dx = ((config.getSwipeGesture() == ModalRichMediaSwipeGesture.UP || config.getSwipeGesture() == ModalRichMediaSwipeGesture.DOWN)) ? 0 : dx;
-            dy = ((config.getSwipeGesture() == ModalRichMediaSwipeGesture.LEFT || config.getSwipeGesture() == ModalRichMediaSwipeGesture.RIGHT)) ? 0 : dy;
+        Set<ModalRichMediaSwipeGesture> gestures = config.getSwipeGestures();
+        if (!gestures.isEmpty()) {
+            boolean verticalAllowed = gestures.contains(ModalRichMediaSwipeGesture.UP) || gestures.contains(ModalRichMediaSwipeGesture.DOWN);
+            boolean horizontalAllowed = gestures.contains(ModalRichMediaSwipeGesture.LEFT) || gestures.contains(ModalRichMediaSwipeGesture.RIGHT);
+            dx = horizontalAllowed ? dx : 0;
+            dy = verticalAllowed ? dy : 0;
 
             window.update(dx, dy + window.getTopInset() + window.getBottomInset(), -1, -1, true);
         }
@@ -392,5 +394,18 @@ public class ModalRichMediaWindowUtils {
     public static int getSystemWindowInsetBottom() {
         Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
         return topActivity.getWindow().getDecorView().getRootWindowInsets().getSystemWindowInsetBottom();
+    }
+
+    public static int getSystemWindowInsetBottom(ModalRichmediaConfig config) {
+        Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
+        int insetBottom = topActivity.getWindow().getDecorView().getRootWindowInsets().getSystemWindowInsetBottom();
+        
+        // For Android 15+ (API 35+), check edge-to-edge layout config
+        if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE && 
+            config != null && Boolean.TRUE.equals(config.shouldRespectEdgeToEdgeLayout())) {
+            return 0; // respect edge-to-edge = extend to very bottom
+        }
+        
+        return insetBottom;
     }
 }

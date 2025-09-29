@@ -96,11 +96,12 @@ public class NotificationPrefs {
 	private static final String PROPERTY_SHOW_FULLSCREEN_RICHMEDIA = "pw_show_fullscreen_richmedia";
 	private static final String PROPERTY_RICHMEDIA_DISMISS_ANIMATION_TYPE = "pw_richmedia_dissmiss_animation";
 	private static final String PROPERTY_RICHMEDIA_PRESENT_ANIMATION_TYPE = "pw_richmedia_present_animation";
-	private static final String PROPERTY_RICHMEDIA_SWIPE_GESTURE = "pw_richmedia_swipe_gesture";
+	private static final String PROPERTY_RICHMEDIA_SWIPE_GESTURE_BITMASK = "pw_richmedia_swipe_gesture_bitmask";
 	private static final String PROPERTY_RICHMEDIA_VIEW_POSITION = "pw_richmedia_view_position";
 	private static final String PROPERTY_RICHMEDIA_WINDOW_WIDTH = "pw_richmedia_window_width";
 	private static final String PROPERTY_RICHMEDIA_ANIMATION_DURATION = "pw_richmedia_animation_duration";
 	private static final String PROPERTY_RICHMEDIA_STATUS_BAR_COVERED = "pw_richmedia_status_bar_covered";
+	private static final String PROPERTY_RICHMEDIA_RESPECT_EDGE_TO_EDGE_LAYOUT = "pw_richmedia_respect_edge_to_edge_layout";
 	private static final String PROPERTY_ALLOWED_EXTERNAL_HOSTS = "pw_allowed_external_hosts";
 
 
@@ -134,11 +135,12 @@ public class NotificationPrefs {
 	private final PreferenceBooleanValue showFullscreenRichMedia;
 	private final PreferenceIntValue richMediaDismissAnimation;
 	private final PreferenceIntValue richMediaPresentAnimation;
-	private final PreferenceIntValue richMediaSwipeGesture;
+	private final PreferenceIntValue richMediaSwipeGestureBitMask;
 	private final PreferenceIntValue richMediaViewPosition;
 	private final PreferenceIntValue richmediaWindowWidth;
 	private final PreferenceIntValue richMediaAnimationDuration;
 	private final PreferenceBooleanValue richMediaStatusBarCovered;
+	private final PreferenceBooleanValue richMediaRespectEdgeToEdgeLayout;
 
 
 	NotificationPrefs(Config config) {
@@ -175,12 +177,13 @@ public class NotificationPrefs {
 
 		richMediaDismissAnimation = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_DISMISS_ANIMATION_TYPE, ModalRichMediaDismissAnimationType.FADE_OUT.getCode());
 		richMediaPresentAnimation = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_PRESENT_ANIMATION_TYPE, ModalRichMediaPresentAnimationType.FADE_IN.getCode());
-		richMediaSwipeGesture = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_SWIPE_GESTURE, ModalRichMediaSwipeGesture.NONE.getCode());
+		richMediaSwipeGestureBitMask = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_SWIPE_GESTURE_BITMASK, 0);
 		richMediaViewPosition = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_VIEW_POSITION, ModalRichMediaViewPosition.FULLSCREEN.getCode());
 		richmediaWindowWidth = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_WINDOW_WIDTH, ModalRichMediaWindowWidth.FULL_SCREEN.getCode());
 
 		richMediaAnimationDuration = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_ANIMATION_DURATION, 1000);
 		richMediaStatusBarCovered = new PreferenceBooleanValue(preferences, PROPERTY_RICHMEDIA_STATUS_BAR_COVERED, false);
+		richMediaRespectEdgeToEdgeLayout = new PreferenceBooleanValue(preferences, PROPERTY_RICHMEDIA_RESPECT_EDGE_TO_EDGE_LAYOUT, true);
 
 		PWLog.noise("NotificationPrefs() done");
 	}
@@ -189,7 +192,7 @@ public class NotificationPrefs {
 
 	public PreferenceIntValue richMediaPresentAnimation() { return richMediaPresentAnimation; }
 
-	public PreferenceIntValue richMediaSwipeGesture() { return richMediaSwipeGesture; }
+	public PreferenceIntValue richMediaSwipeGestureBitMask() { return richMediaSwipeGestureBitMask; }
 
 	public PreferenceIntValue richMediaViewPosition() { return richMediaViewPosition; }
 
@@ -198,6 +201,8 @@ public class NotificationPrefs {
 	public PreferenceIntValue richMediaAnimationDuration() { return richMediaAnimationDuration; }
 
 	public PreferenceBooleanValue richMediaStatusBarCovered() { return richMediaStatusBarCovered; }
+
+	public PreferenceBooleanValue richMediaRespectEdgeToEdgeLayout() { return richMediaRespectEdgeToEdgeLayout; }
 
 	public PreferenceBooleanValue multiMode() {
 		return multiMode;

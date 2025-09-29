@@ -44,6 +44,7 @@ import com.pushwoosh.exception.PostEventException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
+import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
@@ -96,6 +97,7 @@ public class InAppTest {
 		requestManagerMock = platformTestManager.getRequestManager();
 		pushwooshInApp = platformTestManager.getPushwooshInApp();
 		pushwooshRepository = platformTestManager.getPushwooshRepository();
+		SdkStateProvider.getInstance().setReady();
 
 		Handler inlineMain = mock(Handler.class);
 		when(inlineMain.post(any())).thenAnswer(inv -> {
@@ -114,6 +116,7 @@ public class InAppTest {
 	@After
 	public void tearDown() throws Exception {
 		platformTestManager.tearDown();
+		SdkStateProvider.getInstance().resetForTesting();
 	}
 
 	//Tests postEvent method sends correct request successfuly

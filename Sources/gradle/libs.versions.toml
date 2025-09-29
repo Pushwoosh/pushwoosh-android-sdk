@@ -1,10 +1,12 @@
 [versions]
+activityKtx = "1.8.1"
 firebaseMessaging = "24.0.0"
+glide = "4.7.1"
 googleServices = "4.4.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
-appcompat = "1.6.1"
+appcompat = "1.7.0"
 material = "1.12.0"
 constraintlayout = "2.1.4"
 lifecycleLivedataKtx = "2.8.0"
@@ -12,10 +14,15 @@ lifecycleViewmodelKtx = "2.8.0"
 navigationFragment = "2.7.7"
 navigationUi = "2.7.7"
 coreKtx = "1.10.1"
-pushwooshFirebase = "6.7.32"
+playServicesLocation = "21.0.1"
+pushwooshFirebase = "6.7.33-beta"
+swiperefreshlayout = "1.1.0"
+workRuntime = "2.8.1"
 
 [libraries]
+activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging", version.ref = "firebaseMessaging" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -27,5 +34,8 @@ lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-lived
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 pushwoosh-firebase = { module = "com.pushwoosh:pushwoosh-firebase", version.ref = "pushwooshFirebase" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
+work-runtime = { module = "androidx.work:work-runtime", version.ref = "workRuntime" }

@@ -32,4 +32,16 @@ public enum ModalRichMediaViewPosition {
         PWLog.error("Unknown code of source: " + code);
         return null;
     }
+
+    public static ModalRichMediaViewPosition fromString(String value) {
+        if (value == null) return null;
+        switch (value.toLowerCase()) {
+            case "top": return TOP;
+            case "center": return CENTER;
+            case "bottom": return BOTTOM;
+            case "fullscreen": return FULLSCREEN;
+            default:
+                return null;
+        }
+    }
 }

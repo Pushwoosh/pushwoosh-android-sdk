@@ -34,4 +34,18 @@ public enum ModalRichMediaPresentAnimationType {
         PWLog.error("Unknown code of source: " + code);
         return null;
     }
+
+    public static ModalRichMediaPresentAnimationType fromString(String value) {
+        if (value == null) return null;
+        switch (value.toLowerCase()) {
+            case "fade_in": return FADE_IN;
+            case "down": return DROP_DOWN;
+            case "left": return SLIDE_FROM_LEFT;
+            case "up": return SLIDE_UP;
+            case "right": return SLIDE_FROM_RIGHT;
+            case "none": return NONE;
+            default:
+                return null;
+        }
+    }
 }

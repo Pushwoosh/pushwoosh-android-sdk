@@ -6,21 +6,35 @@ import com.pushwoosh.inapp.view.config.enums.ModalRichMediaSwipeGesture;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaWindowWidth;
 
-public class ModalRichmediaConfig {
-    private ModalRichMediaViewPosition viewPosition = ModalRichMediaViewPosition.FULLSCREEN;
-    private ModalRichMediaSwipeGesture swipeGesture = ModalRichMediaSwipeGesture.NONE;
-    private ModalRichMediaPresentAnimationType presentAnimationType = ModalRichMediaPresentAnimationType.FADE_IN;
-    private ModalRichMediaDismissAnimationType dismissAnimationType = ModalRichMediaDismissAnimationType.FADE_OUT;
-    private ModalRichMediaWindowWidth windowWidth = ModalRichMediaWindowWidth.FULL_SCREEN;
-    private int animationDuration = 1000;
-    private boolean statusBarCovered = false;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
-    public boolean isStatusBarCovered() {
+public class ModalRichmediaConfig {
+    private ModalRichMediaViewPosition viewPosition = null;
+    private Set<ModalRichMediaSwipeGesture> swipeGestures = null;
+    private ModalRichMediaPresentAnimationType presentAnimationType = null;
+    private ModalRichMediaDismissAnimationType dismissAnimationType = null;
+    private ModalRichMediaWindowWidth windowWidth = null;
+    private Integer animationDuration = null;
+    private Boolean statusBarCovered = null;
+    private Boolean respectEdgeToEdgeLayout = null;
+
+    public Boolean isStatusBarCovered() {
         return statusBarCovered;
     }
 
-    public ModalRichmediaConfig setStatusBarCovered(boolean statusBarCovered) {
+    public ModalRichmediaConfig setStatusBarCovered(Boolean statusBarCovered) {
         this.statusBarCovered = statusBarCovered;
+        return this;
+    }
+
+    public Boolean shouldRespectEdgeToEdgeLayout() {
+        return respectEdgeToEdgeLayout;
+    }
+
+    public ModalRichmediaConfig setRespectEdgeToEdgeLayout(Boolean respectEdgeToEdgeLayout) {
+        this.respectEdgeToEdgeLayout = respectEdgeToEdgeLayout;
         return this;
     }
 
@@ -37,8 +51,14 @@ public class ModalRichmediaConfig {
         return this;
     }
 
-    public ModalRichmediaConfig setSwipeGesture(ModalRichMediaSwipeGesture swipeGesture) {
-        this.swipeGesture = swipeGesture;
+
+    public ModalRichmediaConfig setSwipeGestures(Set<ModalRichMediaSwipeGesture> gestures) {
+        if (gestures == null) {
+            this.swipeGestures = null;
+        } else {
+            this.swipeGestures = new HashSet<>(gestures);
+            this.swipeGestures.remove(ModalRichMediaSwipeGesture.NONE);
+        }
         return this;
     }
 
@@ -56,8 +76,9 @@ public class ModalRichmediaConfig {
         return viewPosition;
     }
 
-    public ModalRichMediaSwipeGesture getSwipeGesture() {
-        return swipeGesture;
+
+    public Set<ModalRichMediaSwipeGesture> getSwipeGestures() {
+        return swipeGestures == null ? Collections.emptySet() : Collections.unmodifiableSet(swipeGestures);
     }
 
     public ModalRichMediaPresentAnimationType getPresentAnimationType() {
@@ -72,11 +93,11 @@ public class ModalRichmediaConfig {
         return windowWidth;
     }
 
-    public int getAnimationDuration() {
+    public Integer getAnimationDuration() {
         return animationDuration;
     }
 
-    public ModalRichmediaConfig setAnimationDuration(int animationDuration) {
+    public ModalRichmediaConfig setAnimationDuration(Integer animationDuration) {
         this.animationDuration = animationDuration;
         return this;
     }

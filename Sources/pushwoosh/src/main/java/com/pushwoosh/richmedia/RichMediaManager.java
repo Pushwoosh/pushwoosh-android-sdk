@@ -37,6 +37,9 @@ import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * `RichMediaManager` class is a manager responsible for Rich Media presentation.
  */
@@ -72,13 +75,39 @@ public class RichMediaManager {
     public static void setDefaultRichMediaConfig(ModalRichmediaConfig config) {
         NotificationPrefs prefs = RepositoryModule.getNotificationPreferences();
 
-        prefs.richMediaDismissAnimation().set(config.getDismissAnimationType().getCode());
-        prefs.richMediaPresentAnimation().set(config.getPresentAnimationType().getCode());
-        prefs.richMediaSwipeGesture().set(config.getSwipeGesture().getCode());
-        prefs.richMediaViewPosition().set(config.getViewPosition().getCode());
-        prefs.richMediaWindowWidth().set(config.getWindowWidth().getCode());
-        prefs.richMediaStatusBarCovered().set(config.isStatusBarCovered());
-        prefs.richMediaAnimationDuration().set(config.getAnimationDuration());
+        ModalRichMediaDismissAnimationType dismissType = config.getDismissAnimationType();
+        prefs.richMediaDismissAnimation().set(dismissType != null ? 
+            dismissType.getCode() : ModalRichMediaDismissAnimationType.FADE_OUT.getCode());
+        
+        ModalRichMediaPresentAnimationType presentType = config.getPresentAnimationType();
+        prefs.richMediaPresentAnimation().set(presentType != null ? 
+            presentType.getCode() : ModalRichMediaPresentAnimationType.FADE_IN.getCode());
+        
+        Set<ModalRichMediaSwipeGesture> gestures = config.getSwipeGestures();
+        int mask = 0;
+        if (gestures != null) {
+            for (ModalRichMediaSwipeGesture g : gestures) {
+                mask |= g.getBit();
+            }
+        }
+        prefs.richMediaSwipeGestureBitMask().set(mask);
+
+        ModalRichMediaViewPosition viewPos = config.getViewPosition();
+        prefs.richMediaViewPosition().set(viewPos != null ? 
+            viewPos.getCode() : ModalRichMediaViewPosition.CENTER.getCode());
+        
+        ModalRichMediaWindowWidth windowWidth = config.getWindowWidth();
+        prefs.richMediaWindowWidth().set(windowWidth != null ? 
+            windowWidth.getCode() : ModalRichMediaWindowWidth.FULL_SCREEN.getCode());
+        
+        Boolean statusBarCovered = config.isStatusBarCovered();
+        prefs.richMediaStatusBarCovered().set(statusBarCovered != null ? statusBarCovered : false);
+        
+        Boolean respectEdgeToEdgeLayout = config.shouldRespectEdgeToEdgeLayout();
+        prefs.richMediaRespectEdgeToEdgeLayout().set(respectEdgeToEdgeLayout != null ? respectEdgeToEdgeLayout : true);
+        
+        Integer duration = config.getAnimationDuration();
+        prefs.richMediaAnimationDuration().set(duration != null ? duration : 1000);
     }
 
     public static ModalRichmediaConfig getDefaultRichMediaConfig() {
@@ -87,10 +116,19 @@ public class RichMediaManager {
                 .setAnimationDuration(prefs.richMediaAnimationDuration().get())
                 .setDismissAnimationType(ModalRichMediaDismissAnimationType.getByCode(prefs.richMediaDismissAnimation().get()))
                 .setPresentAnimationType(ModalRichMediaPresentAnimationType.getByCode(prefs.richMediaPresentAnimation().get()))
-                .setSwipeGesture(ModalRichMediaSwipeGesture.getByCode(prefs.richMediaSwipeGesture().get()))
                 .setViewPosition(ModalRichMediaViewPosition.getByCode(prefs.richMediaViewPosition().get()))
                 .setWindowWidth(ModalRichMediaWindowWidth.getByCode(prefs.richMediaWindowWidth().get()))
-                .setStatusBarCovered(prefs.richMediaStatusBarCovered().get());
+                .setStatusBarCovered(prefs.richMediaStatusBarCovered().get())
+                .setRespectEdgeToEdgeLayout(prefs.richMediaRespectEdgeToEdgeLayout().get());
+
+        int mask = prefs.richMediaSwipeGestureBitMask().get();
+        Set<ModalRichMediaSwipeGesture> set = new HashSet<>();
+        for (ModalRichMediaSwipeGesture g : ModalRichMediaSwipeGesture.values()) {
+            if (g.getBit() != 0 && (mask & g.getBit()) != 0) {
+                set.add(g);
+            }
+        }
+        config.setSwipeGestures(set);
         return config;
     }
 }

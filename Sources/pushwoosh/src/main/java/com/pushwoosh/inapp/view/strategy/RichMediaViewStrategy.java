@@ -65,7 +65,7 @@ class RichMediaViewStrategy implements ResourceViewStrategy {
 		PWLog.info(TAG, "presenting richMedia with code: " + resource.getCode() + ", url: " + resource.getUrl());
 
 		if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.MODAL) {
-			ModalRichMediaWindow.showModalRichMediaWindow(resource, RichMediaManager.getDefaultRichMediaConfig());
+			ModalRichMediaWindow.showModalRichMediaWindow(resource);
 		} else if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.DEFAULT) {
 			Intent intent = RichMediaWebActivity.createRichMediaIntent(context, resource);
 			handler.postDelayed(() -> context.startActivity(intent), delay);

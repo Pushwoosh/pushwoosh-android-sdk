@@ -21,10 +21,13 @@ import android.telecom.PhoneAccountHandle
 import android.telecom.TelecomManager
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
 import com.pushwoosh.calls.ui.IncomingCallActivity
 import com.pushwoosh.calls.ui.PhoneNumbersPermissionActivity
 import com.pushwoosh.calls.PushwooshCallPlugin
 import com.pushwoosh.calls.PushwooshCallReceiver
+import com.pushwoosh.calls.PushwooshCallSettings
 import com.pushwoosh.calls.service.PushwooshConnectionService
 import com.pushwoosh.calls.PushwooshVoIPMessage
 import com.pushwoosh.calls.R
@@ -318,6 +321,78 @@ object PushwooshCallUtils {
         }
 
         return notification
+    }
+    
+    /**
+     * Centralized utility to update call permission status and register phone account
+     * @param permissionStatus The permission status to set (GRANTED, DENIED, NOT_REQUESTED)
+     */
+    fun updateCallPermissionStatusAndRegisterAccount(permissionStatus: Int) {
+        PWLog.info("PushwooshCallUtils", "Updating VoIP permission status: $permissionStatus (0=not requested, 1=granted, 2=denied)")
+        PushwooshCallSettings.setCallPermissionStatus(permissionStatus)
+        
+        if (permissionStatus == CallPrefs.PERMISSION_STATUS_GRANTED && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                registerPhoneAccount()
+                PWLog.info("PushwooshCallUtils", "Phone account registered successfully")
+            } catch (e: Exception) {
+                PWLog.error("PushwooshCallUtils", "Failed to register phone account", e)
+            }
+        } else if (permissionStatus == CallPrefs.PERMISSION_STATUS_DENIED) {
+            PWLog.warn("PushwooshCallUtils", "VoIP permissions denied, calls will be blocked by permission check")
+        }
+    }
+    
+    /**
+     * Synchronizes local permission status with Android system settings
+     * This method checks the actual system permission and updates local status if needed
+     * @return true if permission status was updated, false otherwise
+     */
+    fun syncCallPermissionWithSystem(): Boolean {
+        val context = AndroidPlatformModule.getApplicationContext()
+        if (context == null) {
+            PWLog.warn("PushwooshCallUtils", "Cannot sync permissions: context is null")
+            return false
+        }
+        
+        val actualPermission = ContextCompat.checkSelfPermission(
+            context, "android.permission.READ_PHONE_NUMBERS"
+        )
+        val storedStatus = PushwooshCallPlugin.instance.callPrefs.getCallPermissionStatus()
+        
+        PWLog.debug("PushwooshCallUtils", "Permission sync - System: ${if (actualPermission == PackageManager.PERMISSION_GRANTED) "GRANTED" else "DENIED"}, Local: $storedStatus")
+        
+        return when {
+            // Case 1: Permission granted in system but we think it wasn't requested yet
+            actualPermission == PackageManager.PERMISSION_GRANTED && 
+            storedStatus == CallPrefs.PERMISSION_STATUS_NOT_REQUESTED -> {
+                PWLog.info("PushwooshCallUtils", "Permission granted externally (first time), updating status")
+                updateCallPermissionStatusAndRegisterAccount(CallPrefs.PERMISSION_STATUS_GRANTED)
+                true
+            }
+            
+            // Case 2: Permission granted in system but we think it was denied
+            actualPermission == PackageManager.PERMISSION_GRANTED && 
+            storedStatus == CallPrefs.PERMISSION_STATUS_DENIED -> {
+                PWLog.info("PushwooshCallUtils", "Permission re-granted externally, updating status")
+                updateCallPermissionStatusAndRegisterAccount(CallPrefs.PERMISSION_STATUS_GRANTED)
+                true
+            }
+            
+            // Case 3: Permission revoked in system but we think it's granted
+            actualPermission == PackageManager.PERMISSION_DENIED && 
+            storedStatus == CallPrefs.PERMISSION_STATUS_GRANTED -> {
+                PWLog.info("PushwooshCallUtils", "Permission revoked externally, updating status")
+                updateCallPermissionStatusAndRegisterAccount(CallPrefs.PERMISSION_STATUS_DENIED)
+                true
+            }
+            
+            // Case 4: States are already synchronized
+            else -> {
+                PWLog.debug("PushwooshCallUtils", "Permission status already synchronized")
+                false
+            }
+        }
     }
 
 }

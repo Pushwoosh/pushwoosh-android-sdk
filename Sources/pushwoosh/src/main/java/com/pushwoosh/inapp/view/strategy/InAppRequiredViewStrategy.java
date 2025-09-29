@@ -59,7 +59,7 @@ class InAppRequiredViewStrategy implements ResourceViewStrategy {
 		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentRichMediaCode(null);
 
 		if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.MODAL) {
-			ModalRichMediaWindow.showModalRichMediaWindow(resource, RichMediaManager.getDefaultRichMediaConfig());
+			ModalRichMediaWindow.showModalRichMediaWindow(resource);
 		} else if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.DEFAULT) {
 			Intent intent = new Intent(RichMediaWebActivity.createInAppIntent(context, resource));
 			context.startActivity(intent);

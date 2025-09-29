@@ -2,8 +2,13 @@
 
 -keep public class com.pushwoosh.inbox.PushwooshInboxPlugin {
     public protected *;
+    # Keep default constructor for plugin instantiation
+    public <init>();
 }
 
 -keep enum com.pushwoosh.inbox.** { *; }
 
 -keep public class com.pushwoosh.inbox.internal.data.** { *; }
+
+# Keep PushwooshInboxModule to prevent IllegalArgumentException in release builds
+-keep class com.pushwoosh.inbox.internal.PushwooshInboxModule { *; }

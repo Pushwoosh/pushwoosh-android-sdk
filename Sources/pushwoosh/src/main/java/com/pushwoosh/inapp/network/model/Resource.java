@@ -29,6 +29,7 @@ package com.pushwoosh.inapp.network.model;
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.inapp.exception.ResourceParseException;
+import com.pushwoosh.inapp.view.config.ModalRichmediaConfig;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -81,6 +82,7 @@ public class Resource implements Serializable, Comparable<Resource> {
 	private final String businessCase;
 	private final String gdpr;
 
+	private ModalRichmediaConfig resourceModalConfig = null;
 
 	private Map<String, String> mTags;
 
@@ -242,5 +244,17 @@ public class Resource implements Serializable, Comparable<Resource> {
 
 	public boolean isInApp() {
 		return mCode.length() > 0 && !mCode.startsWith("r-");
+	}
+
+	public ModalRichmediaConfig getResourceModalConfig() {
+		return resourceModalConfig;
+	}
+
+	public void setResourceModalConfig(ModalRichmediaConfig config) {
+		this.resourceModalConfig = config;
+	}
+
+	public boolean hasResourceModalConfig() {
+		return resourceModalConfig != null;
 	}
 }

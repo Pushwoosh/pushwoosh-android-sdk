@@ -48,6 +48,7 @@ import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.event.ServerCommunicationStartedEvent;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
+import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
@@ -103,38 +104,40 @@ public class PushwooshInAppImpl {
 	}
 
 	public void postEvent(@NonNull String event, @Nullable TagsBundle attributes, @Nullable final Callback<Void, PostEventException> callback, boolean isInternal) {
-		inAppRepository.postEvent(event, attributes, result -> {
-			if (result.isSuccess()) {
-				Resource resource = result.getData();
+		SdkStateProvider.getInstance().executeOrQueue(() -> {
+			inAppRepository.postEvent(event, attributes, result -> {
+				if (result.isSuccess()) {
+					Resource resource = result.getData();
 
-				if (!isInternal) {
-					PWLog.info("Posted event " + event);
-					if (attributes != null) {
-						PWLog.info("Event attributes: "+ attributes.toJson());
-					}
-				}
-
-				if (callback != null) {
-					callback.process(Result.fromData(null));
-				}
-				if (resource == null) {
-					return;
-				}
-				if (registrationPrefs.communicationEnable().get()) {
-						showResource(resource);
-				} else {
-					PWLog.error(TAG, "can't show inApp because all communication disable");
-				}
-			} else {
-				if (callback != null) {
 					if (!isInternal) {
-						PWLog.info("Failed to post event " + event);
+						PWLog.info("Posted event " + event);
+						if (attributes != null) {
+							PWLog.info("Event attributes: "+ attributes.toJson());
+						}
 					}
-					callback.process(Result.fromException(result.getException()));
-				}
 
-				PWLog.warn(TAG, result.getException() == null ? "" : result.getException().getMessage(), result.getException());
-			}
+					if (callback != null) {
+						callback.process(Result.fromData(null));
+					}
+					if (resource == null) {
+						return;
+					}
+					if (registrationPrefs.communicationEnable().get()) {
+							showResource(resource);
+					} else {
+						PWLog.error(TAG, "can't show inApp because all communication disable");
+					}
+				} else {
+					if (callback != null) {
+						if (!isInternal) {
+							PWLog.info("Failed to post event " + event);
+						}
+						callback.process(Result.fromException(result.getException()));
+					}
+
+					PWLog.warn(TAG, result.getException() == null ? "" : result.getException().getMessage(), result.getException());
+				}
+			});
 		});
 	}
 

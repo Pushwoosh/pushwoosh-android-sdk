@@ -39,7 +39,7 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../proguard-common.txt',
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../proguard-common.txt',
                     'proguard/public.txt', 'proguard/protected.txt'
         }
         debug {

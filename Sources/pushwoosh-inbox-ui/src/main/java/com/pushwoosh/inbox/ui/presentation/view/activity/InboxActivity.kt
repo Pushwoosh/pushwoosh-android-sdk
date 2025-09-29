@@ -26,76 +26,65 @@
 
 package com.pushwoosh.inbox.ui.presentation.view.activity
 
-import android.graphics.PorterDuff
-import android.graphics.drawable.ColorDrawable
+import android.graphics.Color
 import android.os.Bundle
-import androidx.core.content.ContextCompat
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import android.view.MenuItem
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.R
 import com.pushwoosh.inbox.ui.presentation.view.fragment.InboxFragment
-import android.text.Spannable
-import android.text.style.ForegroundColorSpan
-import android.text.SpannableString
-import com.pushwoosh.inbox.ui.PushwooshInboxStyle
-import android.graphics.PorterDuffColorFilter
 
 
 open class InboxActivity : AppCompatActivity() {
 
     companion object {
         const val TAG = "pushwoosh.inbox.ui.InboxActivity"
-        const val FRAGMENT_TAG = TAG + ".InboxFragment"
+        const val FRAGMENT_TAG = "$TAG.InboxFragment"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        
+        // Set system bars to match inbox background color for consistency
+        setupSystemBars()
+        
         setContentView(R.layout.pw_activity_inbox)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        setColorActionBar()
-        setTitle()
-        setTextColorBar()
-        setColorHomeButton()
-
+        
+        // Apply background color to activity root view and content container
+        val backgroundColor = PushwooshInboxStyle.backgroundColor
+        if (backgroundColor != null) {
+            findViewById<android.view.View>(android.R.id.content).setBackgroundColor(backgroundColor)
+            findViewById<android.view.View>(R.id.inboxContentContainer)?.setBackgroundColor(backgroundColor)
+        }
+        
         attachInboxFragment()
     }
 
-    private fun setColorHomeButton() {
-        val barAccentColor: Int = PushwooshInboxStyle.barAccentColor ?: return
-        val drawable = ContextCompat.getDrawable(this, androidx.appcompat.R.drawable.abc_ic_ab_back_material)
-        val porterDuffColorFilter = PorterDuffColorFilter(barAccentColor, PorterDuff.Mode.SRC_IN)
-        drawable?.colorFilter = porterDuffColorFilter
-        supportActionBar?.setHomeAsUpIndicator(drawable)
-    }
-
-    private fun setTitle() {
-        val title: String = PushwooshInboxStyle.barTitle ?: return
-        supportActionBar?.title = title
-    }
-
-    private fun setTextColorBar() {
-        val textColor: Int = PushwooshInboxStyle.barTextColor ?: return
-
-        val text = SpannableString(supportActionBar?.title)
-        text.setSpan(ForegroundColorSpan(textColor), 0, text.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
-        supportActionBar?.title = text
-    }
-
-    private fun setColorActionBar() {
-        val barColor: Int = PushwooshInboxStyle.barBackgroundColor ?: return
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setBackgroundDrawable(ColorDrawable(barColor))
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            android.R.id.home -> {
-                finish()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+    private fun setupSystemBars() {
+        val backgroundColor = PushwooshInboxStyle.backgroundColor
+        if (backgroundColor != null) {
+            // Set status bar and navigation bar colors to match inbox background
+            window.statusBarColor = backgroundColor
+            window.navigationBarColor = backgroundColor
+            
+            // Determine if we need light or dark status bar icons based on background brightness
+            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+            val isLightBackground = isColorLight(backgroundColor)
+            windowInsetsController.isAppearanceLightStatusBars = isLightBackground
+            windowInsetsController.isAppearanceLightNavigationBars = isLightBackground
         }
+    }
+
+    private fun isColorLight(color: Int): Boolean {
+        val red = Color.red(color)
+        val green = Color.green(color) 
+        val blue = Color.blue(color)
+        // Calculate luminance using standard formula
+        val luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255
+        return luminance > 0.5
     }
 
     protected open fun attachInboxFragment() {

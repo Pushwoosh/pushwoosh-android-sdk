@@ -65,7 +65,7 @@ class InAppDefaultViewStrategy implements ResourceViewStrategy {
 		new ShowInAppTask(this, resource, () -> {
 			if (inAppFolderProvider.isInAppDownloaded(resource.getCode())) {
 				if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.MODAL) {
-					ModalRichMediaWindow.showModalRichMediaWindow(resource, RichMediaManager.getDefaultRichMediaConfig());
+					ModalRichMediaWindow.showModalRichMediaWindow(resource);
 				} else if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.DEFAULT) {
 					Intent intent = RichMediaWebActivity.createInAppIntent(context,resource);
 					context.startActivity(intent);
@@ -103,7 +103,7 @@ class InAppDefaultViewStrategy implements ResourceViewStrategy {
 			if (isInAppDownloaded && weakRef.get() != null) {
 				Context context = weakRef.get().context;
 				if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.MODAL) {
-					ModalRichMediaWindow.showModalRichMediaWindow(resource, RichMediaManager.getDefaultRichMediaConfig());
+					ModalRichMediaWindow.showModalRichMediaWindow(resource);
 				} else if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.DEFAULT) {
 					Intent intent = RichMediaWebActivity.createInAppIntent(context, resource);
 					context.startActivity(intent);

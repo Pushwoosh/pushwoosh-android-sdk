@@ -1,6 +1,7 @@
 package com.pushwoosh.calls.util
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule
+import com.pushwoosh.internal.preference.PreferenceIntValue
 import com.pushwoosh.internal.preference.PreferenceStringValue
 
 class CallPrefs {
@@ -11,6 +12,12 @@ class CallPrefs {
         private const val PROPERTY_CALL_CHANNEL_INCOMING = "call_channel_incoming"
         private const val PROPERTY_CALL_CHANNEL_ONGOING = "call_channel_ongoing"
         private const val PROPERTY_CUSTOM_CALL_SOUND = "call_sound"
+        private const val PROPERTY_CALL_PERMISSION_STATUS = "call_permission_status"
+        
+        // VoIP Call Permission Status Constants
+        const val PERMISSION_STATUS_NOT_REQUESTED = 0
+        const val PERMISSION_STATUS_GRANTED = 1
+        const val PERMISSION_STATUS_DENIED = 2
 
     }
 
@@ -19,6 +26,7 @@ class CallPrefs {
     private val incomingCallChannel: PreferenceStringValue
     private val ongoingCallChannel: PreferenceStringValue
     private val callSound: PreferenceStringValue
+    private val callPermissionStatus: PreferenceIntValue
 
     init {
         val prefs = AndroidPlatformModule.getPrefsProvider().providePrefs(PREFERENCE)
@@ -47,6 +55,11 @@ class CallPrefs {
             PROPERTY_CUSTOM_CALL_SOUND,
             "default"
         )
+        callPermissionStatus = PreferenceIntValue(
+            prefs,
+            PROPERTY_CALL_PERMISSION_STATUS,
+            PERMISSION_STATUS_NOT_REQUESTED
+        )
     }
 
     fun getPhoneAccount(): String = phoneAccount.get()
@@ -68,4 +81,22 @@ class CallPrefs {
     fun getCallSoundName(): String = callSound.get()
 
     fun setCallSoundName(value: String) = callSound.set(value)
+    
+    /**
+     * Gets the current VoIP call permission status
+     * @return Int - permission status:
+     *   0 (PERMISSION_STATUS_NOT_REQUESTED) - permission not requested
+     *   1 (PERMISSION_STATUS_GRANTED) - permission granted
+     *   2 (PERMISSION_STATUS_DENIED) - permission denied
+     */
+    fun getCallPermissionStatus(): Int = callPermissionStatus.get()
+    
+    /**
+     * Sets the VoIP call permission status
+     * @param status Int - permission status:
+     *   0 (PERMISSION_STATUS_NOT_REQUESTED) - permission not requested
+     *   1 (PERMISSION_STATUS_GRANTED) - permission granted  
+     *   2 (PERMISSION_STATUS_DENIED) - permission denied
+     */
+    fun setCallPermissionStatus(status: Int) = callPermissionStatus.set(status)
 }
