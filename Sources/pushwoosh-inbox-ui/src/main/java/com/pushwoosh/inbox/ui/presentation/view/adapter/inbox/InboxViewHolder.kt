@@ -47,17 +47,24 @@ import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.data.InboxMessageType
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.R
-import com.pushwoosh.inbox.ui.databinding.PwItemInboxBinding
 import com.pushwoosh.inbox.ui.presentation.view.adapter.BaseRecyclerAdapter
 import com.pushwoosh.inbox.ui.presentation.view.style.ColorSchemeProvider
 import com.pushwoosh.inbox.ui.utils.GlideUtils
 import com.pushwoosh.inbox.ui.utils.parseToString
 
 class InboxViewHolder(adapter: InboxAdapter,
-                      val binding: PwItemInboxBinding,
+                      itemView: View,
                       private val colorSchemeProvider: ColorSchemeProvider,
-                      attachmentClickListener: ((String, View) -> Unit)) : BaseRecyclerAdapter.ViewHolder<InboxMessage>(binding, adapter) {
+                      attachmentClickListener: ((String, View) -> Unit)) : BaseRecyclerAdapter.ViewHolder<InboxMessage>(itemView, adapter) {
+    
     var attachmentClickListener : (String, View) -> Unit = attachmentClickListener
+    
+    // View references
+    private val inboxLabelTextView: android.widget.TextView = itemView.findViewById(R.id.inboxLabelTextView)
+    private val inboxDescriptionTextView: android.widget.TextView = itemView.findViewById(R.id.inboxDescriptionTextView)
+    private val inboxStatusImageView: android.widget.ImageView = itemView.findViewById(R.id.inboxStatusImageView)
+    private val inboxImageView: android.widget.ImageView = itemView.findViewById(R.id.inboxImageView)
+    private val inboxBannerImage: android.widget.ImageView = itemView.findViewById(R.id.inboxBannerImage)
 
     override fun fillView(model: InboxMessage?, position: Int) {
         if (model == null) {
@@ -65,22 +72,29 @@ class InboxViewHolder(adapter: InboxAdapter,
         }
 
         itemView.background = colorSchemeProvider.cellBackground
-        binding.inboxLabelTextView.text = getInboxLabelText(model.title,
+        inboxLabelTextView.text = getInboxLabelText(model.title,
             colorSchemeProvider.titleColor,
             model.sendDate.parseToString(),
             colorSchemeProvider.dateColor)
         if (PushwooshInboxStyle.descriptionTextSize != null)
-            binding.inboxDescriptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, PushwooshInboxStyle.descriptionTextSize!!)
+            inboxDescriptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, PushwooshInboxStyle.descriptionTextSize!!)
 
-        binding.inboxDescriptionTextView.setTextColor(colorSchemeProvider.descriptionColor)
-        binding.inboxStatusImageView.setColorFilter(colorSchemeProvider.imageColor)
+        inboxDescriptionTextView.setTextColor(colorSchemeProvider.descriptionColor)
+        
+        // Handle color state for the status image - get appropriate color for current state
+        val imageColor = if (!model.isActionPerformed) {
+            colorSchemeProvider.imageColor.getColorForState(intArrayOf(android.R.attr.state_selected), colorSchemeProvider.imageColor.defaultColor)
+        } else {
+            colorSchemeProvider.imageColor.defaultColor
+        }
+        inboxStatusImageView.setColorFilter(imageColor)
 
-        binding.inboxDescriptionTextView.text = model.message
-        binding.inboxStatusImageView.setImageResource(model.type.getResource())
+        inboxDescriptionTextView.text = model.message
+        inboxStatusImageView.setImageResource(model.type.getResource())
 
-        binding.inboxLabelTextView.isSelected = !model.isActionPerformed
-        binding.inboxStatusImageView.isSelected = binding.inboxLabelTextView.isSelected
-        binding.inboxDescriptionTextView.isSelected = binding.inboxLabelTextView.isSelected
+        inboxLabelTextView.isSelected = !model.isActionPerformed
+        inboxStatusImageView.isSelected = inboxLabelTextView.isSelected
+        inboxDescriptionTextView.isSelected = inboxLabelTextView.isSelected
 
         Glide.with(itemView)
                 .clear(itemView)
@@ -91,7 +105,7 @@ class InboxViewHolder(adapter: InboxAdapter,
                     .load(colorSchemeProvider.defaultIcon)
                     .listener(object : RequestListener<Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
-                            binding.inboxImageView.setImageDrawable(colorSchemeProvider.defaultIcon)
+                            inboxImageView.setImageDrawable(colorSchemeProvider.defaultIcon)
                             return true
                         }
 
@@ -105,18 +119,18 @@ class InboxViewHolder(adapter: InboxAdapter,
                     .load(model.imageUrl)
         }
 
-        GlideUtils.applyInto(requestBuilder, binding.inboxImageView)
+        GlideUtils.applyInto(requestBuilder, inboxImageView)
 
 
         val bannerUrl = model.bannerUrl
         if (bannerUrl != null && !TextUtils.isEmpty(bannerUrl)) {
-            binding.inboxBannerImage.setOnClickListener{ attachmentClickListener.invoke(bannerUrl, binding.inboxBannerImage) }
-            binding.inboxBannerImage.visibility = View.VISIBLE
+            inboxBannerImage.setOnClickListener{ attachmentClickListener.invoke(bannerUrl, inboxBannerImage) }
+            inboxBannerImage.visibility = View.VISIBLE
             Glide.with(itemView.context)
                     .load(bannerUrl)
-                    .into(binding.inboxBannerImage)
+                    .into(inboxBannerImage)
         } else {
-            binding.inboxBannerImage.visibility = View.GONE
+            inboxBannerImage.visibility = View.GONE
         }
     }
 
