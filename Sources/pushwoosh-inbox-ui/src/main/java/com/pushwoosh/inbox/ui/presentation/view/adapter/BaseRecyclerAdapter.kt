@@ -33,7 +33,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Interpolator
 import android.view.animation.LinearInterpolator
-import com.pushwoosh.inbox.ui.databinding.PwItemInboxBinding
 import com.pushwoosh.inbox.ui.utils.clear
 
 abstract class BaseRecyclerAdapter<VH : BaseRecyclerAdapter.ViewHolder<Model>, Model>(val context: Context) : androidx.recyclerview.widget.RecyclerView.Adapter<VH>() {
@@ -133,7 +132,6 @@ abstract class BaseRecyclerAdapter<VH : BaseRecyclerAdapter.ViewHolder<Model>, M
 
     abstract class ViewHolder<Model>(view: View, private var adapter: BaseRecyclerAdapter<*, *>) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view), View.OnClickListener {
 
-        constructor(binding: PwItemInboxBinding, adapter: BaseRecyclerAdapter<*, *>) : this(binding.root, adapter)
 
         fun onCreate() {
         }

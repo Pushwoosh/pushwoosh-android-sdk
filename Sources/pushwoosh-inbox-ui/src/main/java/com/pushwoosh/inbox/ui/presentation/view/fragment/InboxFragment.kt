@@ -44,7 +44,6 @@ import android.widget.TextView
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.R
-import com.pushwoosh.inbox.ui.databinding.PwFragmentInboxBinding
 import com.pushwoosh.inbox.ui.presentation.data.UserError
 import com.pushwoosh.inbox.ui.presentation.presenter.InboxPresenter
 import com.pushwoosh.inbox.ui.presentation.presenter.InboxView
@@ -61,8 +60,17 @@ open class InboxFragment : BaseFragment(), InboxView {
     private lateinit var inboxPresenter: InboxPresenter
     private var callback: SimpleItemTouchHelperCallback? = null
     private lateinit var colorSchemeProvider: ColorSchemeProvider
-    private var _binding: PwFragmentInboxBinding? = null
-    private val binding get() = _binding!!
+    private lateinit var inboxRecyclerView: androidx.recyclerview.widget.RecyclerView
+    private lateinit var inboxSwipeRefreshLayout: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    private lateinit var inboxToolbar: androidx.appcompat.widget.Toolbar
+    private lateinit var inboxAppBarLayout: com.google.android.material.appbar.AppBarLayout
+    private lateinit var inboxTotalProgressBar: android.widget.ProgressBar
+    private lateinit var inboxEmpty: android.widget.LinearLayout
+    private lateinit var inboxError: android.widget.LinearLayout
+    private lateinit var inboxEmptyTextView: android.widget.TextView
+    private lateinit var inboxErrorTextView: android.widget.TextView
+    private lateinit var inboxEmptyImageView: android.widget.ImageView
+    private lateinit var inboxErrorImageView: android.widget.ImageView
 
 
     private var attachmentClickListener: ((String, View) -> Unit) = {url : String, view : View -> onAttachmentClicked(url, view)}
@@ -79,13 +87,26 @@ open class InboxFragment : BaseFragment(), InboxView {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        _binding = PwFragmentInboxBinding.inflate(inflater, container, false)
-        return binding.root
+        val view = inflater.inflate(R.layout.pw_fragment_inbox, container, false)
+        
+        // Initialize views immediately when view is created
+        inboxRecyclerView = view.findViewById(R.id.inboxRecyclerView)
+        inboxSwipeRefreshLayout = view.findViewById(R.id.inboxSwipeRefreshLayout)
+        inboxToolbar = view.findViewById(R.id.inboxToolbar)
+        inboxAppBarLayout = view.findViewById(R.id.inboxAppBarLayout)
+        inboxTotalProgressBar = view.findViewById(R.id.inboxTotalProgressBar)
+        inboxEmpty = view.findViewById(R.id.inboxEmpty)
+        inboxError = view.findViewById(R.id.inboxError)
+        inboxEmptyTextView = view.findViewById(R.id.inboxEmptyTextView)
+        inboxErrorTextView = view.findViewById(R.id.inboxErrorTextView)
+        inboxEmptyImageView = view.findViewById(R.id.inboxEmptyImageView)
+        inboxErrorImageView = view.findViewById(R.id.inboxErrorImageView)
+        
+        return view
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -93,7 +114,7 @@ open class InboxFragment : BaseFragment(), InboxView {
 
         // Set up the toolbar with back button
         val activity = activity as? androidx.appcompat.app.AppCompatActivity
-        activity?.setSupportActionBar(binding.inboxToolbar)
+        activity?.setSupportActionBar(inboxToolbar)
         activity?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
         activity?.supportActionBar?.setDisplayShowHomeEnabled(true)
         
@@ -102,13 +123,13 @@ open class InboxFragment : BaseFragment(), InboxView {
             activity?.supportActionBar?.title = title
         }
         
-        binding.inboxToolbar.setNavigationOnClickListener {
+        inboxToolbar.setNavigationOnClickListener {
             activity?.finish()
         }
         
         // Apply navigation icon tint after it's created
         PushwooshInboxStyle.barTextColor?.let { textColor ->
-            binding.inboxToolbar.navigationIcon?.setTint(textColor)
+            inboxToolbar.navigationIcon?.setTint(textColor)
         }
 
         inboxAdapter.onItemRemoved = { inboxMessage ->
@@ -116,34 +137,34 @@ open class InboxFragment : BaseFragment(), InboxView {
                 showEmptyView()
             }
 
-            binding.inboxSwipeRefreshLayout.isEnabled = true
+            inboxSwipeRefreshLayout.isEnabled = true
             inboxPresenter.removeItem(inboxMessage)
         }
-        inboxAdapter.onItemStartSwipe = { binding.inboxSwipeRefreshLayout.isEnabled = false }
-        inboxAdapter.onItemStopSwipe = { binding.inboxSwipeRefreshLayout.isEnabled = true }
+        inboxAdapter.onItemStartSwipe = { inboxSwipeRefreshLayout.isEnabled = false }
+        inboxAdapter.onItemStopSwipe = { inboxSwipeRefreshLayout.isEnabled = true }
         inboxAdapter.onItemClick = { inboxMessage -> if (inboxMessage != null) inboxPresenter.onItemClick(inboxMessage) }
 
         val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context, androidx.recyclerview.widget.LinearLayoutManager.VERTICAL, false)
-        binding.inboxRecyclerView.layoutManager = layoutManager
-        binding.inboxRecyclerView.adapter = inboxAdapter
+        inboxRecyclerView.layoutManager = layoutManager
+        inboxRecyclerView.adapter = inboxAdapter
 
         val backgroundColor = PushwooshInboxStyle.backgroundColor
         if (backgroundColor != null) {
             // Apply background color to all container views for consistency
-            binding.root.setBackgroundColor(backgroundColor)
-            binding.inboxSwipeRefreshLayout.setBackgroundColor(backgroundColor)
-            binding.inboxRecyclerView.setBackgroundColor(backgroundColor)
-            binding.inboxEmpty.setBackgroundColor(backgroundColor)
-            binding.inboxError.setBackgroundColor(backgroundColor)
+            view.setBackgroundColor(backgroundColor)
+            inboxSwipeRefreshLayout.setBackgroundColor(backgroundColor)
+            inboxRecyclerView.setBackgroundColor(backgroundColor)
+            inboxEmpty.setBackgroundColor(backgroundColor)
+            inboxError.setBackgroundColor(backgroundColor)
             
             // Apply background color to toolbar and app bar (use specific bar color if available)
             val appBarColor = PushwooshInboxStyle.barBackgroundColor ?: backgroundColor
-            binding.inboxToolbar.setBackgroundColor(appBarColor)
-            binding.inboxAppBarLayout.setBackgroundColor(appBarColor)
+            inboxToolbar.setBackgroundColor(appBarColor)
+            inboxAppBarLayout.setBackgroundColor(appBarColor)
             
             // Apply bar text color if available
             PushwooshInboxStyle.barTextColor?.let { textColor ->
-                binding.inboxToolbar.setTitleTextColor(textColor)
+                inboxToolbar.setTitleTextColor(textColor)
             }
         }
 
@@ -151,40 +172,40 @@ open class InboxFragment : BaseFragment(), InboxView {
         if (divider != null) {
             val dividerItemDecoration = androidx.recyclerview.widget.DividerItemDecoration(context, layoutManager.orientation)
             dividerItemDecoration.setDrawable(divider)
-            binding.inboxRecyclerView.addItemDecoration(dividerItemDecoration)
+            inboxRecyclerView.addItemDecoration(dividerItemDecoration)
         }
 
         callback = SimpleItemTouchHelperCallback(adapter = inboxAdapter, context = context, colorSchemeProvider = colorSchemeProvider)
         val itemTouchHelper = ItemTouchHelper(callback as ItemTouchHelper.Callback)
-        itemTouchHelper.attachToRecyclerView(binding.inboxRecyclerView)
+        itemTouchHelper.attachToRecyclerView(inboxRecyclerView)
 
-        binding.inboxSwipeRefreshLayout.setOnRefreshListener {
+        inboxSwipeRefreshLayout.setOnRefreshListener {
             inboxPresenter.refreshItems()
             callback?.setTouchable(false)
         }
 
         if (PushwooshInboxStyle.listErrorImageDrawable == null) {
-            binding.inboxErrorImageView.setImageResource(PushwooshInboxStyle.listErrorImage)
+            inboxErrorImageView.setImageResource(PushwooshInboxStyle.listErrorImage)
         } else {
-            binding.inboxErrorImageView.setImageDrawable(PushwooshInboxStyle.listErrorImageDrawable)
+            inboxErrorImageView.setImageDrawable(PushwooshInboxStyle.listErrorImageDrawable)
         }
 
         if (PushwooshInboxStyle.listEmptyImageDrawable == null) {
-            binding.inboxEmptyImageView.setImageResource(PushwooshInboxStyle.listEmptyImage)
+            inboxEmptyImageView.setImageResource(PushwooshInboxStyle.listEmptyImage)
         } else {
-            binding.inboxEmptyImageView.setImageDrawable(PushwooshInboxStyle.listEmptyImageDrawable)
+            inboxEmptyImageView.setImageDrawable(PushwooshInboxStyle.listEmptyImageDrawable)
         }
         
         // Apply proper tinting to images so they're visible on dark backgrounds
         PushwooshInboxStyle.titleColor?.let { color ->
-            binding.inboxEmptyImageView.setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN)
-            binding.inboxErrorImageView.setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN)
+            inboxEmptyImageView.setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN)
+            inboxErrorImageView.setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN)
         }
         
     }
 
     override fun showSwipeRefreshProgress() {
-        binding.inboxSwipeRefreshLayout.isRefreshing = true
+        inboxSwipeRefreshLayout.isRefreshing = true
     }
 
     override fun showTotalProgress() {
@@ -208,11 +229,11 @@ open class InboxFragment : BaseFragment(), InboxView {
                         .show()
             } else {
                 updateContent(isError = true)
-                updateMessageTextView(binding.inboxErrorTextView, userError.message)
+                updateMessageTextView(inboxErrorTextView, userError.message)
                 
                 // Apply proper styling to error state text
                 PushwooshInboxStyle.titleColor?.let { color ->
-                    binding.inboxErrorTextView.setTextColor(color)
+                    inboxErrorTextView.setTextColor(color)
                 }
             }
         }
@@ -225,12 +246,12 @@ open class InboxFragment : BaseFragment(), InboxView {
 
     override fun showEmptyView() {
         updateContent(isEmpty = true)
-        binding.inboxSwipeRefreshLayout.isEnabled = true
-        updateMessageTextView(binding.inboxEmptyTextView, PushwooshInboxStyle.listEmptyText)
+        inboxSwipeRefreshLayout.isEnabled = true
+        updateMessageTextView(inboxEmptyTextView, PushwooshInboxStyle.listEmptyText)
         
         // Apply proper styling to empty state text
         PushwooshInboxStyle.titleColor?.let { color ->
-            binding.inboxEmptyTextView.setTextColor(color)
+            inboxEmptyTextView.setTextColor(color)
         }
     }
 
@@ -239,21 +260,21 @@ open class InboxFragment : BaseFragment(), InboxView {
         val totalProgressVisibility = if (showProgress && !swipeRefresh) View.VISIBLE else View.GONE
 
         if (isEmpty) {
-            binding.inboxRecyclerView.visibility = View.GONE
-            binding.inboxEmpty.visibility = contentVisibility
-            binding.inboxError.visibility = View.GONE
+            inboxRecyclerView.visibility = View.GONE
+            inboxEmpty.visibility = contentVisibility
+            inboxError.visibility = View.GONE
         } else if (!isError) {
-            binding.inboxRecyclerView.visibility = contentVisibility
-            binding.inboxEmpty.visibility = View.GONE
-            binding.inboxError.visibility = View.GONE
+            inboxRecyclerView.visibility = contentVisibility
+            inboxEmpty.visibility = View.GONE
+            inboxError.visibility = View.GONE
         } else {
-            binding.inboxError.visibility = contentVisibility
-            binding.inboxEmpty.visibility = View.GONE
-            binding.inboxRecyclerView.visibility = View.GONE
+            inboxError.visibility = contentVisibility
+            inboxEmpty.visibility = View.GONE
+            inboxRecyclerView.visibility = View.GONE
         }
 
-        binding.inboxTotalProgressBar.visibility = totalProgressVisibility
-        binding.inboxSwipeRefreshLayout.isRefreshing = swipeRefresh
+        inboxTotalProgressBar.visibility = totalProgressVisibility
+        inboxSwipeRefreshLayout.isRefreshing = swipeRefresh
     }
 
     private fun updateMessageTextView(messageTextView: TextView, message: CharSequence?) {
