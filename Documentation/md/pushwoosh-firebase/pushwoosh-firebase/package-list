@@ -1,0 +1,11 @@
+$dokka.format:gfm-v1
+$dokka.linkExtension:md
+$dokka.location:com.pushwoosh.firebase////PointingToDeclaration/pushwoosh-firebase/com.pushwoosh.firebase/index.md
+$dokka.location:com.pushwoosh.firebase/PushwooshFcmHelper///PointingToDeclaration/pushwoosh-firebase/com.pushwoosh.firebase/-pushwoosh-fcm-helper/index.md
+$dokka.location:com.pushwoosh.firebase/PushwooshFcmHelper/PushwooshFcmHelper/#/PointingToDeclaration/pushwoosh-firebase/com.pushwoosh.firebase/-pushwoosh-fcm-helper/-pushwoosh-fcm-helper.md
+$dokka.location:com.pushwoosh.firebase/PushwooshFcmHelper/isPushwooshMessage/#RemoteMessage/PointingToDeclaration/pushwoosh-firebase/com.pushwoosh.firebase/-pushwoosh-fcm-helper/is-pushwoosh-message.md
+$dokka.location:com.pushwoosh.firebase/PushwooshFcmHelper/messageToBundle/#RemoteMessage/PointingToDeclaration/pushwoosh-firebase/com.pushwoosh.firebase/-pushwoosh-fcm-helper/message-to-bundle.md
+$dokka.location:com.pushwoosh.firebase/PushwooshFcmHelper/onMessageReceived/#Context#RemoteMessage/PointingToDeclaration/pushwoosh-firebase/com.pushwoosh.firebase/-pushwoosh-fcm-helper/on-message-received.md
+$dokka.location:com.pushwoosh.firebase/PushwooshFcmHelper/onTokenRefresh/#java.lang.String/PointingToDeclaration/pushwoosh-firebase/com.pushwoosh.firebase/-pushwoosh-fcm-helper/on-token-refresh.md
+com.pushwoosh.firebase
+

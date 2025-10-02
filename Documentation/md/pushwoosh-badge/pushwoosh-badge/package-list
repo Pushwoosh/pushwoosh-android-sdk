@@ -1,0 +1,10 @@
+$dokka.format:gfm-v1
+$dokka.linkExtension:md
+$dokka.location:com.pushwoosh.badge////PointingToDeclaration/pushwoosh-badge/com.pushwoosh.badge/index.md
+$dokka.location:com.pushwoosh.badge/PushwooshBadge///PointingToDeclaration/pushwoosh-badge/com.pushwoosh.badge/-pushwoosh-badge/index.md
+$dokka.location:com.pushwoosh.badge/PushwooshBadge/PushwooshBadge/#/PointingToDeclaration/pushwoosh-badge/com.pushwoosh.badge/-pushwoosh-badge/-pushwoosh-badge.md
+$dokka.location:com.pushwoosh.badge/PushwooshBadge/addBadgeNumber/#int/PointingToDeclaration/pushwoosh-badge/com.pushwoosh.badge/-pushwoosh-badge/add-badge-number.md
+$dokka.location:com.pushwoosh.badge/PushwooshBadge/getBadgeNumber/#/PointingToDeclaration/pushwoosh-badge/com.pushwoosh.badge/-pushwoosh-badge/get-badge-number.md
+$dokka.location:com.pushwoosh.badge/PushwooshBadge/setBadgeNumber/#int/PointingToDeclaration/pushwoosh-badge/com.pushwoosh.badge/-pushwoosh-badge/set-badge-number.md
+com.pushwoosh.badge
+

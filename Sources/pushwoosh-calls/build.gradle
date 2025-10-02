@@ -64,3 +64,6 @@ dependencies {
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }
+
+// Dokka documentation configuration
+apply from: '../scripts/dokka-config.gradle'

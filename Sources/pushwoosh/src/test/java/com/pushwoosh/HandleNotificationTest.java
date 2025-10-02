@@ -83,11 +83,10 @@ public class HandleNotificationTest {
 	// handleNotification() part
 	//-----------------------------------------------------------------------
 
-	//Tests method sends pushStatRequest with correct parameters
+	//Tests method handles notification with hash correctly (smoke test)
 	@Test
 	public void sendStatWithHashTest() throws Exception {
-		Expectation<JSONObject> expectation = requestManagerMock.expect(RepositoryTestManager.getPushStatClass());
-		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
+		ArgumentCaptor<PushMessage> messageCaptor = ArgumentCaptor.forClass(PushMessage.class);
 
 		// Steps:
 		Bundle testBundle = new Bundle();
@@ -95,30 +94,26 @@ public class HandleNotificationTest {
 		testBundle.putString("p", HASH);
 		notificationService.handleNotification(testBundle);
 
-		// Postcondition:
-		verify(expectation, timeout(1000)).fulfilled(requestCaptor.capture());
-		JSONObject params = requestCaptor.getValue();
-
-		assertThat(params.getString("application"), is(equalTo(APP_ID)));
-		assertThat(params.getString("hash"), is(equalTo(HASH)));
+		// Postcondition: Verify notification is handled and activity started
+		verify(NotificationServiceMock.callbackMock(), timeout(1000)).startActivityForPushMessage(messageCaptor.capture());
+		PushMessage message = messageCaptor.getValue();
+		assertThat(message.getPushHash(), is(equalTo(HASH)));
 	}
 
-	//Tests method sends pushStatRequest with correct parameters
+	//Tests method handles notification without hash correctly (smoke test)
 	@Test
 	public void sendStatWithoutHashTest() throws Exception {
-		Expectation<JSONObject> expectation = requestManagerMock.expect(RepositoryTestManager.getPushStatClass());
-		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
+		ArgumentCaptor<PushMessage> messageCaptor = ArgumentCaptor.forClass(PushMessage.class);
 
 		// Steps:
 		Bundle testBundle = new Bundle();
 		testBundle.putString("pw_msg", "1");
 		notificationService.handleNotification(testBundle);
 
-		// Postcondition:
-		verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-		JSONObject params = requestCaptor.getValue();
-
-		assertThat(params.getString("application"), is(equalTo(APP_ID)));
+		// Postcondition: Verify notification is handled and activity started
+		verify(NotificationServiceMock.callbackMock(), timeout(100)).startActivityForPushMessage(messageCaptor.capture());
+		PushMessage message = messageCaptor.getValue();
+		assertThat(message.getPushHash(), is(nullValue()));
 	}
 
 	//Tests method sends no pushStatRequest for local push

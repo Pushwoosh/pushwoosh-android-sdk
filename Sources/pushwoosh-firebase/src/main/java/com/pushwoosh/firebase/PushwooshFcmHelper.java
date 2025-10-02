@@ -34,37 +34,36 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.pushwoosh.PushwooshMessagingServiceHelper;
 import com.pushwoosh.firebase.internal.RemoteMessageUtils;
 import com.pushwoosh.firebase.internal.mapper.RemoteMessageMapper;
-import com.pushwoosh.firebase.internal.registrar.FcmRegistrar;
 import com.pushwoosh.firebase.internal.specific.FcmDeviceSpecificIniter;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
 
-import java.util.Map;
-
 @SuppressWarnings("WeakerAccess")
 public class PushwooshFcmHelper {
+    private static final String TAG = "PushwooshFcmHelper";
+
     /**
      * if you use custom {@link FirebaseMessagingService}
      * call this method when {@link FirebaseMessagingService#onNewToken(String token)} is invoked
      */
     public static void onTokenRefresh(String token) {
-        PWLog.noise("PushwooshFcmHelper", String.format("onTokenRefresh: %s", token));
+        PWLog.noise(TAG, String.format("onTokenRefresh: %s", token));
 
-        if (!(DeviceSpecificProvider.getInstance().pushRegistrar() instanceof FcmRegistrar)) {
-            PWLog.error("PushwooshFcmHelper", "can't refresh token: pushRegistrar is not FcmRegistrar");
+        if (!isDeviceSpecificOk()) {
+            PWLog.error(TAG, "Device specific provider not ready for Firebase");
             return;
         }
 
         try {
             String previousToken = RepositoryModule.getRegistrationPreferences().pushToken().get();
             if (token == null || token.equals(previousToken)) {
-                PWLog.debug("PushwooshFcmHelper", "token is null or equals previous token");
+                PWLog.debug(TAG, "token is null or equals previous token");
                 return;
             }
             PushwooshMessagingServiceHelper.onTokenRefresh(token);
         } catch (Exception e) {
-            PWLog.error("PushwooshFcmHelper", "can't refresh token", e);
+            PWLog.error(TAG, "can't refresh token", e);
         }
     }
 
@@ -76,31 +75,57 @@ public class PushwooshFcmHelper {
      */
     @SuppressWarnings("UnusedReturnValue")
     public static boolean onMessageReceived(Context context, RemoteMessage remoteMessage) {
-        PWLog.noise("PushwooshFcmHelper", "onMessageReceived()");
+        PWLog.noise(TAG, "onMessageReceived()");
 
-        //Fix for PUSH-32760
+        if (!isDeviceSpecificOk()) {
+            PWLog.error(TAG, "Device specific provider not ready for Firebase");
+            return false;
+        }
+
+        if (!isPushwooshMessage(remoteMessage)) {
+            PWLog.warn(TAG, "skip onMessageReceived: message is not belongs to Pushwoosh");
+            return false;
+        }
+
+        try {
+            PWLog.info(TAG, String.format("Received message: %s from: %s", remoteMessage.getData(), remoteMessage.getFrom()));
+
+            Bundle pushBundle = RemoteMessageMapper.mapToBundle(remoteMessage);
+
+            return PushwooshMessagingServiceHelper.onMessageReceived(context, pushBundle);
+        } catch (Exception e) {
+            PWLog.error(TAG, "can't handle onMessageReceived", e);
+            return false;
+        }
+    }
+
+    private static boolean ensureDeviceSpecificProviderInitialized() {
         try {
             if (DeviceSpecificProvider.getInstance() == null) {
                 new DeviceSpecificProvider.Builder()
                         .setDeviceSpecific(FcmDeviceSpecificIniter.create())
                         .build(true);
+                return DeviceSpecificProvider.getInstance() != null;
             }
+        } catch (Exception e) {
+            PWLog.error(TAG, "can't initialize DeviceSpecificProvider", e);
+            return false;
+        }
+        return true;
+    }
 
-            if (!isPushwooshMessage(remoteMessage) || !DeviceSpecificProvider.getInstance().isFirebase()) {
-                return false;
-            }
-        } catch (NullPointerException e) {
-            PWLog.error("Firebase provider is not initialized, unsafe to handle received push");
+    private static boolean isDeviceSpecificOk() {
+        if (!ensureDeviceSpecificProviderInitialized()) {
+            PWLog.error(TAG, "DeviceSpecificProvider not initialized");
             return false;
         }
 
-        String from = remoteMessage.getFrom();
-        Map<String, String> data = remoteMessage.getData();
+        if (!DeviceSpecificProvider.getInstance().isFirebase()) {
+            PWLog.error(TAG, "Device specific is not Firebase");
+            return false;
+        }
 
-        PWLog.info("PushwooshFcmHelper", String.format("Received message: %s from: %s", data, from));
-        Bundle pushBundle = RemoteMessageMapper.mapToBundle(remoteMessage);
-
-        return PushwooshMessagingServiceHelper.onMessageReceived(context, pushBundle);
+        return true;
     }
 
     /**

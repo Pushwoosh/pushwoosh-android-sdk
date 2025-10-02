@@ -75,3 +75,6 @@ dependencies {
     implementation "androidx.annotation:annotation:${support}"
 }
 
+// Dokka documentation configuration
+apply from: '../scripts/dokka-config.gradle'
+

@@ -35,6 +35,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import android.util.Pair;
 
+import com.pushwoosh.PushStatisticsScheduler;
+import com.pushwoosh.PushStatisticsWorker;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Callback;
@@ -370,7 +372,7 @@ public class InboxRepository {
 	}
 
 	private void sendPushStat(String pushHash, String metadata) {
-		PushwooshPlatform.getInstance().pushwooshRepository().sendPushOpened(pushHash, metadata);
+		PushStatisticsScheduler.scheduleStatisticsEvent(PushStatisticsWorker.EVENT_OPEN, pushHash, metadata);
 	}
 
 	@WorkerThread

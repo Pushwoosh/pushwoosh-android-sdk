@@ -70,3 +70,6 @@ dependencies {
 
     compileOnly project(':baidu-stub')
 }
+
+// Dokka documentation configuration
+apply from: '../scripts/dokka-config.gradle'

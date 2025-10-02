@@ -27,6 +27,10 @@
 package com.pushwoosh.repository;
 
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.network.RequestStorage;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
@@ -36,12 +40,6 @@ import com.pushwoosh.internal.preference.PreferenceJsonObjectValue;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by aevstefeev on 26/03/2018.
@@ -81,8 +79,7 @@ public class PushwooshRepositoryTest {
                 sendTagsProcessor,
                 registrationPrefs,
                 notificationPrefs,
-                requestStorage,
-                serverCommunicationManager);
+                requestStorage);
     }
 
 

@@ -1,0 +1,60 @@
+$dokka.format:gfm-v1
+$dokka.linkExtension:md
+$dokka.location:com.pushwoosh.inbox.data////PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/index.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage///PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/getActionParams/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/get-action-params.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/getBannerUrl/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/get-banner-url.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/getCode/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/get-code.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/getISO8601SendDate/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/get-i-s-o8601-send-date.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/getImageUrl/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/get-image-url.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/getMessage/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/get-message.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/getSendDate/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/get-send-date.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/getTitle/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/get-title.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/getType/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/get-type.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/isActionPerformed/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/is-action-performed.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessage/isRead/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/is-read.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessageType.DEEP_LINK///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message-type/-d-e-e-p_-l-i-n-k/index.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessageType.PLAIN///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message-type/-p-l-a-i-n/index.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessageType.RICH_MEDIA///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message-type/-r-i-c-h_-m-e-d-i-a/index.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessageType.URL///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message-type/-u-r-l/index.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessageType///PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message-type/index.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessageType/code/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message-type/code.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessageType/getByCode/#int/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message-type/get-by-code.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessageType/valueOf/#java.lang.String/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message-type/value-of.md
+$dokka.location:com.pushwoosh.inbox.data/InboxMessageType/values/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message-type/values.md
+$dokka.location:com.pushwoosh.inbox.event////PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.event/index.md
+$dokka.location:com.pushwoosh.inbox.event/InboxMessagesUpdatedEvent///PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.event/-inbox-messages-updated-event/index.md
+$dokka.location:com.pushwoosh.inbox.event/InboxMessagesUpdatedEvent/messagesAdded/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.event/-inbox-messages-updated-event/messages-added.md
+$dokka.location:com.pushwoosh.inbox.event/InboxMessagesUpdatedEvent/messagesDeleted/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.event/-inbox-messages-updated-event/messages-deleted.md
+$dokka.location:com.pushwoosh.inbox.event/InboxMessagesUpdatedEvent/messagesUpdated/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.event/-inbox-messages-updated-event/messages-updated.md
+$dokka.location:com.pushwoosh.inbox.exception////PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.exception/index.md
+$dokka.location:com.pushwoosh.inbox.exception/InboxMessagesException///PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.exception/-inbox-messages-exception/index.md
+$dokka.location:com.pushwoosh.inbox.exception/InboxMessagesException/InboxMessagesException/#java.lang.String#java.lang.Throwable/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.exception/-inbox-messages-exception/-inbox-messages-exception.md
+$dokka.location:com.pushwoosh.inbox.exception/InboxMessagesException/InboxMessagesException/#java.lang.String/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.exception/-inbox-messages-exception/-inbox-messages-exception.md
+$dokka.location:com.pushwoosh.inbox.exception/InboxMessagesException/InboxMessagesException/#java.lang.Throwable/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox.exception/-inbox-messages-exception/-inbox-messages-exception.md
+$dokka.location:com.pushwoosh.inbox////PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/index.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox///PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/index.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/PushwooshInbox/#/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/-pushwoosh-inbox.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/deleteMessage/#java.lang.String/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/delete-message.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/deleteMessages/#java.util.Collection<java.lang.String>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/delete-messages.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/loadCachedMessages/#Callback<Collection<InboxMessage>,InboxMessagesException>#com.pushwoosh.inbox.data.InboxMessage#int/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/load-cached-messages.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/loadCachedMessages/#com.pushwoosh.inbox.data.InboxMessage#int/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/load-cached-messages.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/loadMessages/#Callback<Collection<InboxMessage>,InboxMessagesException>#com.pushwoosh.inbox.data.InboxMessage#int/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/load-messages.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/loadMessages/#Callback<Collection<InboxMessage>,InboxMessagesException>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/load-messages.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/messagesCount/#Callback<Integer,InboxMessagesException>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/messages-count.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/messagesWithNoActionPerformedCount/#Callback<Integer,InboxMessagesException>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/messages-with-no-action-performed-count.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/performAction/#java.lang.String/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/perform-action.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/readMessage/#java.lang.String/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/read-message.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/readMessages/#java.util.Collection<java.lang.String>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/read-messages.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/registerMessagesCountObserver/#Callback<Integer,InboxMessagesException>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/register-messages-count-observer.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/registerMessagesWithNoActionPerformedCountObserver/#Callback<Integer,InboxMessagesException>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/register-messages-with-no-action-performed-count-observer.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/registerUnreadMessagesCountObserver/#Callback<Integer,InboxMessagesException>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/register-unread-messages-count-observer.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/unreadMessagesCount/#Callback<Integer,InboxMessagesException>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/unread-messages-count.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/unregisterMessagesCountObserver/#Callback<Integer,InboxMessagesException>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/unregister-messages-count-observer.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/unregisterMessagesWithNoActionPerformedCountObserver/#Callback<Integer,InboxMessagesException>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/unregister-messages-with-no-action-performed-count-observer.md
+$dokka.location:com.pushwoosh.inbox/PushwooshInbox/unregisterUnreadMessagesCountObserver/#Callback<Integer,InboxMessagesException>/PointingToDeclaration/pushwoosh-inbox/com.pushwoosh.inbox/-pushwoosh-inbox/unregister-unread-messages-count-observer.md
+com.pushwoosh.inbox
+com.pushwoosh.inbox.data
+com.pushwoosh.inbox.event
+com.pushwoosh.inbox.exception
+

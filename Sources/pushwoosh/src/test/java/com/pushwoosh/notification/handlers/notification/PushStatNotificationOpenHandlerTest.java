@@ -2,8 +2,8 @@ package com.pushwoosh.notification.handlers.notification;
 
 import android.os.Bundle;
 
+import com.pushwoosh.PushStatisticsScheduler;
 import com.pushwoosh.PushwooshPlatform;
-import com.pushwoosh.notification.PushBundleDataProvider;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.testutil.PlatformTestManager;
 import com.pushwoosh.testutil.WhiteboxHelper;
@@ -12,8 +12,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -31,7 +32,8 @@ public class PushStatNotificationOpenHandlerTest {
 
     private PushStatNotificationOpenHandler pushStatNotificationOpenHandler;
     private PlatformTestManager platformTestManager;
-    
+    private MockedStatic<PushStatisticsScheduler> schedulerMock;
+
     @Mock
     private Bundle bundle;
     @Mock
@@ -40,18 +42,24 @@ public class PushStatNotificationOpenHandlerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        
+
         platformTestManager = new PlatformTestManager();
         platformTestManager.setUp();
-        
+
         pushStatNotificationOpenHandler = new PushStatNotificationOpenHandler();
-        
+
         // Mock PushwooshPlatform repository
         WhiteboxHelper.setInternalState(PushwooshPlatform.getInstance(), "pushwooshRepository", pushwooshRepositoryMock);
+
+        // Mock PushStatisticsScheduler static methods
+        schedulerMock = Mockito.mockStatic(PushStatisticsScheduler.class);
     }
 
     @After
     public void tearDown() throws Exception {
+        if (schedulerMock != null) {
+            schedulerMock.close();
+        }
         platformTestManager.tearDown();
     }
 
@@ -66,13 +74,14 @@ public class PushStatNotificationOpenHandlerTest {
         when(bundle.getString("silent")).thenReturn("false");
         when(bundle.getString("p")).thenReturn("test_hash");
         when(bundle.getString("md")).thenReturn("test_metadata");
-        
+
         // When
         pushStatNotificationOpenHandler.postHandleNotification(bundle);
-        
+
         // Then
         verify(pushwooshRepositoryMock, never()).setCurrentSessionHash(anyString());
-        verify(pushwooshRepositoryMock, never()).sendPushOpened(anyString(), anyString());
+        // Verify PushStatisticsScheduler.scheduleOpenEvent was NOT called for local push
+        schedulerMock.verify(() -> PushStatisticsScheduler.scheduleOpenEvent(any(Bundle.class)), never());
     }
 
     /**
@@ -86,13 +95,14 @@ public class PushStatNotificationOpenHandlerTest {
         when(bundle.getString("silent")).thenReturn("true");
         when(bundle.getString("p")).thenReturn("test_hash");
         when(bundle.getString("md")).thenReturn("test_metadata");
-        
+
         // When
         pushStatNotificationOpenHandler.postHandleNotification(bundle);
-        
+
         // Then
         verify(pushwooshRepositoryMock, never()).setCurrentSessionHash(anyString());
-        verify(pushwooshRepositoryMock, never()).sendPushOpened(anyString(), anyString());
+        // Verify PushStatisticsScheduler.scheduleOpenEvent was NOT called for silent push
+        schedulerMock.verify(() -> PushStatisticsScheduler.scheduleOpenEvent(any(Bundle.class)), never());
     }
 
     /**
@@ -108,13 +118,14 @@ public class PushStatNotificationOpenHandlerTest {
         when(bundle.getString("silent")).thenReturn("false");
         when(bundle.getString("p")).thenReturn(pushHash);
         when(bundle.getString("md")).thenReturn(metadata);
-        
+
         // When
         pushStatNotificationOpenHandler.postHandleNotification(bundle);
-        
+
         // Then
         verify(pushwooshRepositoryMock).setCurrentSessionHash(eq(pushHash));
-        verify(pushwooshRepositoryMock).sendPushOpened(eq(pushHash), eq(metadata));
+        // Verify PushStatisticsScheduler.scheduleOpenEvent was called instead of direct repository call
+        schedulerMock.verify(() -> PushStatisticsScheduler.scheduleOpenEvent(bundle));
     }
 
     /**
@@ -130,32 +141,34 @@ public class PushStatNotificationOpenHandlerTest {
         when(bundle.getString("silent")).thenReturn(null);
         when(bundle.getString("p")).thenReturn(pushHash);
         when(bundle.getString("md")).thenReturn(metadata);
-        
+
         // When
         pushStatNotificationOpenHandler.postHandleNotification(bundle);
-        
+
         // Then
         verify(pushwooshRepositoryMock).setCurrentSessionHash(eq(pushHash));
-        verify(pushwooshRepositoryMock).sendPushOpened(eq(pushHash), eq(metadata));
+        // Verify PushStatisticsScheduler.scheduleOpenEvent was called instead of direct repository call
+        schedulerMock.verify(() -> PushStatisticsScheduler.scheduleOpenEvent(bundle));
     }
 
     /**
      * Test verifies that push statistics are sent when handling a push notification with null push hash.
-     * Push hash is required for sending statistics, so if it's missing, no statistics should be sent.
+     * Even with null hash, the scheduling should still occur (WorkManager will handle the data validation).
      */
     @Test
-    public void postHandleNotification_whenNullPushHash_shouldNotSendPushStat() {
+    public void postHandleNotification_whenNullPushHash_shouldStillSchedule() {
         // Given
         when(bundle.getBoolean("local", false)).thenReturn(false);
         when(bundle.getString("silent")).thenReturn("false");
         when(bundle.getString("p")).thenReturn(null);
         when(bundle.getString("md")).thenReturn("test_metadata");
-        
+
         // When
         pushStatNotificationOpenHandler.postHandleNotification(bundle);
-        
+
         // Then
         verify(pushwooshRepositoryMock).setCurrentSessionHash(any());
-        verify(pushwooshRepositoryMock).sendPushOpened(any(), eq("test_metadata"));
+        // Verify PushStatisticsScheduler.scheduleOpenEvent was still called - validation happens in Worker
+        schedulerMock.verify(() -> PushStatisticsScheduler.scheduleOpenEvent(bundle));
     }
 }

@@ -1,0 +1,15 @@
+$dokka.format:gfm-v1
+$dokka.linkExtension:md
+$dokka.location:com.pushwoosh.huawei////PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/index.md
+$dokka.location:com.pushwoosh.huawei/PushwooshHmsHelper.GetTokenAsync///PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/-pushwoosh-hms-helper/-get-token-async/index.md
+$dokka.location:com.pushwoosh.huawei/PushwooshHmsHelper.GetTokenAsync/GetTokenAsync/#com.pushwoosh.huawei.PushwooshHmsHelper.OnGetTokenAsync/PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/-pushwoosh-hms-helper/-get-token-async/-get-token-async.md
+$dokka.location:com.pushwoosh.huawei/PushwooshHmsHelper.OnGetTokenAsync///PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/-pushwoosh-hms-helper/-on-get-token-async/index.md
+$dokka.location:com.pushwoosh.huawei/PushwooshHmsHelper.OnGetTokenAsync/onError/#java.lang.String/PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/-pushwoosh-hms-helper/-on-get-token-async/on-error.md
+$dokka.location:com.pushwoosh.huawei/PushwooshHmsHelper.OnGetTokenAsync/onGetToken/#java.lang.String/PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/-pushwoosh-hms-helper/-on-get-token-async/on-get-token.md
+$dokka.location:com.pushwoosh.huawei/PushwooshHmsHelper///PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/-pushwoosh-hms-helper/index.md
+$dokka.location:com.pushwoosh.huawei/PushwooshHmsHelper/PushwooshHmsHelper/#/PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/-pushwoosh-hms-helper/-pushwoosh-hms-helper.md
+$dokka.location:com.pushwoosh.huawei/PushwooshHmsHelper/isPushwooshMessage/#RemoteMessage/PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/-pushwoosh-hms-helper/is-pushwoosh-message.md
+$dokka.location:com.pushwoosh.huawei/PushwooshHmsHelper/onMessageReceived/#Context#RemoteMessage/PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/-pushwoosh-hms-helper/on-message-received.md
+$dokka.location:com.pushwoosh.huawei/PushwooshHmsHelper/onTokenRefresh/#java.lang.String/PointingToDeclaration/pushwoosh-huawei/com.pushwoosh.huawei/-pushwoosh-hms-helper/on-token-refresh.md
+com.pushwoosh.huawei
+

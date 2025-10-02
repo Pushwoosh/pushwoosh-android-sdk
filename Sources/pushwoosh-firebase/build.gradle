@@ -97,3 +97,6 @@ dependencies {
     testImplementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
     testImplementation 'org.skyscreamer:jsonassert:1.5.0'
 }
+
+// Dokka documentation configuration
+apply from: '../scripts/dokka-config.gradle'

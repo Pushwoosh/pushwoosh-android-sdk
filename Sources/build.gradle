@@ -5,6 +5,7 @@ buildscript {
     ext.huawei_version = '1.9.1.300'
     ext.gradle_version = '8.1.1'
     ext.gradle_pitest_plugin_version = '0.2.2'
+    ext.dokka_version = '1.9.20'
     repositories {
         google()
         mavenCentral()
@@ -19,6 +20,8 @@ buildscript {
         classpath "pl.droidsonroids.gradle:gradle-pitest-plugin:$gradle_pitest_plugin_version"
         classpath "com.huawei.agconnect:agcp:$huawei_version"
         classpath libs.google.services
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
+        classpath "org.jetbrains.dokka:dokka-base:$dokka_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -38,7 +41,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 35
     ext.global_targetVersion = 35
-    ext.global_versionName = "6.7.33"
+    ext.global_versionName = "6.7.34"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"
@@ -56,3 +59,28 @@ subprojects {
     ext.mockito = "5.8.0"
 }
 
+// ============================================
+// Dokka Documentation Configuration
+// ============================================
+
+apply plugin: 'org.jetbrains.dokka'
+
+// Dokka output directory (can be overridden via -PdokkaOutputDir=...)
+ext.dokkaOutputDir = project.findProperty('dokkaOutputDir') ?: "$rootProject.projectDir/../output/docs"
+
+// Apply Dokka plugin to all SDK modules
+subprojects {
+    // Only apply to SDK modules, exclude demoapp and stubs
+    if (project.name != 'demoapp' && !project.name.contains('stub')) {
+        apply plugin: 'org.jetbrains.dokka'
+    }
+}
+
+// ============================================
+// Multi-Module HTML Documentation
+// ============================================
+
+tasks.dokkaHtmlMultiModule.configure {
+    moduleName.set("Pushwoosh Android SDK")
+    outputDirectory.set(file("${project.findProperty('dokkaOutputDir') ?: "$rootProject.projectDir/../output/docs"}"))
+}

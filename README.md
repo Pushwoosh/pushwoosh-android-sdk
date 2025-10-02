@@ -14,17 +14,14 @@ Maven integration:
 	<dependency>
   		<groupId>com.pushwoosh</groupId>
   		<artifactId>pushwoosh</artifactId>
-  		<version>6.7.33</version>
+  		<version>6.7.34</version>
 	</dependency>
 
 The sample projects are available here:  
-https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Samples
+https://github.com/Pushwoosh/pushwoosh-android-sample
 
 Documentation:
 https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Documentation
-
-Share your feedback:
-https://docs.google.com/forms/d/e/1FAIpQLSd_0b8jwn-V_JmoPLIxIFYbHACCQhrzidOZV3ELywoQPXRSxw/viewform
 
 Pushwoosh team
 http://www.pushwoosh.com

@@ -39,13 +39,9 @@ import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.network.InAppRepository;
-import com.pushwoosh.internal.event.EventListener;
-import com.pushwoosh.internal.event.ServerCommunicationStartedEvent;
 import com.pushwoosh.internal.network.NetworkException;
-import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.network.RequestStorage;
-import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushMessage;
 import com.pushwoosh.tags.Tags;
@@ -67,24 +63,20 @@ public class PushwooshRepository {
     private final RegistrationPrefs registrationPrefs;
     private final NotificationPrefs notificationPrefs;
     private final RequestStorage requestStorage;
-    private final ServerCommunicationManager serverCommunicationManager;
     private String currentSessionHash;
     private String currentRichMediaCode;
     private String currentInAppCode;
-    private EventListener<ServerCommunicationStartedEvent> sendAppOpenWhenServerCommunicationStartsEvent;
 
     public PushwooshRepository(RequestManager requestManager,
                                SendTagsProcessor sendTagsProcessor,
                                RegistrationPrefs registrationPrefs,
                                NotificationPrefs notificationPrefs,
-                               RequestStorage requestStorage,
-                               ServerCommunicationManager serverCommunicationManager) {
+                               RequestStorage requestStorage) {
         this.requestManager = requestManager;
         this.sendTagsProcessor = sendTagsProcessor;
         this.registrationPrefs = registrationPrefs;
         this.notificationPrefs = notificationPrefs;
         this.requestStorage = requestStorage;
-        this.serverCommunicationManager = serverCommunicationManager;
 
         if (requestManager == null) {
             PWLog.error(TAG, "requestManager can't be null");
@@ -106,6 +98,12 @@ public class PushwooshRepository {
             });
         }
 
+    }
+
+    private <T, E extends PushwooshException> void safeProcessCallback(Callback<T, E> callback, Result<T, E> result) {
+        if (callback != null) {
+            callback.process(result);
+        }
     }
 
     public String getCurrentSessionHash() {
@@ -133,36 +131,10 @@ public class PushwooshRepository {
     }
 
     public void sendAppOpen() {
-//        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
-//            subscribeSendAppOpenWhenServerCommunicationStartsEvent();
-//            return;
-//        }
         PWLog.noise(TAG, "sendAppOpen()");
         AppOpenRequest request = new AppOpenRequest();
-        requestManager.sendRequest(
-                request,
-                new CacheFailedRequestCallback<>(request, requestStorage)
-                );
-
-//        BusinessCasesManager businessCasesManager = PushwooshPlatform.getInstance().getBusinessCasesManager();
-//        businessCasesManager.triggerCase(BusinessCasesManager.WELCOME_CASE, null);
-//        businessCasesManager.triggerCase(BusinessCasesManager.APP_UPDATE_CASE, null);
-
+        requestManager.sendRequest(request);
     }
-
-//    private void subscribeSendAppOpenWhenServerCommunicationStartsEvent() {
-//        if (sendAppOpenWhenServerCommunicationStartsEvent != null) {
-//            return;
-//        }
-//        sendAppOpenWhenServerCommunicationStartsEvent = new EventListener<ServerCommunicationStartedEvent>() {
-//            @Override
-//            public void onReceive(ServerCommunicationStartedEvent event) {
-//                EventBus.unsubscribe(ServerCommunicationStartedEvent.class, this);
-//                sendAppOpen();
-//            }
-//        };
-//        EventBus.subscribe(ServerCommunicationStartedEvent.class, sendAppOpenWhenServerCommunicationStartsEvent);
-//    }
 
     public void sendTags(@NonNull TagsBundle tags, Callback<Void, PushwooshException> listener) {
         JSONObject jsonTags = tags.toJson();
@@ -178,23 +150,12 @@ public class PushwooshRepository {
     public void sendEmailTags(@NonNull TagsBundle tags, String email, Callback<Void, PushwooshException> listener) {
         JSONObject jsonTags = tags.toJson();
 
-        RequestManager requestManager = NetworkModule.getRequestManager();
-        if (requestManager == null) {
-            NetworkException exception = new NetworkException("Request manager is null");
-            PWLog.warn(TAG, "Cannot send email tags", exception);
-            return;
-        }
-
         SetEmailTagsRequest request = new SetEmailTagsRequest(jsonTags, email);
-        requestManager.sendRequest(request, new CacheFailedRequestCallback<Void>(request, RepositoryModule.getRequestStorage()) {
-            @Override
-            public void process(@NonNull Result<Void, NetworkException> result) {
-                super.process(result);
-                if (result.isSuccess()) {
-                    listener.process(Result.fromData(result.getData()));
-                } else {
-                    listener.process(Result.fromException(result.getException()));
-                }
+        requestManager.sendRequest(request, result -> {
+            if (result.isSuccess()) {
+                safeProcessCallback(listener, Result.fromData(result.getData()));
+            } else {
+                safeProcessCallback(listener, Result.fromException(result.getException()));
             }
         });
     }
@@ -251,6 +212,26 @@ public class PushwooshRepository {
         });
     }
 
+    /**
+     * Legacy method for sending push notification open statistics.
+     * <p>
+     * This method sends push open events using direct HTTP requests, which are not reliable
+     * in scenarios involving process death or Android's Doze Mode. The method has been
+     * superseded by {@link com.pushwoosh.PushStatisticsScheduler} which provides reliable
+     * delivery using WorkManager.
+     * <p>
+     * <strong>Deprecation Notice:</strong> This method is deprecated and scheduled for removal.
+     * It can be safely removed after January 1, 2026. Use
+     * {@link com.pushwoosh.PushStatisticsScheduler#scheduleOpenEvent(android.os.Bundle)} or
+     * {@link com.pushwoosh.PushStatisticsScheduler#scheduleStatisticsEvent(String, String, String)}
+     * instead.
+     *
+     * @param hash the unique hash identifier of the push notification
+     * @param metadata additional metadata associated with the push notification, may be null
+     * @deprecated Use {@link com.pushwoosh.PushStatisticsScheduler} for reliable statistics delivery.
+     *             Scheduled for removal after January 1, 2026.
+     */
+    @Deprecated
     public void sendPushOpened(String hash, String metadata) {
         PWLog.info(TAG, "Sending PushStatRequest, hash: " + hash);
         if (hash != null && TextUtils.equals(hash, notificationPrefs.lastNotificationHash().get())) {
@@ -268,6 +249,26 @@ public class PushwooshRepository {
         requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
     }
 
+    /**
+     * Legacy method for sending push notification delivery statistics.
+     * <p>
+     * This method sends push delivery events using direct HTTP requests, which are not reliable
+     * in scenarios involving process death or Android's Doze Mode. The method has been
+     * superseded by {@link com.pushwoosh.PushStatisticsScheduler} which provides reliable
+     * delivery using WorkManager.
+     * <p>
+     * <strong>Deprecation Notice:</strong> This method is deprecated and scheduled for removal.
+     * It can be safely removed after January 1, 2026. Use
+     * {@link com.pushwoosh.PushStatisticsScheduler#scheduleDeliveryEvent(android.os.Bundle)} or
+     * {@link com.pushwoosh.PushStatisticsScheduler#scheduleStatisticsEvent(String, String, String)}
+     * instead.
+     *
+     * @param hash the unique hash identifier of the push notification
+     * @param metaData additional metadata associated with the push notification, may be null
+     * @deprecated Use {@link com.pushwoosh.PushStatisticsScheduler} for reliable statistics delivery.
+     *             Scheduled for removal after January 1, 2026.
+     */
+    @Deprecated
     public void sendPushDelivered(String hash, String metaData) {
         PWLog.info(TAG,"Sending MessageDeliveredRequest, hash: " + hash);
         MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData);
@@ -276,6 +277,52 @@ public class PushwooshRepository {
             return;
         }
         requestManager.sendRequest(request, null, new CacheFailedRequestCallback<>(request, requestStorage));
+    }
+
+    public Result<Void, NetworkException> sendPushOpenedSync(String hash, String metadata) {
+        PWLog.info(TAG, "Sending PushStatRequest sync, hash: " + hash);
+
+        if (hash != null && TextUtils.equals(hash, notificationPrefs.lastNotificationHash().get())) {
+            PWLog.warn(TAG,"Push stat for (" + hash + ") already sent");
+            return Result.fromData(null); // Already sent - success
+        }
+
+        PushStatRequest request = new PushStatRequest(hash, metadata);
+        if (requestManager == null) {
+            PWLog.error(TAG,"Request manager is null");
+            return Result.fromException(new NetworkException("Request manager is null"));
+        }
+
+        try {
+            Result<Void, NetworkException> result = requestManager.sendRequestSync(request);
+
+            // Only save hash after successful request
+            if (result.isSuccess() && hash != null) {
+                notificationPrefs.lastNotificationHash().set(hash);
+            }
+
+            return result;
+        } catch (Exception e) {
+            PWLog.error(TAG, "Push stat exception for hash: " + hash, e);
+            return Result.fromException(new NetworkException(e.getMessage()));
+        }
+    }
+
+    public Result<Void, NetworkException> sendPushDeliveredSync(String hash, String metaData) {
+        PWLog.info(TAG,"Sending MessageDeliveredRequest sync, hash: " + hash);
+
+        MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData);
+        if (requestManager == null) {
+            PWLog.error(TAG, "Request manager is null");
+            return Result.fromException(new NetworkException("Request manager is null"));
+        }
+
+        try {
+            return requestManager.sendRequestSync(request);
+        } catch (Exception e) {
+            PWLog.error(TAG, "Message delivered exception for hash: " + hash, e);
+            return Result.fromException(new NetworkException(e.getMessage()));
+        }
     }
 
     public void prefetchTags() {

@@ -94,3 +94,6 @@ dependencies {
     api project(':pushwoosh')
     api project(':pushwoosh-inbox')
 }
+
+// Dokka documentation configuration
+apply from: '../scripts/dokka-config.gradle'

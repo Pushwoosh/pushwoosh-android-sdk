@@ -119,7 +119,7 @@ public class PushwooshPlatform {
         SendTagsProcessor sendTagsProcessor = new SendTagsProcessor();
         NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
         RequestStorage requestStorage = RepositoryModule.getRequestStorage();
-        pushwooshRepository = new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage, serverCommunicationManager);
+        pushwooshRepository = new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage);
 
         richMediaStyle = new RichMediaStyle(0, new RichMediaAnimationSlideBottom());
         richMediaController = new RichMediaController(

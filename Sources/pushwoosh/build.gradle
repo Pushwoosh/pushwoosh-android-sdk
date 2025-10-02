@@ -118,3 +118,6 @@ pitest {
     timeoutConstInMillis = 2000
     // Necessary to allow Robolectric to finish. See http://pitest.org/faq/#im-seeing-a-lot-of-timeouts-whats-going-on
 }
+
+// Dokka documentation configuration
+apply from: '../scripts/dokka-config.gradle'

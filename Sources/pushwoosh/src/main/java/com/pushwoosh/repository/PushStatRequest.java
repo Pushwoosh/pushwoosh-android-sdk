@@ -31,7 +31,7 @@ import com.pushwoosh.internal.network.PushRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-class PushStatRequest extends PushRequest<Void> {
+public class PushStatRequest extends PushRequest<Void> {
 	private String hash;
 	private String metadata;
 
@@ -42,6 +42,14 @@ class PushStatRequest extends PushRequest<Void> {
 
 	public String getMethod() {
 		return "pushStat";
+	}
+
+	public String getHash() {
+		return hash;
+	}
+
+	public String getMetaData() {
+		return metadata;
 	}
 
 	public boolean shouldUseJitter(){ return true; }

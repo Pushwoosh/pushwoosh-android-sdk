@@ -6,7 +6,6 @@ import android.os.Bundle;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.notification.PushBundleDataProvider;
 
 
 public class PushwooshMessagingServiceHelper {
@@ -30,22 +29,20 @@ public class PushwooshMessagingServiceHelper {
     }
 
     static void sendMessageDeliveryEvent(Bundle pushBundle) {
+        PWLog.noise("PushwooshMessagingServiceHelper", "sendMessageDeliveryEvent()");
         try {
-            String pushHash = PushBundleDataProvider.getPushHash(pushBundle);
-            String pushMetaData = PushBundleDataProvider.getPushMetadata(pushBundle);
-            PushwooshPlatform.getInstance().pushwooshRepository().sendPushDelivered(pushHash, pushMetaData);
+            PushStatisticsScheduler.scheduleDeliveryEvent(pushBundle);
         } catch(Throwable t) {
-            PWLog.error("/messageDeliveryEvent was not sent. Exception occurred " + t.getClass().getCanonicalName() + ". " + t.getMessage());
+            PWLog.error("Failed to schedule delivery event", t);
         }
     }
 
     static void sendPushStat(Bundle pushBundle) {
+        PWLog.noise("PushwooshMessagingServiceHelper", "sendPushStat()");
         try {
-            String pushHash = PushBundleDataProvider.getPushHash(pushBundle);
-            String metadata = PushBundleDataProvider.getPushMetadata(pushBundle);
-            PushwooshPlatform.getInstance().pushwooshRepository().sendPushOpened(pushHash, metadata);
+            PushStatisticsScheduler.scheduleOpenEvent(pushBundle);
         } catch (Throwable t) {
-            PWLog.error("/pushStat request was not sent. Exception occurred " + t.getClass().getCanonicalName() + ". " + t.getMessage());
+            PWLog.error("Failed to schedule open event", t);
         }
     }
 }

@@ -55,7 +55,6 @@ public class MessageHandleChainProvider {
 	private static Chain<MessageHandler> generateDefault() {
 		return new MessageHandleChain.Builder().addMessageHandler(new RichMediaMessageHandler())
 				.addMessageHandler(new ShowNotificationMessageHandler())
-				//.addMessageHandler(new SendDeliveryMessageHandler())
 				.build();
 	}
 }

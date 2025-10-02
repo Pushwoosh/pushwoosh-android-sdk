@@ -38,6 +38,7 @@ public class PushFcmIntentService extends FirebaseMessagingService {
 	@Override
 	@WorkerThread
 	public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
+		PWLog.noise("PushFcmIntentService", "onMessageReceived");
 		super.onMessageReceived(remoteMessage);
 		PushwooshFcmHelper.onMessageReceived(getApplicationContext(), remoteMessage);
 	}

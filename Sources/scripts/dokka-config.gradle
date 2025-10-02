@@ -1,0 +1,190 @@
+// ============================================
+// Dokka Configuration for SDK Modules
+// ============================================
+// This file contains shared Dokka configuration
+// Applied to all SDK modules via: apply from: '../scripts/dokka-config.gradle'
+
+// ============================================
+// ProGuard Parsing Functions
+// ============================================
+
+/**
+ * Parse single ProGuard class declaration line
+ * @param line ProGuard rule line (e.g., "-keep public class com.example.ClassName")
+ * @return Class name (e.g., "com.example.ClassName") or null if not a class declaration
+ */
+def parseProguardClassName(String line) {
+    def keepClassPattern = ~/-keep\s+.*?\b(?:class|enum|interface)\s+([\w.$*]+)[\s\{]/
+    def matcher = keepClassPattern.matcher(line)
+    return matcher.find() ? matcher.group(1) : null
+}
+
+/**
+ * Resolve source files for wildcard pattern (e.g., com.example.**)
+ * @param className Wildcard class pattern (e.g., "com.pushwoosh.inbox.ui.**")
+ * @return List of source files matching the pattern
+ */
+def resolveWildcardPattern(String className) {
+    def packagePath = className.replace('.', '/').replace('**', '')
+    def packageDir = file("src/main/java/" + packagePath)
+    def files = []
+
+    if (packageDir.exists() && packageDir.isDirectory()) {
+        packageDir.eachFileRecurse { f ->
+            if (f.isFile() && (f.name.endsWith('.java') || f.name.endsWith('.kt'))) {
+                files.add(f)
+                logger.debug("Found public class from wildcard: ${f.name}")
+            }
+        }
+        logger.debug("Processed wildcard pattern: ${className} (${files.size()} files)")
+    } else {
+        logger.debug("Wildcard package not found: ${packagePath}")
+    }
+
+    return files
+}
+
+/**
+ * Resolve source file for concrete class name
+ * Handles inner classes (ClassName$Builder) and both Java/Kotlin files
+ * @param className Fully qualified class name (e.g., "com.pushwoosh.Pushwoosh")
+ * @return Source file or null if not found
+ */
+def resolveClassName(String className) {
+    // Handle inner classes: com.pushwoosh.LocalNotification$Builder -> LocalNotification
+    def topLevelClass = className.replaceAll(/\$.*$/, '')
+
+    // Convert com.pushwoosh.Pushwoosh -> src/main/java/com/pushwoosh/Pushwoosh
+    def baseFilePath = "src/main/java/" + topLevelClass.replace('.', '/')
+
+    // Try both .java and .kt files
+    def javaFile = file(baseFilePath + ".java")
+    if (javaFile.exists()) {
+        logger.debug("Found public class: ${className} -> ${javaFile.name}")
+        return javaFile
+    }
+
+    def kotlinFile = file(baseFilePath + ".kt")
+    if (kotlinFile.exists()) {
+        logger.debug("Found public class: ${className} -> ${kotlinFile.name}")
+        return kotlinFile
+    }
+
+    logger.debug("ProGuard references non-existent file: ${baseFilePath}.{java|kt}")
+    return null
+}
+
+/**
+ * Parse ProGuard public.txt to determine which classes should be documented
+ * @return List of source files to document, or null if ProGuard file not found
+ */
+def parseProguardPublicClasses() {
+    def proguardFile = file("proguard/public.txt")
+
+    if (!proguardFile.exists()) {
+        logger.info("ProGuard public.txt not found for ${project.name}, documenting all public classes")
+        return null
+    }
+
+    def publicSourceFiles = []
+
+    proguardFile.eachLine { line ->
+        def className = parseProguardClassName(line)
+        if (!className) return
+
+        // Resolve files (wildcard or concrete class)
+        def files = className.contains('*') ?
+            resolveWildcardPattern(className) :
+            [resolveClassName(className)].findAll { it != null }
+
+        // Add to result (avoid duplicates)
+        files.each { f ->
+            if (!publicSourceFiles.contains(f)) {
+                publicSourceFiles.add(f)
+            }
+        }
+    }
+
+    logger.info("Found ${publicSourceFiles.size()} public classes in ${project.name} ProGuard file")
+    return publicSourceFiles.isEmpty() ? null : publicSourceFiles
+}
+
+// ============================================
+// Shared Configuration Function
+// ============================================
+
+/**
+ * Configure Dokka source set with ProGuard-based filtering
+ * Can be reused for any Dokka format (GFM, HTML, Javadoc)
+ * @param sourceSet Dokka source set to configure
+ */
+def configureDokkaSourceSet(sourceSet) {
+    def publicClasses = parseProguardPublicClasses()
+
+    if (publicClasses != null) {
+        // For mixed Java/Kotlin modules, use directory + suppressedFiles
+        // For pure Java, use specific files
+        def hasKotlinPlugin = project.plugins.hasPlugin('kotlin-android')
+
+        if (hasKotlinPlugin && publicClasses.size() > 0) {
+            // Use src/main/java directory and suppress non-public files
+            sourceSet.sourceRoots.from("src/main/java")
+
+            // Get all source files
+            def allFiles = fileTree("src/main/java").matching {
+                include '**/*.java'
+                include '**/*.kt'
+            }.files
+
+            // Suppress files not in publicClasses list
+            def filesToSuppress = allFiles - publicClasses
+            sourceSet.suppressedFiles.from(filesToSuppress)
+
+            logger.info("Documenting ${publicClasses.size()} classes from ProGuard for Kotlin module ${project.name}")
+        } else {
+            // Pure Java module - use specific files
+            sourceSet.sourceRoots.from(publicClasses)
+            logger.info("Documenting ${publicClasses.size()} classes from ProGuard for ${project.name}")
+        }
+    } else {
+        // Fallback: document all classes in src/main/java
+        sourceSet.sourceRoots.from("src/main/java")
+        logger.info("Documenting all classes for ${project.name}")
+    }
+
+    // Skip deprecated methods/classes
+    sourceSet.skipDeprecated.set(true)
+
+    sourceSet.perPackageOption {
+        matchingRegex.set(".*\\.internal.*")
+        suppress.set(true)
+    }
+}
+
+// ============================================
+// GFM (Markdown) Configuration
+// ============================================
+
+tasks.dokkaGfm.configure {
+    outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}/${project.name}"))
+
+    dokkaSourceSets {
+        main {
+            configureDokkaSourceSet(it)
+        }
+    }
+}
+
+// ============================================
+// HTML Partial Configuration (for MultiModule)
+// ============================================
+
+tasks.dokkaHtmlPartial.configure {
+    outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}/${project.name}"))
+
+    dokkaSourceSets {
+        main {
+            configureDokkaSourceSet(it)
+        }
+    }
+}

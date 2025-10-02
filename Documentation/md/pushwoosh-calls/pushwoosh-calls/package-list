@@ -1,0 +1,37 @@
+$dokka.format:gfm-v1
+$dokka.linkExtension:md
+$dokka.location:com.pushwoosh.calls.listener////PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls.listener/index.md
+$dokka.location:com.pushwoosh.calls.listener/CallEventListener///PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls.listener/-call-event-listener/index.md
+$dokka.location:com.pushwoosh.calls.listener/CallEventListener/onAnswer/#com.pushwoosh.calls.PushwooshVoIPMessage#kotlin.Int/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls.listener/-call-event-listener/on-answer.md
+$dokka.location:com.pushwoosh.calls.listener/CallEventListener/onCallAdded/#com.pushwoosh.calls.PushwooshVoIPMessage/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls.listener/-call-event-listener/on-call-added.md
+$dokka.location:com.pushwoosh.calls.listener/CallEventListener/onCallRemoved/#com.pushwoosh.calls.PushwooshVoIPMessage/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls.listener/-call-event-listener/on-call-removed.md
+$dokka.location:com.pushwoosh.calls.listener/CallEventListener/onCreateIncomingConnection/#android.os.Bundle?/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls.listener/-call-event-listener/on-create-incoming-connection.md
+$dokka.location:com.pushwoosh.calls.listener/CallEventListener/onDisconnect/#com.pushwoosh.calls.PushwooshVoIPMessage/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls.listener/-call-event-listener/on-disconnect.md
+$dokka.location:com.pushwoosh.calls.listener/CallEventListener/onReject/#com.pushwoosh.calls.PushwooshVoIPMessage/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls.listener/-call-event-listener/on-reject.md
+$dokka.location:com.pushwoosh.calls////PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/index.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin.Companion///PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/-companion/index.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin.Companion/instance/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/-companion/instance.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin///PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/index.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin/PushwooshCallPlugin/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/-pushwoosh-call-plugin.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin/callEventListener/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/call-event-listener.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin/callPrefs/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/call-prefs.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin/getPrefsMigrationSchemes/#com.pushwoosh.internal.platform.prefs.PrefsProvider?/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/get-prefs-migration-schemes.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin/init/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/init.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallSettings///PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/index.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallSettings/getCallPermissionStatus/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/get-call-permission-status.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallSettings/requestCallPermissions/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/request-call-permissions.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallSettings/setCallSound/#kotlin.String/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/set-call-sound.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallSettings/setIncomingCallChannelName/#kotlin.String/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/set-incoming-call-channel-name.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallSettings/setOngoingCallChannelName/#kotlin.String/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/set-ongoing-call-channel-name.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallSettings/setPhoneAccount/#kotlin.String/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/set-phone-account.md
+$dokka.location:com.pushwoosh.calls/PushwooshCallSettings/setPhoneAccountHandle/#kotlin.String/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/set-phone-account-handle.md
+$dokka.location:com.pushwoosh.calls/PushwooshVoIPMessage///PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-vo-i-p-message/index.md
+$dokka.location:com.pushwoosh.calls/PushwooshVoIPMessage/PushwooshVoIPMessage/#android.os.Bundle?/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-vo-i-p-message/-pushwoosh-vo-i-p-message.md
+$dokka.location:com.pushwoosh.calls/PushwooshVoIPMessage/callerName/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-vo-i-p-message/caller-name.md
+$dokka.location:com.pushwoosh.calls/PushwooshVoIPMessage/hasVideo/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-vo-i-p-message/has-video.md
+$dokka.location:com.pushwoosh.calls/PushwooshVoIPMessage/rawPayload/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-vo-i-p-message/raw-payload.md
+$dokka.location:com.pushwoosh.calls/PushwooshVoIPMessage/supportsDMTF/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-vo-i-p-message/supports-d-m-t-f.md
+$dokka.location:com.pushwoosh.calls/PushwooshVoIPMessage/supportsHolding/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-vo-i-p-message/supports-holding.md
+com.pushwoosh.calls
+com.pushwoosh.calls.listener
+

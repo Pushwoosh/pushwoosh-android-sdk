@@ -32,9 +32,9 @@ import com.pushwoosh.internal.network.PushRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-class MessageDeliveredRequest extends PushRequest<Void> {
-	private String hash;
-	private String metaData;
+public class MessageDeliveredRequest extends PushRequest<Void> {
+	private final String hash;
+	private final String metaData;
 
 	public MessageDeliveredRequest(String hash, String metaData) {
 		this.hash = hash;
@@ -43,6 +43,14 @@ class MessageDeliveredRequest extends PushRequest<Void> {
 
 	public String getMethod() {
 		return "messageDeliveryEvent";
+	}
+
+	public String getHash() {
+		return hash;
+	}
+
+	public String getMetaData() {
+		return metaData;
 	}
 
 	public boolean shouldUseJitter(){ return true; }

@@ -28,6 +28,7 @@ package com.pushwoosh.notification.handlers.notification;
 
 import android.os.Bundle;
 
+import com.pushwoosh.PushStatisticsScheduler;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushBundleDataProvider;
@@ -46,8 +47,20 @@ public class PushStatNotificationOpenHandler implements PushNotificationOpenHand
 
         PWLog.debug("PushStatNotificationOpenHandler", String.format("postHandleNotification, pushHash: %s, metadata: %s", pushHash, metadata));
 
-        PushwooshRepository pushwooshRepository = PushwooshPlatform.getInstance().pushwooshRepository();
-        pushwooshRepository.setCurrentSessionHash(pushHash);
-        pushwooshRepository.sendPushOpened(pushHash, metadata);
+        // Set current session hash for repository
+        try {
+            PushwooshRepository pushwooshRepository = PushwooshPlatform.getInstance().pushwooshRepository();
+            pushwooshRepository.setCurrentSessionHash(pushHash);
+        } catch (Exception e) {
+            PWLog.error("PushStatNotificationOpenHandler", "Failed to set session hash", e);
+        }
+        
+        // Schedule open event via WorkManager
+        try {
+            PWLog.debug("PushStatNotificationOpenHandler", "Scheduling open event for notification click");
+            PushStatisticsScheduler.scheduleOpenEvent(pushBundle);
+        } catch (Exception e) {
+            PWLog.error("PushStatNotificationOpenHandler", "Failed to schedule open event", e);
+        }
     }
 }

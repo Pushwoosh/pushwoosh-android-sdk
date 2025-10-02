@@ -24,7 +24,6 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.registrar.ExistingTokenRegistrarWorker;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
-import com.pushwoosh.notification.PushBundleDataProvider;
 import com.pushwoosh.notification.PushwooshNotificationManager;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
@@ -35,13 +34,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -59,6 +58,7 @@ public class PushwooshTest {
     private PushwooshNotificationManager notificationManagerSpy;
     private WorkManager workManager;
     private TestDriver testDriver;
+    private MockedStatic<PushwooshMessagingServiceHelper> messagingServiceHelperMock;
 
     private final WorkerFactory testWorkerFactory = new WorkerFactory() {
         @Nullable
@@ -116,73 +116,17 @@ public class PushwooshTest {
         sendMessageDelivery = Pushwoosh.class.getDeclaredMethod("sendMessageDelivery", Bundle.class);
         sendPushStat.setAccessible(true);
         sendMessageDelivery.setAccessible(true);
+
+        // Mock PushwooshMessagingServiceHelper static methods
+        messagingServiceHelperMock = Mockito.mockStatic(PushwooshMessagingServiceHelper.class);
     }
 
     @After
     public void tearDown() throws Exception {
+        if (messagingServiceHelperMock != null) {
+            messagingServiceHelperMock.close();
+        }
         platformTestManager.tearDown();
-    }
-
-    @Test
-    public void shouldSendMessageDeliveryWithHash() throws InvocationTargetException, IllegalAccessException {
-        Bundle mBundle = new Bundle();
-        mBundle.putString("p",HASH);
-        mBundle.putInt("pw_msg",1);
-        mBundle.putString("md", METADATA);
-
-        sendMessageDelivery.invoke(Pushwoosh.getInstance(), mBundle);
-        Mockito.verify(pushwooshRepository).sendPushDelivered(HASH, METADATA);
-    }
-
-    @Test
-    public void shouldNotSendMessageDeliveryWithoutHash() throws InvocationTargetException, IllegalAccessException {
-        Bundle mBundle = new Bundle();
-        mBundle.putInt("pw_msg",1);
-        mBundle.putString("md",METADATA);
-
-        sendMessageDelivery.invoke(Pushwoosh.getInstance(), mBundle);
-        Mockito.verify(pushwooshRepository,Mockito.atMost(0)).sendPushDelivered(HASH, METADATA);
-    }
-
-    @Test
-    public void shouldNotSendMessageDeliveryWithoutPwMsg() throws InvocationTargetException, IllegalAccessException {
-        Bundle mBundle = new Bundle();
-        mBundle.putString("p",HASH);
-        mBundle.putString("md",METADATA);
-
-        sendMessageDelivery.invoke(Pushwoosh.getInstance(), mBundle);
-        Mockito.verify(pushwooshRepository,Mockito.atMost(0)).sendPushDelivered(HASH, METADATA);
-    }
-
-    @Test
-    public void shouldSendPushStatWithHashAndMetadata() throws InvocationTargetException, IllegalAccessException {
-        Bundle mBundle = new Bundle();
-        mBundle.putString("p",HASH);
-        mBundle.putString("md",METADATA);
-        mBundle.putInt("pw_msg",1);
-
-        sendPushStat.invoke(Pushwoosh.getInstance(), mBundle);
-        Mockito.verify(pushwooshRepository).sendPushOpened(HASH, PushBundleDataProvider.getPushMetadata(mBundle));
-    }
-
-    @Test
-    public void shouldNotSendPushStatWithoutHash()  throws InvocationTargetException, IllegalAccessException {
-        Bundle mBundle = new Bundle();
-        mBundle.putString("md",METADATA);
-        mBundle.putInt("pw_msg",1);
-
-        sendPushStat.invoke(Pushwoosh.getInstance(), mBundle);
-        Mockito.verify(pushwooshRepository,Mockito.atMost(0)).sendPushOpened(HASH, PushBundleDataProvider.getPushMetadata(mBundle));
-    }
-
-    @Test
-    public void shouldNotSendPushStatWithoutPwMsg() throws InvocationTargetException, IllegalAccessException  {
-        Bundle mBundle = new Bundle();
-        mBundle.putString("p",HASH);
-        mBundle.putString("md",METADATA);
-
-        sendPushStat.invoke(Pushwoosh.getInstance(), mBundle);
-        Mockito.verify(pushwooshRepository,Mockito.atMost(0)).sendPushOpened(HASH, PushBundleDataProvider.getPushMetadata(mBundle));
     }
 
     @Test

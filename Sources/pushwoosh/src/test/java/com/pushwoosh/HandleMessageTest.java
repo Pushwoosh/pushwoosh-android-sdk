@@ -26,7 +26,14 @@
 
 package com.pushwoosh;
 
-import java.util.List;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 
 import android.app.Notification;
 import android.graphics.Color;
@@ -51,26 +58,15 @@ import com.pushwoosh.testutil.RequestManagerMock;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 import org.skyscreamer.jsonassert.JSONAssert;
 
-
-import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.core.IsNull.notNullValue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
+import java.util.List;
 
 /**
  * Created by etkachenko on 4/20/17.
@@ -162,50 +158,6 @@ public class HandleMessageTest {
 		PushMessage message = messageCaptor.getValue();
 		assertThat(message.isSilent(), is(true));
 		verify(NotificationFactoryMock.callbackMock(), timeout(100).times(0)).onGenerateNotification(any());
-	}
-
-	//Tests handleMessage method sends messageDeliveryRequest
-	@Test
-	public void sendDeliveryRequestWithHashTest() throws Exception {
-		Expectation<JSONObject> expectation = requestManagerMock.expect(RepositoryTestManager.getMessageDeliveryClass());
-		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-
-		// Steps:
-		Bundle testBundle = new Bundle();
-		testBundle.putString("pw_msg", "1");
-		testBundle.putString("p", HASH);
-
-		PushwooshMessagingServiceHelper.onMessageReceived(RuntimeEnvironment.application, testBundle);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-
-		// Postconditions:
-		verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-		JSONObject params = requestCaptor.getValue();
-
-		assertThat(params.getString("application"), is(equalTo(APP_ID)));
-		assertThat(params.getString("hash"), is(equalTo(HASH)));
-	}
-
-	//Tests handleMessage method sends messageDeliveryRequest
-	@Test
-	public void sendDeliveryRequestWithoutHashTest() throws Exception {
-		Expectation<JSONObject> expectation = requestManagerMock.expect(RepositoryTestManager.getMessageDeliveryClass());
-		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-
-		// Steps:
-		Bundle testBundle = new Bundle();
-		testBundle.putString("pw_msg", "1");
-
-		PushwooshMessagingServiceHelper.onMessageReceived(RuntimeEnvironment.application, testBundle);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-
-		// Postconditions:
-		verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-		JSONObject params = requestCaptor.getValue();
-
-		assertThat(params.getString("application"), is(equalTo(APP_ID)));
 	}
 
 	//Tests there is no messageDeliveredRequest for local message
