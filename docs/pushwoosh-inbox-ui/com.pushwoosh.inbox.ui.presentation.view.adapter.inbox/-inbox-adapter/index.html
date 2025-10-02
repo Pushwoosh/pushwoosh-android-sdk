@@ -1,0 +1,772 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>InboxAdapter</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            Pushwoosh Android SDK
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">androidJvm</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh-inbox-ui::com.pushwoosh.inbox.ui.presentation.view.adapter.inbox/InboxAdapter///PointingToDeclaration//1116306685">
+  <div class="breadcrumbs"><a href="../../index.html">pushwoosh-inbox-ui</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.inbox.ui.presentation.view.adapter.inbox</a><span class="delimiter">/</span><span class="current">InboxAdapter</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Inbox</span><wbr><span><span>Adapter</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">InboxAdapter</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a><span class="token punctuation">, </span></span><span class="parameter ">colorSchemeProvider<span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.style/-color-scheme-provider/index.html">ColorSchemeProvider</a><span class="token punctuation">, </span></span><span class="parameter ">attachmentClickListener<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://developer.android.com/reference/kotlin/android/view/View.html">View</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span> : <a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/index.html">BaseRecyclerAdapter</a><span class="token operator">&lt;</span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/-view-holder/index.html">BaseRecyclerAdapter.ViewHolder</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span><span class="token punctuation">, </span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt; </span>, <a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-item-touch-helper-adapter/index.html">ItemTouchHelperAdapter</a></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="289194156%2FConstructors%2F1116306685" anchor-label="InboxAdapter" id="289194156%2FConstructors%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-inbox-adapter.html"><span>Inbox</span><wbr><span><span>Adapter</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="289194156%2FConstructors%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a><span class="token punctuation">, </span></span><span class="parameter ">colorSchemeProvider<span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.style/-color-scheme-provider/index.html">ColorSchemeProvider</a><span class="token punctuation">, </span></span><span class="parameter ">attachmentClickListener<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://developer.android.com/reference/kotlin/android/view/View.html">View</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-1438692764%2FClasslikes%2F1116306685" anchor-label="Companion" id="-1438692764%2FClasslikes%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1438692764%2FClasslikes%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-1863180988%2FProperties%2F1116306685" anchor-label="attachmentClickListener" id="-1863180988%2FProperties%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="attachment-click-listener.html"><span>attachment</span><wbr><span>Click</span><wbr><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1863180988%2FProperties%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="attachment-click-listener.html">attachmentClickListener</a><span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://developer.android.com/reference/kotlin/android/view/View.html">View</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="986942193%2FProperties%2F1116306685" anchor-label="collection" id="986942193%2FProperties%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/collection.html"><span><span>collection</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="986942193%2FProperties%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/collection.html">collection</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1638310428%2FProperties%2F1116306685" anchor-label="context" id="1638310428%2FProperties%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/context.html"><span><span>context</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1638310428%2FProperties%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/context.html">context</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-776627513%2FProperties%2F1116306685" anchor-label="onItemClick" id="-776627513%2FProperties%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-item-click.html"><span>on</span><wbr><span>Item</span><wbr><span><span>Click</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-776627513%2FProperties%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="on-item-click.html">onItemClick</a><span class="token operator">: </span><span class="token punctuation">(</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">?</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1540820591%2FProperties%2F1116306685" anchor-label="onItemRemoved" id="1540820591%2FProperties%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-item-removed.html"><span>on</span><wbr><span>Item</span><wbr><span><span>Removed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1540820591%2FProperties%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="on-item-removed.html">onItemRemoved</a><span class="token operator">: </span><span class="token punctuation">(</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">?</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="17533555%2FProperties%2F1116306685" anchor-label="onItemStartSwipe" id="17533555%2FProperties%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-item-start-swipe.html"><span>on</span><wbr><span>Item</span><wbr><span>Start</span><wbr><span><span>Swipe</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="17533555%2FProperties%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="on-item-start-swipe.html">onItemStartSwipe</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-301917961%2FProperties%2F1116306685" anchor-label="onItemStopSwipe" id="-301917961%2FProperties%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-item-stop-swipe.html"><span>on</span><wbr><span>Item</span><wbr><span>Stop</span><wbr><span><span>Swipe</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-301917961%2FProperties%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="on-item-stop-swipe.html">onItemStopSwipe</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="834557591%2FFunctions%2F1116306685" anchor-label="addCollection" id="834557591%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#834557591%2FFunctions%2F1116306685"><span>add</span><wbr><span><span>Collection</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="834557591%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#834557591%2FFunctions%2F1116306685"><span class="token function">addCollection</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">list<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-collection/index.html">Collection</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1534640324%2FFunctions%2F1116306685" anchor-label="addItem" id="1534640324%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1534640324%2FFunctions%2F1116306685"><span>add</span><wbr><span><span>Item</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1534640324%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#1534640324%2FFunctions%2F1116306685"><span class="token function">addItem</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">position<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">model<span class="token operator">: </span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2144439943%2FFunctions%2F1116306685" anchor-label="bindViewHolder" id="-2144439943%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-2144439943%2FFunctions%2F1116306685"><span>bind</span><wbr><span>View</span><wbr><span><span>Holder</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2144439943%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#-2144439943%2FFunctions%2F1116306685"><span class="token function">bindViewHolder</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>p0<span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/-view-holder/index.html">BaseRecyclerAdapter.ViewHolder</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">p1<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-17220480%2FFunctions%2F1116306685" anchor-label="clearCollection" id="-17220480%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/clear-collection.html"><span>clear</span><wbr><span><span>Collection</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-17220480%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/clear-collection.html"><span class="token function">clearCollection</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1423244545%2FFunctions%2F1116306685" anchor-label="createViewHolder" id="1423244545%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1423244545%2FFunctions%2F1116306685"><span>create</span><wbr><span>View</span><wbr><span><span>Holder</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1423244545%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a></div></div><span class="token keyword">fun </span><a href="index.html#1423244545%2FFunctions%2F1116306685"><span class="token function">createViewHolder</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>p0<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/view/ViewGroup.html">ViewGroup</a><span class="token punctuation">, </span></span><span class="parameter ">p1<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/-view-holder/index.html">BaseRecyclerAdapter.ViewHolder</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1024271200%2FFunctions%2F1116306685" anchor-label="getItem" id="-1024271200%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/get-item.html"><span>get</span><wbr><span><span>Item</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1024271200%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/get-item.html"><span class="token function">getItem</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">position<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1545041673%2FFunctions%2F1116306685" anchor-label="getItemCount" id="1545041673%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/get-item-count.html"><span>get</span><wbr><span>Item</span><wbr><span><span>Count</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1545041673%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/get-item-count.html"><span class="token function">getItemCount</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="725914875%2FFunctions%2F1116306685" anchor-label="getItemId" id="725914875%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#725914875%2FFunctions%2F1116306685"><span>get</span><wbr><span>Item</span><wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="725914875%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#725914875%2FFunctions%2F1116306685"><span class="token function">getItemId</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="67266387%2FFunctions%2F1116306685" anchor-label="getItemViewType" id="67266387%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-item-view-type.html"><span>get</span><wbr><span>Item</span><wbr><span>View</span><wbr><span><span>Type</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="67266387%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="get-item-view-type.html"><span class="token function">getItemViewType</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">position<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1092162006%2FFunctions%2F1116306685" anchor-label="hasObservers" id="1092162006%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1092162006%2FFunctions%2F1116306685"><span>has</span><wbr><span><span>Observers</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1092162006%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#1092162006%2FFunctions%2F1116306685"><span class="token function">hasObservers</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="16685238%2FFunctions%2F1116306685" anchor-label="hasStableIds" id="16685238%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#16685238%2FFunctions%2F1116306685"><span>has</span><wbr><span>Stable</span><wbr><span><span>Ids</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="16685238%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#16685238%2FFunctions%2F1116306685"><span class="token function">hasStableIds</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1095556076%2FFunctions%2F1116306685" anchor-label="notifyDataSetChanged" id="-1095556076%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1095556076%2FFunctions%2F1116306685"><span>notify</span><wbr><span>Data</span><wbr><span>Set</span><wbr><span><span>Changed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1095556076%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#-1095556076%2FFunctions%2F1116306685"><span class="token function">notifyDataSetChanged</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="504258021%2FFunctions%2F1116306685" anchor-label="notifyItemChanged" id="504258021%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1721030169%2FFunctions%2F1116306685"><span>notify</span><wbr><span>Item</span><wbr><span><span>Changed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="504258021%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#-1721030169%2FFunctions%2F1116306685"><span class="token function">notifyItemChanged</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#748267402%2FFunctions%2F1116306685"><span class="token function">notifyItemChanged</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/Nullable.html"><span class="token annotation builtin">Nullable</span></a>&nbsp;</span>p1<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2137269507%2FFunctions%2F1116306685" anchor-label="notifyItemInserted" id="2137269507%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#2137269507%2FFunctions%2F1116306685"><span>notify</span><wbr><span>Item</span><wbr><span><span>Inserted</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2137269507%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#2137269507%2FFunctions%2F1116306685"><span class="token function">notifyItemInserted</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1694317867%2FFunctions%2F1116306685" anchor-label="notifyItemMoved" id="-1694317867%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1694317867%2FFunctions%2F1116306685"><span>notify</span><wbr><span>Item</span><wbr><span><span>Moved</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1694317867%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#-1694317867%2FFunctions%2F1116306685"><span class="token function">notifyItemMoved</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">p1<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="628495561%2FFunctions%2F1116306685" anchor-label="notifyItemRangeChanged" id="628495561%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1769183193%2FFunctions%2F1116306685"><span>notify</span><wbr><span>Item</span><wbr><span>Range</span><wbr><span><span>Changed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="628495561%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#1769183193%2FFunctions%2F1116306685"><span class="token function">notifyItemRangeChanged</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">p1<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#1916975740%2FFunctions%2F1116306685"><span class="token function">notifyItemRangeChanged</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">p1<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/Nullable.html"><span class="token annotation builtin">Nullable</span></a>&nbsp;</span>p2<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2104748521%2FFunctions%2F1116306685" anchor-label="notifyItemRangeInserted" id="-2104748521%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-2104748521%2FFunctions%2F1116306685"><span>notify</span><wbr><span>Item</span><wbr><span>Range</span><wbr><span><span>Inserted</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2104748521%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#-2104748521%2FFunctions%2F1116306685"><span class="token function">notifyItemRangeInserted</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">p1<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="999899269%2FFunctions%2F1116306685" anchor-label="notifyItemRangeRemoved" id="999899269%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#999899269%2FFunctions%2F1116306685"><span>notify</span><wbr><span>Item</span><wbr><span>Range</span><wbr><span><span>Removed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="999899269%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#999899269%2FFunctions%2F1116306685"><span class="token function">notifyItemRangeRemoved</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">p1<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-189254469%2FFunctions%2F1116306685" anchor-label="notifyItemRemoved" id="-189254469%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-189254469%2FFunctions%2F1116306685"><span>notify</span><wbr><span>Item</span><wbr><span><span>Removed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-189254469%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#-189254469%2FFunctions%2F1116306685"><span class="token function">notifyItemRemoved</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1243461790%2FFunctions%2F1116306685" anchor-label="onAttachedToRecyclerView" id="-1243461790%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1243461790%2FFunctions%2F1116306685"><span>on</span><wbr><span>Attached</span><wbr><span>To</span><wbr><span>Recycler</span><wbr><span><span>View</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1243461790%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-1243461790%2FFunctions%2F1116306685"><span class="token function">onAttachedToRecyclerView</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>p0<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.html">RecyclerView</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2085641774%2FFunctions%2F1116306685" anchor-label="onBindViewHolder" id="2085641774%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1104009018%2FFunctions%2F1116306685"><span>on</span><wbr><span>Bind</span><wbr><span>View</span><wbr><span><span>Holder</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2085641774%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-1104009018%2FFunctions%2F1116306685"><span class="token function">onBindViewHolder</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>p0<span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/-view-holder/index.html">BaseRecyclerAdapter.ViewHolder</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">p1<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>p2<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-bind-view-holder.html"><span class="token function">onBindViewHolder</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">holder<span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/-view-holder/index.html">BaseRecyclerAdapter.ViewHolder</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">position<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="803938954%2FFunctions%2F1116306685" anchor-label="onCreateViewHolder" id="803938954%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/on-create-view-holder.html"><span>on</span><wbr><span>Create</span><wbr><span>View</span><wbr><span><span>Holder</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="803938954%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/on-create-view-holder.html"><span class="token function">onCreateViewHolder</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">parent<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/view/ViewGroup.html">ViewGroup</a><span class="token punctuation">, </span></span><span class="parameter ">viewType<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/-view-holder/index.html">BaseRecyclerAdapter.ViewHolder</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1201433889%2FFunctions%2F1116306685" anchor-label="onDetachedFromRecyclerView" id="-1201433889%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1201433889%2FFunctions%2F1116306685"><span>on</span><wbr><span>Detached</span><wbr><span>From</span><wbr><span>Recycler</span><wbr><span><span>View</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1201433889%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-1201433889%2FFunctions%2F1116306685"><span class="token function">onDetachedFromRecyclerView</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>p0<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.html">RecyclerView</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1308355161%2FFunctions%2F1116306685" anchor-label="onFailedToRecycleView" id="1308355161%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1308355161%2FFunctions%2F1116306685"><span>on</span><wbr><span>Failed</span><wbr><span>To</span><wbr><span>Recycle</span><wbr><span><span>View</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1308355161%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#1308355161%2FFunctions%2F1116306685"><span class="token function">onFailedToRecycleView</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>p0<span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/-view-holder/index.html">BaseRecyclerAdapter.ViewHolder</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1633091169%2FFunctions%2F1116306685" anchor-label="onItemSwiped" id="-1633091169%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-item-swiped.html"><span>on</span><wbr><span>Item</span><wbr><span><span>Swiped</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1633091169%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-item-swiped.html"><span class="token function">onItemSwiped</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">position<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1638936117%2FFunctions%2F1116306685" anchor-label="onViewAttachedToWindow" id="1638936117%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1638936117%2FFunctions%2F1116306685"><span>on</span><wbr><span>View</span><wbr><span>Attached</span><wbr><span>To</span><wbr><span><span>Window</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1638936117%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#1638936117%2FFunctions%2F1116306685"><span class="token function">onViewAttachedToWindow</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">holder<span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/-view-holder/index.html">BaseRecyclerAdapter.ViewHolder</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1667853352%2FFunctions%2F1116306685" anchor-label="onViewDetachedFromWindow" id="-1667853352%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1667853352%2FFunctions%2F1116306685"><span>on</span><wbr><span>View</span><wbr><span>Detached</span><wbr><span>From</span><wbr><span><span>Window</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1667853352%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1667853352%2FFunctions%2F1116306685"><span class="token function">onViewDetachedFromWindow</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">holder<span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/-view-holder/index.html">BaseRecyclerAdapter.ViewHolder</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-152182829%2FFunctions%2F1116306685" anchor-label="onViewRecycled" id="-152182829%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-152182829%2FFunctions%2F1116306685"><span>on</span><wbr><span>View</span><wbr><span><span>Recycled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-152182829%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-152182829%2FFunctions%2F1116306685"><span class="token function">onViewRecycled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">holder<span class="token operator">: </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/-view-holder/index.html">BaseRecyclerAdapter.ViewHolder</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-149943229%2FFunctions%2F1116306685" anchor-label="registerAdapterDataObserver" id="-149943229%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-149943229%2FFunctions%2F1116306685"><span>register</span><wbr><span>Adapter</span><wbr><span>Data</span><wbr><span><span>Observer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-149943229%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-149943229%2FFunctions%2F1116306685"><span class="token function">registerAdapterDataObserver</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>p0<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.AdapterDataObserver.html">RecyclerView.AdapterDataObserver</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1521057112%2FFunctions%2F1116306685" anchor-label="setCollection" id="1521057112%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1521057112%2FFunctions%2F1116306685"><span>set</span><wbr><span><span>Collection</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1521057112%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#1521057112%2FFunctions%2F1116306685"><span class="token function">setCollection</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">list<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-collection/index.html">Collection</a><span class="token operator">&lt;</span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a><span class="token operator">&gt;</span><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1991189249%2FFunctions%2F1116306685" anchor-label="setHasStableIds" id="1991189249%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1991189249%2FFunctions%2F1116306685"><span>set</span><wbr><span>Has</span><wbr><span>Stable</span><wbr><span><span>Ids</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1991189249%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#1991189249%2FFunctions%2F1116306685"><span class="token function">setHasStableIds</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">p0<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1915492701%2FFunctions%2F1116306685" anchor-label="setItem" id="-1915492701%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1915492701%2FFunctions%2F1116306685"><span>set</span><wbr><span><span>Item</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1915492701%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#-1915492701%2FFunctions%2F1116306685"><span class="token function">setItem</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">position<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">item<span class="token operator">: </span><a href="../../../pushwoosh-inbox/com.pushwoosh.inbox.data/-inbox-message/index.html">InboxMessage</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="888571484%2FFunctions%2F1116306685" anchor-label="setOnItemClickListener" id="888571484%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/set-on-item-click-listener.html"><span>set</span><wbr><span>On</span><wbr><span>Item</span><wbr><span>Click</span><wbr><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="888571484%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../com.pushwoosh.inbox.ui.presentation.view.adapter/-base-recycler-adapter/set-on-item-click-listener.html"><span class="token function">setOnItemClickListener</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">onItemClickListener<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://developer.android.com/reference/kotlin/android/view/View.html">View</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1389357413%2FFunctions%2F1116306685" anchor-label="startSwipe" id="1389357413%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="start-swipe.html"><span>start</span><wbr><span><span>Swipe</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1389357413%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="start-swipe.html"><span class="token function">startSwipe</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-811854907%2FFunctions%2F1116306685" anchor-label="stopSwipe" id="-811854907%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="stop-swipe.html"><span>stop</span><wbr><span><span>Swipe</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-811854907%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="stop-swipe.html"><span class="token function">stopSwipe</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="607934410%2FFunctions%2F1116306685" anchor-label="unregisterAdapterDataObserver" id="607934410%2FFunctions%2F1116306685" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-inbox-ui:dokkaHtmlPartial/release" data-filterable-set=":pushwoosh-inbox-ui:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#607934410%2FFunctions%2F1116306685"><span>unregister</span><wbr><span>Adapter</span><wbr><span>Data</span><wbr><span><span>Observer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="607934410%2FFunctions%2F1116306685"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inbox-ui:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#607934410%2FFunctions%2F1116306685"><span class="token function">unregisterAdapterDataObserver</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>p0<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.AdapterDataObserver.html">RecyclerView.AdapterDataObserver</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

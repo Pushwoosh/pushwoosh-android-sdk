@@ -1,0 +1,17 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+
+com.pushwoosh.inbox.ui
+com.pushwoosh.inbox.ui.model.customizing.formatter
+com.pushwoosh.inbox.ui.model.repository
+com.pushwoosh.inbox.ui.presentation.data
+com.pushwoosh.inbox.ui.presentation.lifecycle
+com.pushwoosh.inbox.ui.presentation.presenter
+com.pushwoosh.inbox.ui.presentation.view.activity
+com.pushwoosh.inbox.ui.presentation.view.adapter
+com.pushwoosh.inbox.ui.presentation.view.adapter.inbox
+com.pushwoosh.inbox.ui.presentation.view.fragment
+com.pushwoosh.inbox.ui.presentation.view.style
+com.pushwoosh.inbox.ui.presentation.view.view
+com.pushwoosh.inbox.ui.utils
+
