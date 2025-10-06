@@ -3,4 +3,4 @@
 # getMessage
 
 [main]\
-abstract fun [getMessage](get-message.md)(): [String](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html)
+abstract fun [getMessage](get-message.md)(): [String](https://developer.android.com/reference/kotlin/java/lang/String.html)

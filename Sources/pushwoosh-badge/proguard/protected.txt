@@ -2,5 +2,6 @@
 
 
 -keep public class com.pushwoosh.badge.BadgePlugin {
-    public protected *;
+    public *;
+    protected *;
 }

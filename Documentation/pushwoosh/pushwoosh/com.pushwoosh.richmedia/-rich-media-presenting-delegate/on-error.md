@@ -3,6 +3,6 @@
 # onError
 
 [main]\
-abstract fun [onError](on-error.md)(richMedia: [RichMedia](../-rich-media/index.md), pushwooshException: PushwooshException)
+abstract fun [onError](on-error.md)(richMedia: [RichMedia](../-rich-media/index.md), pushwooshException: [PushwooshException](../../com.pushwoosh.exception/-pushwoosh-exception/index.md))
 
 Tells the delegate that error during Rich Media presenting has been occured.

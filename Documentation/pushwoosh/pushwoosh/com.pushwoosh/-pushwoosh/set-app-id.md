@@ -5,7 +5,15 @@
 [main]\
 open fun [setAppId](set-app-id.md)(appId: [String](https://developer.android.com/reference/kotlin/java/lang/String.html))
 
-Associates current applicaton with given pushwoosh application code (Alternative for &quot;com.pushwoosh.appid&quot; metadata in AndroidManifest.xml)
+Associates current application with the given Pushwoosh application code. 
+
+ This method provides a runtime alternative to defining &quot;com.pushwoosh.appid&quot; metadata in AndroidManifest.xml. The application code can be found in your Pushwoosh Control Panel.  Example: 
+
+```kotlin
+
+  Pushwoosh.getInstance().setAppId("XXXXX-XXXXX");
+
+```
 
 #### Parameters
 

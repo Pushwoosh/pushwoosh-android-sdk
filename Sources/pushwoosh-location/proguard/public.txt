@@ -1,5 +1,6 @@
 -flattenpackagehierarchy 'com.pushwoosh.location'
 
 -keep public class com.pushwoosh.location.PushwooshLocation {
-    public protected *;
+    public *;
+    protected *;
 }

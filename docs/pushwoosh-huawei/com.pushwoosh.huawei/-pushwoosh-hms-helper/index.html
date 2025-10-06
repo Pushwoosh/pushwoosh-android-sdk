@@ -62,7 +62,42 @@
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh-huawei</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.huawei</a><span class="delimiter">/</span><span class="current">PushwooshHmsHelper</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Pushwoosh</span><wbr><span>Hms</span><wbr><span><span>Helper</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">PushwooshHmsHelper</a></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">PushwooshHmsHelper</a></div><p class="paragraph">Helper class for integrating Pushwoosh with Huawei Mobile Services (HMS) Push Kit in custom HmsMessageService implementations. </p><p class="paragraph"> By default, Pushwoosh SDK automatically handles Huawei Mobile Services push notifications without any additional code. However, if your app needs a custom HmsMessageService (for example, to handle messages from multiple push providers), use this helper class to forward HMS callbacks to Pushwoosh. </p><p class="paragraph"><strong>Important:</strong> Use this helper ONLY if you need a custom HmsMessageService. For customizing notifications, use com.pushwoosh.notification.NotificationServiceExtension instead. </p><p class="paragraph"><strong>Critical Integration Steps:</strong></p><ol><li>Add HMS Core SDK dependencies and configure agconnect-services.json</li><li>Create your custom HmsMessageService class</li><li>Override onNewToken and call <a href="on-token-refresh.html">onTokenRefresh</a></li><li>Override onMessageReceived and call <a href="on-message-received.html">onMessageReceived</a></li><li>Register your service in AndroidManifest.xml</li></ol><p class="paragraph"><strong>Example - Multiple Push Providers:</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+public class MyHmsMessageService extends HmsMessageService {
+
+    
+    public void onNewToken(String token) {
+        super.onNewToken(token);
+
+        // CRITICAL: Forward to Pushwoosh to keep receiving notifications
+        PushwooshHmsHelper.onTokenRefresh(token);
+
+        // Forward to other providers if needed
+        OtherProvider.setToken(token);
+    }
+
+    
+    public void onMessageReceived(RemoteMessage remoteMessage) {
+        super.onMessageReceived(remoteMessage);
+
+        // CRITICAL: Route Pushwoosh messages to Pushwoosh
+        if (PushwooshHmsHelper.isPushwooshMessage(remoteMessage)) {
+            PushwooshHmsHelper.onMessageReceived(this, remoteMessage);
+        } else {
+            // Handle other providers
+            OtherProvider.handleMessage(remoteMessage);
+        }
+    }
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>AndroidManifest.xml:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+&lt;service
+    android:name=".MyHmsMessageService"
+    android:exported="false"&gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="com.huawei.push.action.MESSAGING_EVENT" /&gt;
+    &lt;/intent-filter&gt;
+&lt;/service&gt;
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh-huawei:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><span>Hms</span><wbr><span>Message</span><wbr><span><span>Service</span></span></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh-huawei:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="on-token-refresh.html"><span>on</span><wbr><span>Token</span><wbr><span><span>Refresh(String)</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh-huawei:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="on-message-received.html"><span>on</span><wbr><span>Message</span><wbr><span><span>Received(Context,</span></span> <span>Remote</span><wbr><span><span>Message)</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh-huawei:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="is-pushwoosh-message.html"><span>is</span><wbr><span>Pushwoosh</span><wbr><span>Message(Remote</span><wbr><span><span>Message)</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh-huawei:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-get-token-async/index.html"><span>Pushwoosh</span><wbr><span>Hms</span><wbr><span>Helper.</span><wbr><span>Get</span><wbr><span>Token</span><wbr><span><span>Async</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -98,7 +133,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="-get-token-async/index.html">GetTokenAsync</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="-get-token-async/index.html">GetTokenAsync</a></div><div class="brief ">AsyncTask for retrieving Huawei Mobile Services push token asynchronously.</div></div></div>
                 </div>
               </div>
             </div>
@@ -113,7 +148,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-on-get-token-async/index.html">OnGetTokenAsync</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-on-get-token-async/index.html">OnGetTokenAsync</a></div><div class="brief ">Callback interface for asynchronous HMS token retrieval.</div></div></div>
                 </div>
               </div>
             </div>
@@ -132,7 +167,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-pushwoosh-message.html"><span class="token function">isPushwooshMessage</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">remoteMessage<span class="token operator">: </span>RemoteMessage</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Check if the remoteMessage was sent via Pushwoosh</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-pushwoosh-message.html"><span class="token function">isPushwooshMessage</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">remoteMessage<span class="token operator">: </span>RemoteMessage</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Checks whether a Huawei Mobile Services message was sent through Pushwoosh.</div></div></div>
                 </div>
               </div>
             </div>
@@ -147,7 +182,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-message-received.html"><span class="token function">onMessageReceived</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span>Context<span class="token punctuation">, </span></span><span class="parameter ">remoteMessage<span class="token operator">: </span>RemoteMessage</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">if you use custom HmsMessageService call this method when onMessageReceived is invoked</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-message-received.html"><span class="token function">onMessageReceived</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span>Context<span class="token punctuation">, </span></span><span class="parameter ">remoteMessage<span class="token operator">: </span>RemoteMessage</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Processes incoming Huawei Mobile Services push notifications for Pushwoosh.</div></div></div>
                 </div>
               </div>
             </div>
@@ -162,7 +197,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-token-refresh.html"><span class="token function">onTokenRefresh</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief ">if you use custom HmsMessageService call this method when onNewToken is invoked</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-token-refresh.html"><span class="token function">onTokenRefresh</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Notifies Pushwoosh when Huawei Mobile Services push token is refreshed.</div></div></div>
                 </div>
               </div>
             </div>

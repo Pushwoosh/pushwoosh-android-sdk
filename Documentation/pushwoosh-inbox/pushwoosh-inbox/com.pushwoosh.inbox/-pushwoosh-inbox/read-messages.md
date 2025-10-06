@@ -3,7 +3,7 @@
 # readMessages
 
 [main]\
-open fun [readMessages](read-messages.md)(codes: [Collection](https://docs.oracle.com/javase/8/docs/api/java/util/Collection.html)&lt;[String](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html)&gt;)
+open fun [readMessages](read-messages.md)(codes: [Collection](https://developer.android.com/reference/kotlin/java/util/Collection.html)&lt;[String](https://developer.android.com/reference/kotlin/java/lang/String.html)&gt;)
 
 Call this method, when the user reads list of [InboxMessage](../../com.pushwoosh.inbox.data/-inbox-message/index.md)
 

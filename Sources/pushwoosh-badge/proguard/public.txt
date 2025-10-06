@@ -1,5 +1,6 @@
 -flattenpackagehierarchy 'com.pushwoosh.badge'
 
 -keep public class com.pushwoosh.badge.PushwooshBadge {
-    public protected *;
+    public *;
+    protected *;
 }

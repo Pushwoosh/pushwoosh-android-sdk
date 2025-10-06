@@ -39,13 +39,100 @@ import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
 
+/**
+ * Helper class for integrating Pushwoosh with Firebase Cloud Messaging (FCM) in custom FirebaseMessagingService implementations.
+ * <p>
+ * By default, Pushwoosh SDK automatically handles Firebase Cloud Messaging without any additional code.
+ * However, if your app needs a custom {@link FirebaseMessagingService} (for example, to handle messages from
+ * multiple push providers), use this helper class to forward Firebase callbacks to Pushwoosh.
+ * <p>
+ * <b>Important:</b> Use this helper ONLY if you need a custom {@link FirebaseMessagingService}.
+ * For customizing notifications, use {@link com.pushwoosh.notification.NotificationServiceExtension} instead.
+ * <p>
+ * <b>Critical Integration Steps:</b>
+ * <ol>
+ * <li>Create your custom {@link FirebaseMessagingService} class</li>
+ * <li>Override {@link FirebaseMessagingService#onNewToken(String)} and call {@link #onTokenRefresh(String)}</li>
+ * <li>Override {@link FirebaseMessagingService#onMessageReceived(RemoteMessage)} and call {@link #onMessageReceived(Context, RemoteMessage)}</li>
+ * <li>Register your service in AndroidManifest.xml</li>
+ * </ol>
+ * <p>
+ * <b>Example - Multiple Push Providers:</b>
+ * <pre>
+ * {@code
+ * public class MyFirebaseMessagingService extends FirebaseMessagingService {
+ *
+ *     @Override
+ *     public void onNewToken(@NonNull String token) {
+ *         super.onNewToken(token);
+ *
+ *         // CRITICAL: Forward to Pushwoosh to keep receiving notifications
+ *         PushwooshFcmHelper.onTokenRefresh(token);
+ *
+ *         // Forward to other providers if needed
+ *         OtherProvider.setToken(token);
+ *     }
+ *
+ *     @Override
+ *     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
+ *         super.onMessageReceived(remoteMessage);
+ *
+ *         // CRITICAL: Route Pushwoosh messages to Pushwoosh
+ *         if (PushwooshFcmHelper.isPushwooshMessage(remoteMessage)) {
+ *             PushwooshFcmHelper.onMessageReceived(this, remoteMessage);
+ *         } else {
+ *             // Handle other providers
+ *             OtherProvider.handleMessage(remoteMessage);
+ *         }
+ *     }
+ * }
+ * }
+ * </pre>
+ * <br>
+ * <b>AndroidManifest.xml:</b>
+ * <pre>
+ * {@code
+ * <service
+ *     android:name=".MyFirebaseMessagingService"
+ *     android:exported="false">
+ *     <intent-filter>
+ *         <action android:name="com.google.firebase.MESSAGING_EVENT" />
+ *     </intent-filter>
+ * </service>
+ * }
+ * </pre>
+ *
+ * @see FirebaseMessagingService
+ * @see #onTokenRefresh(String)
+ * @see #onMessageReceived(Context, RemoteMessage)
+ * @see #isPushwooshMessage(RemoteMessage)
+ */
 @SuppressWarnings("WeakerAccess")
 public class PushwooshFcmHelper {
     private static final String TAG = "PushwooshFcmHelper";
 
     /**
-     * if you use custom {@link FirebaseMessagingService}
-     * call this method when {@link FirebaseMessagingService#onNewToken(String token)} is invoked
+     * Notifies Pushwoosh when Firebase Cloud Messaging token is refreshed.
+     * <p>
+     * <b>CRITICAL:</b> Call this method from your custom {@link FirebaseMessagingService#onNewToken(String)}
+     * callback to forward the new FCM token to Pushwoosh. Without this call, Pushwoosh will NOT be able
+     * to send notifications to the device after token refresh.
+     * <br><br>
+     * Example:
+     * <pre>
+     * {@code
+     * @Override
+     * public void onNewToken(@NonNull String token) {
+     *     super.onNewToken(token);
+     *
+     *     // CRITICAL: Forward token to Pushwoosh
+     *     PushwooshFcmHelper.onTokenRefresh(token);
+     * }
+     * }
+     * </pre>
+     *
+     * @param token new Firebase Cloud Messaging token
+     * @see FirebaseMessagingService#onNewToken(String)
      */
     public static void onTokenRefresh(String token) {
         PWLog.noise(TAG, String.format("onTokenRefresh: %s", token));
@@ -68,10 +155,33 @@ public class PushwooshFcmHelper {
     }
 
     /**
-     * if you use custom {@link com.google.firebase.messaging.FirebaseMessagingService}
-     * call this method when {@link com.google.firebase.messaging.FirebaseMessagingService#onMessageReceived(RemoteMessage)} is invoked
+     * Processes incoming Firebase Cloud Messaging push notifications for Pushwoosh.
+     * <p>
+     * <b>CRITICAL:</b> Call this method from your custom {@link FirebaseMessagingService#onMessageReceived(RemoteMessage)}
+     * callback to let Pushwoosh handle its messages. Without this call, Pushwoosh notifications will NOT be displayed.
+     * <br><br>
+     * Example:
+     * <pre>
+     * {@code
+     * @Override
+     * public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
+     *     super.onMessageReceived(remoteMessage);
      *
-     * @return true if the remoteMessage was sent via Pushwoosh and was successfully processed; otherwise false
+     *     // CRITICAL: Route Pushwoosh messages to Pushwoosh
+     *     if (PushwooshFcmHelper.isPushwooshMessage(remoteMessage)) {
+     *         PushwooshFcmHelper.onMessageReceived(this, remoteMessage);
+     *     } else {
+     *         // Handle other providers
+     *     }
+     * }
+     * }
+     * </pre>
+     *
+     * @param context application or service context
+     * @param remoteMessage Firebase Cloud Messaging remote message
+     * @return true if the message was sent via Pushwoosh and was successfully processed; false otherwise
+     * @see FirebaseMessagingService#onMessageReceived(RemoteMessage)
+     * @see #isPushwooshMessage(RemoteMessage)
      */
     @SuppressWarnings("UnusedReturnValue")
     public static boolean onMessageReceived(Context context, RemoteMessage remoteMessage) {
@@ -129,19 +239,43 @@ public class PushwooshFcmHelper {
     }
 
     /**
-     * Check if the remoteMessage was sent via Pushwoosh
+     * Checks whether a Firebase Cloud Messaging message was sent through Pushwoosh.
+     * <p>
+     * Use this method to determine if an incoming FCM message should be handled by Pushwoosh or by
+     * another push notification provider.
+     * <br><br>
+     * Example:
+     * <pre>
+     * {@code
+     * @Override
+     * public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
+     *     if (PushwooshFcmHelper.isPushwooshMessage(remoteMessage)) {
+     *         PushwooshFcmHelper.onMessageReceived(this, remoteMessage);
+     *     } else {
+     *         // Handle other providers
+     *     }
+     * }
+     * }
+     * </pre>
      *
-     * @return true if remoteMessage was sent via Pushwoosh
+     * @param remoteMessage Firebase Cloud Messaging remote message to check
+     * @return true if the message was sent via Pushwoosh; false otherwise
+     * @see #onMessageReceived(Context, RemoteMessage)
      */
     public static boolean isPushwooshMessage(RemoteMessage remoteMessage) {
         return RemoteMessageUtils.isPushwooshMessage(remoteMessage);
     }
 
     /**
-     * Convert RemoteMessage to Bundle object
+     * Converts a Firebase Cloud Messaging RemoteMessage to an Android Bundle.
+     * <p>
+     * Use this utility method when you need to pass message data to other Android components
+     * or implement custom message processing logic.
      *
-     * @param remoteMessage - message received from Firebase
-     * @return Bundle created from RemoteMessage
+     * @param remoteMessage Firebase Cloud Messaging remote message to convert
+     * @return Bundle containing all data from the remote message
+     * @see RemoteMessage
+     * @see #onMessageReceived(Context, RemoteMessage)
      */
     public static Bundle messageToBundle(RemoteMessage remoteMessage) {
         return RemoteMessageMapper.mapToBundle(remoteMessage);

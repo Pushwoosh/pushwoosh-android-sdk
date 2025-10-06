@@ -63,7 +63,70 @@
   <div class="cover ">
     <h1 class="cover"><span>from</span><wbr><span><span>Json</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="from-json.html"><span class="token function">fromJson</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">json<span class="token operator">: </span>JSONObject</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">converted tags</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>json</span></span></u></div></span></div><div><div class="title"><p class="paragraph">json object with tag name-value pairs</p></div></div></div></div></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="from-json.html"><span class="token function">fromJson</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">json<span class="token operator">: </span>JSONObject</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><p class="paragraph">Creates a TagsBundle from a JSON object. </p><p class="paragraph"> This method converts a JSON object with tag name-value pairs into a TagsBundle. It's particularly useful when receiving tag data from API responses, remote config, or when importing tag data from external sources. </p><p class="paragraph"><strong>Common Use Cases:</strong></p><ul><li>API responses - import user profile data from backend APIs</li><li>Remote config - load tags from Firebase Remote Config or similar services</li><li>Data migration - import tags from other analytics platforms</li><li>Bulk operations - process tag data received in JSON format</li></ul> Example: <div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+	  // Parse user profile from API response
+	  private void updateUserProfileFromApi(String jsonResponse) {
+	      try {
+	          JSONObject profileJson = new JSONObject(jsonResponse);
+	          JSONObject tagsJson = profileJson.getJSONObject("user_tags");
+	
+	          // Example JSON:
+	          // {
+	          //   "Name": "John Doe",
+	          //   "Age": 28,
+	          //   "City": "New York",
+	          //   "Subscription_Tier": "premium",
+	          //   "Email_Verified": true
+	          // }
+	
+	          TagsBundle userTags = Tags.fromJson(tagsJson);
+	          Pushwoosh.getInstance().setTags(userTags);
+	      } catch (JSONException e) {
+	          Log.e("App", "Failed to parse user tags", e);
+	      }
+	  }
+	
+	  // Load tags from Firebase Remote Config
+	  private void loadTagsFromRemoteConfig() {
+	      FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
+	      String tagsJsonString = remoteConfig.getString("user_default_tags");
+	
+	      try {
+	          JSONObject tagsJson = new JSONObject(tagsJsonString);
+	          TagsBundle defaultTags = Tags.fromJson(tagsJson);
+	          Pushwoosh.getInstance().setTags(defaultTags);
+	      } catch (JSONException e) {
+	          Log.e("App", "Failed to load remote config tags", e);
+	      }
+	  }
+	
+	  // Import tags from analytics service
+	  private void importAnalyticsTags(JSONObject analyticsData) {
+	      try {
+	          // Convert analytics properties to Pushwoosh tags
+	          JSONObject pushwooshTags = new JSONObject();
+	          pushwooshTags.put("User_Segment", analyticsData.getString("segment"));
+	          pushwooshTags.put("Lifetime_Value", analyticsData.getInt("ltv"));
+	          pushwooshTags.put("Engagement_Score", analyticsData.getInt("engagement"));
+	
+	          TagsBundle tags = Tags.fromJson(pushwooshTags);
+	          Pushwoosh.getInstance().setTags(tags);
+	      } catch (JSONException e) {
+	          Log.e("App", "Failed to import analytics tags", e);
+	      }
+	  }
+	
+	  // Combine JSON tags with additional tags
+	  private void setUserTagsFromMultipleSources(JSONObject apiTags) {
+	      TagsBundle combinedTags = new TagsBundle.Builder()
+	          .putAll(apiTags)  // Add all tags from JSON
+	          .putString("App_Version", BuildConfig.VERSION_NAME)  // Add app-specific tag
+	          .putDate("Tags_Updated", new Date())  // Add timestamp
+	          .build();
+	
+	      Pushwoosh.getInstance().setTags(combinedTags);
+	  }
+	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle containing all tags from the JSON object</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>json</span></span></u></div></span></div><div><div class="title"><p class="paragraph">JSONObject containing tag name-value pairs</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-tags-bundle/-builder/put-all.html"><span>TagsBundle.</span><wbr><span>Builder</span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>

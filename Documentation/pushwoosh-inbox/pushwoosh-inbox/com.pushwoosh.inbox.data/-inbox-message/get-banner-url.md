@@ -3,4 +3,4 @@
 # getBannerUrl
 
 [main]\
-abstract fun [getBannerUrl](get-banner-url.md)(): [String](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html)
+abstract fun [getBannerUrl](get-banner-url.md)(): [String](https://developer.android.com/reference/kotlin/java/lang/String.html)

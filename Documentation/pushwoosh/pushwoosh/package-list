@@ -1,5 +1,28 @@
 $dokka.format:gfm-v1
 $dokka.linkExtension:md
+$dokka.location:com.pushwoosh.exception////PointingToDeclaration/pushwoosh/com.pushwoosh.exception/index.md
+$dokka.location:com.pushwoosh.exception/GetTagsException///PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-get-tags-exception/index.md
+$dokka.location:com.pushwoosh.exception/GetTagsException/GetTagsException/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-get-tags-exception/-get-tags-exception.md
+$dokka.location:com.pushwoosh.exception/MergeUserException///PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-merge-user-exception/index.md
+$dokka.location:com.pushwoosh.exception/MergeUserException/MergeUserException/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-merge-user-exception/-merge-user-exception.md
+$dokka.location:com.pushwoosh.exception/PostEventException///PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-post-event-exception/index.md
+$dokka.location:com.pushwoosh.exception/PostEventException/PostEventException/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-post-event-exception/-post-event-exception.md
+$dokka.location:com.pushwoosh.exception/PushwooshException///PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-pushwoosh-exception/index.md
+$dokka.location:com.pushwoosh.exception/PushwooshException/PushwooshException/#java.lang.String#java.lang.Throwable/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-pushwoosh-exception/-pushwoosh-exception.md
+$dokka.location:com.pushwoosh.exception/PushwooshException/PushwooshException/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-pushwoosh-exception/-pushwoosh-exception.md
+$dokka.location:com.pushwoosh.exception/PushwooshException/PushwooshException/#java.lang.Throwable/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-pushwoosh-exception/-pushwoosh-exception.md
+$dokka.location:com.pushwoosh.exception/RegisterForPushNotificationsException///PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-register-for-push-notifications-exception/index.md
+$dokka.location:com.pushwoosh.exception/RegisterForPushNotificationsException/RegisterForPushNotificationsException/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-register-for-push-notifications-exception/-register-for-push-notifications-exception.md
+$dokka.location:com.pushwoosh.exception/ReloadInAppsException///PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-reload-in-apps-exception/index.md
+$dokka.location:com.pushwoosh.exception/ReloadInAppsException/ReloadInAppsException/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-reload-in-apps-exception/-reload-in-apps-exception.md
+$dokka.location:com.pushwoosh.exception/SetEmailException///PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-set-email-exception/index.md
+$dokka.location:com.pushwoosh.exception/SetEmailException/SetEmailException/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-set-email-exception/-set-email-exception.md
+$dokka.location:com.pushwoosh.exception/SetUserException///PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-set-user-exception/index.md
+$dokka.location:com.pushwoosh.exception/SetUserException/SetUserException/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-set-user-exception/-set-user-exception.md
+$dokka.location:com.pushwoosh.exception/SetUserIdException///PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-set-user-id-exception/index.md
+$dokka.location:com.pushwoosh.exception/SetUserIdException/SetUserIdException/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-set-user-id-exception/-set-user-id-exception.md
+$dokka.location:com.pushwoosh.exception/UnregisterForPushNotificationException///PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-unregister-for-push-notification-exception/index.md
+$dokka.location:com.pushwoosh.exception/UnregisterForPushNotificationException/UnregisterForPushNotificationException/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.exception/-unregister-for-push-notification-exception/-unregister-for-push-notification-exception.md
 $dokka.location:com.pushwoosh.function////PointingToDeclaration/pushwoosh/com.pushwoosh.function/index.md
 $dokka.location:com.pushwoosh.function/Callback///PointingToDeclaration/pushwoosh/com.pushwoosh.function/-callback/index.md
 $dokka.location:com.pushwoosh.function/Callback/process/#com.pushwoosh.function.Result<T,E>/PointingToDeclaration/pushwoosh/com.pushwoosh.function/-callback/process.md
@@ -102,13 +125,13 @@ $dokka.location:com.pushwoosh.inapp////PointingToDeclaration/pushwoosh/com.push
 $dokka.location:com.pushwoosh.inapp/InAppManager///PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/index.md
 $dokka.location:com.pushwoosh.inapp/InAppManager/addJavascriptInterface/#java.lang.Object#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/add-javascript-interface.md
 $dokka.location:com.pushwoosh.inapp/InAppManager/instance/#/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/instance.md
-$dokka.location:com.pushwoosh.inapp/InAppManager/postEvent/#java.lang.String#com.pushwoosh.tags.TagsBundle#com.pushwoosh.function.Callback<java.lang.Void,PostEventException>/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/post-event.md
+$dokka.location:com.pushwoosh.inapp/InAppManager/postEvent/#java.lang.String#com.pushwoosh.tags.TagsBundle#com.pushwoosh.function.Callback<java.lang.Void,com.pushwoosh.exception.PostEventException>/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/post-event.md
 $dokka.location:com.pushwoosh.inapp/InAppManager/postEvent/#java.lang.String#com.pushwoosh.tags.TagsBundle/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/post-event.md
 $dokka.location:com.pushwoosh.inapp/InAppManager/postEvent/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/post-event.md
 $dokka.location:com.pushwoosh.inapp/InAppManager/postEventInternal/#java.lang.String#com.pushwoosh.tags.TagsBundle/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/post-event-internal.md
 $dokka.location:com.pushwoosh.inapp/InAppManager/registerJavascriptInterface/#java.lang.String#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/register-javascript-interface.md
 $dokka.location:com.pushwoosh.inapp/InAppManager/reloadInApps/#/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/reload-in-apps.md
-$dokka.location:com.pushwoosh.inapp/InAppManager/reloadInApps/#com.pushwoosh.function.Callback<java.lang.Boolean,ReloadInAppsException>/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/reload-in-apps.md
+$dokka.location:com.pushwoosh.inapp/InAppManager/reloadInApps/#com.pushwoosh.function.Callback<java.lang.Boolean,com.pushwoosh.exception.ReloadInAppsException>/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/reload-in-apps.md
 $dokka.location:com.pushwoosh.inapp/InAppManager/removeJavascriptInterface/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.inapp/-in-app-manager/remove-javascript-interface.md
 $dokka.location:com.pushwoosh.notification////PointingToDeclaration/pushwoosh/com.pushwoosh.notification/index.md
 $dokka.location:com.pushwoosh.notification/LocalNotification.Builder///PointingToDeclaration/pushwoosh/com.pushwoosh.notification/-local-notification/-builder/index.md
@@ -219,27 +242,6 @@ $dokka.location:com.pushwoosh.notification/VibrateType/fromInt/#int/PointingToDe
 $dokka.location:com.pushwoosh.notification/VibrateType/value/#/PointingToDeclaration/pushwoosh/com.pushwoosh.notification/-vibrate-type/value.md
 $dokka.location:com.pushwoosh.notification/VibrateType/valueOf/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.notification/-vibrate-type/value-of.md
 $dokka.location:com.pushwoosh.notification/VibrateType/values/#/PointingToDeclaration/pushwoosh/com.pushwoosh.notification/-vibrate-type/values.md
-$dokka.location:com.pushwoosh.repository////PointingToDeclaration/pushwoosh/com.pushwoosh.repository/index.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository///PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/index.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/PushwooshRepository/#RequestManager#SendTagsProcessor#RegistrationPrefs#NotificationPrefs#RequestStorage/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/-pushwoosh-repository.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/communicationEnabled/#boolean/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/communication-enabled.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/currentInAppCode/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/current-in-app-code.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/currentRichMediaCode/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/current-rich-media-code.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/currentSessionHash/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/current-session-hash.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/getHwid/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/get-hwid.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/getPushHistory/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/get-push-history.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/getTags/#com.pushwoosh.function.Callback<com.pushwoosh.tags.TagsBundle,GetTagsException>/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/get-tags.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/isCommunicationEnabled/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/is-communication-enabled.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/isDeviceDataRemoved/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/is-device-data-removed.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/isGdprEnable/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/is-gdpr-enable.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/prefetchTags/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/prefetch-tags.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/removeAllDeviceData/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/remove-all-device-data.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/sendAppOpen/#/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/send-app-open.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/sendEmailTags/#com.pushwoosh.tags.TagsBundle#java.lang.String#com.pushwoosh.function.Callback<java.lang.Void,PushwooshException>/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/send-email-tags.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/sendInappPurchase/#java.lang.String#java.math.BigDecimal#java.lang.String#java.util.Date/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/send-inapp-purchase.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/sendPushDeliveredSync/#java.lang.String#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/send-push-delivered-sync.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/sendPushOpenedSync/#java.lang.String#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/send-push-opened-sync.md
-$dokka.location:com.pushwoosh.repository/PushwooshRepository/sendTags/#com.pushwoosh.tags.TagsBundle#com.pushwoosh.function.Callback<java.lang.Void,PushwooshException>/PointingToDeclaration/pushwoosh/com.pushwoosh.repository/-pushwoosh-repository/send-tags.md
 $dokka.location:com.pushwoosh.richmedia.animation////PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia.animation/index.md
 $dokka.location:com.pushwoosh.richmedia.animation/RichMediaAnimation///PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia.animation/-rich-media-animation/index.md
 $dokka.location:com.pushwoosh.richmedia.animation/RichMediaAnimation/closeAnimation/#View#View#Animation.AnimationListener/PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia.animation/-rich-media-animation/close-animation.md
@@ -287,7 +289,7 @@ $dokka.location:com.pushwoosh.richmedia/RichMediaManager/setDefaultRichMediaConf
 $dokka.location:com.pushwoosh.richmedia/RichMediaManager/setDelegate/#com.pushwoosh.richmedia.RichMediaPresentingDelegate/PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia/-rich-media-manager/set-delegate.md
 $dokka.location:com.pushwoosh.richmedia/RichMediaPresentingDelegate///PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia/-rich-media-presenting-delegate/index.md
 $dokka.location:com.pushwoosh.richmedia/RichMediaPresentingDelegate/onClose/#com.pushwoosh.richmedia.RichMedia/PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia/-rich-media-presenting-delegate/on-close.md
-$dokka.location:com.pushwoosh.richmedia/RichMediaPresentingDelegate/onError/#com.pushwoosh.richmedia.RichMedia#PushwooshException/PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia/-rich-media-presenting-delegate/on-error.md
+$dokka.location:com.pushwoosh.richmedia/RichMediaPresentingDelegate/onError/#com.pushwoosh.richmedia.RichMedia#com.pushwoosh.exception.PushwooshException/PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia/-rich-media-presenting-delegate/on-error.md
 $dokka.location:com.pushwoosh.richmedia/RichMediaPresentingDelegate/onPresent/#com.pushwoosh.richmedia.RichMedia/PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia/-rich-media-presenting-delegate/on-present.md
 $dokka.location:com.pushwoosh.richmedia/RichMediaPresentingDelegate/shouldPresent/#com.pushwoosh.richmedia.RichMedia/PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia/-rich-media-presenting-delegate/should-present.md
 $dokka.location:com.pushwoosh.richmedia/RichMediaStyle.LoadingViewCreatorInterface///PointingToDeclaration/pushwoosh/com.pushwoosh.richmedia/-rich-media-style/-loading-view-creator-interface/index.md
@@ -352,17 +354,17 @@ $dokka.location:com.pushwoosh/Pushwoosh/getLaunchNotification/#/PointingToDeclar
 $dokka.location:com.pushwoosh/Pushwoosh/getPushHistory/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/get-push-history.md
 $dokka.location:com.pushwoosh/Pushwoosh/getPushToken/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/get-push-token.md
 $dokka.location:com.pushwoosh/Pushwoosh/getSenderId/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/get-sender-id.md
-$dokka.location:com.pushwoosh/Pushwoosh/getTags/#com.pushwoosh.function.Callback<com.pushwoosh.tags.TagsBundle,GetTagsException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/get-tags.md
+$dokka.location:com.pushwoosh/Pushwoosh/getTags/#com.pushwoosh.function.Callback<com.pushwoosh.tags.TagsBundle,com.pushwoosh.exception.GetTagsException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/get-tags.md
 $dokka.location:com.pushwoosh/Pushwoosh/getUserId/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/get-user-id.md
 $dokka.location:com.pushwoosh/Pushwoosh/isServerCommunicationAllowed/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/is-server-communication-allowed.md
-$dokka.location:com.pushwoosh/Pushwoosh/mergeUserId/#java.lang.String#java.lang.String#boolean#com.pushwoosh.function.Callback<java.lang.Void,MergeUserException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/merge-user-id.md
-$dokka.location:com.pushwoosh/Pushwoosh/registerExistingToken/#java.lang.String#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,RegisterForPushNotificationsException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-existing-token.md
+$dokka.location:com.pushwoosh/Pushwoosh/mergeUserId/#java.lang.String#java.lang.String#boolean#com.pushwoosh.function.Callback<java.lang.Void,com.pushwoosh.exception.MergeUserException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/merge-user-id.md
+$dokka.location:com.pushwoosh/Pushwoosh/registerExistingToken/#java.lang.String#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,com.pushwoosh.exception.RegisterForPushNotificationsException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-existing-token.md
 $dokka.location:com.pushwoosh/Pushwoosh/registerForPushNotifications/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-for-push-notifications.md
-$dokka.location:com.pushwoosh/Pushwoosh/registerForPushNotifications/#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,RegisterForPushNotificationsException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-for-push-notifications.md
-$dokka.location:com.pushwoosh/Pushwoosh/registerForPushNotificationsWithTags/#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,RegisterForPushNotificationsException>#com.pushwoosh.tags.TagsBundle/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-for-push-notifications-with-tags.md
+$dokka.location:com.pushwoosh/Pushwoosh/registerForPushNotifications/#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,com.pushwoosh.exception.RegisterForPushNotificationsException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-for-push-notifications.md
+$dokka.location:com.pushwoosh/Pushwoosh/registerForPushNotificationsWithTags/#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,com.pushwoosh.exception.RegisterForPushNotificationsException>#com.pushwoosh.tags.TagsBundle/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-for-push-notifications-with-tags.md
 $dokka.location:com.pushwoosh/Pushwoosh/registerForPushNotificationsWithTags/#com.pushwoosh.tags.TagsBundle/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-for-push-notifications-with-tags.md
-$dokka.location:com.pushwoosh/Pushwoosh/registerForPushNotificationsWithTagsWithoutPermission/#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,RegisterForPushNotificationsException>#com.pushwoosh.tags.TagsBundle/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-for-push-notifications-with-tags-without-permission.md
-$dokka.location:com.pushwoosh/Pushwoosh/registerForPushNotificationsWithoutPermission/#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,RegisterForPushNotificationsException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-for-push-notifications-without-permission.md
+$dokka.location:com.pushwoosh/Pushwoosh/registerForPushNotificationsWithTagsWithoutPermission/#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,com.pushwoosh.exception.RegisterForPushNotificationsException>#com.pushwoosh.tags.TagsBundle/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-for-push-notifications-with-tags-without-permission.md
+$dokka.location:com.pushwoosh/Pushwoosh/registerForPushNotificationsWithoutPermission/#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,com.pushwoosh.exception.RegisterForPushNotificationsException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-for-push-notifications-without-permission.md
 $dokka.location:com.pushwoosh/Pushwoosh/registerSMSNumber/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-s-m-s-number.md
 $dokka.location:com.pushwoosh/Pushwoosh/registerWhatsappNumber/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/register-whatsapp-number.md
 $dokka.location:com.pushwoosh/Pushwoosh/requestNotificationPermission/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/request-notification-permission.md
@@ -373,60 +375,37 @@ $dokka.location:com.pushwoosh/Pushwoosh/sendInappPurchase/#java.lang.String#java
 $dokka.location:com.pushwoosh/Pushwoosh/setAllowedExternalHosts/#java.util.ArrayList<java.lang.String>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-allowed-external-hosts.md
 $dokka.location:com.pushwoosh/Pushwoosh/setApiToken/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-api-token.md
 $dokka.location:com.pushwoosh/Pushwoosh/setAppId/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-app-id.md
-$dokka.location:com.pushwoosh/Pushwoosh/setEmail/#java.lang.String#com.pushwoosh.function.Callback<java.lang.Boolean,SetEmailException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-email.md
+$dokka.location:com.pushwoosh/Pushwoosh/setEmail/#java.lang.String#com.pushwoosh.function.Callback<java.lang.Boolean,com.pushwoosh.exception.SetEmailException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-email.md
 $dokka.location:com.pushwoosh/Pushwoosh/setEmail/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-email.md
-$dokka.location:com.pushwoosh/Pushwoosh/setEmail/#java.util.List<java.lang.String>#com.pushwoosh.function.Callback<java.lang.Boolean,SetEmailException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-email.md
+$dokka.location:com.pushwoosh/Pushwoosh/setEmail/#java.util.List<java.lang.String>#com.pushwoosh.function.Callback<java.lang.Boolean,com.pushwoosh.exception.SetEmailException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-email.md
 $dokka.location:com.pushwoosh/Pushwoosh/setEmail/#java.util.List<java.lang.String>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-email.md
-$dokka.location:com.pushwoosh/Pushwoosh/setEmailTags/#com.pushwoosh.tags.TagsBundle#java.lang.String#com.pushwoosh.function.Callback<java.lang.Void,PushwooshException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-email-tags.md
+$dokka.location:com.pushwoosh/Pushwoosh/setEmailTags/#com.pushwoosh.tags.TagsBundle#java.lang.String#com.pushwoosh.function.Callback<java.lang.Void,com.pushwoosh.exception.PushwooshException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-email-tags.md
 $dokka.location:com.pushwoosh/Pushwoosh/setEmailTags/#com.pushwoosh.tags.TagsBundle#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-email-tags.md
 $dokka.location:com.pushwoosh/Pushwoosh/setLanguage/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-language.md
 $dokka.location:com.pushwoosh/Pushwoosh/setSenderId/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-sender-id.md
 $dokka.location:com.pushwoosh/Pushwoosh/setShowPushnotificationAlert/#boolean/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-show-pushnotification-alert.md
-$dokka.location:com.pushwoosh/Pushwoosh/setTags/#com.pushwoosh.tags.TagsBundle#com.pushwoosh.function.Callback<java.lang.Void,PushwooshException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-tags.md
+$dokka.location:com.pushwoosh/Pushwoosh/setTags/#com.pushwoosh.tags.TagsBundle#com.pushwoosh.function.Callback<java.lang.Void,com.pushwoosh.exception.PushwooshException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-tags.md
 $dokka.location:com.pushwoosh/Pushwoosh/setTags/#com.pushwoosh.tags.TagsBundle/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-tags.md
-$dokka.location:com.pushwoosh/Pushwoosh/setUser/#java.lang.String#java.util.List<java.lang.String>#com.pushwoosh.function.Callback<java.lang.Boolean,SetUserException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-user.md
+$dokka.location:com.pushwoosh/Pushwoosh/setUser/#java.lang.String#java.util.List<java.lang.String>#com.pushwoosh.function.Callback<java.lang.Boolean,com.pushwoosh.exception.SetUserException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-user.md
 $dokka.location:com.pushwoosh/Pushwoosh/setUser/#java.lang.String#java.util.List<java.lang.String>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-user.md
-$dokka.location:com.pushwoosh/Pushwoosh/setUserId/#java.lang.String#com.pushwoosh.function.Callback<java.lang.Boolean,SetUserIdException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-user-id.md
+$dokka.location:com.pushwoosh/Pushwoosh/setUserId/#java.lang.String#com.pushwoosh.function.Callback<java.lang.Boolean,com.pushwoosh.exception.SetUserIdException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-user-id.md
 $dokka.location:com.pushwoosh/Pushwoosh/setUserId/#java.lang.String/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/set-user-id.md
 $dokka.location:com.pushwoosh/Pushwoosh/startServerCommunication/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/start-server-communication.md
 $dokka.location:com.pushwoosh/Pushwoosh/stopServerCommunication/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/stop-server-communication.md
 $dokka.location:com.pushwoosh/Pushwoosh/unregisterForPushNotifications/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/unregister-for-push-notifications.md
-$dokka.location:com.pushwoosh/Pushwoosh/unregisterForPushNotifications/#com.pushwoosh.function.Callback<java.lang.String,UnregisterForPushNotificationException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/unregister-for-push-notifications.md
-$dokka.location:com.pushwoosh/PushwooshPlatform.Builder///PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/-builder/index.md
-$dokka.location:com.pushwoosh/PushwooshPlatform.Builder/Builder/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/-builder/-builder.md
-$dokka.location:com.pushwoosh/PushwooshPlatform.Builder/build/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/-builder/build.md
-$dokka.location:com.pushwoosh/PushwooshPlatform.Builder/setConfig/#Config/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/-builder/set-config.md
-$dokka.location:com.pushwoosh/PushwooshPlatform.Builder/setPushRegistrar/#PushRegistrar/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/-builder/set-push-registrar.md
-$dokka.location:com.pushwoosh/PushwooshPlatform///PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/index.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/businessCasesManager/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/business-cases-manager.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/config/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/config.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/getUUIDFactory/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/get-u-u-i-d-factory.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/instance/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/instance.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/notificationManager/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/notification-manager.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/notificationService/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/notification-service.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/notifyNotInitialized/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/notify-not-initialized.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/onApplicationCreated/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/on-application-created.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/pushMessageFactory/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/push-message-factory.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/pushRegistrarHelper/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/push-registrar-helper.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/pushwooshInApp/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/pushwoosh-in-app.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/pushwooshRepository/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/pushwoosh-repository.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/registrationPrefs/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/registration-prefs.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/richMediaController/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/rich-media-controller.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/richMediaStyle/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/rich-media-style.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/serverCommunicationManager/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/server-communication-manager.md
-$dokka.location:com.pushwoosh/PushwooshPlatform/topActivity/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh-platform/top-activity.md
+$dokka.location:com.pushwoosh/Pushwoosh/unregisterForPushNotifications/#com.pushwoosh.function.Callback<java.lang.String,com.pushwoosh.exception.UnregisterForPushNotificationException>/PointingToDeclaration/pushwoosh/com.pushwoosh/-pushwoosh/unregister-for-push-notifications.md
 $dokka.location:com.pushwoosh/RegisterForPushNotificationsResultData///PointingToDeclaration/pushwoosh/com.pushwoosh/-register-for-push-notifications-result-data/index.md
 $dokka.location:com.pushwoosh/RegisterForPushNotificationsResultData/RegisterForPushNotificationsResultData/#java.lang.String#boolean/PointingToDeclaration/pushwoosh/com.pushwoosh/-register-for-push-notifications-result-data/-register-for-push-notifications-result-data.md
 $dokka.location:com.pushwoosh/RegisterForPushNotificationsResultData/isEnabled/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-register-for-push-notifications-result-data/is-enabled.md
 $dokka.location:com.pushwoosh/RegisterForPushNotificationsResultData/token/#/PointingToDeclaration/pushwoosh/com.pushwoosh/-register-for-push-notifications-result-data/token.md
 com.pushwoosh
+com.pushwoosh.exception
 com.pushwoosh.function
 com.pushwoosh.inapp
 com.pushwoosh.inapp.view.config
 com.pushwoosh.inapp.view.config.enums
 com.pushwoosh.inapp.view.inline
 com.pushwoosh.notification
-com.pushwoosh.repository
 com.pushwoosh.richmedia
 com.pushwoosh.richmedia.animation
 com.pushwoosh.tags

@@ -1,5 +1,8 @@
 $dokka.format:gfm-v1
 $dokka.linkExtension:md
+$dokka.location:com.pushwoosh.location.network.exception////PointingToDeclaration/pushwoosh-location/com.pushwoosh.location.network.exception/index.md
+$dokka.location:com.pushwoosh.location.network.exception/LocationNotAvailableException///PointingToDeclaration/pushwoosh-location/com.pushwoosh.location.network.exception/-location-not-available-exception/index.md
+$dokka.location:com.pushwoosh.location.network.exception/LocationNotAvailableException/LocationNotAvailableException/#/PointingToDeclaration/pushwoosh-location/com.pushwoosh.location.network.exception/-location-not-available-exception/-location-not-available-exception.md
 $dokka.location:com.pushwoosh.location////PointingToDeclaration/pushwoosh-location/com.pushwoosh.location/index.md
 $dokka.location:com.pushwoosh.location/PushwooshLocation///PointingToDeclaration/pushwoosh-location/com.pushwoosh.location/-pushwoosh-location/index.md
 $dokka.location:com.pushwoosh.location/PushwooshLocation/PushwooshLocation/#/PointingToDeclaration/pushwoosh-location/com.pushwoosh.location/-pushwoosh-location/-pushwoosh-location.md
@@ -8,4 +11,5 @@ $dokka.location:com.pushwoosh.location/PushwooshLocation/startLocationTracking/#
 $dokka.location:com.pushwoosh.location/PushwooshLocation/startLocationTracking/#Callback<Void,LocationNotAvailableException>/PointingToDeclaration/pushwoosh-location/com.pushwoosh.location/-pushwoosh-location/start-location-tracking.md
 $dokka.location:com.pushwoosh.location/PushwooshLocation/stopLocationTracking/#/PointingToDeclaration/pushwoosh-location/com.pushwoosh.location/-pushwoosh-location/stop-location-tracking.md
 com.pushwoosh.location
+com.pushwoosh.location.network.exception
 

@@ -5,4 +5,13 @@
 [main]\
 open fun [sendAppOpen](send-app-open.md)()
 
-Informs the Pushwoosh about the app being launched. Usually called internally by SDK.
+Sends an application open event to Pushwoosh. 
+
+ This method is usually called automatically by the SDK when the application launches. However, in some custom integration scenarios, you may need to call it manually to ensure proper tracking of app opens and session analytics.  Example: 
+
+```kotlin
+
+  // Manually send app open event (usually not needed)
+  Pushwoosh.getInstance().sendAppOpen();
+
+```

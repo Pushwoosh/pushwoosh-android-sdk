@@ -9,14 +9,6 @@ $dokka.location:com.pushwoosh.calls.listener/CallEventListener/onCreateIncomingC
 $dokka.location:com.pushwoosh.calls.listener/CallEventListener/onDisconnect/#com.pushwoosh.calls.PushwooshVoIPMessage/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls.listener/-call-event-listener/on-disconnect.md
 $dokka.location:com.pushwoosh.calls.listener/CallEventListener/onReject/#com.pushwoosh.calls.PushwooshVoIPMessage/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls.listener/-call-event-listener/on-reject.md
 $dokka.location:com.pushwoosh.calls////PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/index.md
-$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin.Companion///PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/-companion/index.md
-$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin.Companion/instance/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/-companion/instance.md
-$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin///PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/index.md
-$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin/PushwooshCallPlugin/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/-pushwoosh-call-plugin.md
-$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin/callEventListener/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/call-event-listener.md
-$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin/callPrefs/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/call-prefs.md
-$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin/getPrefsMigrationSchemes/#com.pushwoosh.internal.platform.prefs.PrefsProvider?/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/get-prefs-migration-schemes.md
-$dokka.location:com.pushwoosh.calls/PushwooshCallPlugin/init/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-plugin/init.md
 $dokka.location:com.pushwoosh.calls/PushwooshCallSettings///PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/index.md
 $dokka.location:com.pushwoosh.calls/PushwooshCallSettings/getCallPermissionStatus/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/get-call-permission-status.md
 $dokka.location:com.pushwoosh.calls/PushwooshCallSettings/requestCallPermissions/#/PointingToDeclaration/pushwoosh-calls/com.pushwoosh.calls/-pushwoosh-call-settings/request-call-permissions.md

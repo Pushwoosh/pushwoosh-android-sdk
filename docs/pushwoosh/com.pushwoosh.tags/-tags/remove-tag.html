@@ -63,7 +63,62 @@
   <div class="cover ">
     <h1 class="cover"><span>remove</span><wbr><span><span>Tag</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="remove-tag.html"><span class="token function">removeTag</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle for tag removal</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name</p></div></div></div></div></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="remove-tag.html"><span class="token function">removeTag</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><p class="paragraph">Creates a TagsBundle that removes a tag from the device. </p><p class="paragraph"> This method is used to delete tags that are no longer needed or contain outdated information. Removing unused tags keeps your data clean and improves targeting accuracy. Common scenarios include user logout, feature deprecation, or data cleanup. </p><p class="paragraph"><strong>When to Remove Tags:</strong></p><ul><li>User logout - remove user-specific tags like name, email, subscription tier</li><li>Feature deprecation - remove tags for discontinued features or old implementations</li><li>Preference reset - remove user preferences when reverting to defaults</li><li>Data cleanup - remove temporary or session-specific tags</li><li>Privacy compliance - remove personal data when requested by user</li></ul> Example: <div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+	  // User logout: Clean up user-specific data
+	  private void onUserLogout() {
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Name"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Email"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Subscription_Tier"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Loyalty_Points"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Last_Purchase"));
+	
+	      // Also clear user ID
+	      Pushwoosh.getInstance().setUserId("");
+	  }
+	
+	  // Remove deprecated tags after app update
+	  private void cleanupDeprecatedTags() {
+	      // Old tag names being replaced with new ones
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("old_subscription_field"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("legacy_user_type"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("deprecated_preference"));
+	  }
+	
+	  // E-commerce: Clear cart-related tags after checkout
+	  private void onOrderCompleted() {
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Items_In_Cart"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Cart_Value"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Cart_Abandoned_Date"));
+	  }
+	
+	  // Privacy: Remove user data on request
+	  private void deleteUserData() {
+	      // Remove all personal information tags
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Name"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Email"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Phone"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("City"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Age"));
+	  }
+	
+	  // Reset user preferences to defaults
+	  private void resetPreferences() {
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Notification_Frequency"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Preferred_Language"));
+	      Pushwoosh.getInstance().setTags(Tags.removeTag("Theme_Preference"));
+	  }
+	
+	  // Bulk cleanup using TagsBundle.Builder (more efficient)
+	  private void bulkRemoveTags() {
+	      TagsBundle cleanup = new TagsBundle.Builder()
+	          .remove("Old_Field_1")
+	          .remove("Old_Field_2")
+	          .remove("Deprecated_Tag")
+	          .remove("Unused_Preference")
+	          .build();
+	      Pushwoosh.getInstance().setTags(cleanup);
+	  }
+	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle containing the tag removal operation</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name to remove (e.g., "Name", "Old_Field", "Deprecated_Tag")</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-tags-bundle/-builder/remove.html"><span>TagsBundle.</span><wbr><span>Builder</span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>

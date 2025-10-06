@@ -63,7 +63,40 @@
   <div class="cover ">
     <h1 class="cover"><span>date</span><wbr><span><span>Tag</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="date-tag.html"><span class="token function">dateTag</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">value<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/Date.html">Date</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle with single tag of Date type</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>value</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag value</p></div></div></div></div></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="date-tag.html"><span class="token function">dateTag</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">value<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/Date.html">Date</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><p class="paragraph">Creates a TagsBundle with a single date tag. </p><p class="paragraph"> Date tags store timestamp values for tracking when events occurred. They are automatically formatted as "yyyy-MM-dd HH:mm" strings. Date tags are essential for time-based segmentation and re-engagement campaigns. </p><p class="paragraph"><strong>Common Use Cases:</strong></p><ul><li>User activity - last login, last purchase, last app open</li><li>Account milestones - registration date, subscription start, first purchase</li><li>Content interaction - last article read, last video watched</li><li>Re-engagement - last session date, last notification opened</li><li>Time-sensitive events - trial expiration, subscription renewal date</li></ul> Example: <div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+	  // E-commerce: Track user activity and milestones
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Last_Login", new Date()));
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Last_Purchase", new Date()));
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Registration_Date", user.getCreatedAt()));
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("First_Purchase_Date", order.getCreatedAt()));
+	
+	  // Subscription management
+	  Date subscriptionStart = new Date();
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Subscription_Start_Date", subscriptionStart));
+	
+	  Calendar calendar = Calendar.getInstance();
+	  calendar.add(Calendar.MONTH, 1);
+	  Date renewalDate = calendar.getTime();
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Subscription_Renewal_Date", renewalDate));
+	
+	  // News app: Content engagement tracking
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Last_Article_Read", new Date()));
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Last_Notification_Opened", new Date()));
+	
+	  // Banking app: Transaction and activity tracking
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Last_Transaction_Date", new Date()));
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Last_Bill_Payment", new Date()));
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Account_Created", accountDate));
+	
+	  // Fitness app: Workout and progress tracking
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Last_Workout", new Date()));
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Goal_Start_Date", goalStartDate));
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Last_Weight_Log", new Date()));
+	
+	  // Re-engagement campaigns: Track inactivity
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Last_App_Open", new Date()));
+	  Pushwoosh.getInstance().setTags(Tags.dateTag("Last_Feature_Used", new Date()));
+	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle containing the single date tag</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name (e.g., "Last_Login", "Registration_Date", "Last_Purchase")</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>value</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Date object to be formatted as "yyyy-MM-dd HH:mm"</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-tags-bundle/-builder/put-date.html"><span>TagsBundle.</span><wbr><span>Builder</span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>

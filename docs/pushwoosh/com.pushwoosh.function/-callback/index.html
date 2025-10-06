@@ -62,7 +62,82 @@
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.function</a><span class="delimiter">/</span><span class="current">Callback</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>Callback</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">Callback</a><span class="token operator">&lt;</span><a href="index.html">T</a><span class="token punctuation">, </span><a href="index.html">E</a><span class="token operator"> : </span>PushwooshException<span class="token operator">?</span><span class="token operator">&gt;</span></div><p class="paragraph">Asynchronous operation handler</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>&lt;T&gt;</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Data class</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>&lt;E&gt;</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Exception class</p></div></div></div></div></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">Callback</a><span class="token operator">&lt;</span><a href="index.html">T</a><span class="token punctuation">, </span><a href="index.html">E</a><span class="token operator"> : </span><a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html">PushwooshException</a><span class="token operator">?</span><span class="token operator">&gt;</span></div><p class="paragraph">The main callback interface for handling results of asynchronous operations in Pushwoosh SDK. </p><p class="paragraph"> All asynchronous SDK operations (registration, tags management, user operations) use this callback interface to return results. The callback is always invoked on the main (UI) thread, making it safe to update UI elements directly without additional thread synchronization. </p><p class="paragraph"><strong>When to use callbacks:</strong></p><ul><li>When you need to know if the operation succeeded or failed</li><li>When you need to handle operation results (e.g., push token, tags data)</li><li>When you want to show user feedback or update UI based on results</li><li>When implementing retry logic for failed operations</li></ul><p class="paragraph"> Most SDK methods offer both callback and fire-and-forget versions. Use the callback version when you need to handle results; use the version without callback for fire-and-forget operations. <strong>Basic usage example:</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // Register for push notifications with callback
+  Pushwoosh.getInstance().registerForPushNotifications((result) -&gt; {
+      if (result.isSuccess()) {
+          // Operation succeeded
+          String token = result.getData().getToken();
+          Log.d("App", "Push token: " + token);
+      } else {
+          // Operation failed
+          Exception error = result.getException();
+          Log.e("App", "Registration failed: " + error.getMessage());
+      }
+  });
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Example with user tags:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // Set tags with error handling
+  TagsBundle tags = new TagsBundle.Builder()
+      .putString("Name", "John Doe")
+      .putInt("Age", 25)
+      .build();
+
+  Pushwoosh.getInstance().setTags(tags, (result) -&gt; {
+      if (result.isSuccess()) {
+          Log.d("App", "Tags updated successfully");
+          Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show();
+      } else {
+          Log.e("App", "Failed to update tags", result.getException());
+          Toast.makeText(this, "Update failed. Please try again", Toast.LENGTH_SHORT).show();
+      }
+  });
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Example with user ID management:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // Set user ID with callback
+  Pushwoosh.getInstance().setUserId("user_12345", (result) -&gt; {
+      if (result.isSuccess()) {
+          Log.d("App", "User ID set successfully");
+          // Proceed with app initialization
+          initializeUserSession();
+      } else {
+          Log.e("App", "Failed to set user ID", result.getException());
+          // Retry or show error dialog
+          showRetryDialog();
+      }
+  });
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Example with retry logic:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  private void registerWithRetry(int attemptNumber) {
+      Pushwoosh.getInstance().registerForPushNotifications((result) -&gt; {
+          if (result.isSuccess()) {
+              Log.d("App", "Registration successful");
+          } else {
+              if (attemptNumber &lt; MAX_RETRIES) {
+                  Log.w("App", "Registration failed, retrying... Attempt " + (attemptNumber + 1));
+                  new Handler().postDelayed(() -&gt; registerWithRetry(attemptNumber + 1), 5000);
+              } else {
+                  Log.e("App", "Registration failed after " + MAX_RETRIES + " attempts");
+                  showErrorDialog("Unable to register for notifications");
+              }
+          }
+      });
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Example with loading indicator:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // Show loading indicator during operation
+  showLoadingIndicator();
+
+  Pushwoosh.getInstance().getTags((result) -&gt; {
+      hideLoadingIndicator();
+
+      if (result.isSuccess()) {
+          TagsBundle tags = result.getData();
+          String userName = tags.getString("Name", "Unknown");
+          int userAge = tags.getInt("Age", 0);
+          updateUserProfile(userName, userAge);
+      } else {
+          Log.e("App", "Failed to load tags", result.getException());
+          showError("Unable to load user profile");
+      }
+  });
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>&lt;T&gt;</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the type of data returned on successful operation completion</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>&lt;E&gt;</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the type of exception returned on operation failure, must extend <a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html">PushwooshException</a></p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-result/index.html"><span><span>Result</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html"><span>Pushwoosh</span><wbr><span><span>Exception</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -79,7 +154,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="process.html"><span class="token function">process</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">result<span class="token operator">: </span><a href="../-result/index.html">Result</a><span class="token operator">&lt;</span><a href="index.html">T</a><span class="token punctuation">, </span><a href="index.html">E</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief ">Asynchronous operation handler method.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="process.html"><span class="token function">process</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">result<span class="token operator">: </span><a href="../-result/index.html">Result</a><span class="token operator">&lt;</span><a href="index.html">T</a><span class="token punctuation">, </span><a href="index.html">E</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief ">Handles the result of an asynchronous operation.</div></div></div>
                 </div>
               </div>
             </div>

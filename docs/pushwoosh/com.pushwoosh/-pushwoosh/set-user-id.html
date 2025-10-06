@@ -63,7 +63,60 @@
   <div class="cover ">
     <h1 class="cover"><span>set</span><wbr><span>User</span><wbr><span><span>Id</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-user-id.html"><span class="token function">setUserId</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userId<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">Set User identifier. This could be Facebook ID, username or email, or any other user ID. This allows data and events to be matched across multiple user devices.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>user</span><wbr><span><span>Id</span></span></u></div></span></div><div><div class="title"><p class="paragraph">user identifier</p></div></div></div></div></div><hr><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-user-id.html"><span class="token function">setUserId</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userId<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">callback<span class="token operator">: </span><a href="../../com.pushwoosh.function/-callback/index.html">Callback</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/java/lang/Boolean.html">Boolean</a><span class="token punctuation">, </span>SetUserIdException<span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Set User identifier. This could be Facebook ID, username or email, or any other user ID. This allows data and events to be matched across multiple user devices.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>user</span><wbr><span><span>Id</span></span></u></div></span></div><div><div class="title"><p class="paragraph">user identifier</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>callback</span></span></u></div></span></div><div><div class="title"><p class="paragraph">setUserId operation callback</p></div></div></div></div></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-user-id.html"><span class="token function">setUserId</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userId<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">Sets the user identifier without a callback. </p><p class="paragraph"> This is a convenience method that calls <a href="set-user-id.html">setUserId</a> with a null callback. The user identifier can be a Facebook ID, username, email, or any unique user ID that allows data and events to be matched across multiple devices.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // Set user ID after successful login
+  private void onLoginSuccess(User user) {
+      // Associate device with user account for cross-device tracking
+      Pushwoosh.getInstance().setUserId(user.getUserId());
+
+      // Also update user profile tags
+      TagsBundle userProfile = new TagsBundle.Builder()
+          .putString("Name", user.getName())
+          .putString("Email", user.getEmail())
+          .putDate("Last_Login", new Date())
+          .build();
+      Pushwoosh.getInstance().setTags(userProfile);
+
+      Log.d("App", "User logged in: " + user.getUserId());
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>user</span><wbr><span><span>Id</span></span></u></div></span></div><div><div class="title"><p class="paragraph">user identifier</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="set-user-id.html"><span>set</span><wbr><span>User</span><wbr><span><span>Id(String,</span></span> <span><span>Callback)</span></span></a></div></span></div><div></div></div></div></div><hr><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-user-id.html"><span class="token function">setUserId</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userId<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">callback<span class="token operator">: </span><a href="../../com.pushwoosh.function/-callback/index.html">Callback</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/java/lang/Boolean.html">Boolean</a><span class="token punctuation">, </span><a href="../../com.pushwoosh.exception/-set-user-id-exception/index.html">SetUserIdException</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Sets the user identifier with a callback. </p><p class="paragraph"> This method associates a user identifier with the current device. The user ID can be a Facebook ID, username, email, or any unique identifier. This enables cross-device tracking and allows you to target users across all their devices.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // Set user ID with callback after authentication
+  private void authenticateUser(String username, String password) {
+      authService.login(username, password, new AuthCallback() {
+          
+          public void onSuccess(User user) {
+              // Set user ID in Pushwoosh with callback
+              Pushwoosh.getInstance().setUserId(user.getUserId(), (result) -&gt; {
+                  if (result.isSuccess()) {
+                      Log.d("App", "User ID set successfully for cross-device tracking");
+
+                      // Update additional user data
+                      TagsBundle userTags = new TagsBundle.Builder()
+                          .putString("Username", user.getUsername())
+                          .putString("Account_Type", user.getAccountType())
+                          .putDate("Last_Login", new Date())
+                          .build();
+                      Pushwoosh.getInstance().setTags(userTags);
+
+                      // Navigate to home screen
+                      startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                      finish();
+                  } else {
+                      Log.e("App", "Failed to set user ID: " + result.getException().getMessage());
+                      // Continue anyway as this is not critical for login
+                      startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                      finish();
+                  }
+              });
+          }
+
+          
+          public void onError(String error) {
+              Toast.makeText(LoginActivity.this, "Login failed: " + error, Toast.LENGTH_SHORT).show();
+          }
+      });
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>user</span><wbr><span><span>Id</span></span></u></div></span></div><div><div class="title"><p class="paragraph">user identifier</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>callback</span></span></u></div></span></div><div><div class="title"><p class="paragraph">setUserId operation callback</p></div></div></div></div></div></div></div>
 </div>
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>

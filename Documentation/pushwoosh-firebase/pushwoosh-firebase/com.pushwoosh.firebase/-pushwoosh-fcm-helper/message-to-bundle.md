@@ -5,11 +5,13 @@
 [main]\
 open fun [messageToBundle](message-to-bundle.md)(remoteMessage: RemoteMessage): Bundle
 
-Convert RemoteMessage to Bundle object
+Converts a Firebase Cloud Messaging RemoteMessage to an Android Bundle. 
+
+ Use this utility method when you need to pass message data to other Android components or implement custom message processing logic.
 
 #### Return
 
-Bundle created from RemoteMessage
+Bundle containing all data from the remote message
 
 #### Parameters
 
@@ -17,4 +19,11 @@ main
 
 | | |
 |---|---|
-| remoteMessage | - message received from Firebase |
+| remoteMessage | Firebase Cloud Messaging remote message to convert |
+
+#### See also
+
+| |
+|---|
+| RemoteMessage |
+| [onMessageReceived(Context, RemoteMessage)](on-message-received.md) |

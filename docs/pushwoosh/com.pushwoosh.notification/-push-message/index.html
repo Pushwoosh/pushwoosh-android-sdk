@@ -62,7 +62,119 @@
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.notification</a><span class="delimiter">/</span><span class="current">PushMessage</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Push</span><wbr><span><span>Message</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">PushMessage</a></div><p class="paragraph">Push message data class.</p></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">PushMessage</a></div><p class="paragraph">Represents a received push notification with all its payload data and metadata. </p><p class="paragraph"> PushMessage is an immutable data class that encapsulates all information contained in a push notification, including the notification content (title, message), visual customization (icons, colors, LED), behavior settings (sound, vibration, priority), and custom data payloads. It serves as the primary interface for accessing push notification data in callbacks, service extensions, and message handlers. </p><p class="paragraph"><strong>When you receive PushMessage instances:</strong></p><ul><li>In <a href="../../../pushwoosh/com.pushwoosh.notification/-notification-service-extension/on-message-received.html">onMessageReceived</a> when push arrives</li><li>In <a href="../../../pushwoosh/com.pushwoosh.notification/-notification-service-extension/on-message-opened.html">onMessageOpened</a> when user taps notification</li><li>Via <a href="../../com.pushwoosh/-pushwoosh/get-launch-notification.html">getLaunchNotification</a> to get the notification that launched the app</li><li>In broadcast receivers handling Pushwoosh notification events</li></ul><p class="paragraph"><strong>Common use cases:</strong></p><ul><li>Extracting custom data from push notifications to route users to specific screens</li><li>Customizing notification appearance based on payload before display</li><li>Logging analytics events based on push content or campaign data</li><li>Handling silent pushes to sync data without showing notifications</li><li>Implementing custom business logic based on push metadata</li></ul><strong>Basic usage example - Handling custom data:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+public class MyNotificationExtension extends NotificationServiceExtension {
+    
+    protected boolean onMessageReceived(PushMessage message) {
+        // Extract custom data from push payload
+        String customData = message.getCustomData();
+        if (customData != null) {
+            try {
+                JSONObject data = new JSONObject(customData);
+                String screen = data.optString("target_screen");
+                String itemId = data.optString("item_id");
+
+                // Route to specific screen based on custom data
+                if ("product_detail".equals(screen)) {
+                    navigateToProduct(itemId);
+                } else if ("cart".equals(screen)) {
+                    navigateToCart();
+                }
+            } catch (JSONException e) {
+                Log.e("App", "Failed to parse custom data", e);
+            }
+        }
+
+        // Return false to show default notification
+        return false;
+    }
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Silent push example - Background data sync:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+
+protected boolean onMessageReceived(PushMessage message) {
+    // Check if this is a silent push
+    if (message.isSilent()) {
+        // Silent push - no notification shown
+        String customData = message.getCustomData();
+        if (customData != null) {
+            JSONObject data = new JSONObject(customData);
+            String action = data.optString("action");
+
+            if ("sync_data".equals(action)) {
+                // Trigger background data sync
+                syncUserData();
+            } else if ("clear_cache".equals(action)) {
+                clearAppCache();
+            }
+        }
+        // Return true to indicate we handled the push
+        return true;
+    }
+
+    // Return false to show default notification
+    return false;
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Launch notification example - Deep linking:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    // Check if app was opened from a push notification
+    PushMessage message = Pushwoosh.getInstance().getLaunchNotification();
+    if (message != null) {
+        String customData = message.getCustomData();
+        if (customData != null) {
+            try {
+                JSONObject data = new JSONObject(customData);
+                String orderId = data.optString("order_id");
+
+                if (!orderId.isEmpty()) {
+                    // Navigate to order details screen
+                    Intent intent = new Intent(this, OrderDetailActivity.class);
+                    intent.putExtra("order_id", orderId);
+                    startActivity(intent);
+                }
+            } catch (JSONException e) {
+                Log.e("App", "Failed to parse launch notification data", e);
+            }
+        }
+
+        // Clear launch notification so it's not processed again
+        Pushwoosh.getInstance().clearLaunchNotification();
+    }
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Campaign tracking example - Analytics integration:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+
+protected void onMessageOpened(PushMessage message) {
+    super.onMessageOpened(message);
+
+    // Track push notification opens in your analytics
+    long campaignId = message.getCampaignId();
+    long messageId = message.getMessageId();
+    String messageCode = message.getMessageCode();
+
+    // Send event to analytics service
+    Analytics.logEvent("push_opened", new HashMap&lt;String, Object&gt;() {{
+        put("campaign_id", campaignId);
+        put("message_id", messageId);
+        put("message_code", messageCode);
+        put("title", message.getHeader());
+    }});
+
+    // Log custom data for segmentation
+    String customData = message.getCustomData();
+    if (customData != null) {
+        try {
+            JSONObject data = new JSONObject(customData);
+            String category = data.optString("category", "general");
+            Analytics.setUserProperty("last_notification_category", category);
+        } catch (JSONException e) {
+            Log.e("App", "Failed to parse custom data", e);
+        }
+    }
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-notification-service-extension/index.html"><span>Notification</span><wbr><span>Service</span><wbr><span><span>Extension</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh/-pushwoosh/get-launch-notification.html"><span><span>Pushwoosh</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-local-notification/index.html"><span>Local</span><wbr><span><span>Notification</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>

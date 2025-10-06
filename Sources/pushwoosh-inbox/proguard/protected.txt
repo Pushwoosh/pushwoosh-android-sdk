@@ -1,7 +1,8 @@
 -flattenpackagehierarchy 'com.pushwoosh.inbox'
 
 -keep public class com.pushwoosh.inbox.PushwooshInboxPlugin {
-    public protected *;
+    public *;
+    protected *;
     # Keep default constructor for plugin instantiation
     public <init>();
 }

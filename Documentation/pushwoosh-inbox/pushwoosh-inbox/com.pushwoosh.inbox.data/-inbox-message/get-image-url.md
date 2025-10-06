@@ -3,4 +3,4 @@
 # getImageUrl
 
 [main]\
-abstract fun [getImageUrl](get-image-url.md)(): [String](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html)
+abstract fun [getImageUrl](get-image-url.md)(): [String](https://developer.android.com/reference/kotlin/java/lang/String.html)

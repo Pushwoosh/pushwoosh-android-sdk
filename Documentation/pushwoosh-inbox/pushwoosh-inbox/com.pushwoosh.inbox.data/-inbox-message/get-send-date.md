@@ -3,4 +3,4 @@
 # getSendDate
 
 [main]\
-abstract fun [getSendDate](get-send-date.md)(): [Date](https://docs.oracle.com/javase/8/docs/api/java/util/Date.html)
+abstract fun [getSendDate](get-send-date.md)(): [Date](https://developer.android.com/reference/kotlin/java/util/Date.html)

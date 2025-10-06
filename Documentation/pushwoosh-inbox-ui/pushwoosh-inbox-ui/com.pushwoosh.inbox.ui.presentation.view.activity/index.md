@@ -6,5 +6,4 @@
 
 | Name | Summary |
 |---|---|
-| [AttachmentActivity](-attachment-activity/index.md) | [androidJvm]<br>open class [AttachmentActivity](-attachment-activity/index.md) : [AppCompatActivity](https://developer.android.com/reference/kotlin/androidx/appcompat/app/AppCompatActivity.html) |
 | [InboxActivity](-inbox-activity/index.md) | [androidJvm]<br>open class [InboxActivity](-inbox-activity/index.md) : [AppCompatActivity](https://developer.android.com/reference/kotlin/androidx/appcompat/app/AppCompatActivity.html) |

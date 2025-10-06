@@ -5,6 +5,24 @@
 // Applied to all SDK modules via: apply from: '../scripts/dokka-config.gradle'
 
 // ============================================
+// Configuration Mode Selection
+// ============================================
+
+/**
+ * Determine which source of public API classes to use:
+ * - If -PpublicApiOnly=true: Use tools/public-api.yaml (PUBLIC API ONLY)
+ * - Otherwise: Use proguard/public.txt (ALL CLASSES - legacy mode)
+ */
+def usePublicApiYaml = project.hasProperty('publicApiOnly') &&
+        project.property('publicApiOnly').toString().toBoolean()
+
+if (usePublicApiYaml) {
+    logger.lifecycle("📗 Documentation mode: PUBLIC API ONLY (from tools/public-api.yaml)")
+} else {
+    logger.lifecycle("📚 Documentation mode: ALL CLASSES (from ProGuard files)")
+}
+
+// ============================================
 // ProGuard Parsing Functions
 // ============================================
 
@@ -75,6 +93,53 @@ def resolveClassName(String className) {
 }
 
 /**
+ * Parse tools/public-api.yaml to get public API classes for current module
+ * @return List of class names for this module, or null if not found
+ */
+def parsePublicApiYaml() {
+    // Get YAML path from property (set by bash script) or use default
+    def yamlPath = project.findProperty('publicApiYamlPath') ?: "../../tools/public-api.yaml"
+    def yamlFile = file(yamlPath)
+
+    if (!yamlFile.exists()) {
+        throw new GradleException("❌ Public API YAML not found at ${yamlFile.absolutePath}\n" +
+                "Please ensure the file exists or check -PpublicApiYamlPath property")
+    }
+
+    def classNames = []
+    def inCurrentModule = false
+    def moduleName = project.name
+
+    yamlFile.eachLine { line ->
+        // Check if we're in the current module section
+        if (line.matches(/^\s{2}${moduleName}:\s*$/)) {
+            inCurrentModule = true
+            logger.debug("Found module section: ${moduleName}")
+            return
+        }
+
+        // Check if we've moved to a different module
+        if (line.matches(/^\s{2}\w+:\s*$/) && !line.contains(moduleName)) {
+            inCurrentModule = false
+            return
+        }
+
+        // Parse className if we're in current module
+        if (inCurrentModule && line.contains('className:')) {
+            def matcher = line =~ /className:\s*"([^"]+)"/
+            if (matcher.find()) {
+                def className = matcher.group(1)
+                classNames.add(className)
+                logger.debug("Found public class: ${className}")
+            }
+        }
+    }
+
+    logger.info("Found ${classNames.size()} public API classes for ${moduleName} in YAML")
+    return classNames.isEmpty() ? null : classNames
+}
+
+/**
  * Parse ProGuard public.txt to determine which classes should be documented
  * @return List of source files to document, or null if ProGuard file not found
  */
@@ -109,24 +174,59 @@ def parseProguardPublicClasses() {
     return publicSourceFiles.isEmpty() ? null : publicSourceFiles
 }
 
+/**
+ * Parse public API classes from YAML and resolve to source files
+ * @return List of source files to document, or null if not found
+ */
+def parseYamlPublicClasses() {
+    def classNames = parsePublicApiYaml()
+    if (!classNames) return null
+
+    def publicSourceFiles = []
+
+    classNames.each { className ->
+        // Resolve files (wildcard or concrete class)
+        def files = className.contains('*') ?
+            resolveWildcardPattern(className) :
+            [resolveClassName(className)].findAll { it != null }
+
+        // Add to result (avoid duplicates)
+        files.each { f ->
+            if (!publicSourceFiles.contains(f)) {
+                publicSourceFiles.add(f)
+            }
+        }
+    }
+
+    logger.info("Resolved ${publicSourceFiles.size()} source files from YAML for ${project.name}")
+    return publicSourceFiles.isEmpty() ? null : publicSourceFiles
+}
+
 // ============================================
 // Shared Configuration Function
 // ============================================
 
 /**
- * Configure Dokka source set with ProGuard-based filtering
+ * Configure Dokka source set with filtering (YAML or ProGuard)
  * Can be reused for any Dokka format (GFM, HTML, Javadoc)
  * @param sourceSet Dokka source set to configure
  */
 def configureDokkaSourceSet(sourceSet) {
-    def publicClasses = parseProguardPublicClasses()
+    // Determine mode (check property again inside function scope)
+    def useYamlMode = project.hasProperty('publicApiOnly') &&
+            project.property('publicApiOnly').toString().toBoolean()
 
-    if (publicClasses != null) {
+    // Choose source based on mode
+    def publicClasses = useYamlMode ?
+        parseYamlPublicClasses() :
+        parseProguardPublicClasses()
+
+    if (publicClasses != null && publicClasses.size() > 0) {
         // For mixed Java/Kotlin modules, use directory + suppressedFiles
         // For pure Java, use specific files
         def hasKotlinPlugin = project.plugins.hasPlugin('kotlin-android')
 
-        if (hasKotlinPlugin && publicClasses.size() > 0) {
+        if (hasKotlinPlugin) {
             // Use src/main/java directory and suppress non-public files
             sourceSet.sourceRoots.from("src/main/java")
 
@@ -140,16 +240,15 @@ def configureDokkaSourceSet(sourceSet) {
             def filesToSuppress = allFiles - publicClasses
             sourceSet.suppressedFiles.from(filesToSuppress)
 
-            logger.info("Documenting ${publicClasses.size()} classes from ProGuard for Kotlin module ${project.name}")
+            logger.info("Documenting ${publicClasses.size()} classes from YAML/ProGuard for Kotlin module ${project.name}")
         } else {
             // Pure Java module - use specific files
             sourceSet.sourceRoots.from(publicClasses)
-            logger.info("Documenting ${publicClasses.size()} classes from ProGuard for ${project.name}")
+            logger.info("Documenting ${publicClasses.size()} classes from YAML/ProGuard for ${project.name}")
         }
     } else {
-        // Fallback: document all classes in src/main/java
-        sourceSet.sourceRoots.from("src/main/java")
-        logger.info("Documenting all classes for ${project.name}")
+        // No public classes defined - skip documentation for this module
+        logger.info("No public API classes defined for ${project.name} - skipping documentation")
     }
 
     // Skip deprecated methods/classes

@@ -58,21 +58,46 @@
                 <div class="sidebar--inner" id="sideMenu"></div>
             </div>
             <div id="main">
-<div class="main-content" data-page-type="member" id="content" pageids="pushwoosh::com.pushwoosh/Pushwoosh/getTags/#com.pushwoosh.function.Callback<com.pushwoosh.tags.TagsBundle,GetTagsException>/PointingToDeclaration//1658412858">
+<div class="main-content" data-page-type="member" id="content" pageids="pushwoosh::com.pushwoosh/Pushwoosh/getTags/#com.pushwoosh.function.Callback<com.pushwoosh.tags.TagsBundle,com.pushwoosh.exception.GetTagsException>/PointingToDeclaration//1658412858">
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh</a><span class="delimiter">/</span><a href="index.html">Pushwoosh</a><span class="delimiter">/</span><span class="current">getTags</span></div>
   <div class="cover ">
     <h1 class="cover"><span>get</span><wbr><span><span>Tags</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-tags.html"><span class="token function">getTags</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">callback<span class="token operator">: </span><a href="../../com.pushwoosh.function/-callback/index.html">Callback</a><span class="token operator">&lt;</span><a href="../../com.pushwoosh.tags/-tags-bundle/index.html">TagsBundle</a><span class="token punctuation">, </span>GetTagsException<span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Gets tags associated with current device  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-  pushwoosh.getTags((result) -&gt; {
-      if (result.isSuccess()) {
-           // tags successfully received
-           int intTag = result.getInt("intTag");
-      }
-      else {
-          // failed to receive tags
-      }
-  });
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-tags.html"><span class="token function">getTags</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">callback<span class="token operator">: </span><a href="../../com.pushwoosh.function/-callback/index.html">Callback</a><span class="token operator">&lt;</span><a href="../../com.pushwoosh.tags/-tags-bundle/index.html">TagsBundle</a><span class="token punctuation">, </span><a href="../../com.pushwoosh.exception/-get-tags-exception/index.html">GetTagsException</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Gets tags associated with current device  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // Retrieve and use user profile tags to personalize UI
+  private void loadUserProfile() {
+      Pushwoosh.getInstance().getTags((result) -&gt; {
+          if (result.isSuccess()) {
+              TagsBundle tags = result.getData();
+
+              // Read user profile data
+              String userName = tags.getString("Name", "Guest");
+              int userAge = tags.getInt("Age", 0);
+              String subscriptionTier = tags.getString("Subscription_Tier", "free");
+              boolean isPremium = "premium".equals(subscriptionTier);
+
+              // Update UI based on tags
+              updateWelcomeMessage("Welcome back, " + userName + "!");
+              if (isPremium) {
+                  showPremiumFeatures();
+              } else {
+                  showUpgradePrompt();
+              }
+
+              // Check user preferences
+              List&lt;String&gt; interests = tags.getStringList("Interests");
+              if (interests != null &amp;&amp; !interests.isEmpty()) {
+                  showPersonalizedContent(interests);
+              }
+
+              Log.d("App", "User profile loaded: " + userName + ", tier: " + subscriptionTier);
+          } else {
+              Log.e("App", "Failed to retrieve tags: " + result.getException().getMessage());
+              // Show default UI
+              showDefaultContent();
+          }
+      });
+  }
 </code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>callback</span></span></u></div></span></div><div><div class="title"><p class="paragraph">callback handler</p></div></div></div></div></div></div></div>
 </div>
       <div class="footer">

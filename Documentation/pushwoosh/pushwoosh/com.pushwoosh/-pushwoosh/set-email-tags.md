@@ -23,7 +23,7 @@ main
 | email | user email |
 
 [main]\
-open fun [setEmailTags](set-email-tags.md)(emailTags: [TagsBundle](../../com.pushwoosh.tags/-tags-bundle/index.md), email: [String](https://developer.android.com/reference/kotlin/java/lang/String.html), callback: [Callback](../../com.pushwoosh.function/-callback/index.md)&lt;[Void](https://developer.android.com/reference/kotlin/java/lang/Void.html), PushwooshException&gt;)
+open fun [setEmailTags](set-email-tags.md)(emailTags: [TagsBundle](../../com.pushwoosh.tags/-tags-bundle/index.md), email: [String](https://developer.android.com/reference/kotlin/java/lang/String.html), callback: [Callback](../../com.pushwoosh.function/-callback/index.md)&lt;[Void](https://developer.android.com/reference/kotlin/java/lang/Void.html), [PushwooshException](../../com.pushwoosh.exception/-pushwoosh-exception/index.md)&gt;)
 
 Associates device with given email tags. If setEmailTags request fails email tags will be resent on the next application launch.  Example: 
 

@@ -3,7 +3,7 @@
 # loadCachedMessages
 
 [main]\
-open fun [loadCachedMessages](load-cached-messages.md)(inboxMessage: [InboxMessage](../../com.pushwoosh.inbox.data/-inbox-message/index.md), limit: [Int](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html)): [Collection](https://docs.oracle.com/javase/8/docs/api/java/util/Collection.html)&lt;[InboxMessage](../../com.pushwoosh.inbox.data/-inbox-message/index.md)&gt;
+open fun [loadCachedMessages](load-cached-messages.md)(inboxMessage: [InboxMessage](../../com.pushwoosh.inbox.data/-inbox-message/index.md), limit: [Int](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html)): [Collection](https://developer.android.com/reference/kotlin/java/util/Collection.html)&lt;[InboxMessage](../../com.pushwoosh.inbox.data/-inbox-message/index.md)&gt;
 
 Get the collection of the [com.pushwoosh.inbox.data.InboxMessage](../../com.pushwoosh.inbox.data/-inbox-message/index.md) that the user received. This method obtains messages synchronously from local database
 

@@ -58,12 +58,37 @@
                 <div class="sidebar--inner" id="sideMenu"></div>
             </div>
             <div id="main">
-<div class="main-content" data-page-type="member" id="content" pageids="pushwoosh::com.pushwoosh/Pushwoosh/registerForPushNotificationsWithoutPermission/#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,RegisterForPushNotificationsException>/PointingToDeclaration//1658412858">
+<div class="main-content" data-page-type="member" id="content" pageids="pushwoosh::com.pushwoosh/Pushwoosh/registerForPushNotificationsWithoutPermission/#com.pushwoosh.function.Callback<com.pushwoosh.RegisterForPushNotificationsResultData,com.pushwoosh.exception.RegisterForPushNotificationsException>/PointingToDeclaration//1658412858">
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh</a><span class="delimiter">/</span><a href="index.html">Pushwoosh</a><span class="delimiter">/</span><span class="current">registerForPushNotificationsWithoutPermission</span></div>
   <div class="cover ">
     <h1 class="cover"><span>register</span><wbr><span>For</span><wbr><span>Push</span><wbr><span>Notifications</span><wbr><span>Without</span><wbr><span><span>Permission</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="register-for-push-notifications-without-permission.html"><span class="token function">registerForPushNotificationsWithoutPermission</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">callback<span class="token operator">: </span><a href="../../com.pushwoosh.function/-callback/index.html">Callback</a><span class="token operator">&lt;</span><a href="../-register-for-push-notifications-result-data/index.html">RegisterForPushNotificationsResultData</a><span class="token punctuation">, </span>RegisterForPushNotificationsException<span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="register-for-push-notifications-without-permission.html"><span class="token function">registerForPushNotificationsWithoutPermission</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">callback<span class="token operator">: </span><a href="../../com.pushwoosh.function/-callback/index.html">Callback</a><span class="token operator">&lt;</span><a href="../-register-for-push-notifications-result-data/index.html">RegisterForPushNotificationsResultData</a><span class="token punctuation">, </span><a href="../../com.pushwoosh.exception/-register-for-push-notifications-exception/index.html">RegisterForPushNotificationsException</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Registers the device for push notifications without requesting notification permission. </p><p class="paragraph"> This method is useful when you want to handle notification permission request yourself or when you've already requested the permission separately. On Android 13+ (API 33+), if notification permission is not granted, the registration will still succeed but notifications won't be displayed to the user.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // Custom permission flow - register after user grants permission
+  private void onNotificationPermissionGranted() {
+      // Permission already handled by custom flow
+      Pushwoosh.getInstance().registerForPushNotificationsWithoutPermission((result) -&gt; {
+          if (result.isSuccess()) {
+              String token = result.getData().getToken();
+              Log.d("App", "Registered with token: " + token);
+              updateSubscriptionStatus(true);
+          } else {
+              Log.e("App", "Registration failed: " + result.getException().getMessage());
+          }
+      });
+  }
+
+  // Silent registration for background services
+  private void registerSilently() {
+      // Register without showing permission dialog
+      Pushwoosh.getInstance().registerForPushNotificationsWithoutPermission((result) -&gt; {
+          if (result.isSuccess()) {
+              // Device registered, can receive data pushes
+              Log.d("App", "Background registration complete");
+          }
+      });
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>callback</span></span></u></div></span></div><div><div class="title"><p class="paragraph">push registration callback</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="register-for-push-notifications.html"><span>register</span><wbr><span>For</span><wbr><span>Push</span><wbr><span><span>Notifications(Callback)</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="request-notification-permission.html"><span>request</span><wbr><span>Notification</span><wbr><span><span>Permission()</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>

@@ -6,6 +6,5 @@
 
 | Name | Summary |
 |---|---|
-| [Pushwoosh](-pushwoosh/index.md) | [main]<br>open class [Pushwoosh](-pushwoosh/index.md)<br>Pushwoosh class is used to manage push registration, application tags and local notifications. |
-| [PushwooshPlatform](-pushwoosh-platform/index.md) | [main]<br>open class [PushwooshPlatform](-pushwoosh-platform/index.md) |
-| [RegisterForPushNotificationsResultData](-register-for-push-notifications-result-data/index.md) | [main]<br>open class [RegisterForPushNotificationsResultData](-register-for-push-notifications-result-data/index.md) |
+| [Pushwoosh](-pushwoosh/index.md) | [main]<br>open class [Pushwoosh](-pushwoosh/index.md)<br>Main entry point for the Pushwoosh SDK. |
+| [RegisterForPushNotificationsResultData](-register-for-push-notifications-result-data/index.md) | [main]<br>open class [RegisterForPushNotificationsResultData](-register-for-push-notifications-result-data/index.md)<br>Result data returned after successful push notification registration. |

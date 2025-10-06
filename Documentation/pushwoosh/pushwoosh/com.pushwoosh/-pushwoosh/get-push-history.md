@@ -5,7 +5,19 @@
 [main]\
 open fun [getPushHistory](get-push-history.md)(): [List](https://developer.android.com/reference/kotlin/java/util/List.html)&lt;[PushMessage](../../com.pushwoosh.notification/-push-message/index.md)&gt;
 
-Gets push notification history. History contains both remote and local notifications.
+Returns the push notification history. 
+
+ This method retrieves a list of recently received push notifications, including both remote and local notifications. The history is limited to [PUSH_HISTORY_CAPACITY](-p-u-s-h_-h-i-s-t-o-r-y_-c-a-p-a-c-i-t-y.md) most recent pushes.  Example: 
+
+```kotlin
+
+  List<PushMessage> history = Pushwoosh.getInstance().getPushHistory();
+  for (PushMessage message : history) {
+      Log.d("Pushwoosh", "Message: " + message.getMessage());
+      Log.d("Pushwoosh", "Received at: " + message.getTimestamp());
+  }
+
+```
 
 #### Return
 

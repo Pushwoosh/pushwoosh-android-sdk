@@ -64,16 +64,69 @@
     <h1 class="cover"><span>set</span><wbr><span><span>Tags</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-tags.html"><span class="token function">setTags</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tags<span class="token operator">: </span><a href="../../com.pushwoosh.tags/-tags-bundle/index.html">TagsBundle</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">Associates device with given tags. If setTags request fails tags will be resent on the next application launch.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-  pushwoosh.setTags(Tags.intTag("intTag", 42));
-</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>tags</span></span></u></div></span></div><div><div class="title"><p class="paragraph"><a href="../../com.pushwoosh.tags/-tags-bundle/index.html">application tags bundle</a></p></div></div></div></div></div><hr><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-tags.html"><span class="token function">setTags</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tags<span class="token operator">: </span><a href="../../com.pushwoosh.tags/-tags-bundle/index.html">TagsBundle</a><span class="token punctuation">, </span></span><span class="parameter ">callback<span class="token operator">: </span><a href="../../com.pushwoosh.function/-callback/index.html">Callback</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/java/lang/Void.html">Void</a><span class="token punctuation">, </span>PushwooshException<span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Associates device with given tags. If setTags request fails tags will be resent on the next application launch.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-  pushwoosh.setTags(Tags.intTag("intTag", 42), (result) -&gt; {
-      if (result.isSuccess()) {
-          // tags sucessfully sent
-      }
-      else {
-          // failed to send tags
-      }
-  });
+  // Update user profile after login
+  private void updateUserProfile(User user) {
+      TagsBundle profileTags = new TagsBundle.Builder()
+          .putString("Name", user.getFullName())
+          .putInt("Age", user.getAge())
+          .putString("Gender", user.getGender()) // "male", "female", "other"
+          .putString("City", user.getCity())
+          .putString("Subscription_Tier", user.getSubscriptionTier()) // "free", "basic", "premium"
+          .putBoolean("Email_Verified", user.isEmailVerified())
+          .build();
+
+      Pushwoosh.getInstance().setTags(profileTags);
+  }
+
+  // Update user preferences
+  private void saveUserPreferences(UserPreferences prefs) {
+      TagsBundle preferencesTags = new TagsBundle.Builder()
+          .putString("Favorite_Category", prefs.getFavoriteCategory()) // "electronics", "fashion", "sports"
+          .putString("Language_Preference", prefs.getLanguage()) // "en", "es", "fr"
+          .putBoolean("Push_Notifications_Enabled", prefs.isPushEnabled())
+          .putBoolean("Email_Notifications_Enabled", prefs.isEmailEnabled())
+          .putStringList("Interests", prefs.getInterests()) // ["tech", "gaming", "travel"]
+          .build();
+
+      Pushwoosh.getInstance().setTags(preferencesTags);
+  }
+
+  // Track user activity
+  private void trackUserActivity(UserActivity activity) {
+      TagsBundle activityTags = new TagsBundle.Builder()
+          .putDate("Last_Login", new Date())
+          .putInt("Total_Purchases", activity.getTotalPurchases())
+          .putDouble("Total_Spent", activity.getTotalSpent())
+          .putDate("Last_Purchase_Date", activity.getLastPurchaseDate())
+          .putString("Last_Viewed_Product", activity.getLastViewedProductId())
+          .build();
+
+      Pushwoosh.getInstance().setTags(activityTags);
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>tags</span></span></u></div></span></div><div><div class="title"><p class="paragraph"><a href="../../com.pushwoosh.tags/-tags-bundle/index.html">application tags bundle</a></p></div></div></div></div></div><hr><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-tags.html"><span class="token function">setTags</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tags<span class="token operator">: </span><a href="../../com.pushwoosh.tags/-tags-bundle/index.html">TagsBundle</a><span class="token punctuation">, </span></span><span class="parameter ">callback<span class="token operator">: </span><a href="../../com.pushwoosh.function/-callback/index.html">Callback</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/java/lang/Void.html">Void</a><span class="token punctuation">, </span><a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html">PushwooshException</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Associates device with given tags. If setTags request fails tags will be resent on the next application launch.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // Update user subscription status with callback
+  private void upgradeToPremium(User user) {
+      TagsBundle subscriptionTags = new TagsBundle.Builder()
+          .putString("Subscription_Tier", "premium")
+          .putDate("Premium_Since", new Date())
+          .putBoolean("Is_Premium", true)
+          .putInt("Premium_Credits", 1000)
+          .build();
+
+      Pushwoosh.getInstance().setTags(subscriptionTags, (result) -&gt; {
+          if (result.isSuccess()) {
+              Log.d("App", "Premium subscription tags updated successfully");
+              // Show success message to user
+              Toast.makeText(this, "Welcome to Premium!", Toast.LENGTH_SHORT).show();
+              // Navigate to premium features
+              startActivity(new Intent(this, PremiumFeaturesActivity.class));
+          } else {
+              Log.e("App", "Failed to update subscription tags: " + result.getException().getMessage());
+              // Tags will be retried on next app launch automatically
+              Toast.makeText(this, "Subscription activated. Some features may take a moment to sync.", Toast.LENGTH_LONG).show();
+          }
+      });
+  }
 </code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>tags</span></span></u></div></span></div><div><div class="title"><p class="paragraph"><a href="../../com.pushwoosh.tags/-tags-bundle/index.html">application tags bundle</a></p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>callback</span></span></u></div></span></div><div><div class="title"><p class="paragraph">sendTags operation callback</p></div></div></div></div></div></div></div>
 </div>
       <div class="footer">

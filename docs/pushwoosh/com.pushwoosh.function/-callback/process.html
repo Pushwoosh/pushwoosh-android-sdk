@@ -63,7 +63,97 @@
   <div class="cover ">
     <h1 class="cover"><span><span>process</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="process.html"><span class="token function">process</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">result<span class="token operator">: </span><a href="../-result/index.html">Result</a><span class="token operator">&lt;</span><a href="index.html">T</a><span class="token punctuation">, </span><a href="index.html">E</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Asynchronous operation handler method. Method is called on main thread.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>result</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Asynchronous operation result</p></div></div></div></div></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="process.html"><span class="token function">process</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">result<span class="token operator">: </span><a href="../-result/index.html">Result</a><span class="token operator">&lt;</span><a href="index.html">T</a><span class="token punctuation">, </span><a href="index.html">E</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Handles the result of an asynchronous operation. </p><p class="paragraph"> This method is invoked on the main (UI) thread when an asynchronous SDK operation completes, regardless of whether it succeeded or failed. The <a href="../-result/index.html">Result</a> parameter encapsulates either the successful result data or an exception describing the failure. </p><p class="paragraph"><strong>Thread safety:</strong> This method is always called on the main thread, making it safe to update UI components directly without posting to a handler or using runOnUiThread(). </p><p class="paragraph"><strong>Usage pattern:</strong></p><ul><li>Check <a href="../-result/is-success.html">isSuccess</a> to determine if operation succeeded</li><li>Use <a href="../../../pushwoosh/com.pushwoosh.function/-result/get-data.html">getData</a> to access successful result (may be null for Void operations)</li><li>Use <a href="../../../pushwoosh/com.pushwoosh.function/-result/get-exception.html">getException</a> to access error information on failure</li></ul><strong>Example with push registration:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+	  
+	  public void process(@NonNull Result&lt;RegisterForPushNotificationsResultData, RegisterForPushNotificationsException&gt; result) {
+	      if (result.isSuccess()) {
+	          RegisterForPushNotificationsResultData data = result.getData();
+	          String pushToken = data.getToken();
+	          boolean notificationsEnabled = data.isEnabled();
+	
+	          Log.d("App", "Push token: " + pushToken);
+	          Log.d("App", "Notifications enabled: " + notificationsEnabled);
+	
+	          // Update UI
+	          statusTextView.setText("Push notifications enabled");
+	      } else {
+	          RegisterForPushNotificationsException exception = result.getException();
+	          Log.e("App", "Registration failed: " + exception.getMessage(), exception);
+	
+	          // Show error to user
+	          AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	          builder.setTitle("Registration Failed")
+	              .setMessage("Unable to register for push notifications: " + exception.getMessage())
+	              .setPositiveButton("Retry", (dialog, which) -&gt; retryRegistration())
+	              .setNegativeButton("Cancel", null)
+	              .show();
+	      }
+	  }
+	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Example with tags management:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+	  
+	  public void process(@NonNull Result&lt;Void, PushwooshException&gt; result) {
+	      if (result.isSuccess()) {
+	          // result.getData() is null for Void operations
+	          Log.d("App", "Tags set successfully");
+	          Toast.makeText(this, "Profile updated", Toast.LENGTH_SHORT).show();
+	      } else {
+	          PushwooshException exception = result.getException();
+	          Log.e("App", "Failed to set tags: " + exception.getMessage(), exception);
+	
+	          // Determine error type and respond accordingly
+	          if (exception.getMessage().contains("network")) {
+	              Toast.makeText(this, "Network error. Please check your connection", Toast.LENGTH_LONG).show();
+	          } else {
+	              Toast.makeText(this, "Update failed. Please try again", Toast.LENGTH_SHORT).show();
+	          }
+	      }
+	  }
+	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Example with getting tags:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+	  
+	  public void process(@NonNull Result&lt;TagsBundle, GetTagsException&gt; result) {
+	      if (result.isSuccess()) {
+	          TagsBundle tags = result.getData();
+	
+	          // Safely access tag values with defaults
+	          String userName = tags.getString("Name", "Guest");
+	          int userAge = tags.getInt("Age", 0);
+	          String subscription = tags.getString("Subscription", "free");
+	
+	          Log.d("App", "User: " + userName + ", Age: " + userAge + ", Plan: " + subscription);
+	
+	          // Update UI with user data
+	          nameTextView.setText(userName);
+	          subscriptionBadge.setText(subscription.toUpperCase());
+	      } else {
+	          GetTagsException exception = result.getException();
+	          Log.e("App", "Failed to get tags: " + exception.getMessage(), exception);
+	          // Show error or use cached data
+	          loadCachedUserData();
+	      }
+	  }
+	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Example with user ID operations:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+	  
+	  public void process(@NonNull Result&lt;Void, SetUserIdException&gt; result) {
+	      if (result.isSuccess()) {
+	          Log.d("App", "User ID set successfully");
+	          // Continue with user initialization
+	          loadUserProfile();
+	          syncUserData();
+	      } else {
+	          SetUserIdException exception = result.getException();
+	          Log.e("App", "Failed to set user ID: " + exception.getMessage(), exception);
+	
+	          // Critical error - user tracking won't work
+	          AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	          builder.setTitle("Setup Error")
+	              .setMessage("Failed to initialize user tracking. Some features may not work correctly.")
+	              .setPositiveButton("Retry", (dialog, which) -&gt; retryUserIdSetup())
+	              .setNegativeButton("Continue Anyway", (dialog, which) -&gt; continueWithoutTracking())
+	              .setCancelable(false)
+	              .show();
+	      }
+	  }
+	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>result</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the result of the asynchronous operation, containing either success data or failure exception</p></div></div></div></div></div></div></div>
 </div>
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>

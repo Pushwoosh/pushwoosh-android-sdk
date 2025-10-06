@@ -63,7 +63,71 @@
   <div class="cover ">
     <h1 class="cover"><span>remove</span><wbr><span>From</span><wbr><span><span>List</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="remove-from-list.html"><span class="token function">removeFromList</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">list<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/List.html">List</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle for list tag remove operation</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>list</span></span></u></div></span></div><div><div class="title"><p class="paragraph">append value</p></div></div></div></div></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="remove-from-list.html"><span class="token function">removeFromList</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">list<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/List.html">List</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><p class="paragraph">Creates a TagsBundle that removes values from an existing list tag. </p><p class="paragraph"> This method removes specified items from an existing list tag without replacing the entire list. The operation is performed server-side, so you don't need to retrieve the current list first. Only matching values will be removed; non-existent values are silently ignored. </p><p class="paragraph"><strong>Common Use Cases:</strong></p><ul><li>Shopping behavior - remove purchased items from wishlist, remove from cart</li><li>Content management - unfollow topics, remove bookmarks, unsubscribe from channels</li><li>User preferences - remove interests, deselect categories</li><li>Cleanup operations - remove outdated items, clear temporary selections</li><li>Opt-out scenarios - remove from notification categories, preference lists</li></ul><p class="paragraph"><strong>Important:</strong> The tag must already exist as a list tag. Only specified values that exist in the list will be removed.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+	  // E-commerce: Remove items when purchased
+	  private void onItemPurchased(List&lt;String&gt; purchasedProductIds) {
+	      // Remove purchased items from wishlist
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Wishlist", purchasedProductIds));
+	
+	      // Remove from cart
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Cart_Items", purchasedProductIds));
+	  }
+	
+	  private void onWishlistItemRemoved(String productId) {
+	      List&lt;String&gt; itemToRemove = Arrays.asList(productId);
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Wishlist", itemToRemove));
+	  }
+	
+	  // News app: Unfollow topics and remove bookmarks
+	  private void onTopicUnfollowed(String topic) {
+	      List&lt;String&gt; topicToRemove = Arrays.asList(topic);
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Followed_Topics", topicToRemove));
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Interests", topicToRemove));
+	  }
+	
+	  private void onBookmarkRemoved(List&lt;String&gt; articleIds) {
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Bookmarked_Articles", articleIds));
+	  }
+	
+	  // Streaming app: Remove from watchlist
+	  private void onShowWatched(String showId) {
+	      List&lt;String&gt; watchedShow = Arrays.asList(showId);
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Watchlist", watchedShow));
+	
+	      // Add to completed list
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Completed_Shows", watchedShow));
+	  }
+	
+	  // Notifications: Unsubscribe from categories
+	  private void onCategoryUnsubscribed(List&lt;String&gt; categories) {
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Notification_Categories", categories));
+	  }
+	
+	  // Fitness app: Remove completed workout from schedule
+	  private void onWorkoutCompleted(String workoutId) {
+	      List&lt;String&gt; completedWorkout = Arrays.asList(workoutId);
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Scheduled_Workouts", completedWorkout));
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Completed_Workouts", completedWorkout));
+	  }
+	
+	  // Travel app: Remove visited destinations
+	  private void onDestinationVisited(String destination) {
+	      List&lt;String&gt; visited = Arrays.asList(destination);
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Bucket_List", visited));
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Visited_Destinations", visited));
+	  }
+	
+	  // User preferences: Opt out of interests
+	  private void onInterestRemoved(List&lt;String&gt; unwantedInterests) {
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Interests", unwantedInterests));
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Content_Preferences", unwantedInterests));
+	  }
+	
+	  // Cleanup: Remove outdated items from recent views
+	  private void cleanupOldViews(List&lt;String&gt; oldProductIds) {
+	      Pushwoosh.getInstance().setTags(Tags.removeFromList("Recently_Viewed_Products", oldProductIds));
+	  }
+	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle containing the remove from list operation</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">list tag name (e.g., "Wishlist", "Followed_Topics", "Notification_Categories")</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>list</span></span></u></div></span></div><div><div class="title"><p class="paragraph">values to remove from the existing list</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="append-list.html"><span>append</span><wbr><span><span>List(String,</span></span> <span><span>List)</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="list-tag.html"><span>list</span><wbr><span><span>Tag(String,</span></span> <span><span>List)</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-tags-bundle/-builder/remove-from-list.html"><span>TagsBundle.</span><wbr><span>Builder</span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>

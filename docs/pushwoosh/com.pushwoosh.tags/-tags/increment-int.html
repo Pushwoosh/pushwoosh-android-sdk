@@ -63,7 +63,58 @@
   <div class="cover ">
     <h1 class="cover"><span>increment</span><wbr><span><span>Int</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="increment-int.html"><span class="token function">incrementInt</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">delta<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle for tag increment operation</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>delta</span></span></u></div></span></div><div><div class="title"><p class="paragraph">incremental value</p></div></div></div></div></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="increment-int.html"><span class="token function">incrementInt</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">delta<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><p class="paragraph">Creates a TagsBundle that increments an integer tag value. </p><p class="paragraph"> This method adds the specified delta value to the existing tag value on the server. It's perfect for tracking counters, scores, and accumulative metrics without needing to know the current value. The operation is atomic and handled server-side. </p><p class="paragraph"><strong>Common Use Cases:</strong></p><ul><li>Purchase tracking - increment total purchases, order count</li><li>Loyalty programs - add points, increase reward balance</li><li>Engagement metrics - increment article reads, videos watched, sessions</li><li>Gaming - add to score, increase level, award coins</li><li>Activity counters - track app opens, feature usage, interactions</li></ul><p class="paragraph"><strong>Important:</strong> Use positive values to increment and negative values to decrement. The tag must already exist with an integer value, or it will be created with the delta value.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+	  // E-commerce: Track purchase activity
+	  private void onPurchaseCompleted(Order order) {
+	      // Increment total purchase count
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Total_Purchases", 1));
+	
+	      // Add loyalty points based on order value
+	      int pointsEarned = (int) (order.getTotal() * 10); // 10 points per dollar
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Loyalty_Points", pointsEarned));
+	
+	      // Increment items purchased count
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Items_Purchased", order.getItemCount()));
+	  }
+	
+	  // News app: Track reading activity
+	  private void onArticleRead() {
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Articles_Read_Total", 1));
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Articles_Read_Today", 1));
+	  }
+	
+	  // Gaming: Update player stats
+	  private void onLevelCompleted(int scoreEarned, int coinsCollected) {
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Total_Score", scoreEarned));
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Total_Coins", coinsCollected));
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Levels_Completed", 1));
+	  }
+	
+	  // Fitness app: Track workout metrics
+	  private void onWorkoutCompleted(int caloriesBurned) {
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Total_Workouts", 1));
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Workouts_This_Week", 1));
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Total_Calories_Burned", caloriesBurned));
+	  }
+	
+	  // App engagement: Track feature usage
+	  private void onFeatureUsed(String featureName) {
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("App_Opens", 1));
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Feature_" + featureName + "_Used", 1));
+	  }
+	
+	  // Decrement example: Using points or lives
+	  private void onPointsRedeemed(int pointsUsed) {
+	      // Use negative value to decrement
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Loyalty_Points", -pointsUsed));
+	  }
+	
+	  // Session tracking
+	  private void onAppLaunched() {
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Session_Count", 1));
+	      Pushwoosh.getInstance().setTags(Tags.incrementInt("Sessions_This_Month", 1));
+	  }
+	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle containing the increment operation</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name to increment (e.g., "Total_Purchases", "Loyalty_Points", "Session_Count")</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>delta</span></span></u></div></span></div><div><div class="title"><p class="paragraph">value to add (positive to increment, negative to decrement)</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-tags-bundle/-builder/increment-int.html"><span>TagsBundle.</span><wbr><span>Builder</span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>

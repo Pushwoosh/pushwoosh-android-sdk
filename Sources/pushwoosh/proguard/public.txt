@@ -1,97 +1,120 @@
 -flattenpackagehierarchy 'com.pushwoosh'
 
 -keep public class com.pushwoosh.Pushwoosh {
-    public protected *;
+    public *;
+    protected *;
     void sendMessageDelivery(android.os.Bundle);
     void sendPushStat(android.os.Bundle);
 }
 
 -keep public class com.pushwoosh.notification.LocalNotification {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.LocalNotification$Builder {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.LocalNotificationRequest {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.PushMessage {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.PushwooshNotificationFactory {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.PushwooshSummaryNotificationFactory {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.NotificationServiceExtension {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.NotificationFactory {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.SummaryNotificationFactory {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.SoundType {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.VibrateType {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.notification.PushwooshNotificationSettings {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.inapp.PushwooshInApp {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.inapp.InAppManager {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.tags.Tags {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.tags.TagsBundle {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.tags.TagsBundle$Builder {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.function.Callback{
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.function.Result{
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.RegisterForPushNotificationsResultData{
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.richmedia.RichMediaManager {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.richmedia.RichMedia {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.richmedia.RichMediaPresentingDelegate {
@@ -137,7 +160,8 @@
 }
 
 -keep public class com.pushwoosh.inapp.view.config.** {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.inapp.view.inline.InlineInAppViewListener {
@@ -145,25 +169,31 @@
 }
 
 -keep public class com.pushwoosh.PushwooshPlatform {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.repository.PushwooshRepository {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.internal.event.* {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep public class com.pushwoosh.internal.utils.RequestPermissionHelper {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep class com.pushwoosh.internal.utils.PWLog {
-    public protected *;
+    public *;
+    protected *;
 }
 
 -keep class com.pushwoosh.internal.Plugin {
-    public protected *;
+    public *;
+    protected *;
 }

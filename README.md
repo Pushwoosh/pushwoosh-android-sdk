@@ -4,7 +4,7 @@ Pushwoosh Android SDK
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.pushwoosh/pushwoosh/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.pushwoosh/pushwoosh)
 
 [![Guide](https://img.shields.io/badge/guide-latest-brightgreen.svg?style=flat-square)](https://docs.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notifications)
-[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat-square)](https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Documentation)
+[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat-square)](https://pushwoosh.github.io/pushwoosh-android-sdk)
 
 The guide for SDK integration is available on Pushwoosh website:  
 https://docs.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notifications
@@ -14,14 +14,14 @@ Maven integration:
 	<dependency>
   		<groupId>com.pushwoosh</groupId>
   		<artifactId>pushwoosh</artifactId>
-  		<version>6.7.36</version>
+  		<version>6.7.37</version>
 	</dependency>
 
 The sample projects are available here:  
 https://github.com/Pushwoosh/pushwoosh-android-sample
 
 Documentation:
-https://github.com/Pushwoosh/pushwoosh-android-sdk/tree/master/Documentation
+https://pushwoosh.github.io/pushwoosh-android-sdk
 
 Pushwoosh team
 http://www.pushwoosh.com

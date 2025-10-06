@@ -63,7 +63,70 @@
   <div class="cover ">
     <h1 class="cover"><span>append</span><wbr><span><span>List</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="append-list.html"><span class="token function">appendList</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">list<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/List.html">List</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle for list tag append operation</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>list</span></span></u></div></span></div><div><div class="title"><p class="paragraph">append value</p></div></div></div></div></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="append-list.html"><span class="token function">appendList</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">list<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/List.html">List</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-tags-bundle/index.html">TagsBundle</a></div><p class="paragraph">Creates a TagsBundle that appends values to an existing list tag. </p><p class="paragraph"> This method adds new items to an existing list tag without replacing the entire list. Items are added only if they don't already exist in the list (no duplicates). The operation is performed server-side, so you don't need to retrieve the current list first. </p><p class="paragraph"><strong>Common Use Cases:</strong></p><ul><li>Shopping behavior - add to viewed products, recently browsed categories</li><li>Content preferences - add to favorite topics, followed channels, interests</li><li>User engagement - add to completed modules, unlocked achievements</li><li>Product tracking - add to wishlist, cart history, purchase history</li><li>Dynamic segmentation - add to user segments, interest groups</li></ul><p class="paragraph"><strong>Important:</strong> The tag must already exist as a list tag. Duplicate values are automatically ignored - only unique values will be added to the list.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+	  // E-commerce: Track browsing and shopping activity
+	  private void onProductViewed(String productId, String category) {
+	      // Add to recently viewed products
+	      List&lt;String&gt; viewedProduct = Arrays.asList(productId);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Recently_Viewed_Products", viewedProduct));
+	
+	      // Add to browsed categories (no duplicates)
+	      List&lt;String&gt; categories = Arrays.asList(category);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Browsed_Categories", categories));
+	  }
+	
+	  private void onAddToWishlist(List&lt;String&gt; productIds) {
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Wishlist", productIds));
+	  }
+	
+	  // News app: Track content preferences
+	  private void onTopicFollowed(String topic) {
+	      List&lt;String&gt; newTopic = Arrays.asList(topic);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Followed_Topics", newTopic));
+	  }
+	
+	  private void onArticleBookmarked(String articleId, String category) {
+	      List&lt;String&gt; bookmark = Arrays.asList(articleId);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Bookmarked_Articles", bookmark));
+	
+	      // Also track interest in this category
+	      List&lt;String&gt; interest = Arrays.asList(category);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Interests", interest));
+	  }
+	
+	  // Streaming app: Track viewing preferences
+	  private void onShowAddedToWatchlist(String showId, List&lt;String&gt; genres) {
+	      List&lt;String&gt; show = Arrays.asList(showId);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Watchlist", show));
+	
+	      // Add genres to favorite genres
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Favorite_Genres", genres));
+	  }
+	
+	  // Fitness app: Track workout preferences
+	  private void onWorkoutTypeCompleted(String workoutType) {
+	      List&lt;String&gt; workout = Arrays.asList(workoutType);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Completed_Workout_Types", workout));
+	  }
+	
+	  // Education app: Track learning progress
+	  private void onCourseCompleted(String courseId, String subject) {
+	      List&lt;String&gt; course = Arrays.asList(courseId);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Completed_Courses", course));
+	
+	      List&lt;String&gt; subjectInterest = Arrays.asList(subject);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Subject_Interests", subjectInterest));
+	  }
+	
+	  // Travel app: Build travel profile
+	  private void onDestinationSaved(String destination, String country) {
+	      List&lt;String&gt; dest = Arrays.asList(destination);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Saved_Destinations", dest));
+	
+	      List&lt;String&gt; countryList = Arrays.asList(country);
+	      Pushwoosh.getInstance().setTags(Tags.appendList("Countries_Of_Interest", countryList));
+	  }
+	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">TagsBundle containing the append list operation</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">list tag name (e.g., "Recently_Viewed_Products", "Interests", "Wishlist")</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>list</span></span></u></div></span></div><div><div class="title"><p class="paragraph">values to append to the existing list (duplicates are ignored)</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="remove-from-list.html"><span>remove</span><wbr><span>From</span><wbr><span><span>List(String,</span></span> <span><span>List)</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="list-tag.html"><span>list</span><wbr><span><span>Tag(String,</span></span> <span><span>List)</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-tags-bundle/-builder/append-list.html"><span>TagsBundle.</span><wbr><span>Builder</span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
       <div class="footer">
         <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>

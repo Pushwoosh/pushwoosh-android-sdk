@@ -62,7 +62,29 @@
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh</a><span class="delimiter">/</span><span class="current">RegisterForPushNotificationsResultData</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Register</span><wbr><span>For</span><wbr><span>Push</span><wbr><span>Notifications</span><wbr><span>Result</span><wbr><span><span>Data</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">RegisterForPushNotificationsResultData</a></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">RegisterForPushNotificationsResultData</a></div><p class="paragraph">Result data returned after successful push notification registration. </p><p class="paragraph"> This class contains the push token and notification permission status received when registering the device for push notifications via <a href="../-pushwoosh/register-for-push-notifications.html">registerForPushNotifications</a>. The data is provided in the success callback and can be used to verify registration status and retrieve the push token for server-side operations. </p><p class="paragraph"><strong>Usage Example:</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+Pushwoosh.getInstance().registerForPushNotifications((result) -&gt; {
+    if (result.isSuccess()) {
+        RegisterForPushNotificationsResultData data = result.getData();
+
+        // Get the push token
+        String pushToken = data.getToken();
+        Log.d("App", "Push token: " + pushToken);
+
+        // Check if notifications are enabled
+        boolean notificationsEnabled = data.isEnabled();
+        if (notificationsEnabled) {
+            Log.d("App", "User has granted notification permission");
+        } else {
+            Log.w("App", "Notifications are disabled by user");
+            showEnableNotificationsPrompt();
+        }
+
+        // Send token to your backend server
+        sendTokenToServer(pushToken);
+    }
+});
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-pushwoosh/register-for-push-notifications-with-tags.html"><span><span>Pushwoosh</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -117,7 +139,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-enabled.html"><span class="token function">isEnabled</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-enabled.html"><span class="token function">isEnabled</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Returns whether push notifications are currently enabled for this app.</div></div></div>
                 </div>
               </div>
             </div>

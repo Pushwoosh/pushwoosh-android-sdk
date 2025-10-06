@@ -48,7 +48,7 @@ public class PushwooshInitializer {
 			"This error can be seen when you use 'pushwoosh-huawei' module\n" +
 			"not on Huawei device or you have not added any module attaching\n" +
 			"push notifications provider.\n" +
-			"Pushwoosh supports Firebase, Amazon, Huawei, Baidu push notification providers.\n" +
+			"Pushwoosh supports Firebase, Amazon, Huawei push notification providers.\n" +
 			"See the integration guide https://docs.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notifications";
 
 	public static void init(Context context) {

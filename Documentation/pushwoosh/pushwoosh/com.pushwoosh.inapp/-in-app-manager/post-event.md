@@ -10,7 +10,7 @@ open fun [postEvent](post-event.md)(event: [String](https://developer.android.co
 [postEvent](post-event.md)
 
 [main]\
-open fun [postEvent](post-event.md)(event: [String](https://developer.android.com/reference/kotlin/java/lang/String.html), attributes: [TagsBundle](../../com.pushwoosh.tags/-tags-bundle/index.md), callback: [Callback](../../com.pushwoosh.function/-callback/index.md)&lt;[Void](https://developer.android.com/reference/kotlin/java/lang/Void.html), PostEventException&gt;)
+open fun [postEvent](post-event.md)(event: [String](https://developer.android.com/reference/kotlin/java/lang/String.html), attributes: [TagsBundle](../../com.pushwoosh.tags/-tags-bundle/index.md), callback: [Callback](../../com.pushwoosh.function/-callback/index.md)&lt;[Void](https://developer.android.com/reference/kotlin/java/lang/Void.html), [PostEventException](../../com.pushwoosh.exception/-post-event-exception/index.md)&gt;)
 
 Post events for In-App Messages. This can trigger In-App message HTML as specified in Pushwoosh Control Panel.
 

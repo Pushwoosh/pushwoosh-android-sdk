@@ -62,7 +62,22 @@
   <div class="breadcrumbs"><a href="../../../index.html">pushwoosh-huawei</a><span class="delimiter">/</span><a href="../../index.html">com.pushwoosh.huawei</a><span class="delimiter">/</span><a href="../index.html">PushwooshHmsHelper</a><span class="delimiter">/</span><span class="current">GetTokenAsync</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Get</span><wbr><span>Token</span><wbr><span><span>Async</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">GetTokenAsync</a></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">GetTokenAsync</a></div><p class="paragraph">AsyncTask for retrieving Huawei Mobile Services push token asynchronously. </p><p class="paragraph"> Use this class when you need to manually retrieve the HMS push token for advanced scenarios such as manual registration or sending the token to your backend server.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+new PushwooshHmsHelper.GetTokenAsync(new PushwooshHmsHelper.OnGetTokenAsync() {
+
+    
+    public void onGetToken(String token) {
+        // Token retrieved successfully
+        PushwooshHmsHelper.onTokenRefresh(token);
+    }
+
+    
+    public void onError(String error) {
+        // Token retrieval failed
+        Log.e("HMS", "Failed: " + error);
+    }
+}).execute();
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh-huawei:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-on-get-token-async/index.html"><span>Pushwoosh</span><wbr><span>Hms</span><wbr><span>Helper.</span><wbr><span>On</span><wbr><span>Get</span><wbr><span>Token</span><wbr><span><span>Async</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh-huawei:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh-huawei:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../on-token-refresh.html"><span>on</span><wbr><span>Token</span><wbr><span><span>Refresh(String)</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>

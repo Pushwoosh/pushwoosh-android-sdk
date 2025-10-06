@@ -62,7 +62,100 @@
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.function</a><span class="delimiter">/</span><span class="current">Result</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>Result</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">Result</a><span class="token operator">&lt;</span><a href="index.html">T</a><span class="token punctuation">, </span><a href="index.html">E</a><span class="token operator"> : </span>PushwooshException<span class="token operator">?</span><span class="token operator">&gt;</span></div><p class="paragraph">Result class encapsulates result of an asynchronous operation</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>&lt;T&gt;</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Data Class</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>&lt;E&gt;</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Exception Class</p></div></div></div></div></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">Result</a><span class="token operator">&lt;</span><a href="index.html">T</a><span class="token punctuation">, </span><a href="index.html">E</a><span class="token operator"> : </span><a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html">PushwooshException</a><span class="token operator">?</span><span class="token operator">&gt;</span></div><p class="paragraph">Encapsulates the result of an asynchronous operation, providing a type-safe way to handle both success and failure cases. </p><p class="paragraph"> This class follows the Result pattern (also known as Either or Try pattern) to represent operations that can succeed with data or fail with an exception. It ensures null-safety by guaranteeing that exactly one of the two fields (data or exception) will be non-null, never both or neither. </p><p class="paragraph"><strong>Key characteristics:</strong></p><ul><li>Type-safe: Success data type (T) and error type (E) are explicitly defined</li><li>Null-safe: Either data or exception is non-null, but never both</li><li>Immutable: Once created, the result cannot be changed</li><li>Thread-safe: Can be safely passed between threads</li></ul><p class="paragraph"><strong>Usage pattern:</strong> Always check <a href="is-success.html">isSuccess</a> first to determine if the operation succeeded, then access either <a href="../../../pushwoosh/com.pushwoosh.function/-result/get-data.html">getData</a> for successful results or <a href="../../../pushwoosh/com.pushwoosh.function/-result/get-exception.html">getException</a> for errors. <strong>Basic success/failure handling:</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  Pushwoosh.getInstance().registerForPushNotifications((result) -&gt; {
+      if (result.isSuccess()) {
+          // Safe to access data
+          RegisterForPushNotificationsResultData data = result.getData();
+          String token = data.getToken();
+          Log.d("App", "Registered successfully. Token: " + token);
+      } else {
+          // Safe to access exception
+          RegisterForPushNotificationsException exception = result.getException();
+          Log.e("App", "Registration failed: " + exception.getMessage());
+      }
+  });
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Null-safe data handling (Void operations):</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // Some operations like setTags() return Void on success
+  Pushwoosh.getInstance().setTags(tags, (result) -&gt; {
+      if (result.isSuccess()) {
+          // result.getData() is null for Void operations
+          Log.d("App", "Tags set successfully");
+      } else {
+          PushwooshException exception = result.getException();
+          Log.e("App", "Failed to set tags: " + exception.getMessage());
+      }
+  });
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Detailed error handling with exception types:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  Pushwoosh.getInstance().registerForPushNotifications((result) -&gt; {
+      if (result.isSuccess()) {
+          String token = result.getData().getToken();
+          saveTokenToPreferences(token);
+      } else {
+          Exception exception = result.getException();
+
+          // Log full exception with stack trace
+          Log.e("App", "Registration failed", exception);
+
+          // Handle specific error types
+          if (exception instanceof NetworkException) {
+              showToast("Network error. Please check your connection.");
+          } else if (exception.getMessage().contains("Play Services")) {
+              showPlayServicesUpdateDialog();
+          } else {
+              showToast("Registration failed: " + exception.getMessage());
+          }
+      }
+  });
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Working with nullable data (tags retrieval):</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  Pushwoosh.getInstance().getTags((result) -&gt; {
+      if (result.isSuccess()) {
+          TagsBundle tags = result.getData(); // Never null on success
+
+          // Safe access with default values
+          String name = tags.getString("Name", "Guest");
+          int age = tags.getInt("Age", 0);
+          List&lt;String&gt; interests = tags.getList("Interests", Collections.emptyList());
+
+          Log.d("App", "User: " + name + ", Age: " + age);
+          Log.d("App", "Interests: " + interests);
+      } else {
+          Log.e("App", "Failed to retrieve tags", result.getException());
+      }
+  });
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Conditional logic based on success/failure:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  Pushwoosh.getInstance().setUserId("user_12345", (result) -&gt; {
+      if (result.isSuccess()) {
+          // Proceed with app initialization
+          loadUserProfile();
+          syncUserData();
+          enablePushFeatures();
+      } else {
+          // Fallback to anonymous mode
+          Log.w("App", "User ID not set, using anonymous mode", result.getException());
+          enableAnonymousMode();
+      }
+  });
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Logging best practices:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  Pushwoosh.getInstance().registerForPushNotifications((result) -&gt; {
+      if (result.isSuccess()) {
+          RegisterForPushNotificationsResultData data = result.getData();
+          Log.d("App", "Push registration successful");
+          Log.d("App", "  Token: " + data.getToken());
+          Log.d("App", "  Notifications enabled: " + data.isEnabled());
+
+          // Send to analytics
+          Analytics.logEvent("push_registered", "token", data.getToken());
+      } else {
+          Exception exception = result.getException();
+          // Log with exception for full stack trace
+          Log.e("App", "Push registration failed: " + exception.getMessage(), exception);
+
+          // Send to crash reporting
+          Crashlytics.recordException(exception);
+      }
+  });
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>&lt;T&gt;</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the type of data returned on successful operation completion</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>&lt;E&gt;</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the type of exception returned on operation failure, must extend <a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html">PushwooshException</a></p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-callback/index.html"><span><span>Callback</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html"><span>Pushwoosh</span><wbr><span><span>Exception</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -113,7 +206,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="from.html">T</a><span class="token punctuation">, </span><a href="from.html">E</a><span class="token operator"> : </span>PushwooshException<span class="token operator">?</span><span class="token operator">&gt; </span><a href="from.html"><span class="token function">from</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">data<span class="token operator">: </span><a href="from.html">T</a><span class="token punctuation">, </span></span><span class="parameter ">exception<span class="token operator">: </span><a href="from.html">E</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Result</a><span class="token operator">&lt;</span><a href="from.html">T</a><span class="token punctuation">, </span><a href="from.html">E</a><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="from.html">T</a><span class="token punctuation">, </span><a href="from.html">E</a><span class="token operator"> : </span><a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html">PushwooshException</a><span class="token operator">?</span><span class="token operator">&gt; </span><a href="from.html"><span class="token function">from</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">data<span class="token operator">: </span><a href="from.html">T</a><span class="token punctuation">, </span></span><span class="parameter ">exception<span class="token operator">: </span><a href="from.html">E</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Result</a><span class="token operator">&lt;</span><a href="from.html">T</a><span class="token punctuation">, </span><a href="from.html">E</a><span class="token operator">&gt;</span></div><div class="brief ">Creates a result with both data and exception fields.</div></div></div>
                 </div>
               </div>
             </div>
@@ -128,7 +221,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="from-data.html">T</a><span class="token punctuation">, </span><a href="from-data.html">E</a><span class="token operator"> : </span>PushwooshException<span class="token operator">?</span><span class="token operator">&gt; </span><a href="from-data.html"><span class="token function">fromData</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">data<span class="token operator">: </span><a href="from-data.html">T</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Result</a><span class="token operator">&lt;</span><a href="from-data.html">T</a><span class="token punctuation">, </span><a href="from-data.html">E</a><span class="token operator">&gt;</span></div><div class="brief ">Factory method that constructs successful result with given data</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="from-data.html">T</a><span class="token punctuation">, </span><a href="from-data.html">E</a><span class="token operator"> : </span><a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html">PushwooshException</a><span class="token operator">?</span><span class="token operator">&gt; </span><a href="from-data.html"><span class="token function">fromData</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">data<span class="token operator">: </span><a href="from-data.html">T</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Result</a><span class="token operator">&lt;</span><a href="from-data.html">T</a><span class="token punctuation">, </span><a href="from-data.html">E</a><span class="token operator">&gt;</span></div><div class="brief ">Creates a successful result containing the specified data.</div></div></div>
                 </div>
               </div>
             </div>
@@ -143,7 +236,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="from-exception.html">T</a><span class="token punctuation">, </span><a href="from-exception.html">E</a><span class="token operator"> : </span>PushwooshException<span class="token operator">?</span><span class="token operator">&gt; </span><a href="from-exception.html"><span class="token function">fromException</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">exception<span class="token operator">: </span><a href="from-exception.html">E</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Result</a><span class="token operator">&lt;</span><a href="from-exception.html">T</a><span class="token punctuation">, </span><a href="from-exception.html">E</a><span class="token operator">&gt;</span></div><div class="brief ">Factory method that constructs unsuccessful result with given exception</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="from-exception.html">T</a><span class="token punctuation">, </span><a href="from-exception.html">E</a><span class="token operator"> : </span><a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html">PushwooshException</a><span class="token operator">?</span><span class="token operator">&gt; </span><a href="from-exception.html"><span class="token function">fromException</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">exception<span class="token operator">: </span><a href="from-exception.html">E</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Result</a><span class="token operator">&lt;</span><a href="from-exception.html">T</a><span class="token punctuation">, </span><a href="from-exception.html">E</a><span class="token operator">&gt;</span></div><div class="brief ">Creates a failed result containing the specified exception.</div></div></div>
                 </div>
               </div>
             </div>
@@ -158,7 +251,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-success.html"><span class="token function">isSuccess</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-success.html"><span class="token function">isSuccess</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Checks whether the asynchronous operation completed successfully.</div></div></div>
                 </div>
               </div>
             </div>

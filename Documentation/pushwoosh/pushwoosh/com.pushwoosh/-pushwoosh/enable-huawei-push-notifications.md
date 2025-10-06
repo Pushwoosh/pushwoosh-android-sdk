@@ -5,4 +5,14 @@
 [main]\
 open fun [enableHuaweiPushNotifications](enable-huawei-push-notifications.md)()
 
-Enables Huawei push messaging in plugin-based applications. This method gives no effect if it is called in a native application.
+Enables Huawei Push Kit for push notifications on Huawei devices. 
+
+ This method is specifically designed for plugin-based applications (Cordova, React Native, etc.) to enable Huawei Push Kit support on Huawei devices without Google Mobile Services. This method has no effect when called in native Android applications.  Example: 
+
+```kotlin
+
+  // Enable Huawei Push in plugin-based applications
+  Pushwoosh.getInstance().enableHuaweiPushNotifications();
+  Pushwoosh.getInstance().registerForPushNotifications();
+
+```

@@ -2,10 +2,156 @@
 
 # PushMessage
 
-[main]\
 open class [PushMessage](index.md)
 
-Push message data class.
+Represents a received push notification with all its payload data and metadata. 
+
+ PushMessage is an immutable data class that encapsulates all information contained in a push notification, including the notification content (title, message), visual customization (icons, colors, LED), behavior settings (sound, vibration, priority), and custom data payloads. It serves as the primary interface for accessing push notification data in callbacks, service extensions, and message handlers. 
+
+**When you receive PushMessage instances:**
+
+- In onMessageReceived when push arrives
+- In onMessageOpened when user taps notification
+- Via [getLaunchNotification](../../com.pushwoosh/-pushwoosh/get-launch-notification.md) to get the notification that launched the app
+- In broadcast receivers handling Pushwoosh notification events
+
+**Common use cases:**
+
+- Extracting custom data from push notifications to route users to specific screens
+- Customizing notification appearance based on payload before display
+- Logging analytics events based on push content or campaign data
+- Handling silent pushes to sync data without showing notifications
+- Implementing custom business logic based on push metadata
+
+**Basic usage example - Handling custom data:**```kotlin
+
+public class MyNotificationExtension extends NotificationServiceExtension {
+    
+    protected boolean onMessageReceived(PushMessage message) {
+        // Extract custom data from push payload
+        String customData = message.getCustomData();
+        if (customData != null) {
+            try {
+                JSONObject data = new JSONObject(customData);
+                String screen = data.optString("target_screen");
+                String itemId = data.optString("item_id");
+
+                // Route to specific screen based on custom data
+                if ("product_detail".equals(screen)) {
+                    navigateToProduct(itemId);
+                } else if ("cart".equals(screen)) {
+                    navigateToCart();
+                }
+            } catch (JSONException e) {
+                Log.e("App", "Failed to parse custom data", e);
+            }
+        }
+
+        // Return false to show default notification
+        return false;
+    }
+}
+
+```
+**Silent push example - Background data sync:**```kotlin
+
+protected boolean onMessageReceived(PushMessage message) {
+    // Check if this is a silent push
+    if (message.isSilent()) {
+        // Silent push - no notification shown
+        String customData = message.getCustomData();
+        if (customData != null) {
+            JSONObject data = new JSONObject(customData);
+            String action = data.optString("action");
+
+            if ("sync_data".equals(action)) {
+                // Trigger background data sync
+                syncUserData();
+            } else if ("clear_cache".equals(action)) {
+                clearAppCache();
+            }
+        }
+        // Return true to indicate we handled the push
+        return true;
+    }
+
+    // Return false to show default notification
+    return false;
+}
+
+```
+**Launch notification example - Deep linking:**```kotlin
+
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    // Check if app was opened from a push notification
+    PushMessage message = Pushwoosh.getInstance().getLaunchNotification();
+    if (message != null) {
+        String customData = message.getCustomData();
+        if (customData != null) {
+            try {
+                JSONObject data = new JSONObject(customData);
+                String orderId = data.optString("order_id");
+
+                if (!orderId.isEmpty()) {
+                    // Navigate to order details screen
+                    Intent intent = new Intent(this, OrderDetailActivity.class);
+                    intent.putExtra("order_id", orderId);
+                    startActivity(intent);
+                }
+            } catch (JSONException e) {
+                Log.e("App", "Failed to parse launch notification data", e);
+            }
+        }
+
+        // Clear launch notification so it's not processed again
+        Pushwoosh.getInstance().clearLaunchNotification();
+    }
+}
+
+```
+**Campaign tracking example - Analytics integration:**```kotlin
+
+protected void onMessageOpened(PushMessage message) {
+    super.onMessageOpened(message);
+
+    // Track push notification opens in your analytics
+    long campaignId = message.getCampaignId();
+    long messageId = message.getMessageId();
+    String messageCode = message.getMessageCode();
+
+    // Send event to analytics service
+    Analytics.logEvent("push_opened", new HashMap<String, Object>() {{
+        put("campaign_id", campaignId);
+        put("message_id", messageId);
+        put("message_code", messageCode);
+        put("title", message.getHeader());
+    }});
+
+    // Log custom data for segmentation
+    String customData = message.getCustomData();
+    if (customData != null) {
+        try {
+            JSONObject data = new JSONObject(customData);
+            String category = data.optString("category", "general");
+            Analytics.setUserProperty("last_notification_category", category);
+        } catch (JSONException e) {
+            Log.e("App", "Failed to parse custom data", e);
+        }
+    }
+}
+
+```
+
+#### See also
+
+| |
+|---|
+| [NotificationServiceExtension](../-notification-service-extension/index.md) |
+| [Pushwoosh](../../com.pushwoosh/-pushwoosh/get-launch-notification.md) |
+| [LocalNotification](../-local-notification/index.md) |
 
 ## Constructors
 
