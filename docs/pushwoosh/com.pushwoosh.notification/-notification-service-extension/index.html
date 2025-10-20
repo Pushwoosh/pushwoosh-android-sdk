@@ -25,65 +25,208 @@
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
 <link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
 <script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
 <script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
 <body>
     <div class="root">
-<nav class="navigation" id="navigation-wrapper">
-    <div class="navigation--inner">
-        <div class="navigation-title">
-            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
-            <div class="library-name">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
 <a class="library-name--link" href="../../../index.html">
-                            Pushwoosh Android SDK
-                    </a>            </div>
-            <div class="library-version">
+                    Pushwoosh Android SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":pushwoosh/main" data-filter=":pushwoosh/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
         </div>
-        <div class="filter-section" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh:dokkaHtmlPartial/main">main</button>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
         </div>
-    </div>
-    <div class="navigation-controls">
-        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
-        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
-    </div>
-</nav>
+    </nav>
         <div id="container">
             <div class="sidebar" id="leftColumn">
-                <div class="sidebar--inner" id="sideMenu"></div>
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Pushwoosh Android SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
             </div>
             <div id="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh::com.pushwoosh.notification/NotificationServiceExtension///PointingToDeclaration//1658412858">
+<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh::com.pushwoosh.notification/NotificationServiceExtension///PointingToDeclaration//-816828224">
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.notification</a><span class="delimiter">/</span><span class="current">NotificationServiceExtension</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Notification</span><wbr><span>Service</span><wbr><span><span>Extension</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">NotificationServiceExtension</a></div><p class="paragraph">NotificationServiceExtension allows to customize push notification behaviour. All NotificationServiceExtension ancestors must be public and must contain public constructor without parameters. Application will crash on startup if this requirement is not met. Custom NotificationServiceExtension should be registered in AndroidManifest.xml metadata as follows: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-        &lt;meta-data
-            android:name="com.pushwoosh.notification_service_extension"
-            android:value="com.your.package.YourNotificationServiceExtension" /&gt;
-    </code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">NotificationServiceExtension</a></div><p class="paragraph">Allows customization of push notification behavior before display and when opened. </p><p class="paragraph"> NotificationServiceExtension provides hook methods to intercept and modify push notification processing at key moments: when notifications are received, opened, canceled, or when notification groups are opened. This is the primary extension point for customizing how your app handles push notifications. </p><p class="paragraph"><strong>Key Features:</strong></p><ul><li><strong>Foreground Handling</strong> - Prevent notification display when app is in foreground</li><li><strong>Custom Launch Behavior</strong> - Control which activity opens when notification is tapped</li><li><strong>Deep Link Control</strong> - Override default URL/deep link handling</li><li><strong>Lifecycle Callbacks</strong> - Track notification open, cancel, and group open events</li><li><strong>Context Access</strong> - Access application context for custom logic</li></ul><p class="paragraph"><strong>Setup:</strong></p><p class="paragraph"> 1. Create a public class extending NotificationServiceExtension with a public no-args constructor: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+public class MyNotificationService extends NotificationServiceExtension {
+    
+    protected boolean onMessageReceived(PushMessage message) {
+        // Return true to suppress notification when app is in foreground
+        if (isAppOnForeground()) {
+            // Handle notification in-app (show dialog, update UI, etc.)
+            showInAppAlert(message.getMessage());
+            return true;
+        }
+        return false;
+    }
+
+    
+    protected void onMessageOpened(PushMessage message) {
+        // Track notification open event
+        String campaignId = message.getCustomData().getString("campaign_id");
+        Analytics.track("notification_opened", campaignId);
+    }
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"> 2. Register your extension in AndroidManifest.xml: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+&lt;application&gt;
+    &lt;meta-data
+        android:name="com.pushwoosh.notification_service_extension"
+        android:value="com.your.package.MyNotificationService" /&gt;
+&lt;/application&gt;
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Common Use Cases:</strong><strong>Example 1: Suppress notifications when app is in foreground</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+
+protected boolean onMessageReceived(PushMessage message) {
+    if (isAppOnForeground()) {
+        // Show in-app notification instead
+        Context context = getApplicationContext();
+        Toast.makeText(context,
+            message.getMessage(),
+            Toast.LENGTH_LONG).show();
+        return true; // Notification won't be displayed
+    }
+    return false; // Show notification normally
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Example 2: Launch specific activity based on notification data</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+
+protected void startActivityForPushMessage(PushMessage message) {
+    Context context = getApplicationContext();
+    String screenType = message.getCustomData().getString("screen");
+
+    Intent intent;
+    if ("product".equals(screenType)) {
+        // Open product details
+        intent = new Intent(context, ProductActivity.class);
+        String productId = message.getCustomData().getString("product_id");
+        intent.putExtra("productId", productId);
+    } else if ("cart".equals(screenType)) {
+        // Open shopping cart
+        intent = new Intent(context, CartActivity.class);
+    } else {
+        // Default behavior
+        super.startActivityForPushMessage(message);
+        return;
+    }
+
+    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    context.startActivity(intent);
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Example 3: Handle notification cancel events</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+
+protected void onMessageCanceled(PushMessage message) {
+    // User dismissed notification - track in analytics
+    String campaignId = message.getCustomData().getString("campaign_id");
+    Analytics.track("notification_dismissed", campaignId);
+
+    // Update notification count
+    SharedPreferences prefs = getApplicationContext()
+        .getSharedPreferences("stats", Context.MODE_PRIVATE);
+    int dismissCount = prefs.getInt("dismiss_count", 0);
+    prefs.edit().putInt("dismiss_count", dismissCount + 1).apply();
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Example 4: Override URL handling</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+
+protected boolean preHandleNotificationsWithUrl() {
+    // Return false to disable automatic URL/deep link handling
+    // You must handle URLs manually in startActivityForPushMessage()
+    return false;
+}
+
+
+protected void startActivityForPushMessage(PushMessage message) {
+    // Custom URL handling logic
+    String url = message.getLink();
+    if (url != null &amp;&amp; url.startsWith("myapp://")) {
+        // Handle custom deep link
+        handleDeepLink(url);
+    } else {
+        super.startActivityForPushMessage(message);
+    }
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Important Notes:</strong></p><ul><li>Your extension class must be <strong>public</strong> and have a <strong>public no-argument constructor</strong></li><li>Application will crash on startup if these requirements are not met</li><li><a href="on-message-received.html">onMessageReceived</a> runs on a background thread - use <a href="../../../pushwoosh/com.pushwoosh.notification/-notification-service-extension/get-application-context.html">getApplicationContext</a> safely</li><li><a href="start-activity-for-push-message.html">startActivityForPushMessage</a> runs on the main thread</li><li>Returning <code class="lang-kotlin">true</code> from <a href="on-message-received.html">onMessageReceived</a> suppresses notification display</li><li>Only one NotificationServiceExtension can be registered per application</li></ul><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-push-message/index.html"><span>Push</span><wbr><span><span>Message</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-notification-factory/index.html"><span>Notification</span><wbr><span><span>Factory</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-pushwoosh-notification-settings/index.html"><span>Pushwoosh</span><wbr><span>Notification</span><wbr><span><span>Settings</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
         <h2 class="">Constructors</h2>
-        <div class="table"><a data-name="-841733463%2FConstructors%2F1658412858" anchor-label="NotificationServiceExtension" id="-841733463%2FConstructors%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+        <div class="table"><a data-name="-841733463%2FConstructors%2F-816828224" anchor-label="NotificationServiceExtension" id="-841733463%2FConstructors%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-notification-service-extension.html"><span>Notification</span><wbr><span>Service</span><wbr><span><span>Extension</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-841733463%2FConstructors%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-841733463%2FConstructors%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="1068307743%2FProperties%2F-816828224" anchor-label="applicationContext" id="1068307743%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="application-context.html"><span>application</span><wbr><span><span>Context</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1068307743%2FProperties%2F-816828224"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">val </span><a href="application-context.html">applicationContext</a><span class="token operator">: </span><span data-unresolved-link="android.content/Context///PointingToDeclaration/">Context</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -92,62 +235,167 @@
       </div>
       <div data-togglable="FUNCTION">
         <h2 class="">Functions</h2>
-        <div class="table"><a data-name="-152655717%2FFunctions%2F1658412858" anchor-label="handleMessage" id="-152655717%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+        <div class="table"><a data-name="409706328%2FFunctions%2F-816828224" anchor-label="handleMessage" id="409706328%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="handle-message.html"><span>handle</span><wbr><span><span>Message</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-152655717%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="409706328%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="handle-message.html"><span class="token function">handleMessage</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pushBundle<span class="token operator">: </span>Bundle</span></span><span class="token punctuation">)</span></div><div class="brief ">Handles push arrival.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="handle-message.html"><span class="token function">handleMessage</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pushBundle<span class="token operator">: </span><span data-unresolved-link="android.os/Bundle///PointingToDeclaration/">Bundle</span></span></span><span class="token punctuation">)</span></div><div class="brief ">Internal method that handles incoming push notification messages.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-527818679%2FFunctions%2F1658412858" anchor-label="handleNotification" id="-527818679%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1450823958%2FFunctions%2F-816828224" anchor-label="handleNotification" id="-1450823958%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="handle-notification.html"><span>handle</span><wbr><span><span>Notification</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-527818679%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1450823958%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="handle-notification.html"><span class="token function">handleNotification</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pushBundle<span class="token operator">: </span>Bundle</span></span><span class="token punctuation">)</span></div><div class="brief ">Handles notification open.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="handle-notification.html"><span class="token function">handleNotification</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pushBundle<span class="token operator">: </span><span data-unresolved-link="android.os/Bundle///PointingToDeclaration/">Bundle</span></span></span><span class="token punctuation">)</span></div><div class="brief ">Internal method that handles notification open events.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1171264112%2FFunctions%2F1658412858" anchor-label="handleNotificationCanceled" id="1171264112%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-779800989%2FFunctions%2F-816828224" anchor-label="handleNotificationCanceled" id="-779800989%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="handle-notification-canceled.html"><span>handle</span><wbr><span>Notification</span><wbr><span><span>Canceled</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1171264112%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-779800989%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="handle-notification-canceled.html"><span class="token function">handleNotificationCanceled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pushBundle<span class="token operator">: </span>Bundle</span></span><span class="token punctuation">)</span></div><div class="brief ">Handles notification cancel.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="handle-notification-canceled.html"><span class="token function">handleNotificationCanceled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pushBundle<span class="token operator">: </span><span data-unresolved-link="android.os/Bundle///PointingToDeclaration/">Bundle</span></span></span><span class="token punctuation">)</span></div><div class="brief ">Internal method that handles notification dismissal events.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1973011331%2FFunctions%2F1658412858" anchor-label="handleNotificationGroup" id="1973011331%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1973011331%2FFunctions%2F-816828224" anchor-label="handleNotificationGroup" id="1973011331%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="handle-notification-group.html"><span>handle</span><wbr><span>Notification</span><wbr><span><span>Group</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1973011331%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1973011331%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="handle-notification-group.html"><span class="token function">handleNotificationGroup</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">messages<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/List.html">List</a><span class="token operator">&lt;</span><a href="../-push-message/index.html">PushMessage</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief ">Handles notifications group open.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="handle-notification-group.html"><span class="token function">handleNotificationGroup</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">messages<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html">List</a><span class="token operator">&lt;</span><a href="../-push-message/index.html">PushMessage</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief ">Internal method that handles notification group open events.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="405295171%2FFunctions%2F-816828224" anchor-label="isAppOnForeground" id="405295171%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-app-on-foreground.html"><span>is</span><wbr><span>App</span><wbr><span>On</span><wbr><span><span>Foreground</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="405295171%2FFunctions%2F-816828224"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-app-on-foreground.html"><span class="token function">isAppOnForeground</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Checks whether the application is currently running in the foreground.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-929655128%2FFunctions%2F-816828224" anchor-label="onMessageCanceled" id="-929655128%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-message-canceled.html"><span>on</span><wbr><span>Message</span><wbr><span><span>Canceled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-929655128%2FFunctions%2F-816828224"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-message-canceled.html"><span class="token function">onMessageCanceled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span><a href="../-push-message/index.html">PushMessage</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Callback invoked when a user dismisses or swipes away a notification.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1729883496%2FFunctions%2F-816828224" anchor-label="onMessageOpened" id="-1729883496%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-message-opened.html"><span>on</span><wbr><span>Message</span><wbr><span><span>Opened</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1729883496%2FFunctions%2F-816828224"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-message-opened.html"><span class="token function">onMessageOpened</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span><a href="../-push-message/index.html">PushMessage</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Callback invoked when a user taps on a notification.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1793304672%2FFunctions%2F-816828224" anchor-label="onMessageReceived" id="1793304672%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-message-received.html"><span>on</span><wbr><span>Message</span><wbr><span><span>Received</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1793304672%2FFunctions%2F-816828224"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-message-received.html"><span class="token function">onMessageReceived</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">data<span class="token operator">: </span><a href="../-push-message/index.html">PushMessage</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Callback invoked when a push notification is received, before it is displayed.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1943318450%2FFunctions%2F-816828224" anchor-label="onMessagesGroupOpened" id="1943318450%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-messages-group-opened.html"><span>on</span><wbr><span>Messages</span><wbr><span>Group</span><wbr><span><span>Opened</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1943318450%2FFunctions%2F-816828224"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-messages-group-opened.html"><span class="token function">onMessagesGroupOpened</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">messages<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html">List</a><span class="token operator">&lt;</span><a href="../-push-message/index.html">PushMessage</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief ">Callback invoked when a user taps on a grouped notification (notification stack).</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1765787600%2FFunctions%2F-816828224" anchor-label="preHandleNotificationsWithUrl" id="1765787600%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="pre-handle-notifications-with-url.html"><span>pre</span><wbr><span>Handle</span><wbr><span>Notifications</span><wbr><span>With</span><wbr><span><span>Url</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1765787600%2FFunctions%2F-816828224"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="pre-handle-notifications-with-url.html"><span class="token function">preHandleNotificationsWithUrl</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Controls whether Pushwoosh should automatically handle notifications containing URLs or deep links.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-80995244%2FFunctions%2F-816828224" anchor-label="startActivityForPushMessage" id="-80995244%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="start-activity-for-push-message.html"><span>start</span><wbr><span>Activity</span><wbr><span>For</span><wbr><span>Push</span><wbr><span><span>Message</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-80995244%2FFunctions%2F-816828224"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="start-activity-for-push-message.html"><span class="token function">startActivityForPushMessage</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span><a href="../-push-message/index.html">PushMessage</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Callback invoked to launch an activity when a notification is opened.</div></div></div>
                 </div>
               </div>
             </div>
@@ -157,12 +405,18 @@
     </div>
   </div>
 </div>
-      <div class="footer">
-        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
-      </div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
             </div>
         </div>
     </div>
 </body>
 </html>
-

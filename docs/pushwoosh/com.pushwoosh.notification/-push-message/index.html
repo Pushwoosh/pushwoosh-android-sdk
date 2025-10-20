@@ -25,173 +25,188 @@
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
 <link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
 <script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
 <script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
 <body>
     <div class="root">
-<nav class="navigation" id="navigation-wrapper">
-    <div class="navigation--inner">
-        <div class="navigation-title">
-            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
-            <div class="library-name">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
 <a class="library-name--link" href="../../../index.html">
-                            Pushwoosh Android SDK
-                    </a>            </div>
-            <div class="library-version">
+                    Pushwoosh Android SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":pushwoosh/main" data-filter=":pushwoosh/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
         </div>
-        <div class="filter-section" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh:dokkaHtmlPartial/main">main</button>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
         </div>
-    </div>
-    <div class="navigation-controls">
-        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
-        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
-    </div>
-</nav>
+    </nav>
         <div id="container">
             <div class="sidebar" id="leftColumn">
-                <div class="sidebar--inner" id="sideMenu"></div>
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Pushwoosh Android SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
             </div>
             <div id="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh::com.pushwoosh.notification/PushMessage///PointingToDeclaration//1658412858">
+<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh::com.pushwoosh.notification/PushMessage///PointingToDeclaration//-816828224">
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.notification</a><span class="delimiter">/</span><span class="current">PushMessage</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Push</span><wbr><span><span>Message</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">PushMessage</a></div><p class="paragraph">Represents a received push notification with all its payload data and metadata. </p><p class="paragraph"> PushMessage is an immutable data class that encapsulates all information contained in a push notification, including the notification content (title, message), visual customization (icons, colors, LED), behavior settings (sound, vibration, priority), and custom data payloads. It serves as the primary interface for accessing push notification data in callbacks, service extensions, and message handlers. </p><p class="paragraph"><strong>When you receive PushMessage instances:</strong></p><ul><li>In <a href="../../../pushwoosh/com.pushwoosh.notification/-notification-service-extension/on-message-received.html">onMessageReceived</a> when push arrives</li><li>In <a href="../../../pushwoosh/com.pushwoosh.notification/-notification-service-extension/on-message-opened.html">onMessageOpened</a> when user taps notification</li><li>Via <a href="../../com.pushwoosh/-pushwoosh/get-launch-notification.html">getLaunchNotification</a> to get the notification that launched the app</li><li>In broadcast receivers handling Pushwoosh notification events</li></ul><p class="paragraph"><strong>Common use cases:</strong></p><ul><li>Extracting custom data from push notifications to route users to specific screens</li><li>Customizing notification appearance based on payload before display</li><li>Logging analytics events based on push content or campaign data</li><li>Handling silent pushes to sync data without showing notifications</li><li>Implementing custom business logic based on push metadata</li></ul><strong>Basic usage example - Handling custom data:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-public class MyNotificationExtension extends NotificationServiceExtension {
-    
-    protected boolean onMessageReceived(PushMessage message) {
-        // Extract custom data from push payload
-        String customData = message.getCustomData();
-        if (customData != null) {
-            try {
-                JSONObject data = new JSONObject(customData);
-                String screen = data.optString("target_screen");
-                String itemId = data.optString("item_id");
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">PushMessage</a></div><p class="paragraph">Represents a push notification message received from Pushwoosh. </p><p class="paragraph"> PushMessage is a data container that provides access to all information about a received push notification, including content (title, message, images), appearance settings (icons, colors, sounds), behavior flags (silent, local), and metadata. This class is used throughout the SDK to pass push notification data between components. </p><p class="paragraph"><strong>Key Features:</strong></p><ul><li>Content Access - Retrieve notification title, message, and images</li><li>Appearance Settings - Access icon URLs, colors, LED, sound, and vibration settings</li><li>Metadata - Get campaign ID, message ID, push hash, and custom data</li><li>Behavior Flags - Check if notification is silent or local</li><li>Notification Actions - Access action buttons configured in the push</li><li>Data Conversion - Convert to Bundle or JSON for processing</li></ul><p class="paragraph"><strong>Common Use Cases:</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // 1. Handling push notification in NotificationServiceExtension
+  public class MyNotificationExtension extends NotificationServiceExtension {
+      
+      protected boolean onMessageReceived(PushMessage message) {
+          // Access notification content
+          String title = message.getHeader();
+          String text = message.getMessage();
+          String customData = message.getCustomData();
 
-                // Route to specific screen based on custom data
-                if ("product_detail".equals(screen)) {
-                    navigateToProduct(itemId);
-                } else if ("cart".equals(screen)) {
-                    navigateToCart();
-                }
-            } catch (JSONException e) {
-                Log.e("App", "Failed to parse custom data", e);
-            }
-        }
+          // Parse custom data for e-commerce app
+          if (customData != null) {
+              try {
+                  JSONObject data = new JSONObject(customData);
+                  String productId = data.optString("product_id");
+                  double discount = data.optDouble("discount", 0);
 
-        // Return false to show default notification
-        return false;
-    }
-}
-</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Silent push example - Background data sync:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+                  // Update local database with product discount
+                  updateProductDiscount(productId, discount);
 
-protected boolean onMessageReceived(PushMessage message) {
-    // Check if this is a silent push
-    if (message.isSilent()) {
-        // Silent push - no notification shown
-        String customData = message.getCustomData();
-        if (customData != null) {
-            JSONObject data = new JSONObject(customData);
-            String action = data.optString("action");
+                  Log.d("App", "Push for product: " + productId);
+              } catch (JSONException e) {
+                  Log.e("App", "Failed to parse custom data", e);
+              }
+          }
 
-            if ("sync_data".equals(action)) {
-                // Trigger background data sync
-                syncUserData();
-            } else if ("clear_cache".equals(action)) {
-                clearAppCache();
-            }
-        }
-        // Return true to indicate we handled the push
-        return true;
-    }
+          // Don't show notification if app is in foreground
+          if (isAppOnForeground()) {
+              showInAppAlert(title, text);
+              return true; // Suppress notification
+          }
 
-    // Return false to show default notification
-    return false;
-}
-</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Launch notification example - Deep linking:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+          return false; // Show notification
+      }
 
-protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
+      
+      protected void onMessageOpened(PushMessage message) {
+          // Track campaign analytics
+          long campaignId = message.getCampaignId();
+          long messageId = message.getMessageId();
 
-    // Check if app was opened from a push notification
-    PushMessage message = Pushwoosh.getInstance().getLaunchNotification();
-    if (message != null) {
-        String customData = message.getCustomData();
-        if (customData != null) {
-            try {
-                JSONObject data = new JSONObject(customData);
-                String orderId = data.optString("order_id");
+          // Navigate based on custom data
+          String customData = message.getCustomData();
+          if (customData != null) {
+              try {
+                  JSONObject data = new JSONObject(customData);
+                  String screen = data.optString("screen");
 
-                if (!orderId.isEmpty()) {
-                    // Navigate to order details screen
-                    Intent intent = new Intent(this, OrderDetailActivity.class);
-                    intent.putExtra("order_id", orderId);
-                    startActivity(intent);
-                }
-            } catch (JSONException e) {
-                Log.e("App", "Failed to parse launch notification data", e);
-            }
-        }
+                  if ("product_details".equals(screen)) {
+                      String productId = data.optString("product_id");
+                      openProductScreen(productId);
+                  }
+              } catch (JSONException e) {
+                  Log.e("App", "Failed to parse custom data", e);
+              }
+          }
+      }
+  }
 
-        // Clear launch notification so it's not processed again
-        Pushwoosh.getInstance().clearLaunchNotification();
-    }
-}
-</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><strong>Campaign tracking example - Analytics integration:</strong><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+  // 2. Checking notification appearance settings
+  protected void logNotificationSettings(PushMessage message) {
+      // Check if notification is silent (data-only)
+      if (message.isSilent()) {
+          Log.d("App", "Silent push received");
+          processDataOnly(message.getCustomData());
+          return;
+      }
 
-protected void onMessageOpened(PushMessage message) {
-    super.onMessageOpened(message);
+      // Check if notification is local
+      if (message.isLocal()) {
+          Log.d("App", "Local notification triggered");
+      }
 
-    // Track push notification opens in your analytics
-    long campaignId = message.getCampaignId();
-    long messageId = message.getMessageId();
-    String messageCode = message.getMessageCode();
+      // Get rich media URLs
+      String largeIcon = message.getLargeIconUrl();
+      String bigPicture = message.getBigPictureUrl();
 
-    // Send event to analytics service
-    Analytics.logEvent("push_opened", new HashMap&lt;String, Object&gt;() {{
-        put("campaign_id", campaignId);
-        put("message_id", messageId);
-        put("message_code", messageCode);
-        put("title", message.getHeader());
-    }});
+      if (bigPicture != null) {
+          Log.d("App", "Notification has big picture: " + bigPicture);
+      }
+  }
 
-    // Log custom data for segmentation
-    String customData = message.getCustomData();
-    if (customData != null) {
-        try {
-            JSONObject data = new JSONObject(customData);
-            String category = data.optString("category", "general");
-            Analytics.setUserProperty("last_notification_category", category);
-        } catch (JSONException e) {
-            Log.e("App", "Failed to parse custom data", e);
-        }
-    }
-}
-</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-notification-service-extension/index.html"><span>Notification</span><wbr><span>Service</span><wbr><span><span>Extension</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh/-pushwoosh/get-launch-notification.html"><span><span>Pushwoosh</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-local-notification/index.html"><span>Local</span><wbr><span><span>Notification</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  // 3. Working with notification actions
+  protected void handleNotificationActions(PushMessage message) {
+      List&lt;Action&gt; actions = message.getActions();
+
+      if (!actions.isEmpty()) {
+          Log.d("App", "Notification has " + actions.size() + " action buttons");
+
+          for (Action action : actions) {
+              Log.d("App", "Action: " + action.getTitle() +
+                           ", Type: " + action.getType());
+          }
+      }
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Important Notes:</strong></p><ul><li>PushMessage objects are created automatically by the SDK when processing push notifications</li><li>To receive PushMessage instances, extend <a href="../-notification-service-extension/index.html">NotificationServiceExtension</a> and override callback methods</li><li>Custom data can be sent from Pushwoosh Control Panel in JSON format and accessed via <a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-custom-data.html">getCustomData</a></li><li>Silent pushes (<a href="is-silent.html">isSilent</a> returns true) do not display notifications but can trigger background processing</li><li>Use <a href="to-bundle.html">toBundle</a> or <a href="to-json.html">toJson</a> to access the raw push payload if needed</li><li>Campaign tracking IDs (<a href="get-campaign-id.html">getCampaignId</a>, <a href="get-message-id.html">getMessageId</a>) are useful for analytics</li></ul><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-notification-service-extension/index.html"><span>Notification</span><wbr><span>Service</span><wbr><span><span>Extension</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><span><span>Action</span></span></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-pushwoosh-notification-factory/index.html"><span>Pushwoosh</span><wbr><span>Notification</span><wbr><span><span>Factory</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
         <h2 class="">Constructors</h2>
-        <div class="table"><a data-name="-2123605749%2FConstructors%2F1658412858" anchor-label="PushMessage" id="-2123605749%2FConstructors%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+        <div class="table"><a data-name="-1204795160%2FConstructors%2F-816828224" anchor-label="PushMessage" id="-1204795160%2FConstructors%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-push-message.html"><span>Push</span><wbr><span><span>Message</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2123605749%2FConstructors%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1204795160%2FConstructors%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">extras<span class="token operator">: </span>Bundle</span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">extras<span class="token operator">: </span><span data-unresolved-link="android.os/Bundle///PointingToDeclaration/">Bundle</span></span></span><span class="token punctuation">)</span></div><div class="brief ">Creates a PushMessage from a push notification payload Bundle.</div></div></div>
                 </div>
               </div>
             </div>
@@ -200,287 +215,287 @@ protected void onMessageOpened(PushMessage message) {
       </div>
       <div data-togglable="PROPERTY">
         <h2 class="">Properties</h2>
-        <div class="table"><a data-name="-479002659%2FProperties%2F1658412858" anchor-label="actions" id="-479002659%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+        <div class="table"><a data-name="-479002659%2FProperties%2F-816828224" anchor-label="actions" id="-479002659%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="actions.html"><span><span>actions</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-479002659%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-479002659%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="actions.html">actions</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/List.html">List</a><span class="token operator">&lt;</span>Action<span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="actions.html">actions</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html">List</a><span class="token operator">&lt;</span>Action<span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1767850384%2FProperties%2F1658412858" anchor-label="badges" id="-1767850384%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1767850384%2FProperties%2F-816828224" anchor-label="badges" id="-1767850384%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="badges.html"><span><span>badges</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1767850384%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1767850384%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="badges.html">badges</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="badges.html">badges</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1582303465%2FProperties%2F1658412858" anchor-label="bigPictureUrl" id="1582303465%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1582303465%2FProperties%2F-816828224" anchor-label="bigPictureUrl" id="1582303465%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="big-picture-url.html"><span>big</span><wbr><span>Picture</span><wbr><span><span>Url</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1582303465%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1582303465%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="big-picture-url.html">bigPictureUrl</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="big-picture-url.html">bigPictureUrl</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1420435003%2FProperties%2F1658412858" anchor-label="customData" id="-1420435003%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1420435003%2FProperties%2F-816828224" anchor-label="customData" id="-1420435003%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="custom-data.html"><span>custom</span><wbr><span><span>Data</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1420435003%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1420435003%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="custom-data.html">customData</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="custom-data.html">customData</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-957000832%2FProperties%2F1658412858" anchor-label="groupId" id="-957000832%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-957000832%2FProperties%2F-816828224" anchor-label="groupId" id="-957000832%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="group-id.html"><span>group</span><wbr><span><span>Id</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-957000832%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-957000832%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="group-id.html">groupId</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="group-id.html">groupId</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-963901517%2FProperties%2F1658412858" anchor-label="header" id="-963901517%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-963901517%2FProperties%2F-816828224" anchor-label="header" id="-963901517%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="header.html"><span><span>header</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-963901517%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-963901517%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="header.html">header</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="header.html">header</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="701412638%2FProperties%2F1658412858" anchor-label="iconBackgroundColor" id="701412638%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="701412638%2FProperties%2F-816828224" anchor-label="iconBackgroundColor" id="701412638%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="icon-background-color.html"><span>icon</span><wbr><span>Background</span><wbr><span><span>Color</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="701412638%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="701412638%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="icon-background-color.html">iconBackgroundColor</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/Integer.html">Integer</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="icon-background-color.html">iconBackgroundColor</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Integer.html">Integer</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-339282619%2FProperties%2F1658412858" anchor-label="largeIconUrl" id="-339282619%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-339282619%2FProperties%2F-816828224" anchor-label="largeIconUrl" id="-339282619%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="large-icon-url.html"><span>large</span><wbr><span>Icon</span><wbr><span><span>Url</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-339282619%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-339282619%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="large-icon-url.html">largeIconUrl</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="large-icon-url.html">largeIconUrl</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-118548209%2FProperties%2F1658412858" anchor-label="led" id="-118548209%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-118548209%2FProperties%2F-816828224" anchor-label="led" id="-118548209%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="led.html"><span><span>led</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-118548209%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-118548209%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="led.html">led</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/Integer.html">Integer</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="led.html">led</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Integer.html">Integer</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1229824022%2FProperties%2F1658412858" anchor-label="ledOffMS" id="1229824022%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1229824022%2FProperties%2F-816828224" anchor-label="ledOffMS" id="1229824022%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="led-off-m-s.html"><span>led</span><wbr><span>Off</span><wbr><span><span>MS</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1229824022%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1229824022%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="led-off-m-s.html">ledOffMS</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="led-off-m-s.html">ledOffMS</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="453037002%2FProperties%2F1658412858" anchor-label="ledOnMS" id="453037002%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="453037002%2FProperties%2F-816828224" anchor-label="ledOnMS" id="453037002%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="led-on-m-s.html"><span>led</span><wbr><span>On</span><wbr><span><span>MS</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="453037002%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="453037002%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="led-on-m-s.html">ledOnMS</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="led-on-m-s.html">ledOnMS</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="896624659%2FProperties%2F1658412858" anchor-label="message" id="896624659%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="896624659%2FProperties%2F-816828224" anchor-label="message" id="896624659%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="message.html"><span><span>message</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="896624659%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="896624659%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="message.html">message</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="message.html">message</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1829690300%2FProperties%2F1658412858" anchor-label="priority" id="1829690300%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1829690300%2FProperties%2F-816828224" anchor-label="priority" id="1829690300%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="priority.html"><span><span>priority</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1829690300%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1829690300%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="priority.html">priority</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="priority.html">priority</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="731606680%2FProperties%2F1658412858" anchor-label="pushHash" id="731606680%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="731606680%2FProperties%2F-816828224" anchor-label="pushHash" id="731606680%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="push-hash.html"><span>push</span><wbr><span><span>Hash</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="731606680%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="731606680%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="push-hash.html">pushHash</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="push-hash.html">pushHash</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-507465510%2FProperties%2F1658412858" anchor-label="smallIcon" id="-507465510%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-507465510%2FProperties%2F-816828224" anchor-label="smallIcon" id="-507465510%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="small-icon.html"><span>small</span><wbr><span><span>Icon</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-507465510%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-507465510%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="small-icon.html">smallIcon</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="small-icon.html">smallIcon</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1973824693%2FProperties%2F1658412858" anchor-label="sound" id="-1973824693%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1973824693%2FProperties%2F-816828224" anchor-label="sound" id="-1973824693%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="sound.html"><span><span>sound</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1973824693%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1973824693%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="sound.html">sound</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="sound.html">sound</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1400957482%2FProperties%2F1658412858" anchor-label="ticker" id="-1400957482%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1400957482%2FProperties%2F-816828224" anchor-label="ticker" id="-1400957482%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="ticker.html"><span><span>ticker</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1400957482%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1400957482%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="ticker.html">ticker</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="ticker.html">ticker</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="894184616%2FProperties%2F1658412858" anchor-label="vibration" id="894184616%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="894184616%2FProperties%2F-816828224" anchor-label="vibration" id="894184616%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="vibration.html"><span><span>vibration</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="894184616%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="894184616%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="vibration.html">vibration</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="vibration.html">vibration</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1430581938%2FProperties%2F1658412858" anchor-label="visibility" id="-1430581938%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1430581938%2FProperties%2F-816828224" anchor-label="visibility" id="-1430581938%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="visibility.html"><span><span>visibility</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1430581938%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1430581938%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="visibility.html">visibility</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="visibility.html">visibility</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -489,182 +504,182 @@ protected void onMessageOpened(PushMessage message) {
       </div>
       <div data-togglable="FUNCTION">
         <h2 class="">Functions</h2>
-        <div class="table"><a data-name="1999744345%2FFunctions%2F1658412858" anchor-label="getCampaignId" id="1999744345%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+        <div class="table"><a data-name="1999744345%2FFunctions%2F-816828224" anchor-label="getCampaignId" id="1999744345%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-campaign-id.html"><span>get</span><wbr><span>Campaign</span><wbr><span><span>Id</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1999744345%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1999744345%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-campaign-id.html"><span class="token function">getCampaignId</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-campaign-id.html"><span class="token function">getCampaignId</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div><div class="brief ">Gets the campaign ID for this push notification.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1678665474%2FFunctions%2F1658412858" anchor-label="getMessageCode" id="1678665474%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1678665474%2FFunctions%2F-816828224" anchor-label="getMessageCode" id="1678665474%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-message-code.html"><span>get</span><wbr><span>Message</span><wbr><span><span>Code</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1678665474%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1678665474%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-message-code.html"><span class="token function">getMessageCode</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-message-code.html"><span class="token function">getMessageCode</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div><div class="brief ">Gets the message code for this push notification.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1058329620%2FFunctions%2F1658412858" anchor-label="getMessageId" id="1058329620%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1058329620%2FFunctions%2F-816828224" anchor-label="getMessageId" id="1058329620%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-message-id.html"><span>get</span><wbr><span>Message</span><wbr><span><span>Id</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1058329620%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1058329620%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-message-id.html"><span class="token function">getMessageId</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-message-id.html"><span class="token function">getMessageId</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div><div class="brief ">Gets the unique message ID for this push notification.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="971343643%2FFunctions%2F1658412858" anchor-label="getPushMetaData" id="971343643%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="971343643%2FFunctions%2F-816828224" anchor-label="getPushMetaData" id="971343643%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-push-meta-data.html"><span>get</span><wbr><span>Push</span><wbr><span>Meta</span><wbr><span><span>Data</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="971343643%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="971343643%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-push-meta-data.html"><span class="token function">getPushMetaData</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-push-meta-data.html"><span class="token function">getPushMetaData</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="233888318%2FFunctions%2F1658412858" anchor-label="getPushwooshNotificationId" id="233888318%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="233888318%2FFunctions%2F-816828224" anchor-label="getPushwooshNotificationId" id="233888318%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-pushwoosh-notification-id.html"><span>get</span><wbr><span>Pushwoosh</span><wbr><span>Notification</span><wbr><span><span>Id</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="233888318%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="233888318%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-pushwoosh-notification-id.html"><span class="token function">getPushwooshNotificationId</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-pushwoosh-notification-id.html"><span class="token function">getPushwooshNotificationId</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div><div class="brief ">Gets the Pushwoosh internal notification ID.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1142560324%2FFunctions%2F1658412858" anchor-label="getTag" id="-1142560324%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1142560324%2FFunctions%2F-816828224" anchor-label="getTag" id="-1142560324%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-tag.html"><span>get</span><wbr><span><span>Tag</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1142560324%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1142560324%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-tag.html"><span class="token function">getTag</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-tag.html"><span class="token function">getTag</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="41058234%2FFunctions%2F1658412858" anchor-label="isBadgesAdditive" id="41058234%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="41058234%2FFunctions%2F-816828224" anchor-label="isBadgesAdditive" id="41058234%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="is-badges-additive.html"><span>is</span><wbr><span>Badges</span><wbr><span><span>Additive</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="41058234%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="41058234%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-badges-additive.html"><span class="token function">isBadgesAdditive</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-badges-additive.html"><span class="token function">isBadgesAdditive</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="277517561%2FFunctions%2F1658412858" anchor-label="isLocal" id="277517561%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="277517561%2FFunctions%2F-816828224" anchor-label="isLocal" id="277517561%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="is-local.html"><span>is</span><wbr><span><span>Local</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="277517561%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="277517561%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-local.html"><span class="token function">isLocal</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-local.html"><span class="token function">isLocal</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Checks if this is a local notification.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="319579199%2FFunctions%2F1658412858" anchor-label="isLockScreen" id="319579199%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="319579199%2FFunctions%2F-816828224" anchor-label="isLockScreen" id="319579199%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="is-lock-screen.html"><span>is</span><wbr><span>Lock</span><wbr><span><span>Screen</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="319579199%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="319579199%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-lock-screen.html"><span class="token function">isLockScreen</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-lock-screen.html"><span class="token function">isLockScreen</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1744617567%2FFunctions%2F1658412858" anchor-label="isSilent" id="-1744617567%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1744617567%2FFunctions%2F-816828224" anchor-label="isSilent" id="-1744617567%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="is-silent.html"><span>is</span><wbr><span><span>Silent</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1744617567%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1744617567%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-silent.html"><span class="token function">isSilent</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-silent.html"><span class="token function">isSilent</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Checks if this is a silent (data-only) push notification.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1469764771%2FFunctions%2F1658412858" anchor-label="toBundle" id="1469764771%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1469764771%2FFunctions%2F-816828224" anchor-label="toBundle" id="1469764771%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="to-bundle.html"><span>to</span><wbr><span><span>Bundle</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1469764771%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1469764771%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="to-bundle.html"><span class="token function">toBundle</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span>Bundle</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="to-bundle.html"><span class="token function">toBundle</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="android.os/Bundle///PointingToDeclaration/">Bundle</span></div><div class="brief ">Converts this push message to a Bundle.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1678467325%2FFunctions%2F1658412858" anchor-label="toJson" id="1678467325%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1678467325%2FFunctions%2F-816828224" anchor-label="toJson" id="1678467325%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="to-json.html"><span>to</span><wbr><span><span>Json</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1678467325%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1678467325%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="to-json.html"><span class="token function">toJson</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span>JSONObject</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="to-json.html"><span class="token function">toJson</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.json/JSONObject///PointingToDeclaration/">JSONObject</span></div><div class="brief ">Converts this push message to JSON.</div></div></div>
                 </div>
               </div>
             </div>
@@ -674,12 +689,18 @@ protected void onMessageOpened(PushMessage message) {
     </div>
   </div>
 </div>
-      <div class="footer">
-        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
-      </div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
             </div>
         </div>
     </div>
 </body>
 </html>
-

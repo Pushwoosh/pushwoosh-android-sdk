@@ -1,8 +1,0 @@
-$dokka.format:html-v1
-$dokka.linkExtension:html
-
-com.pushwoosh.inbox
-com.pushwoosh.inbox.data
-com.pushwoosh.inbox.event
-com.pushwoosh.inbox.exception
-

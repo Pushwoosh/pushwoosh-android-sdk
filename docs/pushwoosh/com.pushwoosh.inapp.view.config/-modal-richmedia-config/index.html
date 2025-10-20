@@ -25,61 +25,113 @@
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
 <link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
 <script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
 <script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
 <body>
     <div class="root">
-<nav class="navigation" id="navigation-wrapper">
-    <div class="navigation--inner">
-        <div class="navigation-title">
-            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
-            <div class="library-name">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
 <a class="library-name--link" href="../../../index.html">
-                            Pushwoosh Android SDK
-                    </a>            </div>
-            <div class="library-version">
+                    Pushwoosh Android SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":pushwoosh/main" data-filter=":pushwoosh/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
         </div>
-        <div class="filter-section" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh:dokkaHtmlPartial/main">main</button>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
         </div>
-    </div>
-    <div class="navigation-controls">
-        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
-        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
-    </div>
-</nav>
+    </nav>
         <div id="container">
             <div class="sidebar" id="leftColumn">
-                <div class="sidebar--inner" id="sideMenu"></div>
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Pushwoosh Android SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
             </div>
             <div id="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh::com.pushwoosh.inapp.view.config/ModalRichmediaConfig///PointingToDeclaration//1658412858">
+<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh::com.pushwoosh.inapp.view.config/ModalRichmediaConfig///PointingToDeclaration//-816828224">
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.inapp.view.config</a><span class="delimiter">/</span><span class="current">ModalRichmediaConfig</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Modal</span><wbr><span>Richmedia</span><wbr><span><span>Config</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">ModalRichmediaConfig</a></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">ModalRichmediaConfig</a></div><p class="paragraph">Configuration class for customizing the presentation and behavior of modal in-app messages. </p><p class="paragraph"> This class allows you to control how modal in-app messages are displayed, including their position, animations, swipe gestures, and visual layout. The configuration can be applied globally using <a href="../../com.pushwoosh.richmedia/-rich-media-manager/set-default-rich-media-config.html">setDefaultRichMediaConfig</a> or specified for individual messages. </p><p class="paragraph"><strong>Key Features:</strong></p><ul><li>Position Control - TOP, CENTER, BOTTOM, or FULLSCREEN presentation</li><li>Custom Animations - Fade, slide, or drop animations for show/hide</li><li>Swipe Gestures - Enable swipe-to-dismiss in any direction</li><li>Layout Options - Control window width and status bar behavior</li><li>Edge-to-Edge Support - Modern Android layout compatibility</li></ul><p class="paragraph"><strong>Basic Usage:</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+// Configure modal presentation globally
+ModalRichmediaConfig config = new ModalRichmediaConfig()
+    .setAnimationDuration(500);
+
+// Apply global configuration
+RichMediaManager.setDefaultRichMediaConfig(config);
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Advanced Configuration:</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+// E-commerce app with bottom-positioned modals and swipe gestures
+Set&lt;ModalRichMediaSwipeGesture&gt; swipeGestures = new HashSet&lt;&gt;();
+swipeGestures.add(ModalRichMediaSwipeGesture.DOWN);
+swipeGestures.add(ModalRichMediaSwipeGesture.RIGHT);
+
+ModalRichmediaConfig ecommerceConfig = new ModalRichmediaConfig()
+    .setViewPosition(ModalRichMediaViewPosition.BOTTOM)
+    .setSwipeGestures(swipeGestures)
+    .setPresentAnimationType(ModalRichMediaPresentAnimationType.SLIDE_UP)
+    .setDismissAnimationType(ModalRichMediaDismissAnimationType.SLIDE_DOWN);
+
+RichMediaManager.setDefaultRichMediaConfig(ecommerceConfig);
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Default Values:</strong></p><p class="paragraph">When configuration values are not specified (null), the following system defaults are used: </p><ul><li><strong>View Position:</strong><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-view-position/-f-u-l-l-s-c-r-e-e-n/index.html">FULLSCREEN</a> - modals cover the entire screen</li><li><strong>Present Animation:</strong><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-present-animation-type/-f-a-d-e_-i-n/index.html">FADE_IN</a> - smooth fade-in presentation</li><li><strong>Dismiss Animation:</strong><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-dismiss-animation-type/-f-a-d-e_-o-u-t/index.html">FADE_OUT</a> - smooth fade-out dismissal</li><li><strong>Window Width:</strong><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-window-width/-f-u-l-l_-s-c-r-e-e-n/index.html">FULL_SCREEN</a> - modals span full screen width</li><li><strong>Animation Duration:</strong> 1000ms - balanced speed for smooth animations</li><li><strong>Swipe Gestures:</strong> Empty set - no swipe-to-dismiss enabled by default</li><li><strong>Status Bar Covered:</strong> false - respects status bar area (applies to API 34 and below where edge-to-edge behavior is not enforced by default)</li><li><strong>Edge-to-Edge Layout:</strong> true - uses modern edge-to-edge layout by default (applies to API 35+ where edge-to-edge is the standard)</li></ul><p class="paragraph"><strong>Important Notes:</strong></p><ul><li>All configuration properties are optional - null values will use system defaults</li><li>Method chaining is supported for fluent configuration</li><li>Global configuration affects all subsequent in-app messages</li><li>Individual messages can override global settings via server-side configuration</li><li>Status bar and edge-to-edge settings require Android API level considerations</li></ul><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh.richmedia/-rich-media-manager/set-default-rich-media-config.html"><span>Rich</span><wbr><span>Media</span><wbr><span><span>Manager</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-view-position/index.html"><span>Modal</span><wbr><span>Rich</span><wbr><span>Media</span><wbr><span>View</span><wbr><span><span>Position</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-present-animation-type/index.html"><span>Modal</span><wbr><span>Rich</span><wbr><span>Media</span><wbr><span>Present</span><wbr><span>Animation</span><wbr><span><span>Type</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-dismiss-animation-type/index.html"><span>Modal</span><wbr><span>Rich</span><wbr><span>Media</span><wbr><span>Dismiss</span><wbr><span>Animation</span><wbr><span><span>Type</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-swipe-gesture/index.html"><span>Modal</span><wbr><span>Rich</span><wbr><span>Media</span><wbr><span>Swipe</span><wbr><span><span>Gesture</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-window-width/index.html"><span>Modal</span><wbr><span>Rich</span><wbr><span>Media</span><wbr><span>Window</span><wbr><span><span>Width</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
         <h2 class="">Constructors</h2>
-        <div class="table"><a data-name="854990637%2FConstructors%2F1658412858" anchor-label="ModalRichmediaConfig" id="854990637%2FConstructors%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+        <div class="table"><a data-name="854990637%2FConstructors%2F-816828224" anchor-label="ModalRichmediaConfig" id="854990637%2FConstructors%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-modal-richmedia-config.html"><span>Modal</span><wbr><span>Richmedia</span><wbr><span><span>Config</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="854990637%2FConstructors%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="854990637%2FConstructors%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -88,92 +140,92 @@
       </div>
       <div data-togglable="PROPERTY">
         <h2 class="">Properties</h2>
-        <div class="table"><a data-name="100740152%2FProperties%2F1658412858" anchor-label="animationDuration" id="100740152%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+        <div class="table"><a data-name="100740152%2FProperties%2F-816828224" anchor-label="animationDuration" id="100740152%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="animation-duration.html"><span>animation</span><wbr><span><span>Duration</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="100740152%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="100740152%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="animation-duration.html">animationDuration</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/Integer.html">Integer</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="animation-duration.html">animationDuration</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Integer.html">Integer</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1876836406%2FProperties%2F1658412858" anchor-label="dismissAnimationType" id="1876836406%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1876836406%2FProperties%2F-816828224" anchor-label="dismissAnimationType" id="1876836406%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="dismiss-animation-type.html"><span>dismiss</span><wbr><span>Animation</span><wbr><span><span>Type</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1876836406%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1876836406%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="dismiss-animation-type.html">dismissAnimationType</a><span class="token operator">: </span><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-dismiss-animation-type/index.html">ModalRichMediaDismissAnimationType</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="dismiss-animation-type.html">dismissAnimationType</a><span class="token operator">: </span><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-dismiss-animation-type/index.html">ModalRichMediaDismissAnimationType</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="258791847%2FProperties%2F1658412858" anchor-label="presentAnimationType" id="258791847%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="258791847%2FProperties%2F-816828224" anchor-label="presentAnimationType" id="258791847%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="present-animation-type.html"><span>present</span><wbr><span>Animation</span><wbr><span><span>Type</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="258791847%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="258791847%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="present-animation-type.html">presentAnimationType</a><span class="token operator">: </span><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-present-animation-type/index.html">ModalRichMediaPresentAnimationType</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="present-animation-type.html">presentAnimationType</a><span class="token operator">: </span><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-present-animation-type/index.html">ModalRichMediaPresentAnimationType</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="641401548%2FProperties%2F1658412858" anchor-label="swipeGestures" id="641401548%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="641401548%2FProperties%2F-816828224" anchor-label="swipeGestures" id="641401548%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="swipe-gestures.html"><span>swipe</span><wbr><span><span>Gestures</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="641401548%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="641401548%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="swipe-gestures.html">swipeGestures</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/Set.html">Set</a><span class="token operator">&lt;</span><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-swipe-gesture/index.html">ModalRichMediaSwipeGesture</a><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="swipe-gestures.html">swipeGestures</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Set.html">Set</a><span class="token operator">&lt;</span><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-swipe-gesture/index.html">ModalRichMediaSwipeGesture</a><span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1055391236%2FProperties%2F1658412858" anchor-label="viewPosition" id="-1055391236%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1055391236%2FProperties%2F-816828224" anchor-label="viewPosition" id="-1055391236%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="view-position.html"><span>view</span><wbr><span><span>Position</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1055391236%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1055391236%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="view-position.html">viewPosition</a><span class="token operator">: </span><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-view-position/index.html">ModalRichMediaViewPosition</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="view-position.html">viewPosition</a><span class="token operator">: </span><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-view-position/index.html">ModalRichMediaViewPosition</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1387181638%2FProperties%2F1658412858" anchor-label="windowWidth" id="-1387181638%2FProperties%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1387181638%2FProperties%2F-816828224" anchor-label="windowWidth" id="-1387181638%2FProperties%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="window-width.html"><span>window</span><wbr><span><span>Width</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1387181638%2FProperties%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1387181638%2FProperties%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="window-width.html">windowWidth</a><span class="token operator">: </span><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-window-width/index.html">ModalRichMediaWindowWidth</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">var </span><a href="window-width.html">windowWidth</a><span class="token operator">: </span><a href="../../com.pushwoosh.inapp.view.config.enums/-modal-rich-media-window-width/index.html">ModalRichMediaWindowWidth</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -182,62 +234,62 @@
       </div>
       <div data-togglable="FUNCTION">
         <h2 class="">Functions</h2>
-        <div class="table"><a data-name="1746230891%2FFunctions%2F1658412858" anchor-label="isStatusBarCovered" id="1746230891%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+        <div class="table"><a data-name="1746230891%2FFunctions%2F-816828224" anchor-label="isStatusBarCovered" id="1746230891%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="is-status-bar-covered.html"><span>is</span><wbr><span>Status</span><wbr><span>Bar</span><wbr><span><span>Covered</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1746230891%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1746230891%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-status-bar-covered.html"><span class="token function">isStatusBarCovered</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/Boolean.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-status-bar-covered.html"><span class="token function">isStatusBarCovered</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Boolean.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1220650471%2FFunctions%2F1658412858" anchor-label="setRespectEdgeToEdgeLayout" id="1220650471%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1220650471%2FFunctions%2F-816828224" anchor-label="setRespectEdgeToEdgeLayout" id="1220650471%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-respect-edge-to-edge-layout.html"><span>set</span><wbr><span>Respect</span><wbr><span>Edge</span><wbr><span>To</span><wbr><span>Edge</span><wbr><span><span>Layout</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1220650471%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1220650471%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-respect-edge-to-edge-layout.html"><span class="token function">setRespectEdgeToEdgeLayout</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">respectEdgeToEdgeLayout<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/Boolean.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ModalRichmediaConfig</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-respect-edge-to-edge-layout.html"><span class="token function">setRespectEdgeToEdgeLayout</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">respectEdgeToEdgeLayout<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Boolean.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ModalRichmediaConfig</a></div><div class="brief ">Sets whether modal in-app messages should respect edge-to-edge layout in modern Android versions.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="528175573%2FFunctions%2F1658412858" anchor-label="setStatusBarCovered" id="528175573%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="528175573%2FFunctions%2F-816828224" anchor-label="setStatusBarCovered" id="528175573%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-status-bar-covered.html"><span>set</span><wbr><span>Status</span><wbr><span>Bar</span><wbr><span><span>Covered</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="528175573%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="528175573%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-status-bar-covered.html"><span class="token function">setStatusBarCovered</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">statusBarCovered<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/Boolean.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ModalRichmediaConfig</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="set-status-bar-covered.html"><span class="token function">setStatusBarCovered</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">statusBarCovered<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Boolean.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">ModalRichmediaConfig</a></div><div class="brief ">Sets whether modal in-app messages should cover the status bar area.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-970636034%2FFunctions%2F1658412858" anchor-label="shouldRespectEdgeToEdgeLayout" id="-970636034%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-970636034%2FFunctions%2F-816828224" anchor-label="shouldRespectEdgeToEdgeLayout" id="-970636034%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="should-respect-edge-to-edge-layout.html"><span>should</span><wbr><span>Respect</span><wbr><span>Edge</span><wbr><span>To</span><wbr><span>Edge</span><wbr><span><span>Layout</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-970636034%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-970636034%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="should-respect-edge-to-edge-layout.html"><span class="token function">shouldRespectEdgeToEdgeLayout</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/Boolean.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="should-respect-edge-to-edge-layout.html"><span class="token function">shouldRespectEdgeToEdgeLayout</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Boolean.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -247,12 +299,18 @@
     </div>
   </div>
 </div>
-      <div class="footer">
-        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
-      </div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
             </div>
         </div>
     </div>
 </body>
 </html>
-

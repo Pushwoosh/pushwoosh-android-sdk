@@ -26,6 +26,14 @@
 
 package com.pushwoosh.exception;
 
+/**
+ * Exception thrown when retrieving tags fails.
+ * <p>
+ * Returned via {@link com.pushwoosh.function.Callback} when {@link com.pushwoosh.Pushwoosh#getTags(com.pushwoosh.function.Callback)} fails.
+ * Common causes: network errors, device not registered.
+ *
+ * @see com.pushwoosh.Pushwoosh#getTags(com.pushwoosh.function.Callback)
+ */
 public class GetTagsException extends PushwooshException {
 	public GetTagsException(String description) {
 		super(description);

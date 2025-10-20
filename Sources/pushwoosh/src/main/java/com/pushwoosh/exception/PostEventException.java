@@ -26,6 +26,14 @@
 
 package com.pushwoosh.exception;
 
+/**
+ * Exception thrown when posting custom event fails.
+ * <p>
+ * Returned via {@link com.pushwoosh.function.Callback} when {@link com.pushwoosh.Pushwoosh#postEvent(String, com.pushwoosh.tags.TagsBundle, com.pushwoosh.function.Callback)} fails.
+ * Common causes: network errors, invalid event name or attributes.
+ *
+ * @see com.pushwoosh.Pushwoosh#postEvent(String, com.pushwoosh.tags.TagsBundle, com.pushwoosh.function.Callback)
+ */
 public class PostEventException extends PushwooshException {
 	public PostEventException(String description) {
 		super(description);

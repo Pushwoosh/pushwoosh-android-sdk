@@ -94,7 +94,7 @@ public class RichMediaManager {
 
         ModalRichMediaViewPosition viewPos = config.getViewPosition();
         prefs.richMediaViewPosition().set(viewPos != null ? 
-            viewPos.getCode() : ModalRichMediaViewPosition.CENTER.getCode());
+            viewPos.getCode() : ModalRichMediaViewPosition.FULLSCREEN.getCode());
         
         ModalRichMediaWindowWidth windowWidth = config.getWindowWidth();
         prefs.richMediaWindowWidth().set(windowWidth != null ? 

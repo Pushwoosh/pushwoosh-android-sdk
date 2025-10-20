@@ -26,6 +26,14 @@
 
 package com.pushwoosh.exception;
 
+/**
+ * Exception thrown when reloading in-app messages fails.
+ * <p>
+ * Returned via {@link com.pushwoosh.function.Callback} when {@link com.pushwoosh.inapp.PushwooshInApp#reloadInApps(com.pushwoosh.function.Callback)} fails.
+ * Common causes: network errors, invalid app configuration.
+ *
+ * @see com.pushwoosh.inapp.PushwooshInApp#reloadInApps(com.pushwoosh.function.Callback)
+ */
 public class ReloadInAppsException extends PushwooshException {
     public ReloadInAppsException(String description) {
         super(description);

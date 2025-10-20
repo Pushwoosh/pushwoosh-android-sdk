@@ -25,44 +25,76 @@
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
 <link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
 <script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
 <script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
 <body>
     <div class="root">
-<nav class="navigation" id="navigation-wrapper">
-    <div class="navigation--inner">
-        <div class="navigation-title">
-            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
-            <div class="library-name">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
 <a class="library-name--link" href="../../../index.html">
-                            Pushwoosh Android SDK
-                    </a>            </div>
-            <div class="library-version">
+                    Pushwoosh Android SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":pushwoosh/main" data-filter=":pushwoosh/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
         </div>
-        <div class="filter-section" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh:dokkaHtmlPartial/main">main</button>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
         </div>
-    </div>
-    <div class="navigation-controls">
-        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
-        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
-    </div>
-</nav>
+    </nav>
         <div id="container">
             <div class="sidebar" id="leftColumn">
-                <div class="sidebar--inner" id="sideMenu"></div>
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Pushwoosh Android SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
             </div>
             <div id="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh::com.pushwoosh.tags/TagsBundle///PointingToDeclaration//1658412858">
+<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh::com.pushwoosh.tags/TagsBundle///PointingToDeclaration//-816828224">
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.tags</a><span class="delimiter">/</span><span class="current">TagsBundle</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Tags</span><wbr><span><span>Bundle</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">TagsBundle</a></div><p class="paragraph">Immutable, thread-safe collection of tags for user segmentation and personalization. </p><p class="paragraph"> TagsBundle stores key-value pairs that represent user attributes, preferences, and behaviors. Tags enable targeted push notifications, audience segmentation, and personalized content delivery through the Pushwoosh platform. Once built, a TagsBundle instance is immutable and can be safely shared across threads. </p><p class="paragraph">Building vs Reading Tags:</p><ul><li>Use <a href="-builder/index.html">Builder</a> when you need to create a custom tag collection for multiple operations</li><li>Use <a href="../-tags/index.html">Tags</a> utility methods for simple, one-off tag operations</li><li>Use <a href="../../../pushwoosh/com.pushwoosh/-pushwoosh/send-tags.html">sendTags</a> to sync tags with Pushwoosh servers</li></ul><p class="paragraph">Supported Tag Types:</p><ul><li>Integer - for demographics, counters, scores (age, level, points)</li><li>Long - for timestamps, large IDs (registration_timestamp, user_id)</li><li>Boolean - for flags, subscriptions (email_subscribed, premium_user)</li><li>String - for profile data, categories (name, gender, favorite_category)</li><li>List - for multi-value attributes (interests, purchased_products)</li><li>Date - for milestones, events (last_purchase, subscription_end)</li></ul><p class="paragraph">Thread Safety: TagsBundle is immutable after creation. The Builder uses <a href="https://developer.android.com/reference/kotlin/java/util/concurrent/ConcurrentHashMap.html">ConcurrentHashMap</a> to allow safe concurrent tag additions during construction. </p><p class="paragraph">Usage Example (E-commerce App):</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">TagsBundle</a></div><p class="paragraph">Immutable, thread-safe collection of tags for user segmentation and personalization. </p><p class="paragraph"> TagsBundle stores key-value pairs that represent user attributes, preferences, and behaviors. Tags enable targeted push notifications, audience segmentation, and personalized content delivery through the Pushwoosh platform. Once built, a TagsBundle instance is immutable and can be safely shared across threads. </p><p class="paragraph">Building vs Reading Tags:</p><ul><li>Use <a href="-builder/index.html">Builder</a> when you need to create a custom tag collection for multiple operations</li><li>Use <a href="../-tags/index.html">Tags</a> utility methods for simple, one-off tag operations</li><li>Use <a href="../../../pushwoosh/com.pushwoosh/-pushwoosh/send-tags.html">sendTags</a> to sync tags with Pushwoosh servers</li></ul><p class="paragraph">Supported Tag Types:</p><ul><li>Integer - for demographics, counters, scores (age, level, points)</li><li>Long - for timestamps, large IDs (registration_timestamp, user_id)</li><li>Boolean - for flags, subscriptions (email_subscribed, premium_user)</li><li>String - for profile data, categories (name, gender, favorite_category)</li><li>List - for multi-value attributes (interests, purchased_products)</li><li>Date - for milestones, events (last_purchase, subscription_end)</li></ul><p class="paragraph">Thread Safety: TagsBundle is immutable after creation. The Builder uses <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html">ConcurrentHashMap</a> to allow safe concurrent tag additions during construction. </p><p class="paragraph">Usage Example (E-commerce App):</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
 // Building tags for a premium customer
 TagsBundle tags = new TagsBundle.Builder()
     .putString("customer_tier", "premium")
@@ -83,24 +115,24 @@ List&lt;String&gt; categories = tags.getList("favorite_categories"); // ["electr
 
 // Converting to JSON for API calls
 JSONObject json = tags.toJson();
-</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-tags/index.html"><span><span>Tags</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh/-pushwoosh/send-tags.html"><span><span>Pushwoosh</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><span><span>&lt;a</span></span> <span>href="http://docs.</span><wbr><span>pushwoosh.</span><wbr><span><span>com/docs/segmentation-tags-and-filters"&gt;Segmentation</span></span> <span><span>guide&lt;/a&gt;</span></span></div></span></div><div></div></div></div></div></div></div>
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-tags/index.html"><span><span>Tags</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh/-pushwoosh/send-tags.html"><span><span>Pushwoosh</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><span><span>&lt;a</span></span> <span>href="http://docs.</span><wbr><span>pushwoosh.</span><wbr><span><span>com/docs/segmentation-tags-and-filters"&gt;Segmentation</span></span> <span><span>guide&lt;/a&gt;</span></span></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="TYPE">
         <h2 class="">Types</h2>
-        <div class="table"><a data-name="1049096252%2FClasslikes%2F1658412858" anchor-label="Builder" id="1049096252%2FClasslikes%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+        <div class="table"><a data-name="1049096252%2FClasslikes%2F-816828224" anchor-label="Builder" id="1049096252%2FClasslikes%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-builder/index.html"><span><span>Builder</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1049096252%2FClasslikes%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1049096252%2FClasslikes%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="-builder/index.html">Builder</a></div><div class="brief ">Builder for constructing <a href="index.html">TagsBundle</a> instances using the Builder pattern.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="-builder/index.html">Builder</a></div><div class="brief ">Builder for constructing <a href="index.html">TagsBundle</a> instances using the Builder pattern.</div></div></div>
                 </div>
               </div>
             </div>
@@ -109,107 +141,107 @@ JSONObject json = tags.toJson();
       </div>
       <div data-togglable="FUNCTION">
         <h2 class="">Functions</h2>
-        <div class="table"><a data-name="-1957193414%2FFunctions%2F1658412858" anchor-label="getBoolean" id="-1957193414%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+        <div class="table"><a data-name="-1957193414%2FFunctions%2F-816828224" anchor-label="getBoolean" id="-1957193414%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-boolean.html"><span>get</span><wbr><span><span>Boolean</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1957193414%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1957193414%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-boolean.html"><span class="token function">getBoolean</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">defaultValue<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Retrieves a boolean tag value by name, with a fallback default value.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-boolean.html"><span class="token function">getBoolean</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">defaultValue<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Retrieves a boolean tag value by name, with a fallback default value.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1127926060%2FFunctions%2F1658412858" anchor-label="getInt" id="1127926060%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="1127926060%2FFunctions%2F-816828224" anchor-label="getInt" id="1127926060%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-int.html"><span>get</span><wbr><span><span>Int</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1127926060%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1127926060%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-int.html"><span class="token function">getInt</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">defaultValue<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief ">Retrieves an integer tag value by name, with a fallback default value.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-int.html"><span class="token function">getInt</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">defaultValue<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief ">Retrieves an integer tag value by name, with a fallback default value.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2108899403%2FFunctions%2F1658412858" anchor-label="getList" id="2108899403%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="2108899403%2FFunctions%2F-816828224" anchor-label="getList" id="2108899403%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-list.html"><span>get</span><wbr><span><span>List</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2108899403%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2108899403%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-list.html"><span class="token function">getList</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/List.html">List</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token operator">&gt;</span></div><div class="brief ">Retrieves a list tag value by name, or null if not found.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-list.html"><span class="token function">getList</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html">List</a><span class="token operator">&lt;</span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a><span class="token operator">&gt;</span></div><div class="brief ">Retrieves a list tag value by name, or null if not found.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1473448586%2FFunctions%2F1658412858" anchor-label="getLong" id="-1473448586%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1473448586%2FFunctions%2F-816828224" anchor-label="getLong" id="-1473448586%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-long.html"><span>get</span><wbr><span><span>Long</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1473448586%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1473448586%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-long.html"><span class="token function">getLong</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">defaultValue<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-long/index.html">Long</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-long/index.html">Long</a></div><div class="brief ">Retrieves a long tag value by name, with a fallback default value.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-long.html"><span class="token function">getLong</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">defaultValue<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div><div class="brief ">Retrieves a long tag value by name, with a fallback default value.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1301047728%2FFunctions%2F1658412858" anchor-label="getMap" id="-1301047728%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-1301047728%2FFunctions%2F-816828224" anchor-label="getMap" id="-1301047728%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-map.html"><span>get</span><wbr><span><span>Map</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1301047728%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1301047728%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-map.html"><span class="token function">getMap</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/util/Map.html">Map</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt;</span></div><div class="brief ">Returns the internal map representation of tags.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-map.html"><span class="token function">getMap</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.html">Map</a><span class="token operator">&lt;</span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt;</span></div><div class="brief ">Returns the internal map representation of tags.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="971585016%2FFunctions%2F1658412858" anchor-label="getString" id="971585016%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="971585016%2FFunctions%2F-816828224" anchor-label="getString" id="971585016%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-string.html"><span>get</span><wbr><span><span>String</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="971585016%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="971585016%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-string.html"><span class="token function">getString</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a></div><div class="brief ">Retrieves a string tag value by name, or null if not found.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-string.html"><span class="token function">getString</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div><div class="brief ">Retrieves a string tag value by name, or null if not found.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-542354157%2FFunctions%2F1658412858" anchor-label="toJson" id="-542354157%2FFunctions%2F1658412858" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main"></a>
-          <div class="table-row" data-filterable-current=":pushwoosh:dokkaHtmlPartial/main" data-filterable-set=":pushwoosh:dokkaHtmlPartial/main">
+<a data-name="-542354157%2FFunctions%2F-816828224" anchor-label="toJson" id="-542354157%2FFunctions%2F-816828224" data-filterable-set=":pushwoosh/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="to-json.html"><span>to</span><wbr><span><span>Json</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-542354157%2FFunctions%2F1658412858"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-542354157%2FFunctions%2F-816828224"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh:dokkaHtmlPartial/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="to-json.html"><span class="token function">toJson</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span>JSONObject</div><div class="brief ">Converts the TagsBundle to its JSON representation.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="to-json.html"><span class="token function">toJson</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.json/JSONObject///PointingToDeclaration/">JSONObject</span></div><div class="brief ">Converts the TagsBundle to its JSON representation.</div></div></div>
                 </div>
               </div>
             </div>
@@ -219,12 +251,18 @@ JSONObject json = tags.toJson();
     </div>
   </div>
 </div>
-      <div class="footer">
-        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
-      </div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
             </div>
         </div>
     </div>
 </body>
 </html>
-

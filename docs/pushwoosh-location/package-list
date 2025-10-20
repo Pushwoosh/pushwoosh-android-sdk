@@ -1,6 +1,0 @@
-$dokka.format:html-v1
-$dokka.linkExtension:html
-
-com.pushwoosh.location
-com.pushwoosh.location.network.exception
-

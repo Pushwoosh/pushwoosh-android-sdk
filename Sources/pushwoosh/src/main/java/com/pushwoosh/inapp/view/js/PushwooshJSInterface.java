@@ -232,6 +232,10 @@ public class PushwooshJSInterface {
                     + "        });"
                     + ""
                     + "        pushwooshImpl.isRegisteredForPushNotifications(clb);"
+                    + "    },"
+                    + ""
+                    + "    setEmail: function(email) {"
+                    + "        pushwooshImpl.setEmail(email);"
                     + "    }"
                     + "};"
                     + "}());";
@@ -426,5 +430,10 @@ public class PushwooshJSInterface {
             registered = PushwooshPlatform.getInstance().getRegistrationPrefs().isRegisteredForPush().get();
         } catch (Exception ignore) {}
         invokeCallback(callback, registered ? "true" : "false");
+    }
+
+    @JavascriptInterface
+    public void setEmail(String email) {
+        Pushwoosh.getInstance().setEmail(email);
     }
 }

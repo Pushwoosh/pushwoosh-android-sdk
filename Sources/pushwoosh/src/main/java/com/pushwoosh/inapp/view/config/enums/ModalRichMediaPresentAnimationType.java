@@ -2,12 +2,31 @@ package com.pushwoosh.inapp.view.config.enums;
 
 import com.pushwoosh.internal.utils.PWLog;
 
+/**
+ * Defines animation types for presenting modal in-app messages.
+ * <p>
+ * Presentation animations create visual continuity and draw attention when modals appear.
+ * Different animations work better with different modal positions and content types.
+ *
+ * @see ModalRichmediaConfig#setPresentAnimationType(ModalRichMediaPresentAnimationType)
+ */
 public enum ModalRichMediaPresentAnimationType {
+    /** Smooth fade-in animation, ideal for professional and subtle presentations */
     FADE_IN(0),
+    
+    /** Drop-down animation from top, ideal for notifications and alerts */
     DROP_DOWN(1),
+    
+    /** Slide animation from the left side of the screen */
     SLIDE_FROM_LEFT(2),
+    
+    /** Slide animation upward from the bottom, ideal for bottom-positioned modals */
     SLIDE_UP(3),
+    
+    /** Slide animation from the right side of the screen */
     SLIDE_FROM_RIGHT(4),
+    
+    /** No animation - modal appears instantly */
     NONE(5);
 
     private final int code;

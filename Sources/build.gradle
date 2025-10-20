@@ -5,7 +5,7 @@ buildscript {
     ext.huawei_version = '1.9.1.300'
     ext.gradle_version = '8.1.1'
     ext.gradle_pitest_plugin_version = '0.2.2'
-    ext.dokka_version = '1.9.20'
+    ext.dokka_version = '2.0.0'
     repositories {
         google()
         mavenCentral()
@@ -21,7 +21,6 @@ buildscript {
         classpath "com.huawei.agconnect:agcp:$huawei_version"
         classpath libs.google.services
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-        classpath "org.jetbrains.dokka:dokka-base:$dokka_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -41,7 +40,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 35
     ext.global_targetVersion = 35
-    ext.global_versionName = "6.7.37"
+    ext.global_versionName = "6.7.38"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"
@@ -65,22 +64,52 @@ subprojects {
 
 apply plugin: 'org.jetbrains.dokka'
 
-// Dokka output directory (can be overridden via -PdokkaOutputDir=...)
-ext.dokkaOutputDir = project.findProperty('dokkaOutputDir') ?: "$rootProject.projectDir/../output/docs"
+// Dokka output directory (REQUIRED via -PdokkaOutputDir=... only when running dokka tasks)
+// Check if any dokka task is being executed
+def isDokkaTask = gradle.startParameter.taskNames.any { it.toLowerCase().contains('dokka') }
+
+if (isDokkaTask && !project.hasProperty('dokkaOutputDir')) {
+    throw new GradleException("❌ dokkaOutputDir property is required. Pass it via -PdokkaOutputDir=...")
+}
+
+// Set dokkaOutputDir only if provided or if dokka task is running
+if (project.hasProperty('dokkaOutputDir')) {
+    ext.dokkaOutputDir = project.property('dokkaOutputDir')
+} else {
+    // Provide default value for non-dokka tasks to avoid configuration errors
+    ext.dokkaOutputDir = "${project.buildDir}/dokka-default"
+}
 
 // Apply Dokka plugin to all SDK modules
 subprojects {
     // Only apply to SDK modules, exclude demoapp and stubs
     if (project.name != 'demoapp' && !project.name.contains('stub')) {
         apply plugin: 'org.jetbrains.dokka'
+
+        // Store visibility enum reference for use in applied scripts (Dokka 2.0 VisibilityModifier)
+        ext.dokkaVisibilityPublic = org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Public
+        ext.dokkaVisibilityProtected = org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Protected
     }
 }
 
 // ============================================
-// Multi-Module HTML Documentation
+// Multi-Module HTML Documentation (Dokka 2.0)
 // ============================================
 
-tasks.dokkaHtmlMultiModule.configure {
+dokka {
     moduleName.set("Pushwoosh Android SDK")
-    outputDirectory.set(file("${project.findProperty('dokkaOutputDir') ?: "$rootProject.projectDir/../output/docs"}"))
+
+    // Aggregate documentation from subprojects
+    dokkaPublications.html {
+        outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}"))
+    }
+}
+
+// Add dokka dependencies for multi-module aggregation
+dependencies {
+    subprojects.each { subproject ->
+        if (subproject.name != 'demoapp' && !subproject.name.contains('stub')) {
+            dokka(project(":${subproject.name}"))
+        }
+    }
 }

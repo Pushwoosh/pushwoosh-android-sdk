@@ -2,6 +2,14 @@ package com.pushwoosh.inapp.view.config.enums;
 
 import com.pushwoosh.internal.utils.PWLog;
 
+/**
+ * Defines width behavior for modal in-app messages.
+ * <p>
+ * The window width affects the visual impact and integration of modals with your app's layout.
+ * Choose based on content type and desired user attention level.
+ *
+ * @see ModalRichmediaConfig#setWindowWidth(ModalRichMediaWindowWidth)
+ */
 public enum ModalRichMediaWindowWidth {
     FULL_SCREEN(0),
     WRAP_CONTENT(1);

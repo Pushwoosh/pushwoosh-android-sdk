@@ -1,1 +1,0 @@
-{"@class":"org.jetbrains.dokka.base.templating.AddToSourcesetDependencies","moduleName":"pushwoosh-calls","content":{":pushwoosh-calls:dokkaHtmlPartial/coverage":[],":pushwoosh-calls:dokkaHtmlPartial/debug":[],":pushwoosh-calls:dokkaHtmlPartial/main":[],":pushwoosh-calls:dokkaHtmlPartial/release":[]}}

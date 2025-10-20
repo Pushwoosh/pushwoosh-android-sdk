@@ -254,6 +254,13 @@ def configureDokkaSourceSet(sourceSet) {
     // Skip deprecated methods/classes
     sourceSet.skipDeprecated.set(true)
 
+    // Configure visibility modifiers (Dokka 2.0) - include PUBLIC and PROTECTED
+    // Reference visibility enums from project extension properties set in root build.gradle
+    sourceSet.documentedVisibilities.set([
+        project.ext.dokkaVisibilityPublic,
+        project.ext.dokkaVisibilityProtected
+    ])
+
     sourceSet.perPackageOption {
         matchingRegex.set(".*\\.internal.*")
         suppress.set(true)
@@ -261,29 +268,17 @@ def configureDokkaSourceSet(sourceSet) {
 }
 
 // ============================================
-// GFM (Markdown) Configuration
+// Dokka 2.0 Configuration
 // ============================================
 
-tasks.dokkaGfm.configure {
-    outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}/${project.name}"))
-
+dokka {
     dokkaSourceSets {
         main {
             configureDokkaSourceSet(it)
         }
     }
-}
 
-// ============================================
-// HTML Partial Configuration (for MultiModule)
-// ============================================
-
-tasks.dokkaHtmlPartial.configure {
-    outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}/${project.name}"))
-
-    dokkaSourceSets {
-        main {
-            configureDokkaSourceSet(it)
-        }
+    dokkaPublications.html {
+        outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}/${project.name}"))
     }
 }

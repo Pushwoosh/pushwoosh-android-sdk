@@ -126,7 +126,7 @@ public class RichMediaManagerTest {
 
             verify(mockDismissAnimPref).set(ModalRichMediaDismissAnimationType.FADE_OUT.getCode());
             verify(mockPresentAnimPref).set(ModalRichMediaPresentAnimationType.FADE_IN.getCode());
-            verify(mockViewPositionPref).set(ModalRichMediaViewPosition.CENTER.getCode());
+            verify(mockViewPositionPref).set(ModalRichMediaViewPosition.FULLSCREEN.getCode());
             verify(mockWindowWidthPref).set(ModalRichMediaWindowWidth.FULL_SCREEN.getCode());
             verify(mockStatusBarPref).set(false);
             verify(mockRespectEdgeToEdgePref).set(true); // Default true for edge-to-edge

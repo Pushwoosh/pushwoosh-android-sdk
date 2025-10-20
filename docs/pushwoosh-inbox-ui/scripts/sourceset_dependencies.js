@@ -1,1 +1,0 @@
-{"@class":"org.jetbrains.dokka.base.templating.AddToSourcesetDependencies","moduleName":"pushwoosh-inbox-ui","content":{":pushwoosh-inbox-ui:dokkaHtmlPartial/debug":[],":pushwoosh-inbox-ui:dokkaHtmlPartial/main":[],":pushwoosh-inbox-ui:dokkaHtmlPartial/release":[]}}

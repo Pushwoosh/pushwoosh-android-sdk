@@ -91,7 +91,7 @@ import java.util.Objects;
  * <b>Important Notes:</b>
  * <ul>
  * <li>Always call {@link #getInstance()} to access the SDK instance</li>
- * <li>On Android 13+, request notification permission before registration using {@link #requestNotificationPermission()}</li>
+ * <li>On Android 13+, notification permission is requested automatically during {@link #registerForPushNotifications(Callback)}</li>
  * <li>Set user tags to enable targeted campaigns and personalization</li>
  * <li>Use {@link #setUserId(String)} to track users across multiple devices</li>
  * <li>Handle push notifications using {@link #getLaunchNotification()} for deep linking</li>
@@ -522,10 +522,7 @@ public class Pushwoosh {
      *       super.onCreate(savedInstanceState);
      *       setContentView(R.layout.activity_main);
      *
-     *       // Request notification permission (Android 13+) before registration
-     *       Pushwoosh.getInstance().requestNotificationPermission();
-     *
-     *       // Register with callback to handle success/error
+     *       // Register for push notifications (permission requested automatically on Android 13+)
      *       Pushwoosh.getInstance().registerForPushNotifications((result) -> {
      *           if (result.isSuccess()) {
      *               String pushToken = result.getData().getToken();

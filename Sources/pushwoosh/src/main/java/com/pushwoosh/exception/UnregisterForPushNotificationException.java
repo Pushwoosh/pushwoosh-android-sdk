@@ -26,6 +26,14 @@
 
 package com.pushwoosh.exception;
 
+/**
+ * Exception thrown when unregistering from push notifications fails.
+ * <p>
+ * Returned via {@link com.pushwoosh.function.Callback} when {@link com.pushwoosh.Pushwoosh#unregisterForPushNotifications(com.pushwoosh.function.Callback)} fails.
+ * Common causes: network errors, device not registered.
+ *
+ * @see com.pushwoosh.Pushwoosh#unregisterForPushNotifications(com.pushwoosh.function.Callback)
+ */
 public class UnregisterForPushNotificationException extends PushwooshException {
 	public UnregisterForPushNotificationException(final String description) {
 		super(description);

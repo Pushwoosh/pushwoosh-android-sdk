@@ -26,6 +26,14 @@
 
 package com.pushwoosh.exception;
 
+/**
+ * Exception thrown when merging user data fails.
+ * <p>
+ * Returned via {@link com.pushwoosh.function.Callback} when {@link com.pushwoosh.Pushwoosh#mergeUserId(String, String, boolean, com.pushwoosh.function.Callback)} fails.
+ * Common causes: network errors, invalid user IDs.
+ *
+ * @see com.pushwoosh.Pushwoosh#mergeUserId(String, String, boolean, com.pushwoosh.function.Callback)
+ */
 public class MergeUserException extends PushwooshException {
 	public MergeUserException(String description) {
 		super(description);

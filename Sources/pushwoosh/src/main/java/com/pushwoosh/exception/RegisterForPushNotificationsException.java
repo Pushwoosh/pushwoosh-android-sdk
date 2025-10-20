@@ -26,6 +26,14 @@
 
 package com.pushwoosh.exception;
 
+/**
+ * Exception thrown when push notification registration fails.
+ * <p>
+ * Returned via {@link com.pushwoosh.function.Callback} when {@link com.pushwoosh.Pushwoosh#registerForPushNotifications(com.pushwoosh.function.Callback)} fails.
+ * Common causes: missing Google Play Services, network errors, invalid app configuration.
+ *
+ * @see com.pushwoosh.Pushwoosh#registerForPushNotifications(com.pushwoosh.function.Callback)
+ */
 public class RegisterForPushNotificationsException extends PushwooshException {
 	public RegisterForPushNotificationsException(String description) {
 		super(description);

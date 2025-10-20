@@ -26,6 +26,15 @@
 
 package com.pushwoosh.exception;
 
+/**
+ * Base exception class for all Pushwoosh SDK errors.
+ * <p>
+ * All SDK operations that can fail return this exception (or its subclasses) via {@link com.pushwoosh.function.Callback}.
+ * Check {@link com.pushwoosh.function.Result#getException()} to get exception details when operation fails.
+ *
+ * @see com.pushwoosh.function.Callback
+ * @see com.pushwoosh.function.Result
+ */
 public class PushwooshException extends Exception {
 	public PushwooshException(String description) {
 		super(description);
