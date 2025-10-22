@@ -75,7 +75,10 @@ android {
         jvmToolchain(17)
     }
     publishing {
-        singleVariant("release")
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
     }
 }
 

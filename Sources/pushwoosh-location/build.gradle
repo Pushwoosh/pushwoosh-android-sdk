@@ -70,7 +70,10 @@ android {
         unitTests.returnDefaultValues = true
     }
     publishing {
-        singleVariant("release")
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
     }
 }
 

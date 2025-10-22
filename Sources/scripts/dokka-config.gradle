@@ -5,24 +5,6 @@
 // Applied to all SDK modules via: apply from: '../scripts/dokka-config.gradle'
 
 // ============================================
-// Configuration Mode Selection
-// ============================================
-
-/**
- * Determine which source of public API classes to use:
- * - If -PpublicApiOnly=true: Use tools/public-api.yaml (PUBLIC API ONLY)
- * - Otherwise: Use proguard/public.txt (ALL CLASSES - legacy mode)
- */
-def usePublicApiYaml = project.hasProperty('publicApiOnly') &&
-        project.property('publicApiOnly').toString().toBoolean()
-
-if (usePublicApiYaml) {
-    logger.lifecycle("📗 Documentation mode: PUBLIC API ONLY (from tools/public-api.yaml)")
-} else {
-    logger.lifecycle("📚 Documentation mode: ALL CLASSES (from ProGuard files)")
-}
-
-// ============================================
 // ProGuard Parsing Functions
 // ============================================
 
@@ -56,7 +38,7 @@ def resolveWildcardPattern(String className) {
         }
         logger.debug("Processed wildcard pattern: ${className} (${files.size()} files)")
     } else {
-        logger.debug("Wildcard package not found: ${packagePath}")
+        logger.warn("Wildcard package not found: ${packagePath}")
     }
 
     return files
@@ -88,7 +70,7 @@ def resolveClassName(String className) {
         return kotlinFile
     }
 
-    logger.debug("ProGuard references non-existent file: ${baseFilePath}.{java|kt}")
+    logger.error("resolveClassName() references non-existent file: ${baseFilePath}.{java|kt}")
     return null
 }
 
@@ -98,7 +80,7 @@ def resolveClassName(String className) {
  */
 def parsePublicApiYaml() {
     // Get YAML path from property (set by bash script) or use default
-    def yamlPath = project.findProperty('publicApiYamlPath') ?: "../../tools/public-api.yaml"
+    def yamlPath = project.findProperty('publicApiYamlPath')
     def yamlFile = file(yamlPath)
 
     if (!yamlFile.exists()) {
@@ -118,10 +100,13 @@ def parsePublicApiYaml() {
             return
         }
 
-        // Check if we've moved to a different module
-        if (line.matches(/^\s{2}\w+:\s*$/) && !line.contains(moduleName)) {
-            inCurrentModule = false
-            return
+        // Check if we've moved to a different module (exact module name match)
+        if (line.matches(/^\s{2}[\w-]+:\s*$/)) {
+            def otherModuleName = line.replaceAll(/^\s{2}([\w-]+):\s*$/, '$1')
+            if (otherModuleName != moduleName) {
+                inCurrentModule = false
+                return
+            }
         }
 
         // Parse className if we're in current module
@@ -182,8 +167,9 @@ def parseYamlPublicClasses() {
     def classNames = parsePublicApiYaml()
     if (!classNames) return null
 
-    def publicSourceFiles = []
+    logger.lifecycle("Got classes: ${classNames.size()}")
 
+    def publicSourceFiles = []
     classNames.each { className ->
         // Resolve files (wildcard or concrete class)
         def files = className.contains('*') ?
@@ -197,8 +183,7 @@ def parseYamlPublicClasses() {
             }
         }
     }
-
-    logger.info("Resolved ${publicSourceFiles.size()} source files from YAML for ${project.name}")
+    logger.lifecycle("Resolved ${publicSourceFiles.size()} source files from YAML for ${project.name}")
     return publicSourceFiles.isEmpty() ? null : publicSourceFiles
 }
 
@@ -213,8 +198,9 @@ def parseYamlPublicClasses() {
  */
 def configureDokkaSourceSet(sourceSet) {
     // Determine mode (check property again inside function scope)
-    def useYamlMode = project.hasProperty('publicApiOnly') &&
-            project.property('publicApiOnly').toString().toBoolean()
+    def useYamlMode = project.hasProperty('publicApiOnly') && project.property('publicApiOnly').toString().toBoolean()
+
+    logger.lifecycle("useYamlMode: ${useYamlMode}")
 
     // Choose source based on mode
     def publicClasses = useYamlMode ?

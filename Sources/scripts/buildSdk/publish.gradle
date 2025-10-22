@@ -62,10 +62,11 @@ afterEvaluate {
         }
         publications {
             release(MavenPublication) {
+                from components.release
                 artifactId = LIB_ARTIFACT_ID
                 groupId = "com.pushwoosh"
                 version = LIB_VERSION
-                artifact("$buildDir/outputs/aar/$LIB_ARTIFACT_ID-release.aar")
+
                 pom {
                     name = POM_NAME
                     description = POM_DESCRIPTION
@@ -130,7 +131,8 @@ afterEvaluate {
                                             }
                                 }
 
-                        def dependenciesNode = asNode().appendNode('dependencies')
+                        // Find existing dependencies node (created by 'from components.release') or create new one
+                        def dependenciesNode = asNode().dependencies[0] ?: asNode().appendNode('dependencies')
                         switch (project.name) {
                             case 'pushwoosh':
                                 addDependency(dependenciesNode, 'androidx.legacy', 'legacy-support-v4', legacySupportV4Version)
@@ -174,6 +176,10 @@ afterEvaluate {
     }
 }
 signing {
+    // Skip signing ONLY if explicitly requested (useful for local testing)
+    // Usage: ./gradlew publishToMavenLocal -Psigning.skip=true
+    // Otherwise signing is REQUIRED (will fail if credentials missing)
+    required { !project.hasProperty('signing.skip') }
     sign publishing.publications
 }
 
