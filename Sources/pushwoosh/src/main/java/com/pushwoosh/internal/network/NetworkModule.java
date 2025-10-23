@@ -64,8 +64,8 @@ public class NetworkModule {
 			protected Void doInBackground(Void... voids) {
 				try {
 					task.run();
-				} catch (Exception e) {
-					PWLog.error(e.getMessage());
+				} catch (Throwable e) {
+					PWLog.error("NetworkModule task failed", e);
 				}
 				return null;
 			}

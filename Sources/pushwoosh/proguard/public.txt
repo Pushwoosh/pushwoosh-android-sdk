@@ -198,7 +198,7 @@
     protected *;
 }
 
--keep class com.pushwoosh.PushStatisticsScheduler.java {
+-keep class com.pushwoosh.PushStatisticsScheduler {
     public *;
     protected *;
 }

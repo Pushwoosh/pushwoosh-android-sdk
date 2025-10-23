@@ -30,7 +30,7 @@ public class HandleMessageWorker extends Worker {
         Bundle pushBundle;
         try {
             pushBundle = RepositoryModule.getPushBundleStorage().getPushBundle(id);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return onFailure();
         }
         if (pushBundle == null) {

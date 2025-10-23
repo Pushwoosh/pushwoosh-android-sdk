@@ -137,7 +137,7 @@ public class PushwooshStartWorker {
                         long initializeDuration = System.currentTimeMillis() - initializeStartTime;
                         PWLog.info(TAG, "Pushwoosh SDK started successfully, duration: " + initializeDuration + "ms");
                         start();
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         PWLog.error(TAG, "can't start sdk", e);
                         SdkStateProvider.getInstance().setError();
                     }
@@ -239,13 +239,13 @@ public class PushwooshStartWorker {
                 try {
                     preferences.hwid().set(value);
                     EventBus.sendEvent(new InitHwidEvent(value));
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     PWLog.error(TAG, "can't store device hwid", e);
                     hasFailed.set(true);
                 }
                 latch.countDown();
             });
-        } catch (Exception e) {
+        } catch (Throwable e) {
             PWLog.error(TAG, "can't fetchDeviceHwid", e);
 
             hasFailed.set(true);
@@ -280,7 +280,7 @@ public class PushwooshStartWorker {
                             try {
                                 String applicationCode = preferences.applicationId().get();
                                 PWLog.debug(TAG, "fetched application code:" + applicationCode);
-                            } catch (Exception e) {
+                            } catch (Throwable e) {
                                 PWLog.error(TAG, "can't fetch application code", e);
                                 hasFailed.set(true);
                             }
@@ -293,7 +293,7 @@ public class PushwooshStartWorker {
                         }
                     }
             );
-        } catch (Exception e) {
+        } catch (Throwable e) {
             PWLog.error(TAG, "can't subscribe to fetch app code", e);
             hasFailed.set(true);
             latch.countDown();
@@ -310,7 +310,7 @@ public class PushwooshStartWorker {
         PWLog.noise(TAG, "start()");
         try {
             printInitializingMessage();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             PWLog.error(TAG, "an error occurred during start", e);
         }
     }

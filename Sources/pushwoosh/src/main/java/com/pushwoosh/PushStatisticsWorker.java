@@ -164,7 +164,7 @@ public class PushStatisticsWorker extends Worker {
                 return Result.failure();
             }
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
             PWLog.error(TAG, "Failed to send statistics event: " + eventType, e);
             return Result.retry();
         }
