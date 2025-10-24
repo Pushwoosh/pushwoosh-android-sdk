@@ -5,19 +5,8 @@
 // Applied to all SDK modules via: apply from: '../scripts/dokka-config.gradle'
 
 // ============================================
-// ProGuard Parsing Functions
+// YAML and Source File Resolution Functions
 // ============================================
-
-/**
- * Parse single ProGuard class declaration line
- * @param line ProGuard rule line (e.g., "-keep public class com.example.ClassName")
- * @return Class name (e.g., "com.example.ClassName") or null if not a class declaration
- */
-def parseProguardClassName(String line) {
-    def keepClassPattern = ~/-keep\s+.*?\b(?:class|enum|interface)\s+([\w.$*]+)[\s\{]/
-    def matcher = keepClassPattern.matcher(line)
-    return matcher.find() ? matcher.group(1) : null
-}
 
 /**
  * Resolve source files for wildcard pattern (e.g., com.example.**)
@@ -125,41 +114,6 @@ def parsePublicApiYaml() {
 }
 
 /**
- * Parse ProGuard public.txt to determine which classes should be documented
- * @return List of source files to document, or null if ProGuard file not found
- */
-def parseProguardPublicClasses() {
-    def proguardFile = file("proguard/public.txt")
-
-    if (!proguardFile.exists()) {
-        logger.info("ProGuard public.txt not found for ${project.name}, documenting all public classes")
-        return null
-    }
-
-    def publicSourceFiles = []
-
-    proguardFile.eachLine { line ->
-        def className = parseProguardClassName(line)
-        if (!className) return
-
-        // Resolve files (wildcard or concrete class)
-        def files = className.contains('*') ?
-            resolveWildcardPattern(className) :
-            [resolveClassName(className)].findAll { it != null }
-
-        // Add to result (avoid duplicates)
-        files.each { f ->
-            if (!publicSourceFiles.contains(f)) {
-                publicSourceFiles.add(f)
-            }
-        }
-    }
-
-    logger.info("Found ${publicSourceFiles.size()} public classes in ${project.name} ProGuard file")
-    return publicSourceFiles.isEmpty() ? null : publicSourceFiles
-}
-
-/**
  * Parse public API classes from YAML and resolve to source files
  * @return List of source files to document, or null if not found
  */
@@ -197,15 +151,14 @@ def parseYamlPublicClasses() {
  * @param sourceSet Dokka source set to configure
  */
 def configureDokkaSourceSet(sourceSet) {
-    // Determine mode (check property again inside function scope)
-    def useYamlMode = project.hasProperty('publicApiOnly') && project.property('publicApiOnly').toString().toBoolean()
+    // Check if YAML path is provided - skip configuration if not
+    if (!project.hasProperty('publicApiYamlPath')) {
+        logger.debug("Dokka configuration skipped for ${project.name}: -PpublicApiYamlPath not provided")
+        return
+    }
 
-    logger.lifecycle("useYamlMode: ${useYamlMode}")
-
-    // Choose source based on mode
-    def publicClasses = useYamlMode ?
-        parseYamlPublicClasses() :
-        parseProguardPublicClasses()
+    // Parse public API classes from YAML
+    def publicClasses = parseYamlPublicClasses()
 
     if (publicClasses != null && publicClasses.size() > 0) {
         // For mixed Java/Kotlin modules, use directory + suppressedFiles
@@ -257,14 +210,23 @@ def configureDokkaSourceSet(sourceSet) {
 // Dokka 2.0 Configuration
 // ============================================
 
-dokka {
-    dokkaSourceSets {
-        main {
-            configureDokkaSourceSet(it)
+// Check if dokka tasks are being executed
+def isDokkaTask = gradle.startParameter.taskNames.any { it.toLowerCase().contains('dokka') }
+
+// Only configure Dokka if actually running dokka tasks
+if (isDokkaTask) {
+    logger.lifecycle("🔧 Configuring Dokka for ${project.name}")
+    dokka {
+        dokkaSourceSets {
+            main {
+                configureDokkaSourceSet(it)
+            }
+        }
+
+        dokkaPublications.html {
+            outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}/${project.name}"))
         }
     }
-
-    dokkaPublications.html {
-        outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}/${project.name}"))
-    }
+} else {
+    logger.debug("Skipping Dokka configuration for ${project.name} - not running dokka tasks")
 }

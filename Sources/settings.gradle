@@ -1,3 +1,9 @@
+// Enable automatic JDK provisioning via Foojay Toolchains Plugin
+// This allows Gradle to auto-download JDK 8 for javadoc generation if not present
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+}
+
 include ':pushwoosh-huawei'
 include ':pushwoosh', ':pushwoosh-badge', ':pushwoosh-location', ':pushwoosh-amazon', ':amazon-stub', ':pushwoosh-inbox-ui', ':pushwoosh-inbox', ':pushwoosh-firebase'
 project(':amazon-stub').projectDir = new File('pushwoosh-amazon/amazon-stub')

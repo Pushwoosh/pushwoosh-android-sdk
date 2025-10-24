@@ -1,0 +1,122 @@
+// ============================================
+// Custom Javadoc Generation for Maven Publication
+// ============================================
+// This script generates javadoc.jar with:
+// 1. JDK 8 toolchain for IDE-compatible anchor format: <a name="method-Type-">
+// 2. All source files (SDK is obfuscated in release AAR anyway)
+// 3. Protected methods documentation (important for SDK callbacks)
+//
+// Why JDK 8?
+// - IDE searches for anchors in priority order:
+//   1st: name="method-Type-" (JDK 8 format) ← We use this
+//   2nd: id="method(Type)" (JDK 11+ format)
+// - AGP's Dokka 1.4.32 generates 2nd format → IDE Quick Documentation doesn't work
+// - JDK 8 generates 1st format → IDE finds it immediately
+//
+// Applied to modules via: apply from: '../scripts/buildSdk/javadoc.gradle'
+
+// ============================================
+// Custom Javadoc Task with JDK 8 Toolchain
+// ============================================
+
+tasks.register('customJavadocRelease', Javadoc) {
+    description = 'Generates Javadoc for all classes using JDK 8 toolchain (SDK is obfuscated in AAR)'
+    group = 'documentation'
+
+    // Depend on release build to ensure BuildConfig is generated
+    dependsOn 'assembleRelease'
+
+    // Find release variant (fail-fast if missing)
+    def releaseVariant = android.libraryVariants.find { it.name == 'release' }
+    if (!releaseVariant) {
+        throw new GradleException("Release variant not found in ${project.name}")
+    }
+
+    // Configure classpath
+    classpath += project.files(android.getBootClasspath())
+    classpath += releaseVariant.javaCompileProvider.get().classpath
+
+    // Collect all source files (avoiding duplicates)
+    Set<File> allSources = []
+    allSources.addAll(releaseVariant.javaCompileProvider.get().source.files)
+    allSources.addAll(android.sourceSets.main.java.srcDirs)
+    source = allSources.unique()
+
+    // Include ALL Java source files (exclude Kotlin files - JDK 8 javadoc can't process them)
+    // (SDK is obfuscated in release AAR, so it's safe to document all classes)
+    include '**/*.java'
+    exclude '**/*.kt'
+
+    logger.lifecycle("[javadoc] Generating javadoc for all Java source files in ${project.name}")
+
+    // Javadoc options
+    options {
+        encoding = "UTF-8"
+        charSet = "UTF-8"
+        docEncoding = "UTF-8"
+
+        // Document PUBLIC + PROTECTED methods (important for SDK callbacks like NotificationServiceExtension)
+        memberLevel = JavadocMemberLevel.PROTECTED
+
+        // Links to Android documentation
+        links("https://developer.android.com/reference/")
+
+        // Disable strict doclint to allow legacy javadoc syntax
+        addStringOption('Xdoclint:none', '-quiet')
+
+        // No timestamp (for reproducible builds)
+        noTimestamp(true)
+    }
+
+    // Exclude package-info.java files (they cause issues with Javadoc)
+    exclude '**/package-info.java'
+
+    // Fail on error to catch issues early
+    failOnError = true
+}
+
+// Configure JDK 8 toolchain for custom javadoc task
+tasks.named('customJavadocRelease', Javadoc).configure {
+    javadocTool = javaToolchains.javadocToolFor {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+
+    doFirst {
+        try {
+            def tool = javadocTool.get()  // Force toolchain resolution
+            logger.lifecycle("[javadoc] Using JDK 8 from: ${tool.metadata.installationPath}")
+        } catch (Exception e) {
+            throw new GradleException(
+                "❌ Failed to provision JDK 8 for javadoc generation in ${project.name}\n" +
+                "   This is required for IDE-compatible javadoc anchors.\n" +
+                "   Please check:\n" +
+                "   - Network connectivity (to download JDK from Adoptium)\n" +
+                "   - Disk space in ~/.gradle/jdks/\n" +
+                "   - Write permissions for ~/.gradle/\n" +
+                "   Original error: ${e.message}",
+                e
+            )
+        }
+    }
+
+    logger.lifecycle("[javadoc] Configured JDK 8 toolchain for ${project.name}")
+}
+
+// ============================================
+// Package Javadoc into JAR
+// ============================================
+
+def customJavadocJar = tasks.register('customJavadocJarRelease', Jar) {
+    description = 'Packages custom javadoc into JAR for Maven publication'
+    group = 'build'
+
+    dependsOn customJavadocRelease
+    from customJavadocRelease.destinationDir
+    archiveClassifier.set('javadoc')
+
+    doLast {
+        logger.lifecycle("[javadoc] Generated javadoc JAR: ${archiveFile.get().asFile.name}")
+    }
+}
+
+logger.lifecycle("[javadoc] Custom javadoc task configured for ${project.name}")

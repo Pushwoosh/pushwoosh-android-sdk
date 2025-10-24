@@ -40,7 +40,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 35
     ext.global_targetVersion = 35
-    ext.global_versionName = "6.7.40"
+    ext.global_versionName = "6.7.41"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"
@@ -68,16 +68,12 @@ apply plugin: 'org.jetbrains.dokka'
 // Check if any dokka task is being executed
 def isDokkaTask = gradle.startParameter.taskNames.any { it.toLowerCase().contains('dokka') }
 
-if (isDokkaTask && !project.hasProperty('dokkaOutputDir')) {
-    throw new GradleException("❌ dokkaOutputDir property is required. Pass it via -PdokkaOutputDir=...")
-}
-
-// Set dokkaOutputDir only if provided or if dokka task is running
-if (project.hasProperty('dokkaOutputDir')) {
+// Validate and set dokkaOutputDir only when running dokka tasks
+if (isDokkaTask) {
+    if (!project.hasProperty('dokkaOutputDir')) {
+        throw new GradleException("❌ dokkaOutputDir property is required. Pass it via -PdokkaOutputDir=...")
+    }
     ext.dokkaOutputDir = project.property('dokkaOutputDir')
-} else {
-    // Provide default value for non-dokka tasks to avoid configuration errors
-    ext.dokkaOutputDir = "${project.buildDir}/dokka-default"
 }
 
 // Apply Dokka plugin to all SDK modules
@@ -96,20 +92,27 @@ subprojects {
 // Multi-Module HTML Documentation (Dokka 2.0)
 // ============================================
 
-dokka {
-    moduleName.set("Pushwoosh Android SDK")
+// Only configure Dokka aggregation if actually running dokka tasks
+if (isDokkaTask) {
+    logger.lifecycle("🔧 Configuring root Dokka aggregation")
 
-    // Aggregate documentation from subprojects
-    dokkaPublications.html {
-        outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}"))
-    }
-}
+    dokka {
+        moduleName.set("Pushwoosh Android SDK")
 
-// Add dokka dependencies for multi-module aggregation
-dependencies {
-    subprojects.each { subproject ->
-        if (subproject.name != 'demoapp' && !subproject.name.contains('stub')) {
-            dokka(project(":${subproject.name}"))
+        // Aggregate documentation from subprojects
+        dokkaPublications.html {
+            outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}"))
         }
     }
+
+    // Add dokka dependencies for multi-module aggregation
+    dependencies {
+        subprojects.each { subproject ->
+            if (subproject.name != 'demoapp' && !subproject.name.contains('stub')) {
+                dokka(project(":${subproject.name}"))
+            }
+        }
+    }
+} else {
+    logger.debug("Skipping root Dokka configuration - not running dokka tasks")
 }

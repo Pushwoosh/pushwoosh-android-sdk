@@ -67,6 +67,12 @@ afterEvaluate {
                 groupId = "com.pushwoosh"
                 version = LIB_VERSION
 
+                // Add custom javadoc JAR (if task exists)
+                def customJavadocJarTask = tasks.findByName('customJavadocJarRelease')
+                if (customJavadocJarTask != null) {
+                    artifact customJavadocJarTask
+                }
+
                 pom {
                     name = POM_NAME
                     description = POM_DESCRIPTION

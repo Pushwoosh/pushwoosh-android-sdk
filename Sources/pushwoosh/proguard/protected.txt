@@ -397,3 +397,22 @@
     protected *;
 }
 
+# Inter-module dependencies (used by other pushwoosh-* modules)
+# Used by pushwoosh-inbox for statistics tracking
+-keep public class com.pushwoosh.PushStatisticsWorker {
+    public *;
+    protected *;
+}
+
+# Used by pushwoosh-location for device boot events
+-keep public class com.pushwoosh.BootReceiver {
+    public *;
+    protected *;
+}
+
+# Used by pushwoosh-location as base class for ResolutionActivity
+-keep class com.pushwoosh.internal.utils.TranslucentActivity {
+    public *;
+    protected *;
+}
+

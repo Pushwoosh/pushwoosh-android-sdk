@@ -37,7 +37,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.amazon.device.messaging.ADM;
-import com.pushwoosh.PushAmazonHandlerJob;
 import com.pushwoosh.amazon.TagsRegistrarHelper;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;

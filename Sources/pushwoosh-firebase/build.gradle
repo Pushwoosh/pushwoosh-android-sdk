@@ -68,7 +68,7 @@ android {
     publishing {
         singleVariant("release") {
             withSourcesJar()
-            withJavadocJar()
+            // withJavadocJar() removed - using custom javadoc task instead
         }
     }
 }
@@ -103,3 +103,6 @@ dependencies {
 
 // Dokka documentation configuration
 apply from: '../scripts/dokka-config.gradle'
+
+// Custom Javadoc generation for Maven publication
+apply from: '../scripts/buildSdk/javadoc.gradle'
