@@ -50,10 +50,7 @@ android {
         freeCompilerArgs = ["-Xstring-concat=inline"]
     }
     publishing {
-        singleVariant("release") {
-            withSourcesJar()
-            // withJavadocJar() removed - using custom javadoc task instead
-        }
+        singleVariant("release")
     }
 }
 

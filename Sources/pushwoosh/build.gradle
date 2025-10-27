@@ -76,10 +76,7 @@ android {
     useLibrary 'android.test.mock'
 
     publishing {
-        singleVariant("release") {
-            withSourcesJar()
-            // withJavadocJar() removed - using custom javadoc task instead
-        }
+        singleVariant("release")
     }
 }
 

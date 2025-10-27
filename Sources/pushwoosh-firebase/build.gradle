@@ -66,10 +66,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     publishing {
-        singleVariant("release") {
-            withSourcesJar()
-            // withJavadocJar() removed - using custom javadoc task instead
-        }
+        singleVariant("release")
     }
 }
 
