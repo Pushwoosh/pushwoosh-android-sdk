@@ -3,8 +3,7 @@
 buildscript {
     ext.kotlin_version = '1.8.22'
     ext.huawei_version = '1.9.1.300'
-    ext.gradle_version = '8.1.1'
-    ext.gradle_pitest_plugin_version = '0.2.2'
+    ext.gradle_version = '8.5.1'
     ext.dokka_version = '2.0.0'
     repositories {
         google()
@@ -17,7 +16,6 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:$gradle_version"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "pl.droidsonroids.gradle:gradle-pitest-plugin:$gradle_pitest_plugin_version"
         classpath "com.huawei.agconnect:agcp:$huawei_version"
         classpath libs.google.services
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
@@ -40,7 +38,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 35
     ext.global_targetVersion = 35
-    ext.global_versionName = "6.7.42"
+    ext.global_versionName = "6.7.43"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"

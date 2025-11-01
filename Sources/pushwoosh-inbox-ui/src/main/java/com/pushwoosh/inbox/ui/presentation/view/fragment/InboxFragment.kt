@@ -29,12 +29,9 @@ package com.pushwoosh.inbox.ui.presentation.view.fragment
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.core.app.ActivityOptionsCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import android.text.TextUtils
 import android.view.LayoutInflater
@@ -109,27 +106,46 @@ open class InboxFragment : BaseFragment(), InboxView {
         super.onDestroyView()
     }
 
+    /**
+     * Determines whether InboxFragment should display its own toolbar.
+     * 1. Explicit setting (PushwooshInboxStyle.showToolbar) - highest priority
+     * 2. Auto-detection (check if host Activity already has ActionBar)
+     */
+    private fun shouldShowToolbar(): Boolean {
+        PushwooshInboxStyle.showToolbar?.let { return it }
+
+        val activity = activity as? androidx.appcompat.app.AppCompatActivity ?: return true
+        return activity.supportActionBar == null
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         // Set up the toolbar with back button
         val activity = activity as? androidx.appcompat.app.AppCompatActivity
-        activity?.setSupportActionBar(inboxToolbar)
-        activity?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        activity?.supportActionBar?.setDisplayShowHomeEnabled(true)
-        
-        // Apply custom toolbar title if available
-        PushwooshInboxStyle.barTitle?.let { title ->
-            activity?.supportActionBar?.title = title
-        }
-        
-        inboxToolbar.setNavigationOnClickListener {
-            activity?.finish()
-        }
-        
-        // Apply navigation icon tint after it's created
-        PushwooshInboxStyle.barTextColor?.let { textColor ->
-            inboxToolbar.navigationIcon?.setTint(textColor)
+
+        if (shouldShowToolbar()) {
+            // Show and configure toolbar
+            activity?.setSupportActionBar(inboxToolbar)
+            activity?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            activity?.supportActionBar?.setDisplayShowHomeEnabled(true)
+
+            // Apply custom toolbar title if available
+            PushwooshInboxStyle.barTitle?.let { title ->
+                activity?.supportActionBar?.title = title
+            }
+
+            inboxToolbar.setNavigationOnClickListener {
+                activity?.finish()
+            }
+
+            // Apply navigation icon tint after it's created
+            PushwooshInboxStyle.barTextColor?.let { textColor ->
+                inboxToolbar.navigationIcon?.setTint(textColor)
+            }
+        } else {
+            // Hide toolbar when host Activity already has one
+            inboxAppBarLayout.visibility = View.GONE
         }
 
         inboxAdapter.onItemRemoved = { inboxMessage ->

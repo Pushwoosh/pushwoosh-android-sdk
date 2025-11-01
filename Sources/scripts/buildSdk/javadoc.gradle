@@ -47,8 +47,6 @@ tasks.register('customJavadocRelease', Javadoc) {
     include '**/*.java'
     exclude '**/*.kt'
 
-    logger.lifecycle("[javadoc] Generating javadoc for all Java source files in ${project.name}")
-
     // Javadoc options
     options {
         encoding = "UTF-8"
@@ -98,8 +96,6 @@ tasks.named('customJavadocRelease', Javadoc).configure {
             )
         }
     }
-
-    logger.lifecycle("[javadoc] Configured JDK 8 toolchain for ${project.name}")
 }
 
 // ============================================
@@ -118,5 +114,3 @@ def customJavadocJar = tasks.register('customJavadocJarRelease', Jar) {
         logger.lifecycle("[javadoc] Generated javadoc JAR: ${archiveFile.get().asFile.name}")
     }
 }
-
-logger.lifecycle("[javadoc] Custom javadoc task configured for ${project.name}")

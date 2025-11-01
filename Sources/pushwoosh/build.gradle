@@ -19,7 +19,6 @@ ext{
 
 apply plugin: 'com.android.library'
 apply from: '../scripts/quality/quality.gradle'
-apply plugin: 'pl.droidsonroids.pitest'
 apply plugin: 'com.adarshr.test-logger'
 apply from: '../scripts/buildSdk/publish.gradle'
 apply from: '../scripts/prepareAar/build.gradle'
@@ -45,10 +44,6 @@ android {
         debug {
             minifyEnabled false
         }
-        coverage {
-            testCoverageEnabled true
-            minifyEnabled false
-        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -56,19 +51,9 @@ android {
     }
 
     testOptions {
-        unitTests.all {
-            jacoco {
-                includeNoLocationClasses = true
-            }
-        }
         unitTests {
             includeAndroidResources = true
         }
-    }
-
-    tasks.withType(Test).configureEach {
-        jacoco.includeNoLocationClasses = true
-        jacoco.excludes = ['jdk.internal.*']
     }
 
     useLibrary 'android.test.runner'
@@ -109,14 +94,6 @@ dependencies {
 
     testImplementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
     testImplementation 'org.skyscreamer:jsonassert:1.5.0'
-}
-
-pitest {
-    targetClasses = ['com.pushwoosh.*']
-    threads = 5
-    outputFormats = ['HTML']
-    timeoutConstInMillis = 2000
-    // Necessary to allow Robolectric to finish. See http://pitest.org/faq/#im-seeing-a-lot-of-timeouts-whats-going-on
 }
 
 // Dokka documentation configuration

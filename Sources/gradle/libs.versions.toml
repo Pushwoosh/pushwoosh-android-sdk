@@ -15,7 +15,7 @@ navigationFragment = "2.7.7"
 navigationUi = "2.7.7"
 coreKtx = "1.10.1"
 playServicesLocation = "21.0.1"
-pushwooshFirebase = "6.7.42"
+pushwooshFirebase = "6.7.43"
 swiperefreshlayout = "1.1.0"
 workRuntime = "2.8.1"
 
@@ -36,6 +36,8 @@ navigation-fragment = { group = "androidx.navigation", name = "navigation-fragme
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 pushwoosh-firebase = { module = "com.pushwoosh:pushwoosh-firebase", version.ref = "pushwooshFirebase" }
+pushwoosh-calls = { module = "com.pushwoosh:pushwoosh-calls", version.ref = "pushwooshFirebase" }
+pushwoosh-inbox-ui = { module = "com.pushwoosh:pushwoosh-inbox-ui", version.ref = "pushwooshFirebase" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 work-runtime = { module = "androidx.work:work-runtime", version.ref = "workRuntime" }

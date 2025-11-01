@@ -163,6 +163,15 @@ object PushwooshInboxStyle {
     var barTitle : String? = null
 
     /**
+     * Controls whether the InboxFragment displays its own toolbar.
+     * - null (default): Auto-detect based on host Activity's ActionBar
+     * - true: Always show toolbar (use for InboxActivity or Activities without toolbar)
+     * - false: Always hide toolbar (use when embedding in Activity with existing toolbar)
+     */
+    var showToolbar: Boolean? = null
+
+
+    /**
      * The title text size.
      */
     var titleTextSize : Float? = null
@@ -226,5 +235,6 @@ object PushwooshInboxStyle {
         dateColor = null
         readDateColor = null
         dividerColor = null
+        showToolbar = null
     }
 }

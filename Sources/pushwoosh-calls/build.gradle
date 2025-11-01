@@ -33,10 +33,6 @@ android {
         debug {
             minifyEnabled false
         }
-        coverage {
-            testCoverageEnabled true
-            minifyEnabled false
-        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11

@@ -35,7 +35,6 @@ apply plugin: 'com.android.library'
 apply from: '../scripts/quality/quality.gradle'
 apply from: '../scripts/buildSdk/publish.gradle'
 apply from: '../scripts/prepareAar/build.gradle'
-apply plugin: 'pl.droidsonroids.pitest'
 
 android {
     compileSdkVersion global_compileSdkVersion
@@ -84,14 +83,6 @@ dependencies {
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-}
-
-pitest {
-    targetClasses = ['com.pushwoosh.*']
-    threads = 5
-    outputFormats = ['HTML']
-    timeoutConstInMillis = 20000
-    // Necessary to allow Robolectric to finish. See http://pitest.org/faq/#im-seeing-a-lot-of-timeouts-whats-going-on
 }
 
 // Dokka documentation configuration
