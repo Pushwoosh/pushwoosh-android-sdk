@@ -57,6 +57,7 @@ dependencies {
     implementation libs.appcompat
     implementation libs.material
     testImplementation libs.junit
+    testImplementation 'org.robolectric:robolectric:4.13'
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }

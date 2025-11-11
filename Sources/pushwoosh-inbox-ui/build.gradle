@@ -93,6 +93,10 @@ dependencies {
 
     api project(':pushwoosh')
     api project(':pushwoosh-inbox')
+
+    // Fix Kotlin stdlib conflict in androidTest: androidx.lifecycle brings old kotlinx-coroutines:1.6.4
+    // which pulls kotlin-stdlib-jdk8:1.7.20, conflicting with kotlin-stdlib:1.8.22
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1"
 }
 
 // Dokka documentation configuration

@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.pushwoosh.sample", appContext.packageName)
+        assertEquals("com.pushwoosh.demoapp", appContext.packageName)
     }
 }

@@ -16,6 +16,10 @@ class PushwooshVoIPMessage(payload: Bundle?) {
         }
 
         val result = try {
+            // We intentionally use deprecated get() because we need to handle multiple possible types
+            // (Boolean, String, Int) for the same key. The push notification payload may contain
+            // inconsistent types depending on how it was constructed.
+            @Suppress("DEPRECATION")
             when (val value = bundle.get(key)) {
                 is Boolean -> value
                 is String -> {
