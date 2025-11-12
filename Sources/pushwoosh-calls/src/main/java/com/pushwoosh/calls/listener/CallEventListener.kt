@@ -15,4 +15,8 @@ interface CallEventListener {
     // InCallService callbacks
     fun onCallAdded(voIPMessage: PushwooshVoIPMessage)
     fun onCallRemoved(voIPMessage: PushwooshVoIPMessage)
+
+    // Call cancellation callbacks
+    fun onCallCancelled(voIPMessage: PushwooshVoIPMessage)
+    fun onCallCancellationFailed(callId: String?, reason: String)
 }

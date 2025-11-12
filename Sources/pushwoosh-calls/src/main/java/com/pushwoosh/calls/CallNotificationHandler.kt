@@ -3,8 +3,10 @@ package com.pushwoosh.calls
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.telecom.Connection
 import android.telecom.PhoneAccountHandle
 import android.telecom.TelecomManager
 import com.pushwoosh.calls.service.PushwooshConnectionService
@@ -57,13 +59,18 @@ class CallNotificationHandler : MessageSystemHandler {
         val voipKey = pushBundle?.get("voip").toBoolean()
         if(voipKey) {
             PushwooshCallUtils.syncCallPermissionWithSystem()
-            
+
             val permissionStatus = PushwooshCallPlugin.instance.callPrefs.getCallPermissionStatus()
             if (permissionStatus == CallPrefs.PERMISSION_STATUS_DENIED) {
                 PWLog.warn(TAG, "VoIP call received but permissions are denied, ignoring call")
                 return true
             }
-            
+
+            val voipMessage = PushwooshVoIPMessage(pushBundle)
+            if (voipMessage.cancelCall) {
+                return handleCallCancellation(voipMessage)
+            }
+
             val context = AndroidPlatformModule.getApplicationContext()
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 registerIncomingCallWithTelecom(context, pushBundle)
@@ -144,6 +151,11 @@ class CallNotificationHandler : MessageSystemHandler {
         }
 
         return false
+    }
+
+    private fun handleCallCancellation(voipMessage: PushwooshVoIPMessage): Boolean {
+        PushwooshConnectionService.cancelIncomingCall(voipMessage.callId)
+        return true
     }
 
     private fun Any?.toBoolean(): Boolean {

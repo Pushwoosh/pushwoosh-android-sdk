@@ -7,6 +7,8 @@ class PushwooshVoIPMessage(payload: Bundle?) {
     val hasVideo: Boolean = getBooleanFromBundle(payload, "video", false)
     val supportsHolding: Boolean = getBooleanFromBundle(payload, "supportsHolding", false)
     val supportsDTMF: Boolean = getBooleanFromBundle(payload, "supportsDTMF", false)
+    val callId: String? = payload?.getString("callId")
+    val cancelCall: Boolean = getBooleanFromBundle(payload, "cancelCall", false)
     val rawPayload: Bundle? = payload
 
     // our boolean values are converted to String when parsing push extras

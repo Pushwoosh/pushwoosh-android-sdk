@@ -9,6 +9,7 @@ import android.telecom.DisconnectCause
 import android.telecom.PhoneAccountHandle
 import com.pushwoosh.calls.PushwooshCallPlugin
 import com.pushwoosh.calls.PushwooshConnection
+import com.pushwoosh.calls.PushwooshVoIPMessage
 import com.pushwoosh.calls.util.Constants
 import com.pushwoosh.calls.util.PushwooshCallUtils
 import com.pushwoosh.internal.platform.AndroidPlatformModule
@@ -33,10 +34,10 @@ class PushwooshConnectionService : ConnectionService() {
         @Volatile
         private var _activeConnection: PushwooshConnection? = null
 
-        // Thread-safe getter (volatile guarantees atomic read and visibility)
+        private val callIdToConnectionMap = mutableMapOf<String, PushwooshConnection>()
+
         fun getActiveConnection(): PushwooshConnection? = _activeConnection
 
-        // Thread-safe setter
         fun setActiveConnection(connection: PushwooshConnection?) {
             synchronized(connectionLock) {
                 _activeConnection = connection
@@ -58,6 +59,134 @@ class PushwooshConnectionService : ConnectionService() {
                 }
                 return false
             }
+        }
+
+        /**
+         * Stores mapping between callId and Connection for cancellation support.
+         *
+         * @param callId Server-provided call identifier
+         * @param connection The PushwooshConnection to map
+         */
+        fun storeCallIdMapping(callId: String?, connection: PushwooshConnection) {
+            callId?.let {
+                synchronized(connectionLock) {
+                    callIdToConnectionMap[it] = connection
+                    PWLog.debug(TAG, "Stored callId mapping: $it")
+                }
+            }
+        }
+
+        /**
+         * Finds connection by callId for cancellation.
+         *
+         * @param callId Server-provided call identifier
+         * @return Connection if found, null otherwise
+         */
+        fun getConnectionByCallId(callId: String?): PushwooshConnection? {
+            callId?.let {
+                synchronized(connectionLock) {
+                    return callIdToConnectionMap[it]
+                }
+            }
+            return null
+        }
+
+        /**
+         * Clears callId mapping when call ends.
+         *
+         * @param callId Server-provided call identifier to remove
+         */
+        fun clearCallIdMapping(callId: String?) {
+            callId?.let {
+                synchronized(connectionLock) {
+                    callIdToConnectionMap.remove(it)
+                    PWLog.debug(TAG, "Cleared callId mapping: $it")
+                }
+            }
+        }
+
+        /**
+         * Atomically clears callId mapping only if it equals the expected connection.
+         * This prevents race conditions where a new call arrives while clearing an old one.
+         *
+         * @param callId Server-provided call identifier
+         * @param expected The connection that should be cleared
+         * @return true if mapping was cleared, false if it was already different
+         */
+        fun clearCallIdMappingIfEquals(callId: String?, expected: PushwooshConnection?): Boolean {
+            if (callId == null || expected == null) return false
+            synchronized(connectionLock) {
+                if (callIdToConnectionMap[callId] === expected) {
+                    callIdToConnectionMap.remove(callId)
+                    PWLog.debug(TAG, "Cleared callId mapping (matched): $callId")
+                    return true
+                }
+                PWLog.debug(TAG, "Skip clearing callId mapping (mismatch): $callId")
+                return false
+            }
+        }
+
+        private fun stopCallNotificationAndService() {
+            val context = AndroidPlatformModule.getApplicationContext()
+
+            val nm = context?.getSystemService(android.content.Context.NOTIFICATION_SERVICE)
+                as? android.app.NotificationManager
+            nm?.cancel(Constants.PW_NOTIFICATION_ID_INCOMING)
+            PWLog.debug(TAG, "Cancelled incoming call notification")
+
+            val stopServiceIntent = Intent(context, PushwooshCallService::class.java)
+            context?.stopService(stopServiceIntent)
+            PWLog.debug(TAG, "Stopped PushwooshCallService")
+        }
+
+        private fun isCallRingingOrFail(connection: PushwooshConnection, callId: String, reason: String): Boolean {
+            if (connection.state != Connection.STATE_RINGING) {
+                PWLog.warn(TAG, "Cannot cancel call: $reason (state=${connection.state})")
+                PushwooshCallPlugin.instance.callEventListener.onCallCancellationFailed(callId, reason)
+                return false
+            }
+            return true
+        }
+
+        /**
+         * Cancels an incoming call by callId.
+         */
+        fun cancelIncomingCall(callId: String?) {
+            PWLog.debug(TAG, "Attempting to cancel call with callId=$callId")
+
+            if (callId == null) {
+                PWLog.warn(TAG, "Cannot cancel call: callId is null")
+                PushwooshCallPlugin.instance.callEventListener.onCallCancellationFailed(
+                    callId, "Missing callId"
+                )
+                return
+            }
+
+            val connection = getConnectionByCallId(callId)
+            if (connection == null) {
+                PWLog.warn(TAG, "Cannot cancel call: no connection found for callId=$callId")
+                PushwooshCallPlugin.instance.callEventListener.onCallCancellationFailed(
+                    callId, "No active call found"
+                )
+                return
+            }
+
+            if (!isCallRingingOrFail(connection, callId, "Call already answered")) return
+
+            stopCallNotificationAndService()
+
+            if (!isCallRingingOrFail(connection, callId, "Call state changed during cancellation")) return
+
+            connection.setDisconnected(DisconnectCause(DisconnectCause.CANCELED, "Call cancelled by remote party"))
+            connection.destroy()
+            PWLog.debug(TAG, "Connection disconnected and destroyed")
+
+            clearActiveConnectionIfEquals(connection)
+            clearCallIdMappingIfEquals(callId, connection)
+
+            val voipMessage = PushwooshVoIPMessage(connection.extras)
+            PushwooshCallPlugin.instance.callEventListener.onCallCancelled(voipMessage)
+            PWLog.debug(TAG, "Call cancelled successfully: callId=$callId")
         }
     }
     /**
@@ -119,6 +248,10 @@ class PushwooshConnectionService : ConnectionService() {
                 }
             }
 
+            val voipMessage = PushwooshVoIPMessage(payload)
+            newConnection.setExtras(payload)
+            storeCallIdMapping(voipMessage.callId, newConnection)
+
             try {
                 PushwooshCallPlugin.instance.callEventListener.onCreateIncomingConnection(payload)
             } catch (e: Exception) {
@@ -130,6 +263,11 @@ class PushwooshConnectionService : ConnectionService() {
 
         } catch (e: Exception) {
             PWLog.error(TAG, "Failed to create incoming connection", e)
+
+            // Cleanup callId mapping if it was stored before exception
+            val payload = request?.extras
+            val voipMessage = PushwooshVoIPMessage(payload)
+            clearCallIdMapping(voipMessage.callId)
 
             // Return failed connection instead of crashing
             Connection.createFailedConnection(
@@ -152,6 +290,12 @@ class PushwooshConnectionService : ConnectionService() {
     ) {
         PWLog.noise(TAG, "onCreateIncomingConnectionFailed()")
         PWLog.warn(TAG, "Failed to create incoming connection: account=$connectionManagerPhoneAccount, extras=${request?.extras}, address=${request?.address}")
+
+        // Cleanup callId mapping if it was registered before failure
+        val payload = request?.extras
+        val voipMessage = PushwooshVoIPMessage(payload)
+        clearCallIdMapping(voipMessage.callId)
+
         super.onCreateIncomingConnectionFailed(connectionManagerPhoneAccount, request)
     }
 }

@@ -25,6 +25,10 @@
             android:name="com.pushwoosh.notification_service_extension"
             android:value="com.pushwoosh.demoapp.NotificationServiceExtensionDemo" />
 
+        <meta-data
+            android:name="com.pushwoosh.CALL_EVENT_LISTENER"
+            android:value="com.pushwoosh.demoapp.ui.DemoCallEventListener" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -34,6 +38,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.CallCancelledActivity"
+            android:theme="@style/Theme.Demoapp"
+            android:excludeFromRecents="true"
+            android:exported="false" />
     </application>
 
 </manifest>

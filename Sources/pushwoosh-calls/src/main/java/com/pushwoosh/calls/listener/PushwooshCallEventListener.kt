@@ -70,4 +70,14 @@ class PushwooshCallEventListener : CallEventListener {
     override fun onCreateIncomingConnection(payload: Bundle?) {
         PWLog.info("PushwooshCallEventListener", "onCreateIncomingConnection event received")
     }
+
+    override fun onCallCancelled(voIPMessage: PushwooshVoIPMessage) {
+        PWLog.warn("PushwooshCallEventListener", "Default onCallCancelled() called - implement custom CallEventListener for production!")
+        PWLog.info("PushwooshCallEventListener", "onCallCancelled event received: caller=${voIPMessage.callerName}, callId=${voIPMessage.callId}")
+    }
+
+    override fun onCallCancellationFailed(callId: String?, reason: String) {
+        PWLog.warn("PushwooshCallEventListener", "Default onCallCancellationFailed() called - implement custom CallEventListener for production!")
+        PWLog.info("PushwooshCallEventListener", "onCallCancellationFailed event received: callId=$callId, reason=$reason")
+    }
 }

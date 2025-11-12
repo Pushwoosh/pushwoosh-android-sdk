@@ -3,6 +3,7 @@ package com.pushwoosh.calls
 import android.telecom.Connection
 import android.telecom.DisconnectCause
 import com.pushwoosh.calls.listener.CallEventListener
+import com.pushwoosh.calls.service.PushwooshConnectionService
 import com.pushwoosh.internal.utils.PWLog
 
 /**
@@ -24,6 +25,7 @@ class PushwooshConnection(private val callEventListener: CallEventListener) : Co
         try {
             val voIPMessage = PushwooshVoIPMessage(this.extras)
             callEventListener.onDisconnect(voIPMessage)
+            PushwooshConnectionService.clearCallIdMappingIfEquals(voIPMessage.callId, this)
         } catch (e: Exception) {
             PWLog.error(TAG, "User callback onDisconnect() threw exception", e)
         }
@@ -38,6 +40,7 @@ class PushwooshConnection(private val callEventListener: CallEventListener) : Co
         try {
             val voIPMessage = PushwooshVoIPMessage(this.extras)
             callEventListener.onAnswer(voIPMessage, videoState)
+            PushwooshConnectionService.clearCallIdMappingIfEquals(voIPMessage.callId, this)
         } catch (e: Exception) {
             PWLog.error(TAG, "User callback onAnswer() threw exception", e)
         }
@@ -52,6 +55,7 @@ class PushwooshConnection(private val callEventListener: CallEventListener) : Co
         try {
             val voIPMessage = PushwooshVoIPMessage(this.extras)
             callEventListener.onReject(voIPMessage)
+            PushwooshConnectionService.clearCallIdMappingIfEquals(voIPMessage.callId, this)
         } catch (e: Exception) {
             PWLog.error(TAG, "User callback onReject() threw exception", e)
         }
