@@ -59,6 +59,7 @@ body:
       label: Your Pushwoosh Android SDK version
       description: Your Android SDK version which was integrated to the app. You may find it on the [releases page](https://github.com/Pushwoosh/pushwoosh-android-sdk/releases)
       options:
+        - 6.7.46
         - 6.7.45
         - 6.7.44
         - 6.7.43
@@ -69,7 +70,6 @@ body:
         - 6.7.38
         - 6.7.37
         - 6.7.36
-        - 6.7.37
         - 6.7.35
         - 6.7.34
         - Other — specify it in the description

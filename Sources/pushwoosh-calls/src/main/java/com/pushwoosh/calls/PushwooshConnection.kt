@@ -25,7 +25,6 @@ class PushwooshConnection(private val callEventListener: CallEventListener) : Co
         try {
             val voIPMessage = PushwooshVoIPMessage(this.extras)
             callEventListener.onDisconnect(voIPMessage)
-            PushwooshConnectionService.clearCallIdMappingIfEquals(voIPMessage.callId, this)
         } catch (e: Exception) {
             PWLog.error(TAG, "User callback onDisconnect() threw exception", e)
         }
@@ -40,7 +39,6 @@ class PushwooshConnection(private val callEventListener: CallEventListener) : Co
         try {
             val voIPMessage = PushwooshVoIPMessage(this.extras)
             callEventListener.onAnswer(voIPMessage, videoState)
-            PushwooshConnectionService.clearCallIdMappingIfEquals(voIPMessage.callId, this)
         } catch (e: Exception) {
             PWLog.error(TAG, "User callback onAnswer() threw exception", e)
         }
@@ -55,7 +53,6 @@ class PushwooshConnection(private val callEventListener: CallEventListener) : Co
         try {
             val voIPMessage = PushwooshVoIPMessage(this.extras)
             callEventListener.onReject(voIPMessage)
-            PushwooshConnectionService.clearCallIdMappingIfEquals(voIPMessage.callId, this)
         } catch (e: Exception) {
             PWLog.error(TAG, "User callback onReject() threw exception", e)
         }
@@ -67,5 +64,14 @@ class PushwooshConnection(private val callEventListener: CallEventListener) : Co
     override fun onShowIncomingCallUi() {
         PWLog.noise(TAG, "onShowIncomingCallUi()")
         super.onShowIncomingCallUi()
+    }
+
+    override fun onStateChanged(state: Int) {
+        PWLog.noise(TAG, "onStateChanged()")
+
+        if (state == STATE_DISCONNECTED) {
+            PushwooshConnectionService.cleanupConnection(this)
+        }
+        super.onStateChanged(state)
     }
 }

@@ -3,6 +3,8 @@ package com.pushwoosh.demoapp.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.Toast;
 
 import com.pushwoosh.calls.PushwooshVoIPMessage;
@@ -91,7 +93,10 @@ public class DemoCallEventListener implements CallEventListener {
 
         Context context = AndroidPlatformModule.getApplicationContext();
         if (context != null) {
-            Toast.makeText(context, "Cancellation failed: " + reason, Toast.LENGTH_SHORT).show();
+            // Toast must be shown on Main thread
+            new Handler(Looper.getMainLooper()).post(() -> {
+                Toast.makeText(context, "Cancellation failed: " + reason, Toast.LENGTH_SHORT).show();
+            });
         }
     }
 }

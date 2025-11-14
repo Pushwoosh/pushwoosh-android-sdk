@@ -22,7 +22,6 @@ import com.pushwoosh.internal.utils.PWLog
  * to create and manage VoIP call connections. Handles incoming call creation, blocks concurrent calls,
  * and launches foreground service for call notifications.
  *
- * @todo Missing [onConnectionServiceFocusLost] and [onConnectionServiceFocusGained] for API 28+ (concurrent calls)
  */
 class PushwooshConnectionService : ConnectionService() {
     companion object {
@@ -126,17 +125,89 @@ class PushwooshConnectionService : ConnectionService() {
             }
         }
 
-        private fun stopCallNotificationAndService() {
+        /**
+         * Starts PushwooshCallService which shows call notification.
+         *
+         * @param action Service action (e.g. PW_POST_INCOMING_CALL_ACTION, PW_POST_ONGOING_CALL_ACTION)
+         * @param payload Optional Bundle with call data (callerName, callId, etc.)
+         */
+        fun startCallNotificationService(action: String, payload: android.os.Bundle? = null) {
+            PWLog.noise(TAG, "startCallNotificationService() action=$action")
+            val context = AndroidPlatformModule.getApplicationContext()
+            if (context == null) {
+                PWLog.error(TAG, "Cannot start call notification service: context is null")
+                return
+            }
+
+            val intent = Intent(context, PushwooshCallService::class.java)
+            intent.action = action
+            if (payload != null) {
+                intent.putExtras(payload)
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+
+        /**
+         * Stops PushwooshCallService and removes call notification.
+         *
+         * @param payload Optional Bundle with call data for cleanup
+         */
+        fun stopCallNotificationService(payload: android.os.Bundle? = null) {
+            PWLog.noise(TAG, "stopCallNotificationService()")
+            val context = AndroidPlatformModule.getApplicationContext()
+            if (context == null) {
+                PWLog.error(TAG, "Cannot stop call notification service: context is null")
+                return
+            }
+
+            val stopIntent = Intent(context, PushwooshCallService::class.java)
+            if (payload != null) {
+                stopIntent.putExtras(payload)
+            }
+            context.stopService(stopIntent)
+        }
+
+        private fun stopCallNotificationServiceAndCancelNotifications() {
+            PWLog.noise(TAG, "stopCallNotificationServiceAndCancelNotifications()")
             val context = AndroidPlatformModule.getApplicationContext()
 
+            // Cancel incoming call notification (defensive - Service should handle this too)
             val nm = context?.getSystemService(android.content.Context.NOTIFICATION_SERVICE)
                 as? android.app.NotificationManager
             nm?.cancel(Constants.PW_NOTIFICATION_ID_INCOMING)
             PWLog.debug(TAG, "Cancelled incoming call notification")
 
-            val stopServiceIntent = Intent(context, PushwooshCallService::class.java)
-            context?.stopService(stopServiceIntent)
-            PWLog.debug(TAG, "Stopped PushwooshCallService")
+            // Stop foreground service that shows call notification
+            stopCallNotificationService()
+
+            // Close IncomingCallActivity if it's visible on screen
+            cancelCallActivity()
+        }
+
+        /**
+         * Sends broadcast to close IncomingCallActivity.
+         *
+         * This is needed when call is cancelled remotely to dismiss FullScreenIntent activity
+         * that may be visible on the screen.
+         */
+        private fun cancelCallActivity() {
+            PWLog.noise(TAG, "cancelCallActivity()")
+            val context = AndroidPlatformModule.getApplicationContext()
+            if (context == null) {
+                PWLog.error(TAG, "Cannot send broadcast to close call activity: context is null")
+                return
+            }
+
+            val finishIntent = Intent(Constants.ACTION_FINISH_CALL_ACTIVITY).apply {
+                setPackage(context.packageName)
+                addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
+            }
+            context.sendBroadcast(finishIntent)
         }
 
         private fun isCallRingingOrFail(connection: PushwooshConnection, callId: String, reason: String): Boolean {
@@ -149,10 +220,30 @@ class PushwooshConnectionService : ConnectionService() {
         }
 
         /**
+         * Closes the connection for a cancelled call.
+         */
+        private fun closeConnectionForCancelledCall(connection: PushwooshConnection, callId: String) {
+            PWLog.noise(TAG, "closeConnectionForCancelledCall()")
+
+            val voipMessage = PushwooshVoIPMessage(connection.extras)
+
+            connection.setDisconnected(DisconnectCause(DisconnectCause.CANCELED, "Call cancelled by remote party"))
+            connection.destroy()
+            clearActiveConnectionIfEquals(connection)
+            clearCallIdMappingIfEquals(callId, connection)
+
+            try {
+                PushwooshCallPlugin.instance.callEventListener.onCallCancelled(voipMessage)
+            } catch (e: Exception) {
+                PWLog.error(TAG, "User callback onCallCancelled() threw exception", e)
+            }
+        }
+
+        /**
          * Cancels an incoming call by callId.
          */
         fun cancelIncomingCall(callId: String?) {
-            PWLog.debug(TAG, "Attempting to cancel call with callId=$callId")
+            PWLog.noise(TAG, "cancelIncomingCall(callId=$callId)")
 
             if (callId == null) {
                 PWLog.warn(TAG, "Cannot cancel call: callId is null")
@@ -173,20 +264,88 @@ class PushwooshConnectionService : ConnectionService() {
 
             if (!isCallRingingOrFail(connection, callId, "Call already answered")) return
 
-            stopCallNotificationAndService()
+            stopCallNotificationServiceAndCancelNotifications()
 
             if (!isCallRingingOrFail(connection, callId, "Call state changed during cancellation")) return
 
-            connection.setDisconnected(DisconnectCause(DisconnectCause.CANCELED, "Call cancelled by remote party"))
-            connection.destroy()
-            PWLog.debug(TAG, "Connection disconnected and destroyed")
+            closeConnectionForCancelledCall(connection, callId)
+        }
 
+        /**
+         * Accepts the current ringing call.
+         *
+         * Delegates to [PushwooshConnection.onAnswer] which handles:
+         * - Notifying the app via callback
+         * - Transitioning connection to ACTIVE state
+         */
+        fun acceptCall() {
+            PWLog.noise(TAG, "acceptCall()")
+            val connection = getActiveConnection()
+            if (connection == null) {
+                PWLog.warn(TAG, "Cannot accept call: activeConnection is null")
+                return
+            }
+
+            connection.onAnswer(1)
+        }
+
+        /**
+         * Rejects the current ringing call.
+         *
+         * Delegates to [PushwooshConnection.onReject] which handles:
+         * - Notifying the app via callback
+         * - Disconnecting with REJECTED cause
+         * - Destroying the connection
+         */
+        fun rejectCall() {
+            PWLog.noise(TAG, "rejectCall()")
+            val connection = getActiveConnection()
+            if (connection == null) {
+                PWLog.warn(TAG, "Cannot reject call: activeConnection is null")
+                return
+            }
+
+            connection.onReject()
+        }
+
+        /**
+         * Ends the current active call.
+         *
+         * Delegates to [PushwooshConnection.onDisconnect] which handles:
+         * - Notifying the app via callback
+         * - Disconnecting with LOCAL cause
+         * - Destroying the connection
+         */
+        fun endCall() {
+            PWLog.noise(TAG, "endCall()")
+            val connection = getActiveConnection()
+            if (connection == null) {
+                PWLog.warn(TAG, "Cannot end call: activeConnection is null")
+                return
+            }
+
+            connection.onDisconnect()
+        }
+
+        /**
+         * Cleans up all references to the given connection.
+         *
+         * Called automatically from [PushwooshConnection.onStateChanged] when connection
+         * transitions to STATE_DISCONNECTED. This ensures cleanup happens regardless of
+         * how the disconnection was triggered (user action, Bluetooth, Car mode, timeout, etc.).
+         *
+         * This method:
+         * - Clears callId mapping if it matches the given connection
+         * - Clears activeConnection if it matches the given connection
+         *
+         * @param connection The connection to clean up
+         */
+        internal fun cleanupConnection(connection: PushwooshConnection) {
+            PWLog.debug(TAG, "cleanupConnection() called for connection")
+            val voIPMessage = PushwooshVoIPMessage(connection.extras)
+            clearCallIdMappingIfEquals(voIPMessage.callId, connection)
             clearActiveConnectionIfEquals(connection)
-            clearCallIdMappingIfEquals(callId, connection)
-
-            val voipMessage = PushwooshVoIPMessage(connection.extras)
-            PushwooshCallPlugin.instance.callEventListener.onCallCancelled(voipMessage)
-            PWLog.debug(TAG, "Call cancelled successfully: callId=$callId")
+            PWLog.debug(TAG, "Connection cleanup completed")
         }
     }
     /**
@@ -233,19 +392,9 @@ class PushwooshConnectionService : ConnectionService() {
 
             PushwooshCallUtils.registerCallNotificationsChannels()
 
-            val callIntent = Intent(
-                AndroidPlatformModule.getApplicationContext(),
-                PushwooshCallService::class.java)
             val payload = request?.extras
-            payload?.let {
-                callIntent.action = Constants.PW_POST_INCOMING_CALL_ACTION
-                callIntent.putExtras(payload)
-                PWLog.debug(TAG, "Starting PushwooshCallService")
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(callIntent)
-                } else {
-                    startService(callIntent)
-                }
+            if (payload != null) {
+                startCallNotificationService(Constants.PW_POST_INCOMING_CALL_ACTION, payload)
             }
 
             val voipMessage = PushwooshVoIPMessage(payload)

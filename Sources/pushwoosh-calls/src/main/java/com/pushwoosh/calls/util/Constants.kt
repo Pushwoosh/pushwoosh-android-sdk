@@ -6,5 +6,6 @@ class Constants {
         const val PW_NOTIFICATION_ID_ONGOING = 1735124878
         const val PW_POST_INCOMING_CALL_ACTION = "POST_INCOMING_CALL"
         const val PW_POST_ONGOING_CALL_ACTION = "POST_ONGOING_CALL"
+        const val ACTION_FINISH_CALL_ACTIVITY = "com.pushwoosh.calls.FINISH_CALL_ACTIVITY"
     }
 }
