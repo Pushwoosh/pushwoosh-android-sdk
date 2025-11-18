@@ -69,6 +69,12 @@ class PushwooshConnection(private val callEventListener: CallEventListener) : Co
     override fun onStateChanged(state: Int) {
         PWLog.noise(TAG, "onStateChanged()")
 
+        // Cancel timeout timer when call leaves RINGING state
+        // (answered, rejected, timed out, or cancelled)
+        if (state != STATE_RINGING) {
+            PushwooshConnectionService.cancelTimeoutTimer()
+        }
+
         if (state == STATE_DISCONNECTED) {
             PushwooshConnectionService.cleanupConnection(this)
         }

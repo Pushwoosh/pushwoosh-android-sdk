@@ -13,11 +13,14 @@ class CallPrefs {
         private const val PROPERTY_CALL_CHANNEL_ONGOING = "call_channel_ongoing"
         private const val PROPERTY_CUSTOM_CALL_SOUND = "call_sound"
         private const val PROPERTY_CALL_PERMISSION_STATUS = "call_permission_status"
-        
+        private const val PROPERTY_INCOMING_CALL_TIMEOUT = "incoming_call_timeout"
+
         // VoIP Call Permission Status Constants
         const val PERMISSION_STATUS_NOT_REQUESTED = 0
         const val PERMISSION_STATUS_GRANTED = 1
         const val PERMISSION_STATUS_DENIED = 2
+        // VoIP timeout constant
+        const val DEFAULT_INCOMING_CALL_TIMEOUT = 30.0
 
     }
 
@@ -27,6 +30,7 @@ class CallPrefs {
     private val ongoingCallChannel: PreferenceStringValue
     private val callSound: PreferenceStringValue
     private val callPermissionStatus: PreferenceIntValue
+    private val incomingCallTimeout: PreferenceStringValue
 
     init {
         val prefs = AndroidPlatformModule.getPrefsProvider().providePrefs(PREFERENCE)
@@ -59,6 +63,11 @@ class CallPrefs {
             prefs,
             PROPERTY_CALL_PERMISSION_STATUS,
             PERMISSION_STATUS_NOT_REQUESTED
+        )
+        incomingCallTimeout = PreferenceStringValue(
+            prefs,
+            PROPERTY_INCOMING_CALL_TIMEOUT,
+            DEFAULT_INCOMING_CALL_TIMEOUT.toString()
         )
     }
 
@@ -99,4 +108,16 @@ class CallPrefs {
      *   2 (PERMISSION_STATUS_DENIED) - permission denied
      */
     fun setCallPermissionStatus(status: Int) = callPermissionStatus.set(status)
+
+    fun getIncomingCallTimeout(): Double {
+        return try {
+            incomingCallTimeout.get().toDouble()
+        } catch (e: NumberFormatException) {
+            DEFAULT_INCOMING_CALL_TIMEOUT
+        }
+    }
+
+    fun setIncomingCallTimeout(timeout: Double) {
+        incomingCallTimeout.set(timeout.toString())
+    }
 }

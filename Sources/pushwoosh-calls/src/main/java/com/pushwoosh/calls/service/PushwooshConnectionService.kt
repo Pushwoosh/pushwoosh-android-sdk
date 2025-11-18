@@ -1,7 +1,11 @@
 package com.pushwoosh.calls.service
 
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.telecom.Connection
 import android.telecom.ConnectionRequest
 import android.telecom.ConnectionService
@@ -210,6 +214,63 @@ class PushwooshConnectionService : ConnectionService() {
             context.sendBroadcast(finishIntent)
         }
 
+        private val timeoutHandler = Handler(Looper.getMainLooper())
+        private var timeoutRunnable: Runnable? = null
+
+        @Synchronized
+        internal fun cancelTimeoutTimer() {
+            PWLog.noise(TAG, "CancelTimeoutTimer()")
+
+            timeoutRunnable?.let {
+                timeoutHandler.removeCallbacks(it)
+                timeoutRunnable = null
+                PWLog.debug(TAG, "Cancelled timeout timer for incoming call")
+            }
+        }
+
+        private fun handleTimeout() {
+            PWLog.noise(TAG, "handleTimeout()")
+
+            val timeoutSeconds = PushwooshCallPlugin.instance.callPrefs.getIncomingCallTimeout()
+            PWLog.info(TAG, "Call timeout reached ($timeoutSeconds seconds). Reporting as unanswered.")
+
+            val connection = getActiveConnection()
+            if (connection == null) {
+                PWLog.warn(TAG, "Cannot handle timeout: no active connection")
+                return
+            }
+
+            if (connection.state != Connection.STATE_RINGING) {
+                PWLog.warn(TAG, "Cannot timeout: no ringing connection")
+                return
+            }
+
+            stopCallNotificationServiceAndCancelNotifications()
+
+            if (connection.state != Connection.STATE_RINGING) {
+                PWLog.warn(TAG, "Call state changed during timeout")
+                return
+            }
+
+
+            connection.setDisconnected(DisconnectCause(DisconnectCause.MISSED))
+            connection.destroy()
+        }
+
+        @Synchronized
+        private fun startTimeoutTimer() {
+            PWLog.noise(TAG, "startTimeoutTimer()")
+
+            cancelTimeoutTimer()
+
+            val timeoutSeconds = PushwooshCallPlugin.instance.callPrefs.getIncomingCallTimeout()
+            PWLog.info(TAG, "Call timeout started: ($timeoutSeconds seconds).")
+            val timeoutMillis = (timeoutSeconds * 1000).toLong()
+
+            timeoutRunnable = Runnable { handleTimeout() }
+            timeoutHandler.postDelayed(timeoutRunnable!!, timeoutMillis)
+        }
+
         private fun isCallRingingOrFail(connection: PushwooshConnection, callId: String, reason: String): Boolean {
             if (connection.state != Connection.STATE_RINGING) {
                 PWLog.warn(TAG, "Cannot cancel call: $reason (state=${connection.state})")
@@ -406,6 +467,8 @@ class PushwooshConnectionService : ConnectionService() {
             } catch (e: Exception) {
                 PWLog.error(TAG, "User callback onCreateIncomingConnection() threw exception", e)
             }
+
+            startTimeoutTimer()
 
             PWLog.info(TAG, "Incoming call connection created successfully")
             newConnection

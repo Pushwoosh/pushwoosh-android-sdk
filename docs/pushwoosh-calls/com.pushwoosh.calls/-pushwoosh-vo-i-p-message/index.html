@@ -94,7 +94,7 @@
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh-calls</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.calls</a><span class="delimiter">/</span><span class="current">PushwooshVoIPMessage</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Pushwoosh</span><wbr><span>Vo</span><wbr><span><span>IPMessage</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">PushwooshVoIPMessage</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">payload<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/os/Bundle.html">Bundle</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">PushwooshVoIPMessage</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">payload<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/os/Bundle.html">Bundle</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Data model representing a VoIP push notification message.</p><p class="paragraph">Parses VoIP call data from push notification payload and provides typed access to call properties. Boolean fields support automatic conversion from String, Int, and Boolean types.</p><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh-calls/release" data-filterable-set=":pushwoosh-calls/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-pushwoosh-call-settings/index.html"><span>Pushwoosh</span><wbr><span>Call</span><wbr><span><span>Settings</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -130,7 +130,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="caller-name.html">callerName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="caller-name.html">callerName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Name of the caller to display in UI. Defaults to "Unknown Caller" if not present.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -145,7 +145,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="call-id.html">callId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="call-id.html">callId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Unique identifier for this call. Null if not provided in the push payload.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -160,7 +160,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="cancel-call.html">cancelCall</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="cancel-call.html">cancelCall</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Whether this is a call cancellation message. When <code class="lang-kotlin">true</code>, triggers the call cancellation event.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -175,7 +175,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="has-video.html">hasVideo</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="has-video.html">hasVideo</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Whether this is a video call (<code class="lang-kotlin">true</code>) or audio-only (<code class="lang-kotlin">false</code>).</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -190,7 +190,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="raw-payload.html">rawPayload</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/os/Bundle.html">Bundle</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="raw-payload.html">rawPayload</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/os/Bundle.html">Bundle</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Original push notification payload Bundle with all raw data including custom fields.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -205,7 +205,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="supports-d-t-m-f.html">supportsDTMF</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="supports-d-t-m-f.html">supportsDTMF</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Whether the call supports DTMF (Dual-Tone Multi-Frequency) tones for dialpad input.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -220,7 +220,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="supports-holding.html">supportsHolding</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="supports-holding.html">supportsHolding</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Whether the call supports being put on hold.</p></div></div></div>
                 </div>
               </div>
             </div>

@@ -60,10 +60,19 @@ import java.util.Objects;
  * <li>Multichannel Campaigns - Send messages via push, email, SMS, and WhatsApp</li>
  * </ul>
  * <p>
+ * <b>SDK Initialization:</b>
+ * <p>
+ * The Pushwoosh SDK initializes <b>automatically</b> when your application starts - no manual
+ * initialization code is required. The SDK uses Android's ContentProvider mechanism to initialize
+ * itself before your Application class is created.
+ * <p>
+ * <b>Important:</b> You do NOT need to call any initialization methods in your Application class
+ * or Activities. Simply add the SDK dependency to your project and start using {@link #getInstance()}.
+ * <p>
  * <b>Quick Start:</b>
  * <pre>
  * {@code
- *   // 1. Get Pushwoosh instance (available after SDK initialization)
+ *   // 1. Get Pushwoosh instance (SDK is already initialized automatically)
  *   Pushwoosh pushwoosh = Pushwoosh.getInstance();
  *
  *   // 2. Register for push notifications
@@ -90,6 +99,7 @@ import java.util.Objects;
  * <p>
  * <b>Important Notes:</b>
  * <ul>
+ * <li>The SDK initializes automatically via ContentProvider - no manual initialization needed</li>
  * <li>Always call {@link #getInstance()} to access the SDK instance</li>
  * <li>On Android 13+, notification permission is requested automatically during {@link #registerForPushNotifications(Callback)}</li>
  * <li>Set user tags to enable targeted campaigns and personalization</li>

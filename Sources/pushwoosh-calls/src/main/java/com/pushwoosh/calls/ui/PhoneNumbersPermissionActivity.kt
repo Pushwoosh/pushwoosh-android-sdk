@@ -3,6 +3,7 @@ package com.pushwoosh.calls.ui
 import android.content.pm.PackageManager
 import android.os.Build
 import com.pushwoosh.calls.PushwooshCallSettings
+import com.pushwoosh.calls.internal.CallPermissionCallbackManager
 import com.pushwoosh.calls.util.CallPrefs
 import com.pushwoosh.calls.util.PushwooshCallUtils
 import com.pushwoosh.internal.utils.PWLog
@@ -19,15 +20,22 @@ class PhoneNumbersPermissionActivity : PermissionActivity() {
             when (requestCode) {
                 REQUEST_CODE -> {
                     handlePermissionsResult(permissions, grantResults)
-                    
+
                     val allPermissionsGranted = grantResults.all { it == PackageManager.PERMISSION_GRANTED }
                     val permissionStatus = if (allPermissionsGranted) {
                         CallPrefs.PERMISSION_STATUS_GRANTED
                     } else {
                         CallPrefs.PERMISSION_STATUS_DENIED
                     }
-                    
+
                     PushwooshCallUtils.updateCallPermissionStatusAndRegisterAccount(permissionStatus)
+
+                    // Invoke callback (already on main thread)
+                    CallPermissionCallbackManager.invokeCallback(
+                        granted = allPermissionsGranted,
+                        grantedPermissions = grantedPermissions ?: emptyList(),
+                        deniedPermissions = deniedPermissions ?: emptyList()
+                    )
                 }
 
                 else -> PWLog.warn(TAG, "Unrecognized request code $requestCode")

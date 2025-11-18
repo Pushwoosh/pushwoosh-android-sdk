@@ -70,7 +70,20 @@ class MainActivity : AppCompatActivity() {
                 .setAnimationDuration(300)
         )
 
-        PushwooshCallSettings.requestCallPermissions()
+        // Request call permissions with callback
+        PushwooshCallSettings.requestCallPermissions(object : com.pushwoosh.calls.CallPermissionsCallback {
+            override fun onPermissionResult(
+                granted: Boolean,
+                grantedPermissions: List<String>,
+                deniedPermissions: List<String>
+            ) {
+                if (granted) {
+                    android.util.Log.d("MainActivity", "Call permissions granted: $grantedPermissions")
+                } else {
+                    android.util.Log.w("MainActivity", "Call permissions denied: $deniedPermissions")
+                }
+            }
+        })
 
         // Setup custom inbox style
         InboxStyleHelper.setupCustomInboxStyle(this)

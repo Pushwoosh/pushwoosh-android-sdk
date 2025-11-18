@@ -107,4 +107,44 @@ class PushwooshVoIPMessageTest {
         assertTrue(message.supportsHolding)
         assertFalse(message.supportsDTMF)
     }
+
+    // callId conversion tests
+    @Test
+    fun testCallId_whenString_returnsString() {
+        val bundle = Bundle().apply { putString("callId", "abc-123") }
+        val message = PushwooshVoIPMessage(bundle)
+        assertEquals("abc-123", message.callId)
+    }
+
+    @Test
+    fun testCallId_whenInt_convertsToString() {
+        val bundle = Bundle().apply { putInt("callId", 123) }
+        val message = PushwooshVoIPMessage(bundle)
+        assertEquals("123", message.callId)
+    }
+
+    @Test
+    fun testCallId_whenLong_convertsToString() {
+        val bundle = Bundle().apply { putLong("callId", 9876543210L) }
+        val message = PushwooshVoIPMessage(bundle)
+        assertEquals("9876543210", message.callId)
+    }
+
+    @Test
+    fun testCallId_whenMissing_returnsNull() {
+        val bundle = Bundle()
+        val message = PushwooshVoIPMessage(bundle)
+        assertNull(message.callId)
+    }
+
+    @Test
+    fun testCancelCall_withIntCallId_bothParsed() {
+        val bundle = Bundle().apply {
+            putInt("callId", 42)
+            putBoolean("cancelCall", true)
+        }
+        val message = PushwooshVoIPMessage(bundle)
+        assertEquals("42", message.callId)
+        assertTrue(message.cancelCall)
+    }
 }

@@ -2,7 +2,7 @@
 <html class="no-js">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
-    <title>onCallCancelled</title>
+    <title>setIncomingCallTimeout</title>
 <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
     <script>document.documentElement.classList.replace("no-js","js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
@@ -90,12 +90,12 @@
                 </div>
             </div>
             <div id="main">
-<div class="main-content" data-page-type="member" id="content" pageids="pushwoosh-calls::com.pushwoosh.calls.listener/CallEventListener/onCallCancelled/#com.pushwoosh.calls.PushwooshVoIPMessage/PointingToDeclaration//341665811">
-  <div class="breadcrumbs"><a href="../../index.html">pushwoosh-calls</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.calls.listener</a><span class="delimiter">/</span><a href="index.html">CallEventListener</a><span class="delimiter">/</span><span class="current">onCallCancelled</span></div>
+<div class="main-content" data-page-type="member" id="content" pageids="pushwoosh-calls::com.pushwoosh.calls/PushwooshCallSettings/setIncomingCallTimeout/#kotlin.Double/PointingToDeclaration//341665811">
+  <div class="breadcrumbs"><a href="../../index.html">pushwoosh-calls</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.calls</a><span class="delimiter">/</span><a href="index.html">PushwooshCallSettings</a><span class="delimiter">/</span><span class="current">setIncomingCallTimeout</span></div>
   <div class="cover ">
-    <h1 class="cover"><span>on</span><wbr><span>Call</span><wbr><span><span>Cancelled</span></span></h1>
+    <h1 class="cover"><span>set</span><wbr><span>Incoming</span><wbr><span>Call</span><wbr><span><span>Timeout</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="on-call-cancelled.html"><span class="token function">onCallCancelled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">voIPMessage<span class="token operator">: </span><a href="../../com.pushwoosh.calls/-pushwoosh-vo-i-p-message/index.html">PushwooshVoIPMessage</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">Called when the remote party cancels the call before it's answered.</p><p class="paragraph">Triggered by a push notification with <code class="lang-kotlin">cancelCall=true</code>. Use this to show a missed call notification or update your call history.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh-calls/release" data-filterable-set=":pushwoosh-calls/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>vo</span><wbr><span><span>IPMessage</span></span></u></div></span></div><div><div class="title"><p class="paragraph">call details including callId</p></div></div></div></div></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-calls/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-static/index.html"><span class="token annotation builtin">JvmStatic</span></a></div></div><span class="token keyword">fun </span><a href="set-incoming-call-timeout.html"><span class="token function">setIncomingCallTimeout</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">timeout<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">Sets the timeout duration for incoming VoIP calls.</p><p class="paragraph">When an incoming call is not answered within this timeout period, it will be automatically ended and reported to the system as an unanswered (missed) call.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh-calls/release" data-filterable-set=":pushwoosh-calls/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>timeout</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The timeout duration in seconds. Default value is 30.0 seconds.</p></div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
