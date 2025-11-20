@@ -11,6 +11,8 @@ public class RequestPermissionHelper {
     public static final String EXTRA_PERMISSIONS = "extra_permissions";
 
     public static void requestPermissionsForClass(Class<? extends PermissionActivity> cls, Context context, String[] permissions) {
+        PWLog.noise(TAG, "requestPermissionsForClass()");
+
         boolean needRequestPermissions = false;
         try {
             for (String permission : permissions) {

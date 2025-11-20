@@ -1,9 +1,13 @@
 package com.pushwoosh.calls
 
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import com.pushwoosh.calls.internal.CallPermissionCallbackManager
 import com.pushwoosh.calls.ui.PhoneNumbersPermissionActivity
+import com.pushwoosh.calls.util.CallPrefs
 import com.pushwoosh.calls.util.PushwooshCallUtils
 import com.pushwoosh.internal.platform.AndroidPlatformModule
+import com.pushwoosh.internal.utils.PWLog
 import com.pushwoosh.internal.utils.RequestPermissionHelper
 
 /**
@@ -127,14 +131,30 @@ object PushwooshCallSettings {
      */
     @JvmStatic
     fun requestCallPermissions(callback: CallPermissionsCallback?) {
+        PWLog.noise("PushwooshCallSettings", "requestCallPermissions()")
         val context = AndroidPlatformModule.getApplicationContext()
+        if (context == null) {
+            PWLog.warn("PushwooshCallSettings", "can not requestCallPermissions, context is null")
+            return
+        }
+        val permission = "android.permission.READ_PHONE_NUMBERS"
+
+        // use callback if permissions already granted
+        if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
+            callback?.onPermissionResult(
+                granted = true,
+                grantedPermissions = listOf(permission),
+                deniedPermissions = emptyList()
+            )
+            return
+        }
 
         // Store the callback for later invocation
         CallPermissionCallbackManager.setCallback(callback)
 
         RequestPermissionHelper.requestPermissionsForClass(
             PhoneNumbersPermissionActivity::class.java,
-            context, arrayOf("android.permission.READ_PHONE_NUMBERS")
+            context, arrayOf(permission)
         )
     }
 

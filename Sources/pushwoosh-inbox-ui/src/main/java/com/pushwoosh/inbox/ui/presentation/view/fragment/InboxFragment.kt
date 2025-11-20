@@ -124,6 +124,13 @@ open class InboxFragment : BaseFragment(), InboxView {
         // Set up the toolbar with back button
         val activity = activity as? androidx.appcompat.app.AppCompatActivity
 
+        // Detect if fragment is embedded in Activity with existing toolbar
+        // If yes, we need to remove fitsSystemWindows padding to prevent gap
+        val isEmbeddedInActivityWithToolbar = activity?.supportActionBar != null
+        if (isEmbeddedInActivityWithToolbar) {
+            view.fitsSystemWindows = false
+        }
+
         if (shouldShowToolbar()) {
             // Show and configure toolbar
             activity?.setSupportActionBar(inboxToolbar)
