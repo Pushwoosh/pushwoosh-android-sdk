@@ -200,19 +200,25 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
 
     private static void createPopupWindow(Resource resource) {
         PWLog.noise("[InApp] ModalRichMediaWindow", "createPopupWindow for resource: " + resource.getCode());
-        Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             ModalRichMediaWindowUtils.getParentViewAsync(view -> {
-                if (view.getWindowToken() != null) {
-                    ModalRichMediaWindow popupWindow = new ModalRichMediaWindow(topActivity, resource);
+                Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
+                if (topActivity == null || view.getWindowToken() == null) {
+                    PWLog.error("[InApp] ModalRichMediaWindow", "createPopupWindow failed: topActivity or windowToken is null");
+                    return;
                 }
+                ModalRichMediaWindow popupWindow = new ModalRichMediaWindow(topActivity, resource);
             });
         } else {
+            Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
             View parentView = ModalRichMediaWindowUtils.getParentView();
-            if (parentView.getWindowToken() != null) {
-                //window itself will be shown later when resource web view is loaded
-                ModalRichMediaWindow popupWindow = new ModalRichMediaWindow(topActivity, resource);
+            if (topActivity == null || parentView == null || parentView.getWindowToken() == null) {
+                PWLog.error("[InApp] ModalRichMediaWindow", "createPopupWindow failed: topActivity, parentView or windowToken is null");
+                return;
             }
+            //window itself will be shown later when resource web view is loaded
+            ModalRichMediaWindow popupWindow = new ModalRichMediaWindow(topActivity, resource);
         }
     }
 

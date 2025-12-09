@@ -8,6 +8,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
@@ -386,26 +387,61 @@ public class ModalRichMediaWindowUtils {
         return statusBarHeight;
     }
 
+    /**
+     * Returns status bar height in pixels. Used to position TOP popups below the status bar.
+     * @return status bar height or 0 if activity is unavailable
+     */
     public static int getSystemWindowInsetTop() {
         Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
-        return topActivity.getWindow().getDecorView().getRootWindowInsets().getSystemWindowInsetTop();
+        if (topActivity == null || topActivity.getWindow() == null) {
+            return 0;
+        }
+        WindowInsets insets = topActivity.getWindow().getDecorView().getRootWindowInsets();
+        if (insets == null) {
+            return 0;
+        }
+        return insets.getSystemWindowInsetTop();
     }
 
+    /**
+     * Returns navigation bar height in pixels. Used for swipe gesture boundary calculations.
+     * @return navigation bar height or 0 if activity is unavailable
+     */
     public static int getSystemWindowInsetBottom() {
         Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
-        return topActivity.getWindow().getDecorView().getRootWindowInsets().getSystemWindowInsetBottom();
+        if (topActivity == null || topActivity.getWindow() == null) {
+            return 0;
+        }
+        WindowInsets insets = topActivity.getWindow().getDecorView().getRootWindowInsets();
+        if (insets == null) {
+            return 0;
+        }
+        return insets.getSystemWindowInsetBottom();
     }
 
+    /**
+     * Returns navigation bar height in pixels. Used to position BOTTOM popups above the nav bar.
+     * On Android 15+ returns 0 if edge-to-edge layout is enabled.
+     * @param config popup config to check edge-to-edge setting
+     * @return navigation bar height or 0 if activity is unavailable or edge-to-edge is enabled
+     */
     public static int getSystemWindowInsetBottom(ModalRichmediaConfig config) {
         Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
-        int insetBottom = topActivity.getWindow().getDecorView().getRootWindowInsets().getSystemWindowInsetBottom();
-        
+        if (topActivity == null || topActivity.getWindow() == null) {
+            return 0;
+        }
+        WindowInsets insets = topActivity.getWindow().getDecorView().getRootWindowInsets();
+        if (insets == null) {
+            return 0;
+        }
+        int insetBottom = insets.getSystemWindowInsetBottom();
+
         // For Android 15+ (API 35+), check edge-to-edge layout config
-        if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE && 
+        if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
             config != null && Boolean.TRUE.equals(config.shouldRespectEdgeToEdgeLayout())) {
             return 0; // respect edge-to-edge = extend to very bottom
         }
-        
+
         return insetBottom;
     }
 }

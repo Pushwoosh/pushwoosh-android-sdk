@@ -49,13 +49,6 @@ public class RegisterDeviceRequest extends AppOpenRequest {
 		this.appCode = RepositoryModule.getRegistrationPreferences().applicationId().get();
 	}
 
-	RegisterDeviceRequest(String deviceId, String tagsJson, int platform, String appCode) {
-		this.deviceId = deviceId;
-		this.tagsJson = tagsJson;
-		this.platform = platform;
-		this.appCode = appCode;
-	}
-
 	@Override
 	public String getMethod() {
 		return "registerDevice";

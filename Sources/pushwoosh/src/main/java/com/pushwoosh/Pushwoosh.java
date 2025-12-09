@@ -745,61 +745,6 @@ public class Pushwoosh {
     }
 
     /**
-     * Adds an alternative Pushwoosh application code for device registration.
-     * <p>
-     * This method allows registering the device with multiple Pushwoosh applications simultaneously.
-     * This is useful for white-label apps, multi-brand applications, or when you need to send pushes
-     * from different Pushwoosh applications to the same device.
-     * <br><br>
-     * Example:
-     * <pre>
-     * {@code
-     *   // Primary app code is set in AndroidManifest.xml or via setAppId()
-     *   Pushwoosh.getInstance().setAppId("XXXXX-XXXXX");
-     *
-     *   // Add alternative app codes for white-label brands
-     *   Pushwoosh.getInstance().addAlternativeAppCode("BRAND1-APPID");
-     *   Pushwoosh.getInstance().addAlternativeAppCode("BRAND2-APPID");
-     *
-     *   // Device will now receive pushes from all three applications
-     *   Pushwoosh.getInstance().registerForPushNotifications();
-     * }
-     * </pre>
-     *
-     * @param appCode Alternative Pushwoosh application code to add
-     * @see #setAppId(String)
-     * @see #resetAlternativeAppCodes()
-     */
-    public void addAlternativeAppCode(String appCode) {
-        RepositoryModule.getRegistrationPreferences().registerAlternativeAppCode(appCode);
-        PWLog.info("Added "+ appCode + " as an alternative app code for registration");
-    }
-
-    /**
-     * Removes all alternative application codes previously added via {@link #addAlternativeAppCode(String)}.
-     * <p>
-     * After calling this method, the device will only be registered with the primary application code
-     * set via {@link #setAppId(String)} or AndroidManifest.xml.
-     * <br><br>
-     * Example:
-     * <pre>
-     * {@code
-     *   // Clear all alternative app codes
-     *   Pushwoosh.getInstance().resetAlternativeAppCodes();
-     *
-     *   // Re-register to update on server
-     *   Pushwoosh.getInstance().registerForPushNotifications();
-     * }
-     * </pre>
-     *
-     * @see #addAlternativeAppCode(String)
-     * @see #setAppId(String)
-     */
-    public void resetAlternativeAppCodes() {
-        RepositoryModule.getRegistrationPreferences().resetAlternativeAppCodes();
-    }
-
-    /**
      * Registers a WhatsApp number for the current user.
      * <p>
      * This method associates a WhatsApp number with the device, allowing you to send

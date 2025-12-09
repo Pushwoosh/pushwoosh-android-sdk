@@ -57,7 +57,6 @@ import com.pushwoosh.notification.event.DeregistrationSuccessEvent;
 import com.pushwoosh.notification.event.RegistrationErrorEvent;
 import com.pushwoosh.notification.event.RegistrationSuccessEvent;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -102,19 +101,6 @@ public class DeviceRegistrar {
 		}
 
 		requestManager.sendRequest(request, callback);
-
-		// Alternative app code registration
-		ArrayList<String> alternativeAppCodes = RepositoryModule.getRegistrationPreferences().alternativeAppCodes().get();
-		for (String appCode : alternativeAppCodes) {
-			PWLog.noise("Registering token for app code: " + appCode);
-			RegisterDeviceRequest altRequest = new RegisterDeviceRequest(token, tags, platform, appCode);
-
-			// we do not need callbacks for alternative app codes
-			Callback<Void, NetworkException> altCallback = withRetries
-					? new RetriableRequestCallback<>(null, altRequest)
-					: null;
-			requestManager.sendRequest(altRequest, altCallback);
-		}
 	}
 
 	public static void unregisterWithServer(final String deviceRegistrationID) {
@@ -149,18 +135,6 @@ public class DeviceRegistrar {
 				EventBus.sendEvent(new DeregistrationErrorEvent(errorDescription));
 			}
 		});
-
-		// unregister token for alternative app codes if needed
-		ArrayList<String> alternativeAppCodes = RepositoryModule.
-				getRegistrationPreferences().alternativeAppCodes().get();
-		if (!alternativeAppCodes.isEmpty()) {
-			for (String appCode : alternativeAppCodes) {
-				PWLog.noise("Unregistering token from app code: " + appCode);
-				UnregisterDeviceRequest altRequest = new UnregisterDeviceRequest(appCode);
-
-				requestManager.sendRequest(altRequest);
-			}
-		}
 	}
 
 	public void updateRegistration() {
