@@ -13,8 +13,8 @@ https://docs.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notification
 
 ```groovy
 dependencies {
-    implementation 'com.pushwoosh:pushwoosh:6.7.49'
-    implementation 'com.pushwoosh:pushwoosh-firebase:6.7.49' // For FCM
+    implementation 'com.pushwoosh:pushwoosh:6.7.50'
+    implementation 'com.pushwoosh:pushwoosh-firebase:6.7.50' // For FCM
 }
 ```
 

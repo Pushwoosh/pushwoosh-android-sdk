@@ -32,6 +32,9 @@ public class SendCachedRequestWorker extends Worker {
         }
 
         RequestStorage requestStorage = RepositoryModule.getRequestStorage();
+        if (requestStorage == null) {
+            return onFail();
+        }
         CachedRequest cachedRequest = requestStorage.get(id);
         if (cachedRequest == null) {
             return onFail();

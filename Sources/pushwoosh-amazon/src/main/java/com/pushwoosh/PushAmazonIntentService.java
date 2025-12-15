@@ -62,36 +62,48 @@ public class PushAmazonIntentService extends ADMMessageHandlerBase {
 
 	@Override
 	protected void onRegistered(String registrationId) {
-		PWLog.info(TAG, "Device registered: regId = " + registrationId);
+		PWLog.noise(TAG, "onRegistered()");
+		try {
+			String tagsJson = null;
+			if (TagsRegistrarHelper.tagsBundle != null) {
+				tagsJson = TagsRegistrarHelper.tagsBundle.toJson().toString();
+			}
 
-		String tagsJson = null;
-		if (TagsRegistrarHelper.tagsBundle != null)
-		{
-			tagsJson = TagsRegistrarHelper.tagsBundle.toJson().toString();
+			NotificationRegistrarHelper.onRegisteredForRemoteNotifications(registrationId, tagsJson);
+			TagsRegistrarHelper.tagsBundle = null;
+		} catch (Exception e) {
+			PWLog.error(TAG, "Failed to handle registration", e);
 		}
-
-		NotificationRegistrarHelper.onRegisteredForRemoteNotifications(registrationId, tagsJson);
-		TagsRegistrarHelper.tagsBundle = null;
 	}
 
 	@Override
 	protected void onUnregistered(String registrationId) {
-		PWLog.info(TAG, "Device unregistered");
-
-		NotificationRegistrarHelper.onUnregisteredFromRemoteNotifications(registrationId);
+		PWLog.noise(TAG, "onUnregistered()");
+		try {
+			NotificationRegistrarHelper.onUnregisteredFromRemoteNotifications(registrationId);
+		} catch (Exception e) {
+			PWLog.error(TAG, "Failed to handle unregistration", e);
+		}
 	}
 
 	@Override
 	protected void onMessage(Intent intent) {
-		PWLog.info(TAG, "Received message");
-
-		NotificationRegistrarHelper.handleMessage(intent.getExtras());
+		PWLog.noise(TAG, "onMessage()");
+		try {
+			NotificationRegistrarHelper.handleMessage(intent.getExtras());
+		} catch (Exception e) {
+			PWLog.error(TAG, "Failed to handle message", e);
+		}
 	}
 
 	@Override
 	protected void onRegistrationError(String errorId) {
-		PWLog.error(TAG, "Messaging registration error: " + errorId);
-
-		NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(errorId);
+		PWLog.noise(TAG, "onRegistrationError()");
+		try {
+			PWLog.error(TAG, "Messaging registration error: " + errorId);
+			NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(errorId);
+		} catch (Exception e) {
+			PWLog.error(TAG, "Failed to handle registration error", e);
+		}
 	}
 }

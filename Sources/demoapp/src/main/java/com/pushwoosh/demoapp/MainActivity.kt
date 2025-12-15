@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         val navView = findViewById<BottomNavigationView>(R.id.nav_view)
         
         val appBarConfiguration: AppBarConfiguration = Builder(
-            R.id.navigation_home, R.id.navigation_notifications
+            R.id.navigation_home, R.id.navigation_notifications, R.id.navigation_inbox
         ).build()
         
         val navController = findNavController(this, R.id.nav_host_fragment_activity_main)

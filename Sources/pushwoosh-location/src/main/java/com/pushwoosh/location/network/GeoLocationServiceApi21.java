@@ -82,19 +82,30 @@ public class GeoLocationServiceApi21 extends JobService {
 	@Override
 	public boolean onStartJob(final JobParameters jobParameters) {
 		PWLog.noise(LocationConfig.TAG, SUB_TAG + "onStartJob");
-		boolean forceUpdate = jobParameters.getExtras().getInt(KEY_FORCE_UPDATE, 0) == 1;
-		final int type = jobParameters.getExtras().getInt(KEY_TYPE);
-		jobTask = new JobExecutor(type, jobApplayer, () -> jobFinished(jobParameters, false), forceUpdate);
-		jobTask.execute();
-		return true;
+		try {
+			boolean forceUpdate = jobParameters.getExtras().getInt(KEY_FORCE_UPDATE, 0) == 1;
+			final int type = jobParameters.getExtras().getInt(KEY_TYPE);
+			jobTask = new JobExecutor(type, jobApplayer, () -> jobFinished(jobParameters, false), forceUpdate);
+			jobTask.execute();
+			return true;
+		} catch (Exception e) {
+			PWLog.error(LocationConfig.TAG, SUB_TAG + "Failed to start job", e);
+			return false;
+		}
 	}
 
 	@Override
 	public boolean onStopJob(final JobParameters jobParameters) {
-		jobApplayer.cancel();
-
-		if (jobTask != null) {
-			jobTask.cancel(true);
+		PWLog.noise(LocationConfig.TAG, SUB_TAG + "onStopJob");
+		try {
+			if (jobApplayer != null) {
+				jobApplayer.cancel();
+			}
+			if (jobTask != null) {
+				jobTask.cancel(true);
+			}
+		} catch (Exception e) {
+			PWLog.error(LocationConfig.TAG, SUB_TAG + "Failed to stop job", e);
 		}
 		return true;
 	}

@@ -16,4 +16,10 @@
         android:name="com.pushwoosh.demoapp.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
+
+    <fragment
+        android:id="@+id/navigation_inbox"
+        android:name="com.pushwoosh.inbox.ui.presentation.view.fragment.InboxFragment"
+        android:label="@string/title_inbox"
+        tools:layout="@layout/pw_fragment_inbox" />
 </navigation>

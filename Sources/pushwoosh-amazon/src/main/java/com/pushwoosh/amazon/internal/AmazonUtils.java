@@ -32,8 +32,8 @@ public class AmazonUtils {
 		try {
 			Class.forName("com.amazon.device.messaging.ADM");
 			return true;
-		} catch (ClassNotFoundException e) {
-			// Ignore
+		} catch (Throwable t) {
+			// Reflection may throw NoClassDefFoundError, LinkageError
 		}
 		return false;
 	}

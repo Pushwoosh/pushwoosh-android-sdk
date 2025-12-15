@@ -53,6 +53,14 @@ public class GeofenceReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		try {
+			handleReceive(context, intent);
+		} catch (Exception e) {
+			PWLog.error(LocationConfig.TAG, SUB_TAG + "Failed to handle geofence event", e);
+		}
+	}
+
+	private void handleReceive(Context context, Intent intent) {
 		PWLog.noise(LocationConfig.TAG, SUB_TAG + "onReceive");
 		if (intent != null) {
 			final String action = intent.getAction();

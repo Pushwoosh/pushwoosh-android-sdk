@@ -2,15 +2,16 @@ package com.pushwoosh.notification;
 
 import android.content.Context;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.TimeProvider;
+import com.pushwoosh.repository.LocalNotificationStorage;
 import com.pushwoosh.repository.RepositoryModule;
-
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
 
 public class RescheduleNotificationsWorker extends Worker {
     public static final String TAG = "RescheduleNotificationsWorker";
@@ -32,7 +33,12 @@ public class RescheduleNotificationsWorker extends Worker {
     @Override
     public Result doWork() {
         long currentTime = getCurrentTime();
-        RepositoryModule.getLocalNotificationStorage().enumerateDbLocalNotificationList(dbLocalNotification -> {
+        LocalNotificationStorage storage = RepositoryModule.getLocalNotificationStorage();
+        if (storage == null) {
+            PWLog.error(TAG, "LocalNotificationStorage is null, can't reschedule notifications");
+            return Result.failure();
+        }
+        storage.enumerateDbLocalNotificationList(dbLocalNotification -> {
             Bundle bundle = dbLocalNotification.getBundle();
             PWLog.debug(TAG, "Rescheduling local push: " + bundle.toString());
             LocalNotificationReceiver.rescheduleNotification(dbLocalNotification, currentTime);

@@ -13,7 +13,11 @@ public class ForegroundService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        startForeground();
+        try {
+            startForeground();
+        } catch (Exception e) {
+            PWLog.error(TAG, "Failed to start foreground service", e);
+        }
     }
 
     @Override

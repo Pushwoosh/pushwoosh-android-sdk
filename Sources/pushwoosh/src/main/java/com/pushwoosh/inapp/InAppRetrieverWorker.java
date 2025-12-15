@@ -4,6 +4,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.inapp.network.InAppRepository;
+import com.pushwoosh.internal.utils.PWLog;
 
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
@@ -17,7 +18,11 @@ public class InAppRetrieverWorker extends Worker {
 	@NonNull
 	@Override
 	public Result doWork() {
-		doLoadInApps();
+		try {
+			doLoadInApps();
+		} catch (Exception e) {
+			PWLog.error(TAG, "Failed to load in-apps", e);
+		}
 		return Result.success();
 	}
 

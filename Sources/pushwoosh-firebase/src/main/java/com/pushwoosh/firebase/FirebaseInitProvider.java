@@ -7,12 +7,17 @@ import android.net.Uri;
 
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.firebase.internal.specific.FcmDeviceSpecificIniter;
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.security.CallingPackageChecker;
 
 public class FirebaseInitProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
-        FirebaseInitializer.init(getContext());
+        try {
+            FirebaseInitializer.init(getContext());
+        } catch (Exception e) {
+            PWLog.error("FirebaseInitProvider", "Failed to initialize", e);
+        }
         return true;
     }
 

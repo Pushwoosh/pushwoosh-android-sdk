@@ -38,15 +38,25 @@ public class PushFcmIntentService extends FirebaseMessagingService {
 	@Override
 	@WorkerThread
 	public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
-		PWLog.noise("PushFcmIntentService", "onMessageReceived");
-		super.onMessageReceived(remoteMessage);
-		PushwooshFcmHelper.onMessageReceived(getApplicationContext(), remoteMessage);
+        PWLog.noise("PushFcmIntentService", "onMessageReceived()");
+
+        try {
+			super.onMessageReceived(remoteMessage);
+			PushwooshFcmHelper.onMessageReceived(getApplicationContext(), remoteMessage);
+		} catch (Exception e) {
+			PWLog.error("PushFcmIntentService", "Failed to handle message", e);
+		}
 	}
 
 	@Override
 	public void onNewToken(@NonNull String token) {
-		PWLog.noise("PushFcmIntentService", String.format("onNewToken: %s", token));
-		super.onNewToken(token);
-		PushwooshFcmHelper.onTokenRefresh(token);
+        PWLog.noise("PushFcmIntentService", String.format("onNewToken: %s", token));
+
+		try {
+			super.onNewToken(token);
+			PushwooshFcmHelper.onTokenRefresh(token);
+		} catch (Exception e) {
+			PWLog.error("PushFcmIntentService", "Failed to handle new token", e);
+		}
 	}
 }

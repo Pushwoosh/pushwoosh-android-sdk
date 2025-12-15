@@ -27,9 +27,9 @@
 package com.pushwoosh.demoapp.utils
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Typeface
-import androidx.core.content.ContextCompat
 import com.pushwoosh.demoapp.R
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.model.customizing.formatter.InboxDateFormatter
@@ -49,30 +49,41 @@ class InboxStyleHelper {
         }
 
         private fun setupColors(context: Context) {
-            // Dark theme with bright accents - very different from main app
+            val isDarkTheme = (context.resources.configuration.uiMode and
+                    Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+            if (isDarkTheme) {
+                setupDarkTheme(context)
+            } else {
+                setupLightTheme(context)
+            }
+        }
+
+        private fun setupLightTheme(context: Context) {
+            // Light theme colors
             PushwooshInboxStyle.accentColor = Color.parseColor("#FF6B35") // Vibrant orange
-            
-            // Dark background colors
-            PushwooshInboxStyle.backgroundColor = Color.parseColor("#1A1A1A") // Very dark gray
-            PushwooshInboxStyle.highlightColor = Color.parseColor("#333333") // Dark gray highlight
-            
-            // Unread message colors - bright and contrasting
-            PushwooshInboxStyle.titleColor = Color.parseColor("#FFFFFF") // Pure white
-            PushwooshInboxStyle.descriptionColor = Color.parseColor("#E0E0E0") // Light gray
+
+            // Light background colors
+            PushwooshInboxStyle.backgroundColor = Color.parseColor("#FFFBFE") // White
+            PushwooshInboxStyle.highlightColor = Color.parseColor("#F5F5F5") // Light gray highlight
+
+            // Unread message colors
+            PushwooshInboxStyle.titleColor = Color.parseColor("#000000") // Black
+            PushwooshInboxStyle.descriptionColor = Color.parseColor("#000000") // Black
             PushwooshInboxStyle.dateColor = Color.parseColor("#FFC107") // Bright amber
             PushwooshInboxStyle.imageTypeColor = Color.parseColor("#4CAF50") // Bright green
-            
-            // Read message colors - dimmed but still visible on dark background
+
+            // Read message colors
             PushwooshInboxStyle.readTitleColor = Color.parseColor("#AAAAAA") // Medium gray
             PushwooshInboxStyle.readDescriptionColor = Color.parseColor("#888888") // Darker gray
             PushwooshInboxStyle.readDateColor = Color.parseColor("#666666") // Even darker gray
             PushwooshInboxStyle.readImageTypeColor = Color.parseColor("#555555") // Very dark gray
-            
-            // Divider and bar colors - colorful and distinctive
-            PushwooshInboxStyle.dividerColor = Color.parseColor("#444444") // Dark divider
-            PushwooshInboxStyle.barBackgroundColor = Color.parseColor("#2C2C2C") // Dark toolbar
+
+            // Divider and bar colors
+            PushwooshInboxStyle.dividerColor = Color.parseColor("#E0E0E0") // Light divider
+            PushwooshInboxStyle.barBackgroundColor = Color.parseColor("#FFFFFF") // White toolbar
             PushwooshInboxStyle.barAccentColor = Color.parseColor("#FF6B35") // Orange accent
-            PushwooshInboxStyle.barTextColor = Color.parseColor("#FFFFFF") // White text
+            PushwooshInboxStyle.barTextColor = Color.parseColor("#000000") // Black text
         }
 
         private fun setupTexts() {
@@ -156,7 +167,7 @@ class InboxStyleHelper {
 
         fun setupDarkTheme(context: Context) {
             // Dark theme color scheme
-            PushwooshInboxStyle.backgroundColor = Color.parseColor("#121212")
+            PushwooshInboxStyle.backgroundColor = Color.parseColor("#1C1B1F")
             PushwooshInboxStyle.highlightColor = Color.parseColor("#2C2C2C")
             
             // Unread message colors for dark theme

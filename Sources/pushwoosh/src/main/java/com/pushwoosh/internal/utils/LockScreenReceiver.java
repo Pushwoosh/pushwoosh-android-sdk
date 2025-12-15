@@ -29,6 +29,14 @@ public class LockScreenReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		try {
+			handleIntent(context, intent);
+		} catch (Exception e) {
+			PWLog.error(TAG, "Failed to handle intent", e);
+		}
+	}
+
+	private void handleIntent(Context context, Intent intent) {
 		if (intent == null) {
 			return;
 		}

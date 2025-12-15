@@ -42,7 +42,11 @@ import com.pushwoosh.internal.utils.security.CallingPackageChecker;
 public class AmazonInitProvider extends ContentProvider {
 	@Override
 	public boolean onCreate() {
-		AmazonInitializer.init(getContext());
+		try {
+			AmazonInitializer.init(getContext());
+		} catch (Exception e) {
+			PWLog.error("AmazonInitProvider", "Failed to initialize", e);
+		}
 		return true;
 	}
 

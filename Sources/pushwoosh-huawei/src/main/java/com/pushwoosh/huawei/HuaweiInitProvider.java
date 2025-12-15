@@ -8,12 +8,17 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.security.CallingPackageChecker;
 
 public class HuaweiInitProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
-        HuaweiInitializer.init(getContext());
+        try {
+            HuaweiInitializer.init(getContext());
+        } catch (Exception e) {
+            PWLog.error("HuaweiInitProvider", "Failed to initialize", e);
+        }
         return true;
     }
 

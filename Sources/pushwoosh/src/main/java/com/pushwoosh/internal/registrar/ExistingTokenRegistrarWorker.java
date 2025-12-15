@@ -23,14 +23,19 @@ public class ExistingTokenRegistrarWorker extends Worker {
     @Override
     public Result doWork() {
         PWLog.noise(TAG, "ExistingTokenRegistrarWorker doWork");
-        String token = getInputData().getString(TOKEN);
-        if (TextUtils.isEmpty(token)) {
-            PWLog.error(TAG, "Cannot register for pushes with null token");
+        try {
+            String token = getInputData().getString(TOKEN);
+            if (TextUtils.isEmpty(token)) {
+                PWLog.error(TAG, "Cannot register for pushes with null token");
+                return Result.failure();
+            }
+            SdkStateProvider.getInstance().executeOrQueue(()->{
+                PushwooshPlatform.getInstance().notificationManager().onExistingTokenReceived(token, null);
+            });
+        } catch (Exception e) {
+            PWLog.error(TAG, "Failed to register existing token", e);
             return Result.failure();
         }
-        SdkStateProvider.getInstance().executeOrQueue(()->{
-            PushwooshPlatform.getInstance().notificationManager().onExistingTokenReceived(token, null);
-        });
         // result is ignored, so we can immediately return success
         return Result.success();
     }

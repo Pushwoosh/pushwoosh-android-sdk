@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.DeviceUtils;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.security.CallingPackageChecker;
 
 public class PushwooshSharedDataProvider extends ContentProvider {
@@ -27,6 +28,18 @@ public class PushwooshSharedDataProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+        try {
+            return queryInternal(uri, sortOrder);
+        } catch (SecurityException e) {
+            throw e;
+        } catch (Exception e) {
+            PWLog.error("Failed to query shared data", e);
+            return null;
+        }
+    }
+
+    @Nullable
+    private Cursor queryInternal(@NonNull Uri uri, @Nullable String sortOrder) {
         if (getContext() == null)
             return null;
 

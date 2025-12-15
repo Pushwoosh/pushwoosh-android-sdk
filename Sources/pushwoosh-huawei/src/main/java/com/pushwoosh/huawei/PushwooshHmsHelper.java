@@ -5,6 +5,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import androidx.annotation.Nullable;
+
 import com.huawei.agconnect.config.AGConnectServicesConfig;
 import com.huawei.hms.aaid.HmsInstanceId;
 import com.huawei.hms.common.ApiException;
@@ -20,8 +22,6 @@ import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
 
 import java.util.Map;
-
-import androidx.annotation.Nullable;
 
 /**
  * Helper class for integrating Pushwoosh with Huawei Mobile Services (HMS) Push Kit in custom HmsMessageService implementations.
@@ -124,12 +124,17 @@ public class PushwooshHmsHelper {
      * @see HmsMessageService#onNewToken(String)
      */
     public static void onTokenRefresh(@Nullable String token) {
-        if (TextUtils.equals(token, RepositoryModule.getRegistrationPreferences().pushToken().get())) {
-            return;
-        }
-        if (DeviceSpecificProvider.getInstance().pushRegistrar() instanceof HuaweiPushRegistrar) {
-            PWLog.debug(TAG, "onTokenRefresh");
-            PushwooshMessagingServiceHelper.onTokenRefresh(token);
+        PWLog.noise(TAG, "onTokenRefresh()");
+
+        try {
+            if (TextUtils.equals(token, RepositoryModule.getRegistrationPreferences().pushToken().get())) {
+                return;
+            }
+            if (DeviceSpecificProvider.getInstance().pushRegistrar() instanceof HuaweiPushRegistrar) {
+                PushwooshMessagingServiceHelper.onTokenRefresh(token);
+            }
+        } catch (Exception e) {
+            PWLog.error(TAG, "Failed to handle token refresh", e);
         }
     }
 
@@ -164,16 +169,24 @@ public class PushwooshHmsHelper {
      */
     @SuppressWarnings("UnusedReturnValue")
     public static boolean onMessageReceived(Context context, RemoteMessage remoteMessage) {
-        if (!isPushwooshMessage(remoteMessage) || !DeviceSpecificProvider.isInited() ||
-                !DeviceSpecificProvider.getInstance().isHuawei()) {
+        PWLog.noise(TAG, "onMessageReceived()");
+
+        try {
+            if (!isPushwooshMessage(remoteMessage) || !DeviceSpecificProvider.isInited() ||
+                    !DeviceSpecificProvider.getInstance().isHuawei()) {
+                return false;
+            }
+
+            String from = remoteMessage.getFrom();
+            Map<String, String> data = remoteMessage.getDataOfMap();
+            PWLog.info(TAG, "Received message: " + data.toString() + " from: " + from);
+
+            Bundle pushBundle = RemoteMessageMapper.mapToBundle(remoteMessage);
+            return PushwooshMessagingServiceHelper.onMessageReceived(context, pushBundle);
+        } catch (Exception e) {
+            PWLog.error(TAG, "Failed to handle message", e);
             return false;
         }
-
-        String from = remoteMessage.getFrom();
-        Map<String, String> data = remoteMessage.getDataOfMap();
-        PWLog.info(TAG, "Received message: " + data.toString() + " from: " + from);
-        Bundle pushBundle = RemoteMessageMapper.mapToBundle(remoteMessage);
-        return PushwooshMessagingServiceHelper.onMessageReceived(context, pushBundle);
     }
 
     /**
