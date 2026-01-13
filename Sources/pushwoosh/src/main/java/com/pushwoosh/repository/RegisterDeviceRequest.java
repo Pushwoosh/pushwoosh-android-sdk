@@ -55,9 +55,6 @@ public class RegisterDeviceRequest extends AppOpenRequest {
 	}
 
 	@Override
-	public boolean shouldUseJitter() { return false; }
-
-	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		super.buildParams(params);
 

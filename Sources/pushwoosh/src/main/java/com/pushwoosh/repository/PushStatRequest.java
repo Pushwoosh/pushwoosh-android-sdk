@@ -52,8 +52,6 @@ public class PushStatRequest extends PushRequest<Void> {
 		return metadata;
 	}
 
-	public boolean shouldUseJitter(){ return true; }
-
 	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		if (hash != null) {

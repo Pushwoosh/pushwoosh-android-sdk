@@ -53,8 +53,6 @@ public class MessageDeliveredRequest extends PushRequest<Void> {
 		return metaData;
 	}
 
-	public boolean shouldUseJitter(){ return true; }
-
 	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		if (hash != null) {

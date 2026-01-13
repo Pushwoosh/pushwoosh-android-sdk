@@ -16,7 +16,6 @@ import org.json.JSONObject;
 public abstract class PushRequest<S> {
 
     public abstract String getMethod();
-    public abstract boolean shouldUseJitter();
 
     JSONObject getParams() throws JSONException, InterruptedException {
         final JSONObject baseParams = new JSONObject();

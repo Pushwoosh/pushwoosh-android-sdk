@@ -58,6 +58,4 @@ public class UpdateInboxMessageStatusRequest extends BaseInboxRequest<Void> {
 		return "inboxStatus";
 	}
 
-	@Override
-	public boolean shouldUseJitter() { return false; }
 }

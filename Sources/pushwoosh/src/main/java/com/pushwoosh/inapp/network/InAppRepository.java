@@ -138,19 +138,6 @@ public class InAppRepository {
         }
     }
 
-
-    private void checkEnableGDPR(List<Resource> resourceList) {
-        boolean result = false;
-        for (Resource resource : resourceList) {
-            String gdpr = resource.getGdpr();
-            if (gdpr != null && !gdpr.isEmpty()) {
-                result = true;
-                break;
-            }
-        }
-        registrationPrefs.gdprEnable().set(result);
-    }
-
     private boolean updateRequestManagerIfNeeded() {
         if (requestManager == null) {
             requestManager = NetworkModule.getRequestManager();
@@ -490,14 +477,6 @@ public class InAppRepository {
             throw new TimeoutException("InApp wait timeout");
         }
         return true;
-    }
-
-    public Resource getGDPRConsentInAppResource() {
-        return inAppStorage.getResourceGDPRConsent();
-    }
-
-    public Resource getGDPRDeletionInApp() {
-        return inAppStorage.getResourceGDPRDeletion();
     }
 
     private String getResultErrorMessage(Result result, String defaultErrorMessage) {

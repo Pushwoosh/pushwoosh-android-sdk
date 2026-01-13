@@ -53,7 +53,4 @@ class UnregisterDeviceRequest extends PushRequest<Void> {
 		return "unregisterDevice";
 	}
 
-	@Override
-	public boolean shouldUseJitter(){ return false; }
-
 }

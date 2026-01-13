@@ -31,6 +31,8 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+
 import com.pushwoosh.internal.event.Event;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.utils.PWLog;
@@ -68,7 +70,7 @@ public class ApplicationOpenDetector {
             private int activityStartedStoppedCount;
 
             @Override
-            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+            public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
                 final long appOpenEventTimeoutOnFirstLaunch = 1000 * 60; // 1 min
 
                 // first launch condition
@@ -87,7 +89,7 @@ public class ApplicationOpenDetector {
             }
 
             @Override
-            public void onActivityStarted(Activity activity) {
+            public void onActivityStarted(@NonNull Activity activity) {
                 if (activityStartedStoppedCount == 0) {
                     EventBus.sendEvent(new ApplicationMovedToForegroundEvent());
                 }
@@ -95,17 +97,17 @@ public class ApplicationOpenDetector {
             }
 
             @Override
-            public void onActivityResumed(Activity activity) {
+            public void onActivityResumed(@NonNull Activity activity) {
                 // Stub
             }
 
             @Override
-            public void onActivityPaused(Activity activity) {
+            public void onActivityPaused(@NonNull Activity activity) {
                 // Stub
             }
 
             @Override
-            public void onActivityStopped(Activity activity) {
+            public void onActivityStopped(@NonNull Activity activity) {
                 activityStartedStoppedCount--;
                 if (activityStartedStoppedCount == 0) {
                     EventBus.sendEvent(new ApplicationMovedToBackgroundEvent());
@@ -113,12 +115,12 @@ public class ApplicationOpenDetector {
             }
 
             @Override
-            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+            public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
                 // Stub
             }
 
             @Override
-            public void onActivityDestroyed(Activity activity) {
+            public void onActivityDestroyed(@NonNull Activity activity) {
                 activityCreatedDestroyedCount--;
             }
         });

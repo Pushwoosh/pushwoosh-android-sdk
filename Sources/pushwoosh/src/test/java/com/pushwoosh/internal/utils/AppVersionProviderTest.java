@@ -26,23 +26,16 @@
 
 package com.pushwoosh.internal.utils;
 
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.testutil.PlatformTestManager;
-import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.annotation.LooperMode;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
@@ -63,23 +56,6 @@ public class AppVersionProviderTest {
     }
 
     @Test
-    @Ignore
-    public void getCurrentVersion() throws PackageManager.NameNotFoundException {
-        PackageInfo packageInfo = getPackageInfo();
-
-        Assert.assertEquals(0, appVersionProvider.getCurrentVersion());
-
-        packageInfo.versionCode = 1;
-
-        Assert.assertEquals(1, appVersionProvider.getCurrentVersion());
-    }
-
-    private PackageInfo getPackageInfo() throws PackageManager.NameNotFoundException {
-        Context context = AndroidPlatformModule.getApplicationContext();
-        return context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-    }
-
-    @Test
     public void isFirstLaunchAndDropValue() {
         Assert.assertTrue(appVersionProvider.getFirstLaunchAndDropValue());
         Assert.assertFalse(appVersionProvider.getFirstLaunchAndDropValue());
@@ -90,18 +66,5 @@ public class AppVersionProviderTest {
         Assert.assertTrue(appVersionProvider.isFirstLaunch());
         Assert.assertTrue(appVersionProvider.isFirstLaunch());
     }
-
-    @Test
-    @Ignore
-    public void isFirstLaunchAfterUpdate() throws PackageManager.NameNotFoundException {
-        PackageInfo packageInfo = getPackageInfo();
-        Assert.assertFalse(appVersionProvider.getFirstLaunchAfterUpdateAndDropValue());
-        WhiteboxHelper.setInternalState(appVersionProvider, "handleLaunch", false);
-        packageInfo.versionCode = 1;
-
-        Assert.assertTrue(appVersionProvider.getFirstLaunchAfterUpdateAndDropValue());
-        Assert.assertFalse(appVersionProvider.getFirstLaunchAfterUpdateAndDropValue());
-    }
-
 
 }

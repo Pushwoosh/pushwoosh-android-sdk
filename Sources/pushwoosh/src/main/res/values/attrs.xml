@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <declare-styleable name="InlineInAppView">
-        <attr name="identifier" format="string" />
-        <attr name="disableLayoutAnimation" format="boolean" />
-    </declare-styleable>
-</resources>

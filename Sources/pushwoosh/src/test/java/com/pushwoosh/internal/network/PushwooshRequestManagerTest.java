@@ -49,7 +49,6 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -116,11 +115,6 @@ public class PushwooshRequestManagerTest {
 			return "testMethod";
 		}
 
-		@Override
-		public boolean shouldUseJitter() {
-			return false;
-		}
-
 		@NonNull
 		@Override
 		protected String getHwid() throws InterruptedException {
@@ -147,11 +141,6 @@ public class PushwooshRequestManagerTest {
 		}
 
 		@Override
-		public boolean shouldUseJitter() {
-			return false;
-		}
-
-		@Override
 		protected void buildParams(JSONObject params) throws JSONException {
 			throw new JSONException("test invalid params");
 		}
@@ -169,9 +158,6 @@ public class PushwooshRequestManagerTest {
 		public String getMethod() {
 			return "testBadResponse";
 		}
-
-		@Override
-		public boolean shouldUseJitter() {return  false;}
 
 		@Override
 		public Void parseResponse(@NonNull JSONObject response) throws JSONException {
@@ -357,37 +343,6 @@ public class PushwooshRequestManagerTest {
 		assertThat(request.getPath(), is(equalTo("/testBadResponse")));
 	}
 
-	@Ignore
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendRequest() throws Exception {
-		TestRequest testRequest = new TestRequest("testParam", "testResult");
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
-		Callback<String, NetworkException> callback = CallbackWrapper.spy();
-		ArgumentCaptor<Result<String, NetworkException>> callbackCaptor = ArgumentCaptor.forClass(Result.class);
-
-		requestManager.sendRequest(testRequest, callback);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		verify(callback, timeout(100)).process(callbackCaptor.capture());
-		Result<String, NetworkException> result = callbackCaptor.getValue();
-
-		assertThat(result.isSuccess(), is(true));
-		assertThat(result.getData(), is(equalTo("testResult")));
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testMethod")));
-
-		JSONObject requestParams = new JSONObject(request.getBody().readUtf8()).getJSONObject("request");
-		assertThat(requestParams.getString("param"), is(equalTo("testParam")));
-		assertThat(requestParams.getString("application"), is(equalTo(MockConfig.APP_ID)));
-		assertThat(requestParams.has("v"), is(true));
-		assertThat(requestParams.has("hwid"), is(true));
-		assertThat(requestParams.has("device_type"), is(true));
-
-		JSONObject testResponse = testRequest.getResponse();
-		JSONAssert.assertEquals(new JSONObject("{\"result\" : \"test output\"}"), testResponse, true);
-	}
-
 	@Test(timeout = TIMEOUT_TEST)
 	public void sendRequestBlockedByRemoveAllDevice() throws Exception {
 		registrationPrefs.removeAllDeviceData().set(true);
@@ -407,66 +362,6 @@ public class PushwooshRequestManagerTest {
 
 	}
 
-	@Ignore
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendBadParamsRequest() throws Exception {
-		TestBadParamsRequest testRequest = new TestBadParamsRequest();
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
-		Callback<Void, NetworkException> callback = CallbackWrapper.spy();
-		ArgumentCaptor<Result<Void, NetworkException>> callbackCaptor = ArgumentCaptor.forClass(Result.class);
-
-		requestManager.sendRequest(testRequest, callback);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		verify(callback, timeout(100)).process(callbackCaptor.capture());
-		Result<Void, NetworkException> result = callbackCaptor.getValue();
-
-		assertThat(result.isSuccess(), is(false));
-	}
-
-	@Ignore
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendBadResponseRequest() throws Exception {
-		TestBadResponseRequest testRequest = new TestBadResponseRequest();
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
-		Callback<Void, NetworkException> callback = CallbackWrapper.spy();
-		ArgumentCaptor<Result<Void, NetworkException>> callbackCaptor = ArgumentCaptor.forClass(Result.class);
-
-		requestManager.sendRequest(testRequest, callback);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		verify(callback, timeout(100)).process(callbackCaptor.capture());
-		Result<Void, NetworkException> result = callbackCaptor.getValue();
-
-		assertThat(result.isSuccess(), is(false));
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testBadResponse")));
-	}
-
-
-	@Ignore
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendRequestWithoutCallback() throws Exception {
-		TestRequest testRequest = new TestRequest("testParam", "testResult");
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
-
-		requestManager.sendRequest(testRequest);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testMethod")));
-
-		JSONObject requestParams = new JSONObject(request.getBody().readUtf8()).getJSONObject("request");
-		assertThat(requestParams.getString("param"), is(equalTo("testParam")));
-		assertThat(requestParams.getString("application"), is(equalTo(MockConfig.APP_ID)));
-		assertThat(requestParams.has("v"), is(true));
-		assertThat(requestParams.has("hwid"), is(true));
-		assertThat(requestParams.has("device_type"), is(true));
-
-		JSONObject testResponse = testRequest.getResponse();
-		JSONAssert.assertEquals(new JSONObject("{\"result\" : \"test output\"}"), testResponse, true);
-	}
 
 	@Test(timeout = TIMEOUT_TEST)
 	public void sendRequestWithoutCallbackBlockedByRemoveAllDevice() throws Exception {

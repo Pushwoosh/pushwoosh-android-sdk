@@ -48,19 +48,15 @@ public class InAppDbHelperTest {
 
     private Resource resource1;
     private Resource resource2;
-    private Resource resourceConsent;
-    private Resource resourceDelete;
 
     @Before
     public void setUp() throws Exception {
         inAppDbHelper = new InAppDbHelper(RuntimeEnvironment.application);
 
-        resource1 = new Resource("code1","url1", "hash1", 1L,  InAppLayout.DIALOG, null, false, 3, null, "");
-        resource2 = new Resource("code2","url2", "hash2", 2L,  InAppLayout.BOTTOM, null, true, 2, null, "");
-        resourceConsent = new Resource("code3","url3", "hash3", 3L,  InAppLayout.FULLSCREEN, null, true, 1,  null, "Consent");
-        resourceDelete = new Resource("code4","url4", "hash4", 4L,  InAppLayout.TOP, null, false, 2,  null, "Delete");
+        resource1 = new Resource("code1","url1", "hash1", 1L,  InAppLayout.DIALOG, null, false, 3);
+        resource2 = new Resource("code2","url2", "hash2", 2L,  InAppLayout.BOTTOM, null, true, 2);
 
-        List<Resource> resourceList = Arrays.asList(resource1, resource2, resourceConsent, resourceDelete);
+        List<Resource> resourceList = Arrays.asList(resource1, resource2);
 
         inAppDbHelper.saveOrUpdateResources(resourceList);
     }
@@ -76,17 +72,5 @@ public class InAppDbHelperTest {
         Assert.assertEquals(resource2, resource);
         resource = inAppDbHelper.getResource("code1");
         Assert.assertEquals(resource1, resource);
-    }
-
-    @Test
-    public void getResourceGDPRConsent() {
-        Resource resource = inAppDbHelper.getResourceGDPRConsent();
-        Assert.assertEquals(resourceConsent, resource);
-    }
-
-    @Test
-    public void getResourceGDPRDeletion() {
-        Resource resource = inAppDbHelper.getResourceGDPRDeletion();
-        Assert.assertEquals(resourceDelete,  resource);
     }
 }

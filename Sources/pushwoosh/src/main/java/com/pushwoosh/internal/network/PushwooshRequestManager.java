@@ -8,8 +8,6 @@
 package com.pushwoosh.internal.network;
 
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,28 +28,22 @@ import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Random;
-
-
 /**
  * Implementation of {@link com.pushwoosh.internal.network.RequestManager}
  */
 class PushwooshRequestManager implements RequestManager {
 	private static final String TAG = "RequestManager";
 	public static final String INTERACTIONS_WERE_STOPPED_EXCEPTION_STRING = "Device data was removed from Pushwoosh and all interactions were stopped";
-	public static final int JITTER_MAX_TIME = 30000;
 
 	private final RegistrationPrefs registrationPrefs;
 	private final ServerCommunicationManager serverCommunicationManager;
 	private String baseRequestUrl;
 	private boolean usingReverseProxy = false;
-	private final Handler jitterMainHandler;
 
 	PushwooshRequestManager(RegistrationPrefs registrationPrefs,
 							ServerCommunicationManager serverCommunicationManager) {
 		this.registrationPrefs = registrationPrefs;
 		this.serverCommunicationManager = serverCommunicationManager;
-		this.jitterMainHandler = new Handler(Looper.getMainLooper());
 
 		baseRequestUrl = registrationPrefs.baseUrl().get();
 	}
@@ -86,15 +78,8 @@ class PushwooshRequestManager implements RequestManager {
 			return;
 		}
 
-		if (request.shouldUseJitter()) {
-			int jitterRandomOffset = new Random().nextInt(JITTER_MAX_TIME);
-			PWLog.debug(TAG, "Adding jitter delay of " + jitterRandomOffset + " milliseconds to " + request.getClass().getCanonicalName() + " request");
-			jitterMainHandler.postDelayed(() -> new SendRequestTask<>(this, request, baseUrl, callback)
-                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR), jitterRandomOffset);
-		} else {
-			new SendRequestTask<>(this, request, baseUrl, callback)
-					.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
-		}
+		new SendRequestTask<>(this, request, baseUrl, callback)
+				.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
 	}
 
 

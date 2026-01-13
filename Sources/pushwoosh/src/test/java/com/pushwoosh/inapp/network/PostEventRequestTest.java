@@ -95,7 +95,7 @@ public class PostEventRequestTest {
 	public void testParseResponseWithSavedCode() throws Exception {
 		final String testCode = "1234-5678";
 		JSONObject response = new JSONObject("{ \"code\" : \"" + testCode + "\" }");
-		when(inAppStorage.getResource(testCode)).thenReturn(new Resource(testCode, null, null, 0, null, null, false, -1, null, null));
+		when(inAppStorage.getResource(testCode)).thenReturn(new Resource(testCode, null, null, 0, null, null, false, -1));
 
 		PostEventRequest request = new PostEventRequest("", "", Tags.empty());
 		String code = request.parseResponse(response).getCode();

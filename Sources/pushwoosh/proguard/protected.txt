@@ -328,10 +328,6 @@
     *;
 }
 
--keepclassmembers class com.pushwoosh.inapp.view.inline.InlineInAppViewLayoutHelperApi1$InlineInappSizeInterface {
-    *;
-}
-
 -keep public class com.pushwoosh.notification.SummaryNotificationUtils {
     public *;
     protected *;

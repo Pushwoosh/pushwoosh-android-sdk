@@ -26,8 +26,6 @@
 
 package com.pushwoosh.notification;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.repository.LocalNotificationStorage;
@@ -36,24 +34,18 @@ import com.pushwoosh.testutil.PlatformTestManager;
 import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
-
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.pushwoosh.notification.LocalNotificationReceiver.EXTRA_NOTIFICATION_ID;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -90,23 +82,6 @@ public class LocalNotificationReceiverTest {
     @After
     public void tearDown() {
         platformTestManager.tearDown();
-    }
-
-    @Test
-    @Ignore
-    public void onReceive() throws Exception {
-        Context context = RuntimeEnvironment.application;
-        Intent intent = new Intent();
-        intent.putExtra(EXTRA_NOTIFICATION_ID, "123");
-
-        localNotificationReceiver.onReceive(context, intent);
-
-        verify(localNotificationStorageMock).removeLocalNotification(123);
-        ArgumentCaptor<Bundle> bundleArgumentCaptor = ArgumentCaptor.forClass(Bundle.class);
-        verify(notificationServiceExtensionMock).handleMessageInternal(bundleArgumentCaptor.capture());
-        Bundle bundleResult = bundleArgumentCaptor.getValue();
-        assertEquals(1, bundleArgumentCaptor.getAllValues().size());
-        assertEquals("123", bundleResult.getString("local_push_id"));
     }
 
     @Test

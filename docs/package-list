@@ -8,7 +8,6 @@ com.pushwoosh.function
 com.pushwoosh.inapp
 com.pushwoosh.inapp.view.config
 com.pushwoosh.inapp.view.config.enums
-com.pushwoosh.inapp.view.inline
 com.pushwoosh.notification
 com.pushwoosh.richmedia
 com.pushwoosh.richmedia.animation

@@ -40,8 +40,6 @@ public class DisableLocationRequest extends PushRequest<Void> {
 		return "getNearestZone";
 	}
 
-	public boolean shouldUseJitter() { return false; }
-
 	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		params.put("lat", JSONObject.NULL);

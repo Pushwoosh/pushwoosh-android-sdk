@@ -39,9 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_BUSINESS_CASE;
 import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_CODE;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_GDPR;
 import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_HASH;
 import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_PRIORITY;
 import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_REQUIRED;
@@ -68,8 +66,6 @@ public class Resource implements Serializable, Comparable<Resource> {
 		static final String KEY_TIME_STAMP = "ts";
 		static final String KEY_PRIORITY = "priority";
 		static final String KEY_REQUIRED = "required";
-		static final String KEY_BUSINESS_CASE = "businessCase";
-		static final String KEY_GDPR = "gdpr";
 	}
 
 	private final String mCode;
@@ -79,8 +75,6 @@ public class Resource implements Serializable, Comparable<Resource> {
 	private final InAppLayout mLayout;
 	private final boolean required;
 	private final int priority;
-	private final String businessCase;
-	private final String gdpr;
 
 	private ModalRichmediaConfig resourceModalConfig = null;
 
@@ -94,39 +88,26 @@ public class Resource implements Serializable, Comparable<Resource> {
 			 defaultLayout,
 			 Collections.emptyMap(),
 			 json.optBoolean(KEY_REQUIRED, false),
-			 json.optInt(KEY_PRIORITY, 0),
-				json.optString(KEY_BUSINESS_CASE, null),
-				json.optString(KEY_GDPR));
-
+			 json.optInt(KEY_PRIORITY, 0));
 	}
 
 	public Resource(String url) {
-		this("", url, null, 0, InAppLayout.FULLSCREEN, null, false, -1, null, null);
+		this("", url, null, 0, InAppLayout.FULLSCREEN, null, false, -1);
 	}
 
 	public Resource(String code, boolean isRequired) {
-		this(code, null, null, 0, InAppLayout.FULLSCREEN, null, isRequired, -1, null, null);
+		this(code, null, null, 0, InAppLayout.FULLSCREEN, null, isRequired, -1);
 	}
 
 	public Resource(String code, String url, String hash, long updated, InAppLayout layout, Map<String, Object> tags, boolean required, int priority) {
-		this(code, url, hash, updated, layout, tags, required, priority, null, null);
-	}
-
-	public Resource(String code, String url, String hash, long updated, InAppLayout layout, Map<String, Object> tags, boolean required, int priority, String businessCase, String gdpr) {
-        if (businessCase != null && !businessCase.isEmpty()) {
-            this.required = true;
-        } else {
-            this.required = required;
-        }
-	    mCode = code;
+		this.required = required;
+		mCode = code;
 		mUrl = url;
 		mHash = hash;
 		mUpdated = updated;
 		mLayout = layout;
 		mTags = convertTags(tags);
 		this.priority = priority;
-		this.businessCase = businessCase;
-		this.gdpr = gdpr;
 	}
 
 	public void setTags(Map<String, Object> tags) {
@@ -169,13 +150,6 @@ public class Resource implements Serializable, Comparable<Resource> {
 		return mUrl  == null;
 	}
 
-	public String getBusinessCase() {
-		return businessCase;
-	}
-	public String getGdpr() {
-		return gdpr;
-	}
-
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -203,12 +177,6 @@ public class Resource implements Serializable, Comparable<Resource> {
 		if (mUrl != null ? !mUrl.equals(resource.mUrl) : resource.mUrl != null) {
 			return false;
 		}
-		if (businessCase != null ? !businessCase.equals(resource.businessCase) : resource.businessCase != null){
-			return false;
-		}
-		if (gdpr != null ? !gdpr.equals(resource.gdpr) : resource.gdpr != null) {
-			return false;
-		}
 		return mLayout == resource.mLayout;
 
 	}
@@ -217,7 +185,6 @@ public class Resource implements Serializable, Comparable<Resource> {
 	public int hashCode() {
 		int result = mCode != null ? mCode.hashCode() : 0;
 		result = 31 * result + (mUrl != null ? mUrl.hashCode() : 0);
-		result = 31 * result + (gdpr != null ? gdpr.hashCode() : 0);
 		result = 31 * result + (int) (mUpdated ^ (mUpdated >>> 32));
 		result = 31 * result + (mLayout != null ? mLayout.hashCode() : 0);
 		result = 31 * result + (required ? 1 : 0);

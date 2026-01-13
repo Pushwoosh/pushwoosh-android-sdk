@@ -74,7 +74,6 @@ public class GetInAppsRequestTest {
 		assertEquals("ae274622772dc8fee4fda8e653de1a81", firstInApp.getHash());
 		assertTrue(firstInApp.isRequired());
 		assertEquals(0, firstInApp.getPriority());
-		assertEquals("app-update-message", firstInApp.getBusinessCase());
 
 		Resource secondInApp = inApps.get(1);
 		assertEquals("https://richmedia.pushwoosh.com/7/0/70949-07AA8.zip", secondInApp.getUrl());
@@ -84,7 +83,6 @@ public class GetInAppsRequestTest {
 		assertEquals("dd3554c4dc2099962514e23c12cc019f", secondInApp.getHash());
 		assertTrue(secondInApp.isRequired());
 		assertEquals(0, secondInApp.getPriority());
-		assertEquals("push-register", secondInApp.getBusinessCase());
 
 		Resource thirdInApp = inApps.get(2);
 		assertEquals("https://richmedia.pushwoosh.com/B/5/B5EFB-7D128.zip", thirdInApp.getUrl());
@@ -92,9 +90,8 @@ public class GetInAppsRequestTest {
 		assertEquals(InAppLayout.of("topbanner"), thirdInApp.getLayout());
 		assertEquals(1548402974, thirdInApp.getUpdated());
 		assertEquals("6da40bc86072402a6114d79a1db39eb5", thirdInApp.getHash());
-		assertFalse(thirdInApp.isRequired()); // is only false if both businessCase is empty and required is false
+		assertFalse(thirdInApp.isRequired());
 		assertEquals(1, thirdInApp.getPriority());
-		assertEquals("", thirdInApp.getBusinessCase());
 	}
 
 	@Test
@@ -173,7 +170,7 @@ public class GetInAppsRequestTest {
 	}
 
 	@Test
-	public void testNoRequiredAndBusinessCaseFields() throws Exception {
+	public void testNoRequiredField() throws Exception {
 		JSONObject response = new JSONObject("{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\"," +
 				"\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1," +
 				"\"hash\":\"ae274622772dc8fee4fda8e653de1a81\",\"priority\":0,\"gdpr\":\"\"}]}");
@@ -194,18 +191,6 @@ public class GetInAppsRequestTest {
 		Resource inApp = inApps.get(0);
 
 		assertEquals(0, inApp.getPriority());
-	}
-
-	@Test
-	public void testNoBusinessCase() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\"," +
-				"\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1," +
-				"\"hash\":\"ae274622772dc8fee4fda8e653de1a81\",\"required\":false,\"priority\":0,\"gdpr\":\"\"}]}");
-		GetInAppsRequest request = new GetInAppsRequest();
-		List<Resource> inApps = request.parseResponse(response);
-		Resource inApp = inApps.get(0);
-
-		assertNull(inApp.getBusinessCase());
 	}
 
 	@Test(expected = JSONException.class)

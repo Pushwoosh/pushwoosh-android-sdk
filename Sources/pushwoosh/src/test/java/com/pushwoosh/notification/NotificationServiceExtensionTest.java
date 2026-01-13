@@ -9,9 +9,7 @@ import com.pushwoosh.testutil.PlatformTestManager;
 import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -73,47 +71,6 @@ public class NotificationServiceExtensionTest {
     @After
     public void tearDown() throws Exception {
         platformTestManager.tearDown();
-    }
-
-    @Test
-    @Ignore
-    public void handleMessageInternalShouldSendStatIfForegroundEnabled() {
-        showForeground = true;
-
-        notificationServiceExtension.handleMessageInternal(pushBundle);
-
-        verify(notificationOpenHandler).postHandleNotification(pushBundle);
-    }
-    @Test
-    @Ignore
-    public void handleMessageInternalShouldNotSendStatIfForegroundDisabled(){
-        showForeground = false;
-
-        notificationServiceExtension.handleMessageInternal(pushBundle);
-
-        verify(notificationOpenHandler).postHandleNotification(pushBundle);
-    }
-
-    @Test
-    @Ignore
-    public void handleMessageInternalShouldSendStatIfFlagEnabledAndForegroundEnabled(){
-        showForeground = true;
-        Mockito.when(configMock.getSendPushStatIfShowForegroundDisabled()).thenReturn(true);
-
-        notificationServiceExtension.handleMessageInternal(pushBundle);
-
-        verify(notificationOpenHandler).postHandleNotification(pushBundle);
-    }
-
-    @Test
-    @Ignore
-    public void handleMessageInternalShouldNotSendStatIfFlagDisabledAndForegroundDisabled(){
-        showForeground = false;
-        Mockito.when(configMock.getSendPushStatIfShowForegroundDisabled()).thenReturn(false);
-
-        notificationServiceExtension.handleMessageInternal(pushBundle);
-
-        verify(notificationOpenHandler).postHandleNotification(pushBundle);
     }
 
     @Test

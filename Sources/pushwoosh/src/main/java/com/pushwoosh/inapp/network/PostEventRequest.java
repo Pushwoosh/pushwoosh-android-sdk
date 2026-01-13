@@ -61,9 +61,6 @@ class PostEventRequest extends PushRequest<PostEventResponse> {
 	}
 
 	@Override
-	public boolean shouldUseJitter(){ return false; }
-
-	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		attributes = new TagsBundle.Builder()
 				.putAll(attributes.toJson())

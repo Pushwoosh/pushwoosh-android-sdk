@@ -1,5 +1,6 @@
 package com.pushwoosh.demoapp.ui
 
+import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.ImageView

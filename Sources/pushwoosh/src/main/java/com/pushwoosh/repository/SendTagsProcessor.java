@@ -105,8 +105,6 @@ public class SendTagsProcessor implements Accumulator.Completion<SendTagsProcess
 	}
 
 	private void failedAccumulatedData(List<SendTagsInvocation> data, NetworkException exception) {
-		RepositoryModule.getRegistrationPreferences().setTagsFailed().set(true);
-
 		for (SendTagsInvocation sendTagsInvocation : data) {
 			if (sendTagsInvocation.getHandler() != null) {
 				sendTagsInvocation.getHandler().process(Result.fromException(exception));

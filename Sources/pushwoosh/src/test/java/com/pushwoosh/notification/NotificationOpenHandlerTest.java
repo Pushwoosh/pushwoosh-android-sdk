@@ -26,8 +26,6 @@
 
 package com.pushwoosh.notification;
 
-import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -40,7 +38,6 @@ import com.pushwoosh.testutil.PlatformTestManager;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -95,22 +92,6 @@ public class NotificationOpenHandlerTest {
         platformTestManager.tearDown();
     }
 
-    @Test
-    @Ignore
-    public void preHandleNotification() {
-        Bundle bundle = createTestBundle();
-        boolean result = notificationOpenHandler.preHandleNotification(bundle);
-        Assert.assertTrue(result);
-
-        ArgumentCaptor<Intent> intentArgumentCaptor = ArgumentCaptor.forClass(Intent.class);
-        verify(AndroidPlatformModule.getApplicationContext()).startActivity(intentArgumentCaptor.capture());
-        Assert.assertEquals(1, intentArgumentCaptor.getAllValues().size());
-
-        Intent intent = intentArgumentCaptor.getValue();
-        Assert.assertEquals("android.intent.action.VIEW", intent.getAction());
-        Assert.assertEquals("http:\\\\link", intent.getData().toString());
-    }
-
     private Bundle createTestBundle() {
         Bundle bundle = new Bundle();
         bundle.putString("one", "1");
@@ -132,24 +113,6 @@ public class NotificationOpenHandlerTest {
         Assert.assertEquals("com.pushwoosh.test.MESSAGE", intent.getAction());
         Assert.assertEquals("Bundle[{PUSH_RECEIVE_EVENT={\"l\":\"http:\\\\\\\\link\",\"one\":\"1\",\"two\":true,\"three\":3}}]",
                 intent.getExtras().toString());
-    }
-
-    @Test
-    @Ignore("java.lang.NoSuchMethodError")
-    public void startPushLauncherActivitySecondMethod() {
-        PushMessage pushMessage = new PushMessage(createTestBundle());
-        Context applicationContext = AndroidPlatformModule.getApplicationContext();
-
-        Mockito.doThrow(new ActivityNotFoundException("Test Exception")).when(applicationContext).startActivity(any());
-        notificationOpenHandler.startPushLauncherActivity(pushMessage);
-
-        ArgumentCaptor<Intent> intentArgumentCaptor = ArgumentCaptor.forClass(Intent.class);
-        verify(applicationContext).startActivity(intentArgumentCaptor.capture());
-        Assert.assertEquals(1, intentArgumentCaptor.getAllValues().size());
-        Intent intent = intentArgumentCaptor.getValue();
-        Assert.assertEquals("com.pushwoosh.MESSAGE", intent.getAction());
-        String expected = "Bundle[{PUSH_RECEIVE_EVENT={\"one\":\"1\",\"l\":\"http:\\\\\\\\link\",\"two\":true,\"three\":3}}]";
-        Assert.assertEquals(expected, intent.getExtras().toString());
     }
 
     @Test

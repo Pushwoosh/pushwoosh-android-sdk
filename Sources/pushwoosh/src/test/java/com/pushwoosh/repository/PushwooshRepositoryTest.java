@@ -60,9 +60,6 @@ public class PushwooshRepositoryTest {
         sendTagsProcessor = Mockito.mock(SendTagsProcessor.class);
 
         registrationPrefs = Mockito.mock(RegistrationPrefs.class);
-        PreferenceBooleanValue preferenceBooleanValue = Mockito.mock(PreferenceBooleanValue.class);
-        when(preferenceBooleanValue.get()).thenReturn(false);
-        when(registrationPrefs.setTagsFailed()).thenReturn(preferenceBooleanValue);
         when(registrationPrefs.communicationEnable()).thenReturn(mock(PreferenceBooleanValue.class));
         when(registrationPrefs.removeAllDeviceData()).thenReturn(mock(PreferenceBooleanValue.class));
 

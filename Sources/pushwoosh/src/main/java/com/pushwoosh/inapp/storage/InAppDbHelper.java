@@ -51,9 +51,6 @@ public class InAppDbHelper extends SQLiteOpenHelper implements InAppStorage {
     private static final int VERSION = 4;
 
     private static final String TABLE = "inApps";
-    public static final String COMMUNICATION_GDPR_RESOURCE = "Consent";
-    public static final String REMOVE_DATA_DEVICE_GDPR_RESOURCE = "Delete";
-
 
     private static class Column {
         static final String CODE = "code";
@@ -154,8 +151,6 @@ public class InAppDbHelper extends SQLiteOpenHelper implements InAppStorage {
         values.put(Column.LAYOUT, inApp.getLayout().getCode());
         values.put(Column.PRIORITY, inApp.getPriority());
         values.put(Column.REQUIRED, inApp.isRequired() ? 1 : 0);
-        values.put(Column.BUSINESS_CASE, inApp.getBusinessCase());
-        values.put(Column.GDPR, inApp.getGdpr());
 
         int updated = db.updateWithOnConflict(TABLE, values, Column.CODE + "= ?", new String[]{inApp.getCode()}, SQLiteDatabase.CONFLICT_IGNORE);
         if (updated == 0) {
@@ -208,60 +203,15 @@ public class InAppDbHelper extends SQLiteOpenHelper implements InAppStorage {
         return null;
     }
 
-    @Override
-    public Resource getResourceGDPRConsent() {
-        return getResourceByGDPR(COMMUNICATION_GDPR_RESOURCE);
-    }
-
-    @Override
-    public Resource getResourceGDPRDeletion() {
-        return getResourceByGDPR(REMOVE_DATA_DEVICE_GDPR_RESOURCE);
-    }
-
-    @NonNull
-    private Resource getResourceByGDPR(String gdpr) {
-        synchronized (mutex) {
-            try {
-                SQLiteDatabase db = getWritableDatabase();
-                try {
-                    return getResourceByGDPR(gdpr, db);
-                } finally {
-                    db.close();
-                }
-            } catch (Exception e) {
-                PWLog.error("Can't download resource from db : " + gdpr, e);
-                return null;
-            }
-        }
-    }
-
-    private Resource getResourceByGDPR(String gpdr, SQLiteDatabase db) {
-        String selection = Column.GDPR + "= ?";
-        String[] selectionArgs = DbUtils.getSelectionArgs(gpdr);
-        Cursor cursor = db.query(TABLE, null, selection, selectionArgs, null, null, null);
-        try {
-            if (cursor.moveToFirst()) {
-                return getResourceFromCursor(cursor);
-            }
-        } finally {
-            cursor.close();
-        }
-        return null;
-    }
-
-
     @NonNull
     private Resource getResourceFromCursor(Cursor cursor) {
-        String gpdr;
-        gpdr = cursor.getString(cursor.getColumnIndex(Column.CODE));
+        String code = cursor.getString(cursor.getColumnIndex(Column.CODE));
         String url = cursor.getString(cursor.getColumnIndex(Column.URL));
         long updated = cursor.getLong(cursor.getColumnIndex(Column.UPDATED));
         InAppLayout layout = InAppLayout.of(cursor.getString(cursor.getColumnIndex(Column.LAYOUT)));
         int priority = cursor.getInt(cursor.getColumnIndex(Column.PRIORITY));
         boolean required = cursor.getInt(cursor.getColumnIndex(Column.REQUIRED)) == 1;
-        String gdpr = cursor.getString(cursor.getColumnIndex(Column.GDPR));
-        String businessCase = cursor.getString(cursor.getColumnIndex(Column.BUSINESS_CASE));
-        return new Resource(gpdr, url, "", updated, layout, null, required, priority, businessCase, gdpr);
+        return new Resource(code, url, "", updated, layout, null, required, priority);
     }
 
 }

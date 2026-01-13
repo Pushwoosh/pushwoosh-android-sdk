@@ -64,7 +64,7 @@ public class InAppSecureTest {
 		File file = new File("");
 		try(MockedStatic<FileUtils> fileUtilsMockedStatic = Mockito.mockStatic(FileUtils.class)) {
 			fileUtilsMockedStatic.when(() -> FileUtils.getMd5Hash(file)).thenReturn("test_hash");
-			Resource resource = new Resource("", "", "test_hash", 0, InAppLayout.DIALOG, null, false, 0, null, null);
+			Resource resource = new Resource("", "", "test_hash", 0, InAppLayout.DIALOG, null, false, 0);
 			assertTrue(fileHashChecker.check(new Pair<>(file, resource)));
 		}
 	}
@@ -74,7 +74,7 @@ public class InAppSecureTest {
 		File file = new File("");
 		try(MockedStatic<FileUtils> fileUtilsMockedStatic = Mockito.mockStatic(FileUtils.class)) {
 			fileUtilsMockedStatic.when(() -> FileUtils.getMd5Hash(file)).thenReturn("test_hash");
-			Resource resource = new Resource("", "", "invalid_hash", 0, InAppLayout.DIALOG, null, false, 0, null, null);
+			Resource resource = new Resource("", "", "invalid_hash", 0, InAppLayout.DIALOG, null, false, 0);
 			assertFalse(fileHashChecker.check(new Pair<>(file, resource)));
 		}
 	}
@@ -84,7 +84,7 @@ public class InAppSecureTest {
 		File file = new File("");
 		try(MockedStatic<FileUtils> fileUtilsMockedStatic = Mockito.mockStatic(FileUtils.class)) {
 			fileUtilsMockedStatic.when(() -> FileUtils.getMd5Hash(file)).thenReturn("test_hash");
-			Resource resource = new Resource("", "", "", 0, InAppLayout.DIALOG, null, false, 0, null, null);
+			Resource resource = new Resource("", "", "", 0, InAppLayout.DIALOG, null, false, 0);
 			assertTrue(fileHashChecker.check(new Pair<>(file, resource)));
 		}
 	}
@@ -94,7 +94,7 @@ public class InAppSecureTest {
 		File file = new File("");
 		try(MockedStatic<FileUtils> fileUtilsMockedStatic = Mockito.mockStatic(FileUtils.class)) {
 			fileUtilsMockedStatic.when(() -> FileUtils.getMd5Hash(file)).thenReturn("test_hash");
-			Resource resource = new Resource("", "", null, 0, InAppLayout.DIALOG, null, false, 0, null, null);
+			Resource resource = new Resource("", "", null, 0, InAppLayout.DIALOG, null, false, 0);
 			assertTrue(fileHashChecker.check(new Pair<>(file, resource)));
 		}
 	}

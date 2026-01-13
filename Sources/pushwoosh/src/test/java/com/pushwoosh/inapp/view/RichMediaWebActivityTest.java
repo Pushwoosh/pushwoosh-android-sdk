@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.animation.Animation;
 
 import com.pushwoosh.PushwooshPlatform;
-import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
 import com.pushwoosh.inapp.network.model.InAppLayout;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.richmedia.RichMediaStyle;
@@ -17,7 +16,6 @@ import com.pushwoosh.testutil.WhiteboxHelper;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -60,7 +58,7 @@ public class RichMediaWebActivityTest {
 
     private void buildActivity() {
         Intent intent = new Intent();
-        Resource resource = new Resource("code1", "url1", "hash1", 0, InAppLayout.FULLSCREEN, null, true, 1, BusinessCasesManager.PUSH_RECOVER_CASE, "");
+        Resource resource = new Resource("code1", "url1", "hash1", 0, InAppLayout.FULLSCREEN, null, true, 1);
         Intent intentWithContent = WebActivity.applyIntentParams(intent, resource, "123", 0);
         richMediaWebActivity = Robolectric
                 .buildActivity(RichMediaWebActivity.class, intentWithContent)
@@ -117,18 +115,6 @@ public class RichMediaWebActivityTest {
         listener.onAnimationEnd(animation);
 
         verify(resourceWebView).setVisibility(View.GONE);
-    }
-
-    @Test
-    @Ignore
-    public void onCreateShouldClosedIfInStateWasSavedKeyClosed() {
-        Bundle bundle = new Bundle();
-        bundle.putBoolean("is_closed", true);
-
-        richMediaWebActivity.onCreate(bundle);
-
-        verify(richMediaWebActivity).finish();
-        //todo make refactoring and fix test
     }
 
     @Test

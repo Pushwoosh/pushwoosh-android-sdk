@@ -48,9 +48,6 @@ class SetTagsRequest extends PushRequest<Void> {
 	}
 
 	@Override
-	public boolean shouldUseJitter(){ return false; }
-
-	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		// process strange #pwinc# key and convert it to incremental tag
 		// TODO: left for backwards compatibility. Will be removed after deprecated PushManager removal

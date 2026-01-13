@@ -77,27 +77,6 @@ public class PushwooshRepository {
         this.registrationPrefs = registrationPrefs;
         this.notificationPrefs = notificationPrefs;
         this.requestStorage = requestStorage;
-
-        if (requestManager == null) {
-            PWLog.error(TAG, "requestManager can't be null");
-            return;
-        }
-
-        if (registrationPrefs.setTagsFailed().get()) {
-            JSONObject tags = notificationPrefs.tags().get();
-            if (tags == null) {
-                return;
-            }
-
-            PWLog.debug(TAG, "Resending application tags");
-
-            sendTagsProcessor.sendTags(tags, result -> {
-                if (result.isSuccess()) {
-                    registrationPrefs.setTagsFailed().set(false);
-                }
-            });
-        }
-
     }
 
     private <T, E extends PushwooshException> void safeProcessCallback(Callback<T, E> callback, Result<T, E> result) {
@@ -137,12 +116,12 @@ public class PushwooshRepository {
     }
 
     public void sendTags(@NonNull TagsBundle tags, Callback<Void, PushwooshException> listener) {
+        PWLog.noise(TAG, "sendTags()");
         JSONObject jsonTags = tags.toJson();
         try {
             notificationPrefs.tags().merge(jsonTags);
         } catch (Exception e) {
-            // cache failure shouldn't affect request
-            PWLog.exception(e);
+            PWLog.error(TAG, "Failed to cache tags", e);
         }
         sendTagsProcessor.sendTags(jsonTags, listener);
     }
@@ -380,10 +359,6 @@ public class PushwooshRepository {
 
     public boolean isCommunicationEnabled(){
         return registrationPrefs.communicationEnable().get();
-    }
-
-    public boolean isGdprEnable() {
-        return registrationPrefs.gdprEnable().get();
     }
 
     public String getHwid() {

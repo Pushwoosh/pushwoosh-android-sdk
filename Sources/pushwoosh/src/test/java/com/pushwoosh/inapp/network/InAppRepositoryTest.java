@@ -60,7 +60,6 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -73,7 +72,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 /**
@@ -317,30 +315,6 @@ public class InAppRepositoryTest {
         resourceList.add(Resource.parseRichMedia(RICH_MEDIA));
         DownloadResult downloadResult = DownloadResult.success(resourceList);
         when(inAppDownloaderMock.downloadAndDeploy(anyList())).thenReturn(downloadResult);
-        Result<Resource, ResourceParseException> result = inAppRepository.prefetchRichMedia(RICH_MEDIA);
-
-        Assert.assertNull(result.getException());
-    }
-
-    @Test
-    @Ignore
-    public void prefetchRichMediaIsDownload() throws Exception {
-        //todo fix this test
-        when(inAppDeployedCheckerMock.check(any(Resource.class))).thenReturn(false);
-        when(inAppDownloaderMock.isDownloading(any(Resource.class))).thenReturn(true);
-        List<Resource> resourceList = new ArrayList<>();
-        Resource resource = Resource.parseRichMedia(RICH_MEDIA);
-        resourceList.add(resource);
-        DownloadResult downloadResult = DownloadResult.success(resourceList);
-        when(inAppDownloaderMock.downloadAndDeploy(anyList())).thenReturn(downloadResult);
-
-
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(() -> {
-            EventBus.sendEvent(new InAppEvent(InAppEvent.EventType.DEPLOYED, resource));
-        });
-
-
         Result<Resource, ResourceParseException> result = inAppRepository.prefetchRichMedia(RICH_MEDIA);
 
         Assert.assertNull(result.getException());

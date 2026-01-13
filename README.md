@@ -1,43 +1,66 @@
 Pushwoosh Android SDK
 =====================
-[![GitHub release](https://img.shields.io/github/release/Pushwoosh/pushwoosh-android-sdk.svg?style=flat-square)](https://github.com/Pushwoosh/pushwoosh-android-sdk/releases) 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.pushwoosh/pushwoosh/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.pushwoosh/pushwoosh)
+[![GitHub release](https://img.shields.io/github/release/Pushwoosh/pushwoosh-android-sdk.svg?style=flat-square)](https://github.com/Pushwoosh/pushwoosh-android-sdk/releases) [![Maven Central](https://img.shields.io/maven-central/v/com.pushwoosh/pushwoosh?style=flat-square)](https://central.sonatype.com/artifact/com.pushwoosh/pushwoosh)
 
-[![Guide](https://img.shields.io/badge/guide-latest-brightgreen.svg?style=flat-square)](https://docs.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notifications)
-[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat-square)](https://pushwoosh.github.io/pushwoosh-android-sdk)
+## 📚 Documentation
 
-The guide for SDK integration is available on Pushwoosh website:
-https://docs.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notifications
+- [Integration Guide](https://docs.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notifications) - step-by-step setup for FCM, HMS, ADM
+- [API Reference](https://pushwoosh.github.io/pushwoosh-android-sdk) - classes, methods, all SDK modules
+- [Sample Projects](https://github.com/Pushwoosh/pushwoosh-android-sample) - ready-to-run demo apps
 
-## Gradle Integration
+## 📦 Gradle Integration
 
 ```groovy
 dependencies {
-    implementation 'com.pushwoosh:pushwoosh:6.7.50'
-    implementation 'com.pushwoosh:pushwoosh-firebase:6.7.50' // For FCM
+    implementation 'com.pushwoosh:pushwoosh:6.7.51'
+    implementation 'com.pushwoosh:pushwoosh-firebase:6.7.51'
 }
 ```
 
-The sample projects are available here:
-https://github.com/Pushwoosh/pushwoosh-android-sample
-
-Documentation:
-https://pushwoosh.github.io/pushwoosh-android-sdk
-
 ## 🤖 AI-Assisted Integration
 
-Integrate Pushwoosh Android SDK using AI coding assistants (Claude Code, Cursor, GitHub Copilot, etc.):
+Integrate Pushwoosh Android SDK using AI coding assistants (Claude Code, Cursor, GitHub Copilot, etc.).
 
-**Prompt for your AI assistant:**
+> **Requirement:** Your AI assistant must have access to [Context7](https://context7.com/) MCP server or web search capabilities.
+
+### Quick Start Prompts
+
+Choose the prompt that matches your task:
+
+---
+
+#### 1. Basic SDK Integration
+
 ```
-Integrate Pushwoosh Android SDK into my project.
-Use Context7 documentation: https://context7.com/
-Search for "pushwoosh" library documentation and follow the latest integration guide.
+Integrate Pushwoosh Android SDK into my Android project with Firebase Cloud Messaging (FCM).
+
+Requirements:
+- Add gradle dependencies (pushwoosh, pushwoosh-firebase)
+- Configure AndroidManifest.xml with Pushwoosh App ID: YOUR_APP_ID
+- Register for push notifications in MainActivity
+
+Use Context7 MCP to fetch Pushwoosh Android SDK documentation.
 ```
 
-Your AI assistant will fetch up-to-date documentation from [Context7](https://context7.com/), get current API references and examples, then generate integration code for your project.
+---
 
-**Note:** Make sure your AI coding assistant has access to Context7 MCP server or web search capabilities.
+#### 2. Custom Push Notification Logic
+
+```
+Show me how to handle push notification callbacks (receive, open) with Pushwoosh SDK in Android. I want to add analytics tracking for these events.
+
+Use Context7 MCP to fetch Pushwoosh Android SDK documentation for NotificationServiceExtension.
+```
+
+---
+
+#### 3. User Segmentation with Tags
+
+```
+Show me how to use Pushwoosh tags for user segmentation in Android. Create example helper class with methods for setting and getting tags.
+
+Use Context7 MCP to fetch Pushwoosh Android SDK documentation for setTags and getTags.
+```
 
 ---
 

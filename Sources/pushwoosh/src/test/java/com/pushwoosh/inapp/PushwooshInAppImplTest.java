@@ -27,18 +27,14 @@
 package com.pushwoosh.inapp;
 
 import com.pushwoosh.inapp.network.InAppRepository;
-import com.pushwoosh.inapp.network.model.Resource;
-import com.pushwoosh.inapp.storage.InAppStorage;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.testutil.PlatformTestManager;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Incubating;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -57,7 +53,6 @@ public class PushwooshInAppImplTest {
 
     private PushwooshInAppImpl pushwooshInApp;
     private InAppRepository inAppRepositoryMock;
-    private InAppStorage inAppStorage;
     private RegistrationPrefs registrationPrefs;
 
     @Mock
@@ -77,31 +72,11 @@ public class PushwooshInAppImplTest {
 
         registrationPrefs = platformTestManager.getRegistrationPrefs();
         inAppRepositoryMock = platformTestManager.getInAppRepositoryMock();
-        inAppStorage = platformTestManager.getInAppStorage();
-        Resource resource = new Resource("r-12345-ABCDE", false);
-        Mockito.when(inAppStorage.getResourceGDPRConsent()).thenReturn(resource);
-
-        Resource resource2 = new Resource("r-ABCDE-12345", false);
-        Mockito.when(inAppStorage.getResourceGDPRDeletion()).thenReturn(resource2);
     }
 
     @After
     public void tearDown() throws Exception {
         platformTestManager.tearDown();
-    }
-
-    @Test
-    @Ignore()
-    public void showGDPRConsentInApp() {
-        pushwooshInApp.showGDPRConsentInApp();
-        Mockito.verify(inAppStorage).getResourceGDPRConsent();
-    }
-
-    @Test
-    @Ignore
-    public void showGDPRDeletionInApp() {
-        pushwooshInApp.showGDPRDeletionInApp();
-        Mockito.verify(inAppStorage).getResourceGDPRDeletion();
     }
 
     @Test

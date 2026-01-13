@@ -50,9 +50,6 @@ class MergeUserRequest extends PushRequest<Void> {
 	}
 
 	@Override
-	public boolean shouldUseJitter(){ return false; }
-
-	@Override
 	protected void buildParams(JSONObject params) throws JSONException {
 		params.put("oldUserId", oldUserId);
 		params.put("newUserId", newUserId);

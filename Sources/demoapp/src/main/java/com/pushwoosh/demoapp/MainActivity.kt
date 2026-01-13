@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding!!.toolbar)
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding!!.container) { view, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding!!.container) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 
             binding!!.navView.setPadding(
@@ -45,8 +45,6 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        val navView = findViewById<BottomNavigationView>(R.id.nav_view)
-        
         val appBarConfiguration: AppBarConfiguration = Builder(
             R.id.navigation_home, R.id.navigation_notifications, R.id.navigation_inbox
         ).build()

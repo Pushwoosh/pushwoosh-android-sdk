@@ -40,8 +40,6 @@ class GetTagsRequest extends PushRequest<TagsBundle> {
 	public String getMethod() {
 		return "getTags";
 	}
-	public boolean shouldUseJitter(){ return false; }
-
 	@Override
 	public TagsBundle parseResponse(@NonNull JSONObject resultData) throws JSONException {
 		return Tags.fromJson(resultData.getJSONObject("result"));

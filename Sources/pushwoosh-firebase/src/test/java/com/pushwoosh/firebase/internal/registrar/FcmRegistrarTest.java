@@ -26,19 +26,12 @@
 
 package com.pushwoosh.firebase.internal.registrar;
 
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.util.Log;
-
-import com.pushwoosh.BuildConfig;
-import com.pushwoosh.internal.platform.AndroidPlatformModule;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
@@ -74,18 +67,6 @@ public class FcmRegistrarTest {
     @After
     public void tearDown() {
 //        platformTestManager.tearDown();
-    }
-
-    @Test
-    @Ignore("Test has been moved from 'pushwoosh' module")
-    public void checkDevice() throws Exception {
-        Context applicationContext = AndroidPlatformModule.getApplicationContext();
-        PackageManager packageManagerMock = Mockito.mock(PackageManager.class);
-        Mockito.when(applicationContext.getPackageManager()).thenReturn(packageManagerMock);
-
-        fcmRegistrar.checkDevice(DEVICE_ID);
-
-        Mockito.verify(packageManagerMock).getPermissionInfo("com.google.android.c2dm.permission.RECEIVE", PackageManager.GET_PERMISSIONS);
     }
 
     @Test

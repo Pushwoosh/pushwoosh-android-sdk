@@ -64,7 +64,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	private static final String PROPERTY_USER_ID = "user_id";
 	private static final String PROPERTY_DEVICE_ID = "device_id";
 	private static final String PROPERTY_LOG_LEVEL = "log_level";
-	private static final String PROPERTY_SETTAGS_FAILED = "settags_failed";
 	private static final String PROPERTY_BASE_URL = "pw_base_url";
 	private static final String PROPERTY_IS_REGISTERED_FOR_NOTIFICATION = "pw_registered_for_push";
 	private static final String PROPERTY_LANGUAGE = "pw_language";
@@ -72,7 +71,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
 	private static final String COMMUNICATION_ENABLE = "pw_communication_enable";
 	private static final String REMOVE_ALL_DEVICE_DATA = "pw_remove_all_device_data";
-	private static final String GDPR_ENABLE = "pw_gdpr_enable";
 	private static final String HWID = "pw_hwid";
 	private static final String API_TOKEN = "pw_api_token";
 
@@ -85,11 +83,9 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 	private final PreferenceStringValue userId;
 	private final PreferenceStringValue deviceId;
 	private final PreferenceStringValue logLevel;
-	private final PreferenceBooleanValue setTagsFailed;
 	private final PreferenceStringValue baseUrl;
 	private final PreferenceBooleanValue communicationEnable;
 	private final PreferenceBooleanValue removeAllDeviceData;
-	private final PreferenceBooleanValue gdprEnable;
 	private final PreferenceStringValue hwid;
 	private final PreferenceStringValue apiToken;
 	private final PreferenceStringValue language;
@@ -139,10 +135,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		userId = new PreferenceStringValue(preferences, PROPERTY_USER_ID, "");
 		deviceId = new PreferenceStringValue(preferences, PROPERTY_DEVICE_ID, "");
 		logLevel = new PreferenceStringValue(preferences, PROPERTY_LOG_LEVEL, config.getLogLevel());
-		setTagsFailed = new PreferenceBooleanValue(preferences, PROPERTY_SETTAGS_FAILED, false);
 		communicationEnable = new PreferenceBooleanValue(preferences, COMMUNICATION_ENABLE, true);
 		removeAllDeviceData = new PreferenceBooleanValue(preferences, REMOVE_ALL_DEVICE_DATA, false);
-		gdprEnable = new PreferenceBooleanValue(preferences, GDPR_ENABLE, true);
 
 		// Not before applicationId setting!
 		baseUrl = new PreferenceStringValue(preferences, PROPERTY_BASE_URL, "");
@@ -157,10 +151,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 						: defaultLocale);
 
 		PWLog.noise("RegistrationPrefs() done");
-	}
-
-	public PreferenceBooleanValue gdprEnable(){
-		return gdprEnable;
 	}
 
 	public PreferenceBooleanValue communicationEnable(){
@@ -206,11 +196,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
 	public PreferenceStringValue logLevel() {
 		return logLevel;
-	}
-
-	@SuppressWarnings("WeakerAccess")
-	public PreferenceBooleanValue setTagsFailed() {
-		return setTagsFailed;
 	}
 
 	public PreferenceStringValue baseUrl() {
@@ -260,7 +245,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		applicationId().set("");
 		baseUrl().set("");
 		lastPushRegistration().set(0);
-		setTagsFailed().set(false);
 		registeredOnServer.set(false);
 	}
 
@@ -324,7 +308,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_DEVICE_ID);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_LOG_LEVEL);
 		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_BASE_URL);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.BOOLEAN, PROPERTY_SETTAGS_FAILED);
 
 		final SharedPreferences sharedPreferences = prefsProvider.providePrefs(PREFERENCE);
 		if (sharedPreferences == null) {

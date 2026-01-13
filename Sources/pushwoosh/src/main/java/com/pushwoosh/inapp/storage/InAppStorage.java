@@ -43,8 +43,4 @@ public interface InAppStorage {
 
 	@Nullable
 	Resource getResource(String code);
-
-	Resource getResourceGDPRConsent();
-
-	Resource getResourceGDPRDeletion();
 }

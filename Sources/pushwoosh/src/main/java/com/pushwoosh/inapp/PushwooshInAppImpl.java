@@ -55,7 +55,6 @@ import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.richmedia.RichMediaController;
 import com.pushwoosh.tags.TagsBundle;
 
-import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -205,13 +204,6 @@ public class PushwooshInAppImpl {
 		return result;
 	}
 
-	public void showGDPRConsentInApp() {
-		new ShowGDPRConsentInApp(this, () -> {
-			Resource resource = inAppRepository.getGDPRConsentInAppResource();
-			showResource(resource);
-		}).execute();
-	}
-
 	private void showResource(Resource resource) {
 		if (resource == null) {
 			PWLog.error(TAG, "resource is null, can not finds resource");
@@ -228,67 +220,6 @@ public class PushwooshInAppImpl {
 
 	public void sendRichMediaAction(String richmediaCode, String inappCode, String messageHash, String actionAttributes, int actionType, Callback<Void, RichMediaActionException> callback) {
 		inAppRepository.richMediaAction(richmediaCode, inappCode, messageHash, actionAttributes, actionType, callback);
-	}
-
-	public void showGDPRDeletionInApp() {
-		new ShowGDPRDeletionInAppTask(this, () -> {
-			Resource resource = inAppRepository.getGDPRDeletionInApp();
-			showResource(resource);
-		}).execute();
-	}
-
-	private static class ShowGDPRConsentInApp extends ShowResourceTask {
-		public ShowGDPRConsentInApp(PushwooshInAppImpl pushwooshInAppWeakRef, OnShowResourceFailureCallback callback) {
-			super(pushwooshInAppWeakRef, callback);
-		}
-
-		@Override
-		protected Resource doInBackground(Void... voids) {
-			if (pushwooshInAppWeakRef.get() != null) {
-				return pushwooshInAppWeakRef.get().inAppRepository.getGDPRConsentInAppResource();
-			}
-			return null;
-		}
-	}
-
-	private static class ShowGDPRDeletionInAppTask extends ShowResourceTask {
-		public ShowGDPRDeletionInAppTask(PushwooshInAppImpl pushwooshInAppWeakRef, OnShowResourceFailureCallback callback) {
-			super(pushwooshInAppWeakRef, callback);
-		}
-
-		@Override
-		protected Resource doInBackground(Void... voids) {
-			if (pushwooshInAppWeakRef.get() != null) {
-				return pushwooshInAppWeakRef.get().inAppRepository.getGDPRDeletionInApp();
-			}
-			return null;
-		}
-	}
-
-	private static abstract class ShowResourceTask extends AsyncTask<Void, Void, Resource> {
-		protected final WeakReference<PushwooshInAppImpl> pushwooshInAppWeakRef;
-		private final OnShowResourceFailureCallback callback;
-
-		public ShowResourceTask(PushwooshInAppImpl pushwooshInAppWeakRef, OnShowResourceFailureCallback callback) {
-			this.pushwooshInAppWeakRef = new WeakReference<>(pushwooshInAppWeakRef);
-			this.callback = callback;
-		}
-
-		@Override
-		protected void onPostExecute(Resource resource) {
-			super.onPostExecute(resource);
-			if (resource != null && pushwooshInAppWeakRef.get() != null) {
-				pushwooshInAppWeakRef.get().showResource(resource);
-			} else {
-				callback.onFail();
-			}
-		}
-
-	}
-
-	private interface OnShowResourceFailureCallback {
-		void onFail();
-
 	}
 
 	private static class ReloadInAppsTask extends AsyncTask<Void, Void, Result<Void, NetworkException>> {

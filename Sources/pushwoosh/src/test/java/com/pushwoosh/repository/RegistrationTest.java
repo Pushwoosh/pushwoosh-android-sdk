@@ -59,7 +59,6 @@ import com.pushwoosh.testutil.RequestManagerMock;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -103,44 +102,6 @@ public class RegistrationTest {
 	//
 	// registerForPushNotifications() part
 	//-----------------------------------------------------------------------
-
-	//Tests registration fails and callback.onError called when checkDevice throws exception
-	@Test
-	@Ignore("java.lang.NoSuchMethodError")
-	public void checkDeviceExceptionTest() throws Exception {
-		Exception exception = new Exception();
-		Mockito.doThrow(exception).when(pushRegistrarMock).checkDevice(any());
-		ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor = ArgumentCaptor.forClass(Result.class);
-		Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback = CallbackWrapper.spy();
-
-
-		// Steps:
-		notificationManager.registerForPushNotifications(callback, true, null);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-
-		// Postconditions:
-		verify(pushRegistrarMock, timeout(100).times(0)).registerPW(null);
-		verify(callback, timeout(1000)).process(captor.capture());
-
-		Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> result = captor.getValue();
-		assertThat(result.isSuccess(), is(false));
-	}
-
-	//Tests registration fails when when checkDevice throws exception and there is no callBack set
-	@Test
-	@Ignore("java.lang.NoSuchMethodError")
-	public void exceptionTestWithNullCallback() throws Exception {
-		Exception exception = new Exception();
-		Mockito.doThrow(exception).when(pushRegistrarMock).checkDevice(any());
-
-		// Steps:
-		notificationManager.registerForPushNotifications(null, true, null);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		// Postconditions:
-		verify(pushRegistrarMock, timeout(100).times(0)).registerPW(null);
-	}
 
 	//Tests registration successful and callBack.onRegistered called when pushToken is not empty and last registrationTime < 10 mins
 	@Test

@@ -6,7 +6,6 @@ import com.pushwoosh.appevents.PushwooshDefaultEvents;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.inapp.PushwooshInAppServiceImpl;
-import com.pushwoosh.inapp.businesscases.BusinessCasesManager;
 import com.pushwoosh.inapp.view.strategy.ResourceViewStrategyFactory;
 import com.pushwoosh.internal.PushRegistrarHelper;
 import com.pushwoosh.internal.network.NetworkModule;
@@ -58,7 +57,6 @@ public class PushwooshPlatform {
     private final PushwooshRepository pushwooshRepository;
     private final RegistrationPrefs registrationPrefs;
     private final PushwooshInAppImpl pushwooshInApp;
-    private final BusinessCasesManager businessCasesManager;
     private final ServerCommunicationManager serverCommunicationManager;
     private NotificationServiceExtension notificationServiceExtension;
     private RichMediaController richMediaController;
@@ -109,11 +107,7 @@ public class PushwooshPlatform {
         pushwooshInApp = new PushwooshInAppImpl(new PushwooshInAppServiceImpl(), serverCommunicationManager);
         pushMessageFactory = new PushMessageFactory();
 
-        PrefsProvider prefsProvider = AndroidPlatformModule.getPrefsProvider();
-        AppInfoProvider appInfoProvider = AndroidPlatformModule.getAppInfoProvider();
-        TimeProvider timeProvide = AndroidPlatformModule.getTimeProvide();
         appVersionProvider = new AppVersionProvider(AndroidPlatformModule.getPrefsProvider().providePrefs("PWAppVersion"));
-        businessCasesManager = new BusinessCasesManager(prefsProvider, appInfoProvider, timeProvide, appVersionProvider);
 
         RequestManager requestManager = NetworkModule.getRequestManager();
         SendTagsProcessor sendTagsProcessor = new SendTagsProcessor();
@@ -168,9 +162,6 @@ public class PushwooshPlatform {
         return richMediaController;
     }
 
-    public BusinessCasesManager getBusinessCasesManager() {
-        return businessCasesManager;
-    }
 
     public UUIDFactory getUUIDFactory() {
         return UUIDFactory;

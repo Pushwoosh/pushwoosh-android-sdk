@@ -55,9 +55,6 @@ interface RegistrationPrefsInterface {
 
     PreferenceStringValue logLevel();
 
-    @SuppressWarnings("WeakerAccess")
-    PreferenceBooleanValue setTagsFailed();
-
     PreferenceStringValue baseUrl();
 
 

@@ -45,9 +45,6 @@ class AppOpenRequest extends PushRequest<Void> {
     public String getMethod() {
         return "applicationOpen";
     }
-    public boolean shouldUseJitter(){ return false; }
-
-
     @Override
     protected void buildParams(JSONObject params) throws JSONException {
         params.put("language", RepositoryModule.getRegistrationPreferences().language().get());
@@ -79,7 +76,6 @@ class AppOpenRequest extends PushRequest<Void> {
     @Nullable
     @Override
     public Void parseResponse(@NonNull JSONObject response) throws JSONException {
-//        BusinessCasesManager.processBusinessCasesData(response.optJSONObject("required_inapps"));
         return super.parseResponse(response);
     }
 }

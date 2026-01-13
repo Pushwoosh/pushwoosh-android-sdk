@@ -55,10 +55,6 @@ public class CachedRequest extends PushRequest<Void> {
 		return method;
 	}
 
-	@Override
-	public boolean shouldUseJitter(){ return false; }
-
-
 	public JSONObject getParams() {
 		return body;
 	}

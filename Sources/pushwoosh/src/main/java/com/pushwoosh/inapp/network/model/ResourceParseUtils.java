@@ -40,7 +40,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_GDPR;
 import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_HASH;
 import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_PRIORITY;
 import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_REQUIRED;
@@ -60,7 +59,6 @@ class ResourceParseUtils {
 			int priority = richMediaJson.optInt(KEY_PRIORITY, 0);
 			long ts = richMediaJson.getLong(KEY_TIME_STAMP);
 			String url = richMediaJson.getString(KEY_URL);
-			String gdpr = richMediaJson.optString(KEY_GDPR);
 
 			Uri uri = Uri.parse(url);
 			String code = uri.getLastPathSegment();
@@ -68,7 +66,7 @@ class ResourceParseUtils {
 
 			Map<String, Object> tags = parseTags(richMediaJson);
 
-			return new Resource(code, url, hash, ts, InAppLayout.TOP, tags, required, priority,null, gdpr);
+			return new Resource(code, url, hash, ts, InAppLayout.TOP, tags, required, priority);
 		} catch (Exception e) {
 			throw new ResourceParseException("Can't parse richMedia", e);
 		}

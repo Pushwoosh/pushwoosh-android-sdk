@@ -56,7 +56,6 @@ public class RepositoryTestManager {
 		registrationPrefs.userId().set(null);
 		registrationPrefs.deviceId().set(null);
 		registrationPrefs.logLevel().set(null);
-		registrationPrefs.setTagsFailed().set(false);
 		registrationPrefs.baseUrl().set(null);
 		RepositoryModule.setRegistrationPreferences(null);
 	}
