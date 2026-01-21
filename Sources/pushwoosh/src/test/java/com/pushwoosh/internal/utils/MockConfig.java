@@ -30,6 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.pushwoosh.internal.PluginProvider;
+import com.pushwoosh.richmedia.RichMediaType;
 
 
 public class MockConfig {
@@ -47,6 +48,7 @@ public class MockConfig {
 		when(configMock.getPluginProvider()).thenReturn(pluginProvider);
 		when(configMock.getAppId()).thenReturn(appId);
 		when(configMock.isServerCommunicationAllowed()).thenReturn(true);
+		when(configMock.getRichMediaType()).thenReturn(RichMediaType.DEFAULT);
 		return configMock;
 	}
 }

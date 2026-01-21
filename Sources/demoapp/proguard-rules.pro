@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Amazon ADM (optional dependency)
+-dontwarn com.amazon.device.messaging.**
+
+# Huawei HMS (optional dependency)
+-dontwarn com.huawei.**
+
+# Keep demoapp classes referenced from AndroidManifest
+-keep class com.pushwoosh.demoapp.** { *; }

@@ -47,16 +47,17 @@ public class PushwooshStartWorker {
     private final PushwooshDefaultEvents pushwooshDefaultEvents;
     private final PushRegistrarHelper pushRegistrarHelper;
     private final DeviceUuidGetter deviceUuidGetter;
+
     public PushwooshStartWorker(
-        Config config,
-        RegistrationPrefs registrationPrefs,
-        PushwooshRepository pushwooshRepository,
-        PushwooshNotificationManager notificationManager,
-        PushwooshInAppImpl pushwooshInApp,
-        DeviceRegistrar deviceRegistrar,
-        PushwooshDefaultEvents pushwooshDefaultEvents,
-        PushRegistrarHelper pushRegistrarHelper,
-        DeviceUuidGetter deviceUuidGetter) {
+            Config config,
+            RegistrationPrefs registrationPrefs,
+            PushwooshRepository pushwooshRepository,
+            PushwooshNotificationManager notificationManager,
+            PushwooshInAppImpl pushwooshInApp,
+            DeviceRegistrar deviceRegistrar,
+            PushwooshDefaultEvents pushwooshDefaultEvents,
+            PushRegistrarHelper pushRegistrarHelper,
+            DeviceUuidGetter deviceUuidGetter) {
 
         this.config = config;
         this.preferences = registrationPrefs;
@@ -172,49 +173,39 @@ public class PushwooshStartWorker {
      */
     private void subscribeForSdkEvents() {
         // attach ApplicationOpenEvent logic (when user wakeup application this sdk)
-        EventBus.subscribe(
-                ApplicationOpenDetector.ApplicationOpenEvent.class,
-                event -> {
-                    PWLog.noise(TAG, "onApplicationOpenEvent()");
-                    SdkStateProvider.getInstance().executeOrQueue(() -> {
-                        new AppOpenHandler().handle();
-                    });
-                }
-        );
+        EventBus.subscribe(ApplicationOpenDetector.ApplicationOpenEvent.class, event -> {
+            PWLog.noise(TAG, "onApplicationOpenEvent()");
+            SdkStateProvider.getInstance().executeOrQueue(() -> {
+                new AppOpenHandler().handle();
+            });
+        });
 
         // attach pushwoosh defaults events
         pushwooshDefaultEvents.init();
 
-        //attach DeviceBootedEvent logic
-        EventBus.subscribe(
-                BootReceiver.DeviceBootedEvent.class,
-                event -> {
-                    PWLog.noise(TAG, "onDeviceBootedEvent()");
-                    SdkStateProvider.getInstance().executeOrQueue(notificationManager::rescheduleLocalNotifications);
-                }
-        );
+        // attach DeviceBootedEvent logic
+        EventBus.subscribe(BootReceiver.DeviceBootedEvent.class, event -> {
+            PWLog.noise(TAG, "onDeviceBootedEvent()");
+            SdkStateProvider.getInstance().executeOrQueue(notificationManager::rescheduleLocalNotifications);
+        });
 
-        //attach AppIdChangedEvent logic (sdk or user call setAppId() with new application code)
-        EventBus.subscribe(
-                AppIdChangedEvent.class,
-                event -> {
-                    PWLog.noise(TAG, "onAppIdChangedEvent()");
-                    SdkStateProvider.getInstance().executeOrQueue(() -> {
-                        PWLog.info(TAG, "AppCode was changed from " + event.getOldAppId() + " to " + event.getNewAppId() + ". Updating registration.");
-                        deviceRegistrar.updateRegistration();
-                    });
-                }
-        );
+        // attach AppIdChangedEvent logic (sdk or user call setAppId() with new application code)
+        EventBus.subscribe(AppIdChangedEvent.class, event -> {
+            PWLog.noise(TAG, "onAppIdChangedEvent()");
+            SdkStateProvider.getInstance().executeOrQueue(() -> {
+                PWLog.info(
+                        TAG,
+                        "AppCode was changed from " + event.getOldAppId() + " to " + event.getNewAppId()
+                                + ". Updating registration.");
+                deviceRegistrar.updateRegistration();
+            });
+        });
 
         // attach ServerCommunicationStartedEvent
-        EventBus.subscribe(
-                ServerCommunicationStartedEvent.class,
-                event -> {
-                   PWLog.noise(TAG, "onServerCommunicationStartedEvent()");
-                   SdkStateProvider.getInstance().executeOrQueue(this::fixDefaultUserId);
-                }
-
-        );
+        EventBus.subscribe(ServerCommunicationStartedEvent.class, event -> {
+            PWLog.noise(TAG, "onServerCommunicationStartedEvent()");
+            SdkStateProvider.getInstance().executeOrQueue(this::fixDefaultUserId);
+        });
     }
     /**
      * Asynchronously fetches the device Hardware ID (HWID).
@@ -278,21 +269,18 @@ public class PushwooshStartWorker {
                         @Override
                         public void onReceive(PushwooshNotificationManager.ApplicationIdReadyEvent event) {
                             try {
-                                String applicationCode = preferences.applicationId().get();
+                                String applicationCode =
+                                        preferences.applicationId().get();
                                 PWLog.debug(TAG, "fetched application code:" + applicationCode);
                             } catch (Throwable e) {
                                 PWLog.error(TAG, "can't fetch application code", e);
                                 hasFailed.set(true);
                             }
-                            EventBus.unsubscribe(
-                                    PushwooshNotificationManager.ApplicationIdReadyEvent.class,
-                                    this
-                            );
+                            EventBus.unsubscribe(PushwooshNotificationManager.ApplicationIdReadyEvent.class, this);
 
                             latch.countDown();
                         }
-                    }
-            );
+                    });
         } catch (Throwable e) {
             PWLog.error(TAG, "can't subscribe to fetch app code", e);
             hasFailed.set(true);
@@ -330,6 +318,7 @@ public class PushwooshStartWorker {
     private void printInitializingMessage() {
         PWLog.noise(TAG, "printInitializingMessage()");
 
+        String sdkState = SdkStateProvider.getInstance().getCurrentState().name();
         String sdkVersion = GeneralUtils.SDK_VERSION;
         String deviceHwid = preferences.hwid().get();
         String applicationCode = preferences.applicationId().get();
@@ -338,7 +327,7 @@ public class PushwooshStartWorker {
         String pushToken = preferences.pushToken().get();
         String baseURL = preferences.baseUrl().get();
 
-        PWLog.info(TAG, "PUSHWOOSH SDK STATUS: " + SdkStateProvider.getInstance().getCurrentState());
+        PWLog.info(TAG, "PUSHWOOSH SDK STATUS: " + sdkState);
         PWLog.info(TAG, "PUSHWOOSH SDK VERSION: " + sdkVersion);
         PWLog.info(TAG, "PUSHWOOSH BASE URL: " + baseURL);
 
@@ -417,7 +406,6 @@ public class PushwooshStartWorker {
             PWLog.noise(TAG, "loadInApps()");
             pushwooshInApp.checkForUpdates();
         }
-
     }
 
     /**

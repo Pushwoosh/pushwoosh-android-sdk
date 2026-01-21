@@ -36,7 +36,7 @@ import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.ModalRichMediaWindow;
 import com.pushwoosh.inapp.view.RichMediaWebActivity;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.internal.utils.RichMediaType;
+import com.pushwoosh.richmedia.RichMediaType;
 import com.pushwoosh.richmedia.RichMediaManager;
 
 class InAppRequiredViewStrategy implements ResourceViewStrategy {
@@ -58,9 +58,9 @@ class InAppRequiredViewStrategy implements ResourceViewStrategy {
 		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentInAppCode(resource.getCode());
 		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentRichMediaCode(null);
 
-		if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.MODAL) {
+		if (RichMediaManager.getRichMediaType() == RichMediaType.MODAL) {
 			ModalRichMediaWindow.showModalRichMediaWindow(resource);
-		} else if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.DEFAULT) {
+		} else if (RichMediaManager.getRichMediaType() == RichMediaType.DEFAULT) {
 			Intent intent = new Intent(RichMediaWebActivity.createInAppIntent(context, resource));
 			context.startActivity(intent);
 		}

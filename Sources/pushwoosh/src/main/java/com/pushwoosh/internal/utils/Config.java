@@ -26,6 +26,8 @@
 
 package com.pushwoosh.internal.utils;
 
+import com.pushwoosh.richmedia.RichMediaType;
+
 import java.util.Collection;
 
 import androidx.annotation.ColorInt;
@@ -159,5 +161,6 @@ public interface Config {
 
     void setLazySdkInitialization(boolean value);
 
+	@NonNull
 	RichMediaType getRichMediaType();
 }

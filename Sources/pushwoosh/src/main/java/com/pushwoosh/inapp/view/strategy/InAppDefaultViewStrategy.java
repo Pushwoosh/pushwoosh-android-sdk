@@ -36,8 +36,8 @@ import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.view.ModalRichMediaWindow;
 import com.pushwoosh.inapp.view.RichMediaWebActivity;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.internal.utils.RichMediaType;
 import com.pushwoosh.richmedia.RichMediaManager;
+import com.pushwoosh.richmedia.RichMediaType;
 
 import java.lang.ref.WeakReference;
 
@@ -64,9 +64,9 @@ class InAppDefaultViewStrategy implements ResourceViewStrategy {
 
 		new ShowInAppTask(this, resource, () -> {
 			if (inAppFolderProvider.isInAppDownloaded(resource.getCode())) {
-				if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.MODAL) {
+				if (RichMediaManager.getRichMediaType() == RichMediaType.MODAL) {
 					ModalRichMediaWindow.showModalRichMediaWindow(resource);
-				} else if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.DEFAULT) {
+				} else if (RichMediaManager.getRichMediaType() == RichMediaType.DEFAULT) {
 					Intent intent = RichMediaWebActivity.createInAppIntent(context,resource);
 					context.startActivity(intent);
 				}
@@ -102,9 +102,9 @@ class InAppDefaultViewStrategy implements ResourceViewStrategy {
 			super.onPostExecute(isInAppDownloaded);
 			if (isInAppDownloaded && weakRef.get() != null) {
 				Context context = weakRef.get().context;
-				if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.MODAL) {
+				if (RichMediaManager.getRichMediaType() == RichMediaType.MODAL) {
 					ModalRichMediaWindow.showModalRichMediaWindow(resource);
-				} else if (PushwooshPlatform.getInstance().getConfig().getRichMediaType() == RichMediaType.DEFAULT) {
+				} else if (RichMediaManager.getRichMediaType() == RichMediaType.DEFAULT) {
 					Intent intent = RichMediaWebActivity.createInAppIntent(context, resource);
 					context.startActivity(intent);
 				}

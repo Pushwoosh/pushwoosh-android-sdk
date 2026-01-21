@@ -131,4 +131,57 @@ public class RichMediaManager {
         config.setSwipeGestures(set);
         return config;
     }
+
+    /**
+     * Sets the Rich Media display type.
+     * <p>
+     * Available types:
+     * <ul>
+     * <li>{@link RichMediaType#DEFAULT} - Rich Media displayed as full-screen activity</li>
+     * <li>{@link RichMediaType#MODAL} - Rich Media displayed as modal dialog</li>
+     * </ul>
+     * <p>
+     * This setting can also be configured via AndroidManifest.xml using the
+     * {@code com.pushwoosh.rich_media_type} meta-data tag. This method takes priority
+     * over the AndroidManifest value.
+     *
+     * @param type Rich Media display type
+     */
+    public static void setRichMediaType(RichMediaType type) {
+        if (type == null) {
+            PWLog.warn("RichMediaManager", "RichMediaType value is null, ignoring");
+            return;
+        }
+        NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+        if (notificationPrefs == null) {
+            PWLog.warn("RichMediaManager", "NotificationPrefs is null, cannot set RichMediaType");
+            return;
+        }
+        notificationPrefs.richMediaType().set(type.ordinal());
+        PWLog.info("RichMediaManager", "RichMediaType set to " + type.name());
+    }
+
+    /**
+     * Returns the current Rich Media display type.
+     * <p>
+     * Priority order:
+     * <ol>
+     * <li>Value set via {@link #setRichMediaType(RichMediaType)}</li>
+     * <li>Value from AndroidManifest.xml (if set)</li>
+     * <li>{@link RichMediaType#DEFAULT}</li>
+     * </ol>
+     *
+     * @return Current Rich Media display type
+     */
+    public static RichMediaType getRichMediaType() {
+        NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+        if (notificationPrefs == null) {
+            PWLog.warn("RichMediaManager", "NotificationPrefs is null, falling back to default RichMediaType");
+            return RichMediaType.DEFAULT;
+        }
+        int ordinal = notificationPrefs.richMediaType().get();
+        RichMediaType type = RichMediaType.values()[ordinal];
+        PWLog.noise("RichMediaManager", "Returning richMediaType value: " + type.name());
+        return type;
+    }
 }

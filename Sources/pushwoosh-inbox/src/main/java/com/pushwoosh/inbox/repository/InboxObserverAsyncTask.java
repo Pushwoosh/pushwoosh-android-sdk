@@ -1,12 +1,11 @@
 package com.pushwoosh.inbox.repository;
 
-import android.os.AsyncTask;
-
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inbox.exception.InboxMessagesException;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 
-class InboxObserverAsyncTask<T> extends AsyncTask<Void, Void, T> {
+class InboxObserverAsyncTask<T> {
     private final InboxRepositoryTask<T> task;
     private final Callback<T, InboxMessagesException> callback;
 
@@ -15,16 +14,13 @@ class InboxObserverAsyncTask<T> extends AsyncTask<Void, Void, T> {
         this.callback = callback;
     }
 
-    @Override
-    protected T doInBackground(Void... voids) {
-        return task.run();
-    }
+    public void execute() {
+        BackgroundExecutor.serial(() -> {
+            T result = task.run();
 
-    @Override
-    protected void onPostExecute(T result) {
-        super.onPostExecute(result);
-        if (callback != null) {
-            callback.process(Result.fromData(result));
-        }
+            if (callback != null) {
+                BackgroundExecutor.main(() -> callback.process(Result.fromData(result)));
+            }
+        });
     }
 }

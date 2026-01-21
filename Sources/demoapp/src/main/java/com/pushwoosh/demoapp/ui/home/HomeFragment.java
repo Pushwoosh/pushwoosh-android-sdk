@@ -1,38 +1,54 @@
 package com.pushwoosh.demoapp.ui.home;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.Switch;
+import android.widget.TextView;
+
+import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.snackbar.Snackbar;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.pushwoosh.Pushwoosh;
+import com.pushwoosh.demoapp.R;
 import com.pushwoosh.demoapp.databinding.FragmentHomeBinding;
+import com.pushwoosh.demoapp.liveupdate.LiveUpdateDemo;
 import com.pushwoosh.inapp.InAppManager;
 import com.pushwoosh.tags.TagsBundle;
 
 import java.util.Objects;
 
+/**
+ * Demonstrates core Pushwoosh SDK features for user engagement and data collection.
+ * <p>
+ * This fragment showcases the following use cases:
+ * <ul>
+ *   <li>Setting user tags for segmentation and targeting</li>
+ *   <li>Registering user ID for cross-device tracking</li>
+ *   <li>Posting in-app events to trigger campaigns</li>
+ *   <li>Retrieving device identifiers (push token, HWID, user ID)</li>
+ *   <li>Managing notification state</li>
+ *   <li>Live Activities updates (iOS Live Activities analog for Android)</li>
+ * </ul>
+ *
+ * @see Pushwoosh
+ * @see InAppManager
+ * @see TagsBundle
+ */
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
     private boolean attributeState;
+    private LiveUpdateDemo liveUpdateDemo;
+    private boolean autoProgressEnabled = false;
 
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel =
-                new ViewModelProvider(this).get(HomeViewModel.class);
-
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
@@ -48,122 +64,230 @@ public class HomeFragment extends Fragment {
         // POST EVENT ELEMENTS
         TextInputEditText postEventTextField = binding.textInput4;
         Button postEvent = binding.button3;
-        Switch attributes = binding.switch3;
-
-        // SET LANGUAGE ELEMENTS
-        TextInputEditText setLanguageTextField = binding.textInput5;
-        Button  setLanguage = binding.button4;
+        MaterialSwitch attributes = binding.switch3;
 
         // GET PUSH TOKEN ELEMENTS
-        Button getPushToken = binding.button5;
+        Button getPushToken = binding.button4;
 
         // GET HWID ELEMENTS
-        Button getHwid = binding.button6;
+        Button getHwid = binding.button5;
 
         // GET USER ID ELEMENTS
-        Button getUserId = binding.button7;
+        Button getUserId = binding.button6;
 
         // GET APPLICATION CODE ELEMENTS
-        Button getApplicationCode = binding.button8;
+        Button getApplicationCode = binding.button7;
 
         // CLEAR NOTIFICATION CENTER ELEMENT
-        Button clearNotificationCenter = binding.button9;
+        Button clearNotificationCenter = binding.button8;
 
-        attributes.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    attributeState = true;
+        attributes.setOnCheckedChangeListener((buttonView, isChecked) -> attributeState = isChecked);
+
+        /*
+         * Demonstrates setting user tags for segmentation.
+         *
+         * Use case: Associate custom key-value data with a user to enable targeted push campaigns.
+         */
+        setTags.setOnClickListener(v -> {
+            String key = Objects.requireNonNull(textInput1.getText()).toString().trim();
+            String value = Objects.requireNonNull(textInput2.getText()).toString().trim();
+
+            if (key.isEmpty() || value.isEmpty()) {
+                showSnackbar("Key and Value are required");
+                return;
+            }
+
+            TagsBundle tag = new TagsBundle.Builder()
+                    .putString(key, value)
+                    .build();
+            Pushwoosh.getInstance().setTags(tag, result -> {
+                if (result.isSuccess()) {
+                    showSnackbar("Tag set: " + key + " = " + value);
                 } else {
-                    attributeState = false;
+                    showSnackbar("Error: " + result.getException());
                 }
-            }
+            });
         });
 
-        setTags.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String value1 = Objects.requireNonNull(textInput1.getText()).toString();
-                String value2 = Objects.requireNonNull(textInput2.getText()).toString();
-                int intValue2 = Integer.parseInt(value2);
-                TagsBundle tag = new TagsBundle.Builder().putInt(value1, intValue2)
-                        .build();
-                Pushwoosh.getInstance().setTags(tag);
-            }
-        });
+        /*
+         * Demonstrates registering a user ID for cross-device tracking.
+         *
+         * Use case: Link user activity across multiple devices by assigning a unique user identifier.
+         * This enables unified user profiles and consistent targeting regardless of which device the user is on.
+         */
+        registerUser.setOnClickListener(v -> {
+            String user = Objects.requireNonNull(registerUserTextField.getText()).toString().trim();
 
-        registerUser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String user = Objects.requireNonNull(registerUserTextField.getText()).toString();
-                Pushwoosh.getInstance().setUserId(user);
+            if (user.isEmpty()) {
+                showSnackbar("User ID is required");
+                return;
             }
-        });
 
-        postEvent.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String eventName = Objects.requireNonNull(postEventTextField.getText()).toString();
-                if (attributeState) {
-                    String value1 = "attributes";
-                    int value2 = 10;
-                    TagsBundle attributes = new TagsBundle.Builder().putInt(value1, value2)
-                            .build();
-                    InAppManager.getInstance().postEvent(eventName, attributes);
+            Pushwoosh.getInstance().setUserId(user, result -> {
+                if (result.isSuccess()) {
+                    showSnackbar("User registered: " + user);
                 } else {
-                    InAppManager.getInstance().postEvent(eventName);
+                    showSnackbar("Error: " + result.getException());
                 }
-            }
+            });
         });
 
-        setLanguage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String language = Objects.requireNonNull(setLanguageTextField.getText()).toString();
-                Pushwoosh.getInstance().setLanguage(language);
+        /*
+         * Demonstrates posting in-app events to trigger campaigns.
+         *
+         * Use case: Track user actions (e.g., "purchase_completed", "level_up") to trigger
+         * In-App Messages or other automated campaigns based on user behavior.
+         * Optionally pass attributes to provide additional context for targeting.
+         */
+        postEvent.setOnClickListener(v -> {
+            String eventName = Objects.requireNonNull(postEventTextField.getText()).toString().trim();
+
+            if (eventName.isEmpty()) {
+                showSnackbar("Event name is required");
+                return;
             }
+
+            TagsBundle eventAttributes = attributeState
+                    ? new TagsBundle.Builder().putInt("attributes", 10).build()
+                    : null;
+
+            InAppManager.getInstance().postEvent(eventName, eventAttributes, result -> {
+                if (result.isSuccess()) {
+                    String msg = attributeState
+                            ? "Event posted: " + eventName + " (with attributes)"
+                            : "Event posted: " + eventName;
+                    showSnackbar(msg);
+                } else {
+                    showSnackbar("Error: " + result.getException());
+                }
+            });
         });
 
-        getPushToken.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                String pushToken = Pushwoosh.getInstance().getPushToken();
-                Log.d("", "Push Token = " + pushToken);
-            }
+        /*
+         * Demonstrates retrieving the push notification token.
+         *
+         * Use case: Get the FCM/HMS token for debugging, logging, or sending to your own backend.
+         */
+        getPushToken.setOnClickListener(v -> {
+            String pushToken = Pushwoosh.getInstance().getPushToken();
+            showSnackbar("Push Token: " + (pushToken != null ? pushToken : "null"));
         });
 
-        getHwid.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String hwid = Pushwoosh.getInstance().getHwid();
-                Log.d("", "HWID = " + hwid);
-            }
+        /*
+         * Demonstrates retrieving the Hardware ID (HWID).
+         *
+         * Use case: Get the unique device identifier assigned by Pushwoosh for debugging
+         * or matching devices in the Pushwoosh Control Panel.
+         */
+        getHwid.setOnClickListener(v -> {
+            String hwid = Pushwoosh.getInstance().getHwid();
+            showSnackbar("HWID: " + hwid);
         });
 
-        getUserId.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String userId = Pushwoosh.getInstance().getUserId();
-                Log.d("", "USER ID = " + userId);
-            }
+        /*
+         * Demonstrates retrieving the current user ID.
+         *
+         * Use case: Verify which user ID is currently associated with the device.
+         */
+        getUserId.setOnClickListener(v -> {
+            String userId = Pushwoosh.getInstance().getUserId();
+            showSnackbar("User ID: " + (userId != null ? userId : "null"));
         });
 
-        getApplicationCode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String applicationCode = Pushwoosh.getInstance().getApplicationCode();
-                Log.d("", "APPLICATION CODE = " + applicationCode);
-            }
+        /*
+         * Demonstrates retrieving the Pushwoosh application code.
+         *
+         * Use case: Verify which Pushwoosh app is configured, useful for debugging
+         * multi-environment setups (dev/staging/prod).
+         */
+        getApplicationCode.setOnClickListener(v -> {
+            String appCode = Pushwoosh.getInstance().getApplicationCode();
+            showSnackbar("App Code: " + (appCode != null ? appCode : "null"));
         });
 
-        clearNotificationCenter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Pushwoosh.getInstance().clearLaunchNotification();
-            }
+        /*
+         * Demonstrates clearing the launch notification.
+         *
+         * Use case: Clear the cached push notification that launched the app.
+         * Useful when you've already processed the deep link and don't want
+         * getLaunchNotification() to return stale data.
+         */
+        clearNotificationCenter.setOnClickListener(v -> {
+            Pushwoosh.getInstance().clearLaunchNotification();
+            showSnackbar("Launch notification cleared");
         });
+
+        setupLiveUpdateControls();
 
         return root;
+    }
+
+    /*
+     * Demonstrates Live Update notifications (Android 15+ feature).
+     *
+     * Use case: Display real-time progress updates as prominent status bar chips,
+     * similar to iOS Live Activities. Ideal for delivery tracking, ride-sharing,
+     * sports scores, or any time-sensitive status updates.
+     *
+     * This demo simulates a food delivery with progress steps:
+     * - Start: begins the Live Update with initial status
+     * - Update: advances to next delivery step
+     * - Finish: completes with success notification
+     * - Cancel: dismisses the Live Update
+     *
+     * Note: This is a native Android feature, not a Pushwoosh API.
+     * Pushwoosh can trigger Live Updates via push notifications.
+     */
+    private void setupLiveUpdateControls() {
+        liveUpdateDemo = LiveUpdateDemo.getInstance(requireContext());
+
+        TextView statusText = binding.liveUpdateStatus;
+        Button btnStart = binding.btnLiveUpdateStart;
+        Button btnUpdate = binding.btnLiveUpdateUpdate;
+        Button btnFinish = binding.btnLiveUpdateFinish;
+        Button btnCancel = binding.btnLiveUpdateCancel;
+        MaterialSwitch switchAutoProgress = binding.switchAutoProgress;
+
+        // Update status display based on current state
+        updateStatusDisplay(statusText);
+
+        switchAutoProgress.setOnCheckedChangeListener((buttonView, isChecked) -> autoProgressEnabled = isChecked);
+
+        btnStart.setOnClickListener(v -> {
+            liveUpdateDemo.start(autoProgressEnabled);
+            updateStatusDisplay(statusText);
+        });
+
+        btnUpdate.setOnClickListener(v -> {
+            liveUpdateDemo.update();
+            updateStatusDisplay(statusText);
+        });
+
+        btnFinish.setOnClickListener(v -> {
+            liveUpdateDemo.finish();
+            updateStatusDisplay(statusText);
+        });
+
+        btnCancel.setOnClickListener(v -> {
+            liveUpdateDemo.cancel();
+            updateStatusDisplay(statusText);
+        });
+    }
+
+    private void updateStatusDisplay(TextView statusText) {
+        if (liveUpdateDemo.isRunning()) {
+            int step = liveUpdateDemo.getCurrentStep() + 1;
+            int total = liveUpdateDemo.getTotalSteps();
+            statusText.setText(getString(R.string.live_update_status_running, step, total));
+        } else {
+            statusText.setText(R.string.live_update_status_not_started);
+        }
+    }
+
+    private void showSnackbar(String message) {
+        if (binding != null) {
+            Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_SHORT).show();
+        }
     }
 
     @Override

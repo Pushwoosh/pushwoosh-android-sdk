@@ -33,7 +33,7 @@
                 android:layout_marginBottom="24dp"
                 android:contentDescription="Call cancelled icon"
                 android:src="@drawable/ic_call_cancelled"
-                android:tint="#E53935" />
+                app:tint="?attr/colorError" />
 
             <!-- Title -->
             <TextView
@@ -42,7 +42,7 @@
                 android:layout_marginBottom="8dp"
                 android:gravity="center"
                 android:text="Call Cancelled"
-                android:textColor="#212121"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
@@ -53,7 +53,7 @@
                 android:layout_marginBottom="24dp"
                 android:gravity="center"
                 android:text="The caller ended the call"
-                android:textColor="#757575"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="14sp" />
 
             <!-- Divider -->
@@ -61,14 +61,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginBottom="24dp"
-                android:background="#E0E0E0" />
+                android:background="?attr/colorOutlineVariant" />
 
             <!-- Caller Info Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="#F5F5F5"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp">
 
@@ -91,7 +91,7 @@
                             android:layout_marginEnd="12dp"
                             android:contentDescription="Person icon"
                             android:src="@drawable/ic_person"
-                            android:tint="#1976D2" />
+                            app:tint="?attr/colorPrimary" />
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -103,14 +103,14 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Caller"
-                                android:textColor="#9E9E9E"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="12sp" />
 
                             <TextView
                                 android:id="@+id/textCallerName"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="#212121"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textSize="18sp"
                                 android:textStyle="bold"
                                 tools:text="John Smith" />
@@ -131,7 +131,7 @@
                             android:layout_marginEnd="12dp"
                             android:contentDescription="Call type icon"
                             android:src="@drawable/ic_call"
-                            android:tint="#4CAF50" />
+                            app:tint="?attr/colorTertiary" />
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -143,14 +143,14 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Type"
-                                android:textColor="#9E9E9E"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="12sp" />
 
                             <TextView
                                 android:id="@+id/textCallType"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="#212121"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textSize="16sp"
                                 tools:text="Voice Call" />
                         </LinearLayout>
@@ -168,7 +168,7 @@
                             android:layout_marginEnd="12dp"
                             android:contentDescription="ID icon"
                             android:src="@drawable/ic_info"
-                            android:tint="#FF9800" />
+                            app:tint="?attr/colorSecondary" />
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -180,7 +180,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Call ID"
-                                android:textColor="#9E9E9E"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="12sp" />
 
                             <TextView
@@ -188,7 +188,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="monospace"
-                                android:textColor="#212121"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textSize="14sp"
                                 tools:text="550e8400-e29b-41d4" />
                         </LinearLayout>

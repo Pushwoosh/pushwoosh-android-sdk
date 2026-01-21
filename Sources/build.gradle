@@ -5,6 +5,7 @@ buildscript {
     ext.huawei_version = '1.9.1.300'
     ext.gradle_version = '8.5.1'
     ext.dokka_version = '2.0.0'
+    ext.spotless_version = '6.25.0'
     repositories {
         google()
         mavenCentral()
@@ -19,6 +20,7 @@ buildscript {
         classpath "com.huawei.agconnect:agcp:$huawei_version"
         classpath libs.google.services
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
+        classpath "com.diffplug.spotless:spotless-plugin-gradle:$spotless_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -38,7 +40,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 35
     ext.global_targetVersion = 35
-    ext.global_versionName = "6.7.52"
+    ext.global_versionName = "6.7.53"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"
@@ -113,4 +115,64 @@ if (isDokkaTask) {
     }
 } else {
     logger.debug("Skipping root Dokka configuration - not running dokka tasks")
+}
+
+// ============================================
+// Spotless Code Formatting Configuration
+// ============================================
+// Usage:
+//   ./gradlew fmt                           - format changed files (since origin/master)
+//   ./gradlew fmt -Pfile='**/Foo.java'      - format specific file(s)
+//   ./gradlew fmtCheck -Pfile='**/Foo.java' - check specific file(s)
+
+apply plugin: 'com.diffplug.spotless'
+
+def targetPattern = project.hasProperty('file') ? project.property('file') : null
+
+spotless {
+    if (targetPattern == null) {
+        ratchetFrom 'origin/master'
+    }
+
+    java {
+        if (targetPattern != null) {
+            target targetPattern.endsWith('.java') ? targetPattern : 'nonexistent'
+        } else {
+            target 'pushwoosh*/src/**/*.java', 'demoapp/src/**/*.java'
+        }
+        targetExclude '**/build/**', '**/*-stub/**'
+
+        palantirJavaFormat('2.50.0')
+
+        removeUnusedImports()
+        importOrder('android', 'androidx', 'com', 'junit', 'net', 'org', 'java', 'javax')
+        formatAnnotations()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    kotlin {
+        if (targetPattern != null) {
+            target targetPattern.endsWith('.kt') ? targetPattern : 'nonexistent'
+        } else {
+            target 'demoapp/src/**/*.kt'
+        }
+        targetExclude '**/build/**'
+
+        ktfmt('0.51').kotlinlangStyle()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.register('fmt') {
+    dependsOn 'spotlessApply'
+    description = 'Format code with Spotless'
+    group = 'formatting'
+}
+
+tasks.register('fmtCheck') {
+    dependsOn 'spotlessCheck'
+    description = 'Check code formatting'
+    group = 'formatting'
 }

@@ -3,6 +3,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Required for Live Update notifications (promoted ongoing notifications) -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -44,6 +47,15 @@
             android:theme="@style/Theme.Demoapp"
             android:excludeFromRecents="true"
             android:exported="false" />
+
+        <receiver
+            android:name=".liveupdate.LiveUpdateActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.pushwoosh.demoapp.ACTION_CANCEL_ORDER" />
+                <action android:name="com.pushwoosh.demoapp.ACTION_ADD_TIP" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

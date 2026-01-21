@@ -7,13 +7,12 @@
 // MIT Licensed
 package com.pushwoosh.internal.network;
 
-import android.os.AsyncTask;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 
@@ -25,7 +24,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 /**
@@ -33,7 +31,8 @@ import java.net.URL;
  */
 class PushwooshRequestManager implements RequestManager {
 	private static final String TAG = "RequestManager";
-	public static final String INTERACTIONS_WERE_STOPPED_EXCEPTION_STRING = "Device data was removed from Pushwoosh and all interactions were stopped";
+	private static final String DEVICE_REMOVED_MSG = "Device data was removed from Pushwoosh and all interactions were stopped";
+	private static final String COMMUNICATION_STOPPED_MSG = "Server communication stopped. Call Pushwoosh.startServerCommunication() to resume";
 
 	private final RegistrationPrefs registrationPrefs;
 	private final ServerCommunicationManager serverCommunicationManager;
@@ -57,11 +56,19 @@ class PushwooshRequestManager implements RequestManager {
 		return removeAllDeviceData;
 	}
 
+	private <Response> void safeProcessCallback(
+			Callback<Response, NetworkException> callback,
+			Result<Response, NetworkException> result) {
+		if (callback == null) return;
+		try {
+			callback.process(result);
+		} catch (Exception e) {
+			PWLog.error(TAG, "Error processing callback: " + e.getMessage());
+		}
+	}
+
 	@Override
 	public <Response> void sendRequest(final PushRequest<Response> request) {
-		if(isRemoveAllDataDevice()){
-			return;
-		}
 		sendRequest(request, null);
 	}
 
@@ -71,24 +78,16 @@ class PushwooshRequestManager implements RequestManager {
 
 	@Override
 	public <Response> void sendRequest(final PushRequest<Response> request, final String baseUrl, final Callback<Response, NetworkException> callback) {
-		if(isRemoveAllDataDevice()) {
+		BackgroundExecutor.network(() -> {
+			Result<Response, NetworkException> result = sendRequestSync(request, baseUrl);
 			if (callback != null) {
-				callback.process(Result.fromException(new NetworkException(INTERACTIONS_WERE_STOPPED_EXCEPTION_STRING)));
+				BackgroundExecutor.main(() -> safeProcessCallback(callback, result));
 			}
-			return;
-		}
-
-		new SendRequestTask<>(this, request, baseUrl, callback)
-				.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+		});
 	}
-
-
 
 	@NonNull
 	public <Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request) {
-		if(isRemoveAllDataDevice()){
-			return Result.fromData(null);
-		}
 		return sendRequestSync(request, baseRequestUrl);
 	}
 
@@ -108,17 +107,17 @@ class PushwooshRequestManager implements RequestManager {
 		usingReverseProxy = false;
 	}
 
+	@NonNull
 	private <Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request, String baseUrl) {
 		if (baseUrl == null) {
 			baseUrl = baseRequestUrl;
 		}
-		if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
-			NetworkException e = new NetworkException("As the server communication was stopped" +
-					" the request was cached instead of being sent. Start the server communication" +
-					" using startServerCommunication method of Pushwoosh class to send '" + request.getMethod() + "' request.");
-			return Result.fromException(e);
+		if (isRemoveAllDataDevice()) {
+			return Result.fromException(new NetworkException(DEVICE_REMOVED_MSG));
 		}
-			PWLog.debug(TAG, "Try To send: " + request.getMethod() + "; baseUrl: " + baseUrl);
+		if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
+			return Result.fromException(new NetworkException(COMMUNICATION_STOPPED_MSG));
+		}
 
 		Exception exception;
 		int statusCode = 0, pushwooshStatusCode = 0;
@@ -129,7 +128,6 @@ class PushwooshRequestManager implements RequestManager {
 			statusCode = result.getStatus();
 			pushwooshStatusCode = result.getPushwooshStatus();
 			if (NetworkResult.STATUS_OK == statusCode && NetworkResult.STATUS_OK == pushwooshStatusCode) {
-				PWLog.debug(TAG, request.getMethod() + " response success");
 
 				JSONObject response = result.getResponse();
 				// honor base url change
@@ -192,12 +190,10 @@ class PushwooshRequestManager implements RequestManager {
 
 			NetworkResult networkResult = getNetworkResultFromConnection(connection);
 			PWLog.debug(TAG, "\n"
-					+ "x\n"
 					+ "| Pushwoosh request:\n"
 					+ "| - URL: " + url.toString() + "\n"
 					+ "| - Payload: " + requestJson.toString() + "\n"
-					+ "| - Response: " + networkResult.getResponse().toString() + "\n"
-					+ "x");
+					+ "| - Response: " + networkResult.getResponse().toString() + "\n");
 
 			return networkResult;
 		} catch (Exception e) {
@@ -282,46 +278,4 @@ class PushwooshRequestManager implements RequestManager {
 		}
 	}
 
-	private static class SendRequestTask<Response> extends AsyncTask<Void, Void, Result<Response, NetworkException>> {
-		private final WeakReference<PushwooshRequestManager> requestManagerWeakRef;
-		private final PushRequest<Response> request;
-		private final String baseUrl;
-		private final Callback<Response, NetworkException> callback;
-
-		SendRequestTask(PushwooshRequestManager pushwooshRequestManager,
-							   PushRequest<Response> request,
-							   String baseUrl,
-							   Callback<Response, NetworkException> callback) {
-			this.requestManagerWeakRef = new WeakReference<>(pushwooshRequestManager);
-			this.request = request;
-			this.baseUrl = baseUrl;
-			this.callback = callback;
-		}
-
-		@Override
-		protected Result<Response, NetworkException> doInBackground(Void... voids) {
-			if (requestManagerWeakRef.get() != null) {
-				return requestManagerWeakRef.get().sendRequestSync(request, baseUrl);
-			}
-			return null;
-		}
-
-		@Override
-		protected void onPostExecute(Result<Response, NetworkException> result) {
-			super.onPostExecute(result);
-			if (result == null) {
-				return;
-			}
-			if (callback != null) {
-				try {
-					callback.process(result);
-				}
-				// Additional protection in case result.getData() is called somewhere in callback overrides
-				// without checking if it has an exception first
-				catch (Exception e) {
-					PWLog.error(TAG, "Error while processing request callback: " + e.getMessage());
-				}
-			}
-		}
-	}
 }

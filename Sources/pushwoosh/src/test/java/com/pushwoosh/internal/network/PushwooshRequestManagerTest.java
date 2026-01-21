@@ -236,9 +236,9 @@ public class PushwooshRequestManagerTest {
 		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
 		Result<String, NetworkException> result = requestManager.sendRequestSync(testRequest);
 
-		assertThat(result.isSuccess(), is(true));
-		Assert.assertNull(result.getData());
-
+		assertThat(result.isSuccess(), is(false));
+		NetworkException exception = result.getException();
+		assertThat(exception.getMessage(), is("Device data was removed from Pushwoosh and all interactions were stopped"));
 		Assert.assertEquals(0, server.getRequestCount());
 	}
 
@@ -352,14 +352,15 @@ public class PushwooshRequestManagerTest {
 		ArgumentCaptor<Result<String, NetworkException>> callbackCaptor = ArgumentCaptor.forClass(Result.class);
 
 		requestManager.sendRequest(testRequest, callback);
+		Thread.sleep(100); // wait for background executor
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
 		verify(callback).process(callbackCaptor.capture());
-		Result<String, NetworkException> value = callbackCaptor.getValue();
-		NetworkException exception = value.getException();
+		Result<String, NetworkException> result = callbackCaptor.getValue();
+		assertThat(result.isSuccess(), is(false));
+		NetworkException exception = result.getException();
 		assertThat(exception.getMessage(), is("Device data was removed from Pushwoosh and all interactions were stopped"));
-		assertThat(server.getRequestCount(),is(0) );
-
+		assertThat(server.getRequestCount(), is(0));
 	}
 
 
@@ -372,7 +373,7 @@ public class PushwooshRequestManagerTest {
 		requestManager.sendRequest(testRequest);
 		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-		assertThat(server.getRequestCount(),is(0));
+		assertThat(server.getRequestCount(), is(0));
 	}
 
 	@Test(timeout = TIMEOUT_TEST)
@@ -385,5 +386,27 @@ public class PushwooshRequestManagerTest {
 
 		RecordedRequest request = server.takeRequest();
 		assertThat(request.getPath(), is(equalTo("/testBadResponse")));
+	}
+
+	@Test(timeout = TIMEOUT_TEST)
+	public void sendRequestWithCallback_callbackIsInvoked() throws Exception {
+		TestRequest testRequest = new TestRequest("testParam", "testResult");
+		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
+		Callback<String, NetworkException> callback = CallbackWrapper.spy();
+		ArgumentCaptor<Result<String, NetworkException>> callbackCaptor = ArgumentCaptor.forClass(Result.class);
+
+		requestManager.sendRequest(testRequest, callback);
+
+		// Wait for background executor to complete and post callback to main thread
+		server.takeRequest();  // blocks until server receives request
+		Thread.sleep(100);     // small delay for callback to be posted to main looper
+
+		// Process main thread tasks (callback invocation)
+		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+		verify(callback).process(callbackCaptor.capture());
+		Result<String, NetworkException> result = callbackCaptor.getValue();
+		assertThat(result.isSuccess(), is(true));
+		assertThat(result.getData(), is(equalTo("testResult")));
 	}
 }

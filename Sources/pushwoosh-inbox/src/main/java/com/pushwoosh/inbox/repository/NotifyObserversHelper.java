@@ -1,7 +1,5 @@
 package com.pushwoosh.inbox.repository;
 
-import android.os.AsyncTask;
-
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.inbox.exception.InboxMessagesException;
 import com.pushwoosh.internal.utils.PWLog;
@@ -33,15 +31,16 @@ class NotifyObserversHelper<T> {
 
     void notifyObservers() {
         new InboxObserverAsyncTask<>(task, result -> {
-            for (Callback<T, InboxMessagesException> expectedCallback : observers) {
-                if (expectedCallback != null) {
-                    try {
-                        expectedCallback.process(result);
-                    } catch (Exception e) {
-                        PWLog.error("Error occurred while processing Callback", e.getMessage());
+                    for (Callback<T, InboxMessagesException> expectedCallback : observers) {
+                        if (expectedCallback != null) {
+                            try {
+                                expectedCallback.process(result);
+                            } catch (Exception e) {
+                                PWLog.error("Error occurred while processing Callback", e.getMessage());
+                            }
+                        }
                     }
-                }
-            }
-        }).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+                })
+                .execute();
     }
 }

@@ -117,6 +117,8 @@
     protected *;
 }
 
+-keep public enum com.pushwoosh.richmedia.RichMediaType { *; }
+
 -keep public class com.pushwoosh.richmedia.RichMediaPresentingDelegate {
     *;
 }

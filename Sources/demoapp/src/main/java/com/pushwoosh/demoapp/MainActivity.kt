@@ -9,7 +9,6 @@ import androidx.navigation.Navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.AppBarConfiguration.Builder
 import androidx.navigation.ui.NavigationUI.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.pushwoosh.calls.PushwooshCallSettings
 import com.pushwoosh.demoapp.databinding.ActivityMainBinding
 import com.pushwoosh.demoapp.utils.InboxStyleHelper
@@ -36,27 +35,32 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(binding!!.container) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 
-            binding!!.navView.setPadding(
-                binding!!.navView.paddingLeft,
-                binding!!.navView.paddingTop,
-                binding!!.navView.paddingRight,
-                systemBars.bottom
-            )
+            binding!!
+                .navView
+                .setPadding(
+                    binding!!.navView.paddingLeft,
+                    binding!!.navView.paddingTop,
+                    binding!!.navView.paddingRight,
+                    systemBars.bottom)
             insets
         }
 
-        val appBarConfiguration: AppBarConfiguration = Builder(
-            R.id.navigation_home, R.id.navigation_notifications, R.id.navigation_inbox
-        ).build()
-        
+        val appBarConfiguration: AppBarConfiguration =
+            Builder(R.id.navigation_home, R.id.navigation_notifications, R.id.navigation_inbox)
+                .build()
+
         val navController = findNavController(this, R.id.nav_host_fragment_activity_main)
-        
+
         androidx.navigation.ui.NavigationUI.setupActionBarWithNavController(
-            this, navController, appBarConfiguration
-        )
-        
+            this, navController, appBarConfiguration)
+
         setupWithNavController(binding!!.navView, navController)
 
+        setupPushwooshSdk()
+    }
+
+    private fun setupPushwooshSdk() {
+        // Configure Rich Media appearance
         RichMediaManager.setDefaultRichMediaConfig(
             ModalRichmediaConfig()
                 .setViewPosition(ModalRichMediaViewPosition.FULLSCREEN)
@@ -65,26 +69,28 @@ class MainActivity : AppCompatActivity() {
                 .setSwipeGestures(setOf(ModalRichMediaSwipeGesture.NONE))
                 .setWindowWidth(ModalRichMediaWindowWidth.FULL_SCREEN)
                 .setStatusBarCovered(false)
-                .setAnimationDuration(300)
-        )
+                .setAnimationDuration(300))
 
-        // Request call permissions with callback
-        PushwooshCallSettings.requestCallPermissions(object : com.pushwoosh.calls.CallPermissionsCallback {
-            override fun onPermissionResult(
-                granted: Boolean,
-                grantedPermissions: List<String>,
-                deniedPermissions: List<String>
-            ) {
-                if (granted) {
-                    android.util.Log.d("MainActivity", "Call permissions granted: $grantedPermissions")
-                } else {
-                    android.util.Log.w("MainActivity", "Call permissions denied: $deniedPermissions")
-                }
-            }
-        })
-
-        // Setup custom inbox style
+        // Configure Inbox style
         InboxStyleHelper.setupCustomInboxStyle(this)
+
+        // Request call permissions
+        PushwooshCallSettings.requestCallPermissions(
+            object : com.pushwoosh.calls.CallPermissionsCallback {
+                override fun onPermissionResult(
+                    granted: Boolean,
+                    grantedPermissions: List<String>,
+                    deniedPermissions: List<String>
+                ) {
+                    if (granted) {
+                        android.util.Log.d(
+                            "MainActivity", "Call permissions granted: $grantedPermissions")
+                    } else {
+                        android.util.Log.w(
+                            "MainActivity", "Call permissions denied: $deniedPermissions")
+                    }
+                }
+            })
     }
 
     override fun onSupportNavigateUp(): Boolean {

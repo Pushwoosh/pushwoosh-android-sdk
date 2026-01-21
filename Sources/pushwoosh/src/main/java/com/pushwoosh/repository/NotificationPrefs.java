@@ -57,6 +57,7 @@ import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.SoundType;
 import com.pushwoosh.notification.VibrateType;
+import com.pushwoosh.richmedia.RichMediaType;
 
 public class NotificationPrefs {
 	private static final int INITIAL_MESSAGE_ID = 1001;
@@ -102,6 +103,7 @@ public class NotificationPrefs {
 	private static final String PROPERTY_RICHMEDIA_ANIMATION_DURATION = "pw_richmedia_animation_duration";
 	private static final String PROPERTY_RICHMEDIA_STATUS_BAR_COVERED = "pw_richmedia_status_bar_covered";
 	private static final String PROPERTY_RICHMEDIA_RESPECT_EDGE_TO_EDGE_LAYOUT = "pw_richmedia_respect_edge_to_edge_layout";
+	private static final String PROPERTY_RICHMEDIA_TYPE = "pw_richmedia_type";
 	private static final String PROPERTY_ALLOWED_EXTERNAL_HOSTS = "pw_allowed_external_hosts";
 
 
@@ -141,6 +143,7 @@ public class NotificationPrefs {
 	private final PreferenceIntValue richMediaAnimationDuration;
 	private final PreferenceBooleanValue richMediaStatusBarCovered;
 	private final PreferenceBooleanValue richMediaRespectEdgeToEdgeLayout;
+	private final PreferenceIntValue richMediaType;
 
 
 	NotificationPrefs(Config config) {
@@ -184,6 +187,7 @@ public class NotificationPrefs {
 		richMediaAnimationDuration = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_ANIMATION_DURATION, 1000);
 		richMediaStatusBarCovered = new PreferenceBooleanValue(preferences, PROPERTY_RICHMEDIA_STATUS_BAR_COVERED, false);
 		richMediaRespectEdgeToEdgeLayout = new PreferenceBooleanValue(preferences, PROPERTY_RICHMEDIA_RESPECT_EDGE_TO_EDGE_LAYOUT, true);
+		richMediaType = new PreferenceIntValue(preferences, PROPERTY_RICHMEDIA_TYPE, config.getRichMediaType().ordinal());
 
 		PWLog.noise("NotificationPrefs() done");
 	}
@@ -203,6 +207,8 @@ public class NotificationPrefs {
 	public PreferenceBooleanValue richMediaStatusBarCovered() { return richMediaStatusBarCovered; }
 
 	public PreferenceBooleanValue richMediaRespectEdgeToEdgeLayout() { return richMediaRespectEdgeToEdgeLayout; }
+
+	public PreferenceIntValue richMediaType() { return richMediaType; }
 
 	public PreferenceBooleanValue multiMode() {
 		return multiMode;

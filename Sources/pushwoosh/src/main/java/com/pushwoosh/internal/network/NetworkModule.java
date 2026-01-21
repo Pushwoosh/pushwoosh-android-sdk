@@ -27,8 +27,8 @@
 package com.pushwoosh.internal.network;
 
 import androidx.annotation.Nullable;
-import android.os.AsyncTask;
 
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 
@@ -36,39 +36,34 @@ import com.pushwoosh.repository.RegistrationPrefs;
  * DI to provide {@link com.pushwoosh.internal.network.RequestManager}
  */
 public class NetworkModule {
-	private static RequestManager requestManager;
+    private static RequestManager requestManager;
 
-	public static void init(RegistrationPrefs registrationPrefs,
-							ServerCommunicationManager serverCommunicationManager) {
-		if (requestManager == null) {
-			requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager);
-		}
-	}
+    public static void init(
+            RegistrationPrefs registrationPrefs, ServerCommunicationManager serverCommunicationManager) {
+        if (requestManager == null) {
+            requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager);
+        }
+    }
 
-	@Nullable
-	public static RequestManager getRequestManager() {
-		return requestManager;
-	}
+    @Nullable public static RequestManager getRequestManager() {
+        return requestManager;
+    }
 
-	public static void setRequestManager(RequestManager requestManager) {
-		NetworkModule.requestManager = requestManager;
-	}
+    public static void setRequestManager(RequestManager requestManager) {
+        NetworkModule.requestManager = requestManager;
+    }
 
-	/**
-	 * Execute {@param task} on background thread
-	 * @param task - task for executing
-	 */
-	public static void execute(Runnable task) {
-		new AsyncTask<Void, Void, Void>() {
-			@Override
-			protected Void doInBackground(Void... voids) {
-				try {
-					task.run();
-				} catch (Throwable e) {
-					PWLog.error("NetworkModule task failed", e);
-				}
-				return null;
-			}
-		}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-	}
+    /**
+     * Execute {@param task} on background thread
+     * @param task - task for executing
+     */
+    public static void execute(Runnable task) {
+        BackgroundExecutor.parallel(() -> {
+            try {
+                task.run();
+            } catch (Throwable e) {
+                PWLog.error("NetworkModule task failed", e);
+            }
+        });
+    }
 }

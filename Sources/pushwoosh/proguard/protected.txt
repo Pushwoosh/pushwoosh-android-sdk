@@ -412,3 +412,8 @@
     protected *;
 }
 
+# Used by pushwoosh-inbox for background task execution
+-keep class com.pushwoosh.internal.utils.BackgroundExecutor {
+    public *;
+}
+

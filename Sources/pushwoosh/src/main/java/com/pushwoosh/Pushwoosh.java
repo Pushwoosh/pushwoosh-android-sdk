@@ -213,8 +213,7 @@ public class Pushwoosh {
      *
      * @return Pushwoosh shared instance
      */
-    @NonNull
-    public static Pushwoosh getInstance() {
+    @NonNull public static Pushwoosh getInstance() {
         return INSTANCE;
     }
 
@@ -360,8 +359,7 @@ public class Pushwoosh {
      *
      * @return Pushwoosh HWID associated with current device
      */
-    @NonNull
-    public String getHwid() {
+    @NonNull public String getHwid() {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getHwid()");
         try {
             if (ensureInitialized()) {
@@ -393,8 +391,7 @@ public class Pushwoosh {
      *
      * @return Push notification token or null if device is not registered yet.
      */
-    @Nullable
-    public String getPushToken() {
+    @Nullable public String getPushToken() {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getPushToken()");
         try {
             if (ensureInitialized()) {
@@ -555,7 +552,8 @@ public class Pushwoosh {
      *
      * @param callback push registration callback
      */
-    public void registerForPushNotifications(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
+    public void registerForPushNotifications(
+            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
         registerForPushNotificationsInternal(callback, true, null);
     }
 
@@ -594,7 +592,9 @@ public class Pushwoosh {
      * @param callback push registration callback
      * @param tags     tags to be set when registering for pushes
      */
-    public void registerForPushNotificationsWithTags(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, TagsBundle tags) {
+    public void registerForPushNotificationsWithTags(
+            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback,
+            TagsBundle tags) {
         registerForPushNotificationsInternal(callback, true, tags);
     }
 
@@ -640,7 +640,8 @@ public class Pushwoosh {
      * @see #registerForPushNotifications(Callback)
      * @see #requestNotificationPermission()
      */
-    public void registerForPushNotificationsWithoutPermission(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
+    public void registerForPushNotificationsWithoutPermission(
+            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
         registerForPushNotificationsInternal(callback, false, null);
     }
 
@@ -684,7 +685,9 @@ public class Pushwoosh {
      * @see #registerForPushNotificationsWithTags(Callback, TagsBundle)
      * @see #requestNotificationPermission()
      */
-    public void registerForPushNotificationsWithTagsWithoutPermission(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, TagsBundle tagsBundle) {
+    public void registerForPushNotificationsWithTagsWithoutPermission(
+            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback,
+            TagsBundle tagsBundle) {
         registerForPushNotificationsInternal(callback, false, tagsBundle);
     }
 
@@ -716,7 +719,9 @@ public class Pushwoosh {
      * @param token    FCM/GCM push token
      * @param callback registration callback
      */
-    public void registerExistingToken(@NonNull String token, @Nullable Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
+    public void registerExistingToken(
+            @NonNull String token,
+            @Nullable Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().registerExistingToken()");
         try {
             if (!ensureInitialized()) {
@@ -725,7 +730,8 @@ public class Pushwoosh {
 
             if (TextUtils.isEmpty(token)) {
                 PWLog.warn("Pushwoosh", "token is empty");
-                safeProcessCallback(callback, Result.fromException(new RegisterForPushNotificationsException("token is empty")));
+                safeProcessCallback(
+                        callback, Result.fromException(new RegisterForPushNotificationsException("token is empty")));
                 return;
             }
 
@@ -819,11 +825,16 @@ public class Pushwoosh {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().registerForPushNotifications()");
         try {
             if (!ensureInitialized()) {
-                safeProcessCallback(callback, Result.fromException(new RegisterForPushNotificationsException("SDK is not initialized")));
+                safeProcessCallback(
+                        callback,
+                        Result.fromException(new RegisterForPushNotificationsException("SDK is not initialized")));
                 return;
             }
             if (!ensureAllowedCommunication()) {
-                safeProcessCallback(callback, Result.fromException(new RegisterForPushNotificationsException("Communication with Pushwoosh is disabled")));
+                safeProcessCallback(
+                        callback,
+                        Result.fromException(
+                                new RegisterForPushNotificationsException("Communication with Pushwoosh is disabled")));
                 return;
             }
             SdkStateProvider.getInstance().executeOrQueue(() -> {
@@ -884,19 +895,22 @@ public class Pushwoosh {
             if (!ensureInitialized()) {
                 return;
             }
-            RepositoryModule.getNotificationPreferences().showPushnotificationAlert().set(showAlert);
+            RepositoryModule.getNotificationPreferences()
+                    .showPushnotificationAlert()
+                    .set(showAlert);
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set showPushNotificationAlert", e);
         }
     }
 
-    private void subscribeRegisterFromInApp(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
+    private void subscribeRegisterFromInApp(
+            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().subscribeRegisterFromInApp()");
         if (callback == null) {
             return;
         }
         try {
-            subscriberRegister = EventBus.subscribe(RegistrationSuccessEvent.class,event -> {
+            subscriberRegister = EventBus.subscribe(RegistrationSuccessEvent.class, event -> {
                 unSubscribeRegisterEvent();
                 callback.process(Result.fromData(event.getData()));
             });
@@ -964,12 +978,17 @@ public class Pushwoosh {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().unregisterForPushNotifications()");
         try {
             if (!ensureInitialized()) {
-                safeProcessCallback(callback, Result.fromException(new UnregisterForPushNotificationException("SDK is not initialized")));
+                safeProcessCallback(
+                        callback,
+                        Result.fromException(new UnregisterForPushNotificationException("SDK is not initialized")));
                 return;
             }
 
             if (!ensureAllowedCommunication()) {
-                safeProcessCallback(callback, Result.fromException(new UnregisterForPushNotificationException("Communication with Pushwoosh is disabled")));
+                safeProcessCallback(
+                        callback,
+                        Result.fromException(new UnregisterForPushNotificationException(
+                                "Communication with Pushwoosh is disabled")));
                 return;
             }
 
@@ -1048,7 +1067,6 @@ public class Pushwoosh {
      * @param emailTags {@link com.pushwoosh.tags.TagsBundle application tags bundle}
      * @param email     user email
      */
-
     public void setEmailTags(@NonNull TagsBundle emailTags, @NonNull String email) {
         setEmailTags(emailTags, email, null);
     }
@@ -1126,7 +1144,6 @@ public class Pushwoosh {
      * @param email     user email
      * @param callback  sendEmailTags operation callback
      */
-
     public void setEmailTags(@NonNull TagsBundle emailTags, String email, Callback<Void, PushwooshException> callback) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setEmailTags()");
         try {
@@ -1311,8 +1328,7 @@ public class Pushwoosh {
      *
      * @return Launch notification data or null
      */
-    @Nullable
-    public PushMessage getLaunchNotification() {
+    @Nullable public PushMessage getLaunchNotification() {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getLaunchNotification()");
         try {
             if (ensureInitialized()) {
@@ -1440,8 +1456,7 @@ public class Pushwoosh {
      *
      * @return Push history as List of {@link com.pushwoosh.notification.PushMessage}. Maximum of {@link #PUSH_HISTORY_CAPACITY} pushes are returned
      */
-    @NonNull
-    public List<PushMessage> getPushHistory() {
+    @NonNull public List<PushMessage> getPushHistory() {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getPushHistory()");
         try {
             if (ensureInitialized()) {
@@ -1607,7 +1622,9 @@ public class Pushwoosh {
             }
 
             if (!ensureAllowedCommunication()) {
-                safeProcessCallback(callback, Result.fromException(new SetUserIdException("Communication with Pushwoosh is disabled")));
+                safeProcessCallback(
+                        callback,
+                        Result.fromException(new SetUserIdException("Communication with Pushwoosh is disabled")));
                 return;
             }
 
@@ -1712,7 +1729,8 @@ public class Pushwoosh {
      * @param emails   user's emails array list
      * @param callback setUser operation callback
      */
-    public void setUser(@NonNull String userId, @NonNull List<String> emails, Callback<Boolean, SetUserException> callback) {
+    public void setUser(
+            @NonNull String userId, @NonNull List<String> emails, Callback<Boolean, SetUserException> callback) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setUser()");
         try {
             if (!ensureInitialized()) {
@@ -1927,7 +1945,11 @@ public class Pushwoosh {
      * @param doMerge   true to merge events from oldUserId to newUserId, false to remove events for oldUserId
      * @param callback  method completion callback
      */
-    public void mergeUserId(@NonNull String oldUserId, @NonNull String newUserId, boolean doMerge, @Nullable Callback<Void, MergeUserException> callback) {
+    public void mergeUserId(
+            @NonNull String oldUserId,
+            @NonNull String newUserId,
+            boolean doMerge,
+            @Nullable Callback<Void, MergeUserException> callback) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().mergeUserId()");
         try {
             if (!ensureInitialized()) {
@@ -1963,8 +1985,7 @@ public class Pushwoosh {
      * @return current user id or null if not set
      * @see #setUserId(String)
      */
-    @Nullable
-    public String getUserId() {
+    @Nullable public String getUserId() {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getUserId()");
         try {
             if (ensureInitialized()) {

@@ -1,10 +1,12 @@
 package com.pushwoosh.internal;
 
 import com.pushwoosh.internal.utils.PWLog;
+
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class SdkStateProvider {
+
     private static final String TAG = SdkStateProvider.class.getSimpleName();
     private static final SdkStateProvider INSTANCE = new SdkStateProvider();
 
@@ -15,7 +17,7 @@ public final class SdkStateProvider {
     }
 
     private volatile SdkState currentState = SdkState.INITIALIZING;
-    
+
     private final Queue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
     private final Object lock = new Object();
 
