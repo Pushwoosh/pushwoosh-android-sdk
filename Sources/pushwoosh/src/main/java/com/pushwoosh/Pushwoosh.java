@@ -242,7 +242,6 @@ public class Pushwoosh {
      * @see #setAppId(String)
      */
     public String getApplicationCode() {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getApplicationCode()");
         try {
             if (ensureInitialized()) {
                 return registrationPrefs.applicationId().get();
@@ -332,7 +331,6 @@ public class Pushwoosh {
      * @return Current GCM/FCM sender id
      */
     public String getSenderId() {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getSenderId()");
         try {
             if (ensureInitialized()) {
                 return registrationPrefs.projectId().get();
@@ -360,7 +358,6 @@ public class Pushwoosh {
      * @return Pushwoosh HWID associated with current device
      */
     @NonNull public String getHwid() {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getHwid()");
         try {
             if (ensureInitialized()) {
                 return pushwooshRepository.getHwid();
@@ -392,7 +389,6 @@ public class Pushwoosh {
      * @return Push notification token or null if device is not registered yet.
      */
     @Nullable public String getPushToken() {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getPushToken()");
         try {
             if (ensureInitialized()) {
                 return notificationManager.getPushToken();
@@ -450,7 +446,6 @@ public class Pushwoosh {
      * @return Current language code in ISO-639-1 format
      */
     public String getLanguage() {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getLanguage()");
         try {
             if (ensureInitialized()) {
                 return registrationPrefs.language().get();
@@ -1329,7 +1324,6 @@ public class Pushwoosh {
      * @return Launch notification data or null
      */
     @Nullable public PushMessage getLaunchNotification() {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getLaunchNotification()");
         try {
             if (ensureInitialized()) {
                 return notificationManager.getLaunchNotification();
@@ -1457,7 +1451,6 @@ public class Pushwoosh {
      * @return Push history as List of {@link com.pushwoosh.notification.PushMessage}. Maximum of {@link #PUSH_HISTORY_CAPACITY} pushes are returned
      */
     @NonNull public List<PushMessage> getPushHistory() {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getPushHistory()");
         try {
             if (ensureInitialized()) {
                 return pushwooshRepository.getPushHistory();
@@ -1986,7 +1979,6 @@ public class Pushwoosh {
      * @see #setUserId(String)
      */
     @Nullable public String getUserId() {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().getUserId()");
         try {
             if (ensureInitialized()) {
                 return registrationPrefs.userId().get();

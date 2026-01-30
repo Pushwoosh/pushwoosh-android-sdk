@@ -43,6 +43,10 @@ class RichMediaPushNotificationOpenHandler implements PushNotificationOpenHandle
 		notificationPrefs = RepositoryModule.getNotificationPreferences();
 	}
 
+	/**
+	 * Handles user click on push notification containing Rich Media.
+	 * Builds ResourceWrapper and triggers display via RichMediaController.
+	 */
 	@Override
 	public void postHandleNotification(final Bundle pushBundle) {
 		String richMedia = PushBundleDataProvider.getRichMedia(pushBundle);

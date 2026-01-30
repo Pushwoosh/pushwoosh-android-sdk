@@ -26,7 +26,6 @@
 
 package com.pushwoosh.inapp;
 
-import android.os.AsyncTask;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -43,12 +42,13 @@ import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
+import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.event.ServerCommunicationStartedEvent;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
-import com.pushwoosh.internal.SdkStateProvider;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
@@ -60,200 +60,216 @@ import java.util.Map;
 
 @SuppressWarnings("WeakerAccess")
 public class PushwooshInAppImpl {
-	private static final String TAG = "[InApp]PushwooshInApp";
+    private static final String TAG = "[InApp]PushwooshInApp";
 
-	private final RegistrationPrefs registrationPrefs;
+    private final RegistrationPrefs registrationPrefs;
 
-	private final Map<String, Object> javascriptInterfaces = new HashMap<>();
-	private final Map<String, String> registeredJavascriptInterfaces = new HashMap<>();
-	private final InAppRepository inAppRepository;
-	private final ServerCommunicationManager serverCommunicationManager;
-	private PushwooshInAppService pushwooshInAppService;
-	private EventListener<ServerCommunicationStartedEvent> checkForUpdatesWhenServerCommunicationStartsEvent;
+    private final Map<String, Object> javascriptInterfaces = new HashMap<>();
+    private final Map<String, String> registeredJavascriptInterfaces = new HashMap<>();
+    private final InAppRepository inAppRepository;
+    private final ServerCommunicationManager serverCommunicationManager;
+    private PushwooshInAppService pushwooshInAppService;
+    private EventListener<ServerCommunicationStartedEvent> checkForUpdatesWhenServerCommunicationStartsEvent;
 
-	public PushwooshInAppImpl(PushwooshInAppService pushwooshInAppService,
-							  ServerCommunicationManager serverCommunicationManager) {
-		registrationPrefs = RepositoryModule.getRegistrationPreferences();
-		inAppRepository = InAppModule.getInAppRepository();
-		this.pushwooshInAppService = pushwooshInAppService;
-		this.serverCommunicationManager = serverCommunicationManager;
+    public PushwooshInAppImpl(
+            PushwooshInAppService pushwooshInAppService, ServerCommunicationManager serverCommunicationManager) {
+        registrationPrefs = RepositoryModule.getRegistrationPreferences();
+        inAppRepository = InAppModule.getInAppRepository();
+        this.pushwooshInAppService = pushwooshInAppService;
+        this.serverCommunicationManager = serverCommunicationManager;
+    }
 
-	}
+    public void checkForUpdates() {
+        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
+            subscribeCheckForUpdatesWhenServerCommunicationStartsEvent();
+            return;
+        }
+        pushwooshInAppService.startService();
+    }
 
-	public void checkForUpdates() {
-		if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
-			subscribeCheckForUpdatesWhenServerCommunicationStartsEvent();
-			return;
-		}
-		pushwooshInAppService.startService();
-	}
+    private void subscribeCheckForUpdatesWhenServerCommunicationStartsEvent() {
+        if (checkForUpdatesWhenServerCommunicationStartsEvent != null) {
+            return;
+        }
+        checkForUpdatesWhenServerCommunicationStartsEvent = new EventListener<ServerCommunicationStartedEvent>() {
+            @Override
+            public void onReceive(ServerCommunicationStartedEvent event) {
+                EventBus.unsubscribe(ServerCommunicationStartedEvent.class, this);
+                checkForUpdates();
+            }
+        };
+        EventBus.subscribe(ServerCommunicationStartedEvent.class, checkForUpdatesWhenServerCommunicationStartsEvent);
+    }
 
-	private void subscribeCheckForUpdatesWhenServerCommunicationStartsEvent() {
-		if (checkForUpdatesWhenServerCommunicationStartsEvent != null) {
-			return;
-		}
-		checkForUpdatesWhenServerCommunicationStartsEvent = new EventListener<ServerCommunicationStartedEvent>() {
-			@Override
-			public void onReceive(ServerCommunicationStartedEvent event) {
-				EventBus.unsubscribe(ServerCommunicationStartedEvent.class, this);
-				checkForUpdates();
-			}
-		};
-		EventBus.subscribe(ServerCommunicationStartedEvent.class, checkForUpdatesWhenServerCommunicationStartsEvent);
-	}
+    public void postEvent(
+            @NonNull String event,
+            @Nullable TagsBundle attributes,
+            @Nullable final Callback<Void, PostEventException> callback) {
+        SdkStateProvider.getInstance().executeOrQueue(() -> {
+            inAppRepository.postEvent(event, attributes, result -> {
+                if (result.isSuccess()) {
+                    Resource resource = result.getData();
 
-	public void postEvent(@NonNull String event, @Nullable TagsBundle attributes, @Nullable final Callback<Void, PostEventException> callback, boolean isInternal) {
-		SdkStateProvider.getInstance().executeOrQueue(() -> {
-			inAppRepository.postEvent(event, attributes, result -> {
-				if (result.isSuccess()) {
-					Resource resource = result.getData();
+                    if (!isInternalEvent(event)) {
+                        PWLog.info(String.format("Posted event %s, attributes: %s", event, attributes));
+                    }
 
-					if (!isInternal) {
-						PWLog.info("Posted event " + event);
-						if (attributes != null) {
-							PWLog.info("Event attributes: "+ attributes.toJson());
-						}
-					}
+                    if (callback != null) {
+                        callback.process(Result.fromData(null));
+                    }
+                    if (resource == null) {
+                        return;
+                    }
+                    if (registrationPrefs.communicationEnable().get()) {
+                        showResource(resource);
+                    } else {
+                        PWLog.error(TAG, "can't show inApp because all communication disable");
+                    }
+                } else {
+                    PWLog.error(TAG, "Failed to post event " + event, result.getException());
 
-					if (callback != null) {
-						callback.process(Result.fromData(null));
-					}
-					if (resource == null) {
-						return;
-					}
-					if (registrationPrefs.communicationEnable().get()) {
-							showResource(resource);
-					} else {
-						PWLog.error(TAG, "can't show inApp because all communication disable");
-					}
-				} else {
-					if (callback != null) {
-						if (!isInternal) {
-							PWLog.info("Failed to post event " + event);
-						}
-						callback.process(Result.fromException(result.getException()));
-					}
+                    if (callback != null) {
+                        callback.process(Result.fromException(result.getException()));
+                    }
+                }
+            });
+        });
+    }
 
-					PWLog.warn(TAG, result.getException() == null ? "" : result.getException().getMessage(), result.getException());
-				}
-			});
-		});
-	}
+    private static final String[] INTERNAL_EVENTS = {"PW_ApplicationOpen", "PW_ScreenOpen", "PW_ApplicationMinimized"};
 
-	public void setUserId(@NonNull String userId) {
-		String oldUserId = registrationPrefs.userId().get();
+    private boolean isInternalEvent(String event) {
+        for (String internalEvent : INTERNAL_EVENTS) {
+            if (internalEvent.equals(event)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-		if (TextUtils.equals(userId, oldUserId)) {
-			return;
-		}
+    public void setUserId(@NonNull String userId) {
+        String oldUserId = registrationPrefs.userId().get();
 
-		registrationPrefs.userId().set(userId);
-		Callback<Boolean, SetUserIdException> callback = result -> {
-			if (result.getException() != null) {
-				registrationPrefs.userId().set(oldUserId);
-			}
-		};
-		inAppRepository.setUserId(userId, callback);
-	}
+        if (TextUtils.equals(userId, oldUserId)) {
+            return;
+        }
 
-	public void mergeUserId(@NonNull String oldUserId, @NonNull String newUserId, boolean doMerge, @Nullable final Callback<Void, MergeUserException> callback) {
-		inAppRepository.mergeUserId(oldUserId, newUserId, doMerge, callback);
-	}
+        registrationPrefs.userId().set(userId);
+        Callback<Boolean, SetUserIdException> callback = result -> {
+            if (result.getException() != null) {
+                registrationPrefs.userId().set(oldUserId);
+            }
+        };
+        inAppRepository.setUserId(userId, callback);
+    }
 
-	public void addJavascriptInterface(@NonNull Object object, @NonNull String name) {
-		javascriptInterfaces.put(name, object);
-	}
+    public void mergeUserId(
+            @NonNull String oldUserId,
+            @NonNull String newUserId,
+            boolean doMerge,
+            @Nullable final Callback<Void, MergeUserException> callback) {
+        inAppRepository.mergeUserId(oldUserId, newUserId, doMerge, callback);
+    }
 
-	public void removeJavascriptInterface(@NonNull String name) {
-		javascriptInterfaces.remove(name);
-	}
+    public void addJavascriptInterface(@NonNull Object object, @NonNull String name) {
+        javascriptInterfaces.put(name, object);
+    }
 
-	public void registerJavascriptInterface(@NonNull String className, @NonNull String name) {
-		registeredJavascriptInterfaces.put(name, className);
-	}
+    public void removeJavascriptInterface(@NonNull String name) {
+        javascriptInterfaces.remove(name);
+    }
 
-	public void reloadInApps(Callback<Boolean, ReloadInAppsException> callback) {
-		if (inAppRepository == null) {
-			return;
-		}
+    public void registerJavascriptInterface(@NonNull String className, @NonNull String name) {
+        registeredJavascriptInterfaces.put(name, className);
+    }
 
-		ReloadInAppsTask reloadInAppsTask = new ReloadInAppsTask(callback);
-		reloadInAppsTask.execute();
-	}
+    public void reloadInApps(Callback<Boolean, ReloadInAppsException> callback) {
+        if (inAppRepository == null) {
+            return;
+        }
 
-	public Map<String, Object> getJavascriptInterfaces() {
-		Map<String, Object> result = new HashMap<>();
-		result.putAll(javascriptInterfaces);
+        ReloadInAppsTask reloadInAppsTask = new ReloadInAppsTask(callback);
+        reloadInAppsTask.execute();
+    }
 
-		for (Map.Entry<String, String> entry : registeredJavascriptInterfaces.entrySet()) {
-			String name = entry.getKey();
-			String className = entry.getValue();
+    public Map<String, Object> getJavascriptInterfaces() {
+        Map<String, Object> result = new HashMap<>();
+        result.putAll(javascriptInterfaces);
 
-			try {
-				Class<?> jsInterfaceClassName = Class.forName(className);
+        for (Map.Entry<String, String> entry : registeredJavascriptInterfaces.entrySet()) {
+            String name = entry.getKey();
+            String className = entry.getValue();
 
-				Object jsInterface = jsInterfaceClassName.newInstance();
-				if (jsInterface != null) {
-					result.put(name, jsInterface);
-				}
-			} catch (Exception e) {
-				PWLog.warn(TAG, "Failed to instantiate javascript interface for " + name, e);
-			}
-		}
+            try {
+                Class<?> jsInterfaceClassName = Class.forName(className);
 
-		return result;
-	}
+                Object jsInterface = jsInterfaceClassName.newInstance();
+                if (jsInterface != null) {
+                    result.put(name, jsInterface);
+                }
+            } catch (Exception e) {
+                PWLog.warn(TAG, "Failed to instantiate javascript interface for " + name, e);
+            }
+        }
 
-	private void showResource(Resource resource) {
-		if (resource == null) {
-			PWLog.error(TAG, "resource is null, can not finds resource");
-			return;
-		}
-		ResourceWrapper resourceWrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.build();
-		RichMediaController richMediaController = PushwooshPlatform.getInstance().getRichMediaController();
-		if (richMediaController != null)
-			richMediaController.showResourceWrapper(resourceWrapper);
+        return result;
+    }
 
-	}
+    private void showResource(Resource resource) {
+        if (resource == null) {
+            PWLog.error(TAG, "resource is null, can not finds resource");
+            return;
+        }
+        ResourceWrapper resourceWrapper =
+                new ResourceWrapper.Builder().setResource(resource).build();
+        RichMediaController richMediaController =
+                PushwooshPlatform.getInstance().getRichMediaController();
+        if (richMediaController != null) richMediaController.showResourceWrapper(resourceWrapper);
+    }
 
-	public void sendRichMediaAction(String richmediaCode, String inappCode, String messageHash, String actionAttributes, int actionType, Callback<Void, RichMediaActionException> callback) {
-		inAppRepository.richMediaAction(richmediaCode, inappCode, messageHash, actionAttributes, actionType, callback);
-	}
+    public void sendRichMediaAction(
+            String richmediaCode,
+            String inappCode,
+            String messageHash,
+            String actionAttributes,
+            int actionType,
+            Callback<Void, RichMediaActionException> callback) {
+        inAppRepository.richMediaAction(richmediaCode, inappCode, messageHash, actionAttributes, actionType, callback);
+    }
 
-	private static class ReloadInAppsTask extends AsyncTask<Void, Void, Result<Void, NetworkException>> {
-		private final Callback<Boolean, ReloadInAppsException> callback;
+    private static class ReloadInAppsTask {
+        private final Callback<Boolean, ReloadInAppsException> callback;
 
-		public ReloadInAppsTask(Callback<Boolean, ReloadInAppsException> callback) {
-			this.callback = callback;
-		}
+        public ReloadInAppsTask(Callback<Boolean, ReloadInAppsException> callback) {
+            this.callback = callback;
+        }
 
-		private Result<Void, NetworkException> reloadInApps() throws NullPointerException {
-			InAppRepository inAppRepository = InAppModule.getInAppRepository();
-			if (inAppRepository == null) {
-				throw new NullPointerException();
-			}
-			return inAppRepository.loadInApps();
-		}
+        public void execute() {
+            BackgroundExecutor.parallel(() -> {
+                Result<Void, NetworkException> result = reloadInApps();
+                BackgroundExecutor.main(() -> onPostExecute(result));
+            });
+        }
 
-		@Override
-		protected Result<Void, NetworkException> doInBackground(Void... voids) {
-			return reloadInApps();
-		}
+        private Result<Void, NetworkException> reloadInApps() {
+            InAppRepository inAppRepository = InAppModule.getInAppRepository();
+            if (inAppRepository == null) {
+                throw new NullPointerException();
+            }
+            return inAppRepository.loadInApps();
+        }
 
-		@Override
-		protected void onPostExecute(Result<Void, NetworkException> result) {
-			if (callback != null) {
-				if (result.isSuccess()) {
-						callback.process(Result.fromData(true));
-				} else {
-					String error = result.getException() != null ? result.getException().getMessage()
-							: "Unknown error occurred while reloading inapps";
-					callback.process(Result.fromException(new ReloadInAppsException(error)));
-				}
-			}
-		}
-	}
-
+        private void onPostExecute(Result<Void, NetworkException> result) {
+            if (callback != null) {
+                if (result.isSuccess()) {
+                    callback.process(Result.fromData(true));
+                } else {
+                    String error = result.getException() != null
+                            ? result.getException().getMessage()
+                            : "Unknown error occurred while reloading inapps";
+                    callback.process(Result.fromException(new ReloadInAppsException(error)));
+                }
+            }
+        }
+    }
 }

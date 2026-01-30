@@ -94,7 +94,7 @@
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.richmedia</a><span class="delimiter">/</span><span class="current">RichMediaPresentingDelegate</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Rich</span><wbr><span>Media</span><wbr><span>Presenting</span><wbr><span><span>Delegate</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">RichMediaPresentingDelegate</a></div><p class="paragraph">Interface for Rich Media presentation managing.</p></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">RichMediaPresentingDelegate</a></div><p class="paragraph">Delegate for customizing Rich Media presentation lifecycle. Set via RichMediaController.setDelegate().</p></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -111,7 +111,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="on-close.html"><span class="token function">onClose</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">richMedia<span class="token operator">: </span><a href="../-rich-media/index.html">RichMedia</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Tells the delegate that Rich Media has been closed.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="on-close.html"><span class="token function">onClose</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">richMedia<span class="token operator">: </span><a href="../-rich-media/index.html">RichMedia</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Called when content is closed by user.</div></div></div>
                 </div>
               </div>
             </div>
@@ -126,7 +126,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="on-error.html"><span class="token function">onError</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">richMedia<span class="token operator">: </span><a href="../-rich-media/index.html">RichMedia</a><span class="token punctuation">, </span></span><span class="parameter ">pushwooshException<span class="token operator">: </span><a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html">PushwooshException</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Tells the delegate that error during Rich Media presenting has been occured.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="on-error.html"><span class="token function">onError</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">richMedia<span class="token operator">: </span><a href="../-rich-media/index.html">RichMedia</a><span class="token punctuation">, </span></span><span class="parameter ">pushwooshException<span class="token operator">: </span><a href="../../com.pushwoosh.exception/-pushwoosh-exception/index.html">PushwooshException</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Called on display error.</div></div></div>
                 </div>
               </div>
             </div>
@@ -141,7 +141,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="on-present.html"><span class="token function">onPresent</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">richMedia<span class="token operator">: </span><a href="../-rich-media/index.html">RichMedia</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Tells the delegate that Rich Media has been displayed.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="on-present.html"><span class="token function">onPresent</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">richMedia<span class="token operator">: </span><a href="../-rich-media/index.html">RichMedia</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Called when content is displayed to user.</div></div></div>
                 </div>
               </div>
             </div>
@@ -156,7 +156,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="should-present.html"><span class="token function">shouldPresent</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">richMedia<span class="token operator">: </span><a href="../-rich-media/index.html">RichMedia</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Checks the delegate whether the Rich Media should be displayed.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="should-present.html"><span class="token function">shouldPresent</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">richMedia<span class="token operator">: </span><a href="../-rich-media/index.html">RichMedia</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Called before display.</div></div></div>
                 </div>
               </div>
             </div>

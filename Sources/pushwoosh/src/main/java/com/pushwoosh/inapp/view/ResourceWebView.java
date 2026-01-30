@@ -60,6 +60,7 @@ import com.pushwoosh.richmedia.animation.RichMediaAnimation;
 
 @SuppressLint("ViewConstructor")
 public class ResourceWebView extends FrameLayout {
+    private static final String TAG = "[InApp]ResourceWebView";
     private static final String LIGHT_BLACK_BG = "#40000000";
     private static final int ANIMATION_DURATION = 300;
     private InAppLayout inAppLayout = InAppLayout.DIALOG;
@@ -246,6 +247,7 @@ public class ResourceWebView extends FrameLayout {
     }
 
     protected void loadDataWithBaseURL(String baseUrl, String htmlData, String mimeType, String encoding, String historyUri) {
+        PWLog.noise(TAG, String.format("Loading HTML data with baseUrl: %s", baseUrl));
         webView.getSettings().setAllowFileAccess(true);
         webView.loadDataWithBaseURL(baseUrl, htmlData, mimeType, encoding, historyUri);
     }

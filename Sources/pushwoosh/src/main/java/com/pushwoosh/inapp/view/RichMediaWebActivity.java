@@ -35,11 +35,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import androidx.annotation.Nullable;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
+
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.PushwooshPlatform;
@@ -63,7 +64,7 @@ import com.pushwoosh.richmedia.RichMediaStyle;
 import java.lang.ref.WeakReference;
 
 public class RichMediaWebActivity extends WebActivity implements OnRichMediaListener {
-    private static final String TAG = "[InApp]RichMediaWebAct";
+    private static final String TAG = "RichMediaWebActivity";
     private static final String FRAGMENT_TAG = TAG + "pushwoosh.inAppFragment";
     private static final String KEY_IS_CLOSED = "IS_CLOSED";
     private static final String KEY_IS_ANIMATED = "IS_ANIMATED";
@@ -72,17 +73,25 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
     final Handler handler = new Handler();
     private boolean isAnimatedClose;
 
+    /**
+     * Creates intent for fullscreen In-App Activity.
+     */
     public static Intent createInAppIntent(Context context, Resource resource) {
         return applyIntentParams(createIntent(context), resource, "", InAppView.MODE_DEFAULT);
     }
 
+    /**
+     * Creates intent for fullscreen Rich Media Activity.
+     */
     public static Intent createRichMediaIntent(Context context, Resource resource) {
         return applyIntentParams(createIntent(context), resource, "", InAppView.MODE_DEFAULT);
     }
 
     public static Intent createRichMediaLockScreenIntent(Context context, Resource resource, String sound) {
         Intent intent = applyIntentParams(createIntent(context), resource, sound, InAppView.MODE_LOCKSCREEN);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         return intent;
     }
 
@@ -90,8 +99,8 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
         return new Intent(context, RichMediaWebActivity.class);
     }
 
-    @Nullable
-    private ResourceWebView resourceWebView;
+    @Nullable private ResourceWebView resourceWebView;
+
     private String sound;
     private int mode;
     private HtmlData htmlData;
@@ -110,7 +119,7 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
         }
 
         if (state != null) {
-            if(state.getBoolean(KEY_IS_CLOSED)){
+            if (state.getBoolean(KEY_IS_CLOSED)) {
                 finish();
                 return;
             }
@@ -151,16 +160,13 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
         InAppFragment inAppFragment = (InAppFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
         if (inAppFragment != null) {
-            fragmentTransaction
-                    .remove(inAppFragment);
+            fragmentTransaction.remove(inAppFragment);
         }
         viewTracked = false;
 
         inAppFragment = InAppFragment.createInstance(resource);
 
-        fragmentTransaction
-                .add(inAppFragment, FRAGMENT_TAG)
-                .commitAllowingStateLoss();
+        fragmentTransaction.add(inAppFragment, FRAGMENT_TAG).commitAllowingStateLoss();
 
         viewTracked = false;
     }
@@ -211,13 +217,16 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
             baseUrl += "/";
         }
 
-        resourceWebView.loadDataWithBaseURL(baseUrl, htmlContentWithPushwooshInterface(htmlContent), "text/html", "UTF-8", null);
+        resourceWebView.loadDataWithBaseURL(
+                baseUrl, htmlContentWithPushwooshInterface(htmlContent), "text/html", "UTF-8", null);
         return true;
     }
 
     private String htmlContentWithPushwooshInterface(String content) {
-        String messageHash = RepositoryModule.getNotificationPreferences().messageHash().get();
-        String jsInterface = String.format(PushwooshJSInterface.PUSHWOOSH_JS,
+        String messageHash =
+                RepositoryModule.getNotificationPreferences().messageHash().get();
+        String jsInterface = String.format(
+                PushwooshJSInterface.PUSHWOOSH_JS,
                 Pushwoosh.getInstance().getHwid(),
                 GeneralUtils.SDK_VERSION,
                 Pushwoosh.getInstance().getApplicationCode(),
@@ -225,8 +234,7 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
                 !resource.isInApp() ? resource.getCode().substring(2) : "",
                 DeviceSpecificProvider.getInstance().deviceType(),
                 messageHash != null ? messageHash : "",
-                resource.isInApp() ? resource.getCode() : ""
-        );
+                resource.isInApp() ? resource.getCode() : "");
         return content.replace("<head>", "<head>\n<script type=\"text/javascript\">" + jsInterface + "</script>");
     }
 
@@ -244,6 +252,8 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
             return;
         }
 
+        PWLog.noise(TAG, String.format("Preparing to display with animation: %s", resource.getCode()));
+
         if ((mode & InAppView.MODE_LOCKSCREEN) != 0) {
             Window window = getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
@@ -258,11 +268,12 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
         if (soundUri != null && !isSoundPlayed) {
             isSoundPlayed = true;
             new GetRingtoneTask(this, soundUri, result -> {
-                Ringtone sound = result.getData();
-                if (sound != null) {
-                    sound.play();
-                }
-            }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        Ringtone sound = result.getData();
+                        if (sound != null) {
+                            sound.play();
+                        }
+                    })
+                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
 
         if (!isAnimated) {
@@ -271,9 +282,9 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
                 EventBus.sendEvent(new InAppViewEvent(resource));
             }
             resourceWebView.animateOpen();
+            PWLog.info(TAG, String.format("Rich media displayed to user with animation: %s", resource.getCode()));
             isAnimated = true;
         }
-
     }
 
     @Override
@@ -286,9 +297,7 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
     public void close() {
         InAppFragment inAppFragment = (InAppFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
         if (inAppFragment != null) {
-            getFragmentManager().beginTransaction()
-                    .remove(inAppFragment)
-                    .commitAllowingStateLoss();
+            getFragmentManager().beginTransaction().remove(inAppFragment).commitAllowingStateLoss();
         }
         if (isAnimatedClose) {
             return;
@@ -299,8 +308,7 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
         if (resourceWebView != null) {
             resourceWebView.animateClose(new Animation.AnimationListener() {
                 @Override
-                public void onAnimationStart(Animation animation) {
-                }
+                public void onAnimationStart(Animation animation) {}
 
                 @Override
                 public void onAnimationEnd(Animation animation) {
@@ -311,8 +319,7 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
                 }
 
                 @Override
-                public void onAnimationRepeat(Animation animation) {
-                }
+                public void onAnimationRepeat(Animation animation) {}
             });
         }
     }

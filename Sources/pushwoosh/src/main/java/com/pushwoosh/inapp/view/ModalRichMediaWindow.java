@@ -68,6 +68,7 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
     public ModalRichMediaWindow(Context context, Resource resource) {
 
         super(context);
+        PWLog.noise("ModalRichMediaWindow", "Initializing ModalRichMediaWindow");
         this.resource = resource;
         this.config = loadEffectiveConfig(context, resource);
         if (config.getWindowWidth() == ModalRichMediaWindowWidth.FULL_SCREEN) {
@@ -174,6 +175,9 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
         }
     }
 
+    /**
+     * Shows content as PopupWindow overlay. Supports positions: CENTER, TOP, BOTTOM, FULLSCREEN.
+     */
     public static void showModalRichMediaWindow(Resource resource) {
         PWLog.noise("[InApp] ModalRichMediaWindow", "showModalRichMediaWindow for resource: " + resource.getCode());
         Handler handler = new Handler(Looper.getMainLooper());
@@ -301,6 +305,8 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
     private void showAtLocationOrSubscribeToActivityBroughtOnTop(View parentView, int gravity, int xCoordinate, int yCoordinate) {
         if (PushwooshPlatform.getInstance().getTopActivity() != null) {
             this.showAtLocation(parentView, gravity, xCoordinate, yCoordinate);
+            PWLog.info(TAG, String.format("Rich media displayed to user: %s, position: %s",
+                    resource.getCode(), config.getViewPosition()));
         } else {
             EventBus.subscribe(ActivityBroughtOnTopEvent.class, new EventListener<ActivityBroughtOnTopEvent>() {
                 @Override

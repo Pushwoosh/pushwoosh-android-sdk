@@ -5,12 +5,13 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.PendingIntentUtils;
 import com.pushwoosh.repository.DbLocalNotification;
@@ -44,7 +45,11 @@ public class LocalNotificationReceiver extends BroadcastReceiver {
             }
             storage.removeLocalNotification(Integer.parseInt(pushId));
 
-            new HandleMessageTask(extras).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            BackgroundExecutor.parallel(() -> {
+                NotificationServiceExtension notificationServiceExtension =
+                        PushwooshPlatform.getInstance().notificationService();
+                notificationServiceExtension.handleMessage(extras);
+            });
         } catch (Exception e) {
             PWLog.exception(e);
         }
@@ -74,7 +79,8 @@ public class LocalNotificationReceiver extends BroadcastReceiver {
 
             Intent intent = createIntent(context, requestId, extras);
 
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestId, intent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    context, requestId, intent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
             storage.saveLocalNotification(requestId, intent.getExtras(), triggerAtMillis);
 
             if (scheduleAlarm(triggerAtMillis, pendingIntent)) {
@@ -109,7 +115,8 @@ public class LocalNotificationReceiver extends BroadcastReceiver {
             Bundle extras = localNotification.getBundle();
             Intent intent = createIntent(context, requestId, extras);
 
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestId, intent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    context, requestId, intent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
             scheduleAlarm(triggerAtMillis, pendingIntent);
         } catch (Exception e) {
             PWLog.error(TAG, "Creation of local notification failed.", e);
@@ -121,8 +128,7 @@ public class LocalNotificationReceiver extends BroadcastReceiver {
         return realDelay >= WEEK;
     }
 
-    @NonNull
-    private static Intent createIntent(Context context, int requestId, Bundle extras) {
+    @NonNull private static Intent createIntent(Context context, int requestId, Bundle extras) {
         Intent intent = new Intent(context, LocalNotificationReceiver.class);
         intent.putExtras(extras);
         intent.putExtra(EXTRA_NOTIFICATION_ID, String.valueOf(requestId));
@@ -131,13 +137,17 @@ public class LocalNotificationReceiver extends BroadcastReceiver {
 
     private static boolean scheduleAlarm(long triggerAtMillis, PendingIntent pendingIntent) {
         try {
-            AlarmManager alarmManager = AndroidPlatformModule.getManagerProvider().getAlarmManager();
+            AlarmManager alarmManager =
+                    AndroidPlatformModule.getManagerProvider().getAlarmManager();
             if (alarmManager == null) {
                 return false;
             }
             alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
         } catch (SecurityException e) {
-            PWLog.error(TAG, String.format("Too many alarms. Please clear all local alarm to continue use AlarmManager. Local notification will be skipped"));
+            PWLog.error(
+                    TAG,
+                    String.format(
+                            "Too many alarms. Please clear all local alarm to continue use AlarmManager. Local notification will be skipped"));
             return false;
         }
         return true;
@@ -172,27 +182,13 @@ public class LocalNotificationReceiver extends BroadcastReceiver {
         storage.removeLocalNotification(requestId);
 
         Intent intent = new Intent(context, LocalNotificationReceiver.class);
-        PendingIntent sender = PendingIntent.getBroadcast(context, requestId, intent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
+        PendingIntent sender = PendingIntent.getBroadcast(
+                context, requestId, intent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
 
         // Get the AlarmManager service
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager != null) {
             alarmManager.cancel(sender);
-        }
-    }
-
-    private static class HandleMessageTask extends AsyncTask<Void, Void, Void> {
-        private final Bundle extras;
-
-        HandleMessageTask(Bundle extras) {
-            this.extras = extras;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            NotificationServiceExtension notificationServiceExtension = PushwooshPlatform.getInstance().notificationService();
-            notificationServiceExtension.handleMessage(extras);
-            return null;
         }
     }
 }

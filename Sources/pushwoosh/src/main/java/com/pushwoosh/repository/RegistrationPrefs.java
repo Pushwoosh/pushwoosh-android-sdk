@@ -45,287 +45,305 @@ import com.pushwoosh.internal.utils.PWLog;
 import java.util.Locale;
 
 public class RegistrationPrefs implements RegistrationPrefsInterface {
-	private static final String TAG = "RegistrationPrefs";
+    private static final String TAG = "RegistrationPrefs";
 
-	private static final String OLD_BASE_API_URL = "https://cp.pushwoosh.com/json/1.3/";
-	private static final String BASE_API_URL_FORMAT = "https://%s.api.pushwoosh.com/json/1.3/";
+    private static final String OLD_BASE_API_URL = "https://cp.pushwoosh.com/json/1.3/";
+    private static final String BASE_API_URL_FORMAT = "https://%s.api.pushwoosh.com/json/1.3/";
 
-	private static final String PREFERENCE = "com.pushwoosh.registration";
+    private static final String PREFERENCE = "com.pushwoosh.registration";
 
-	private static final String PROPERTY_APPLICATION_ID = "application_id";
-	private static final String PROPERTY_PROJECT_ID = "project_id";
+    private static final String PROPERTY_APPLICATION_ID = "application_id";
+    private static final String PROPERTY_PROJECT_ID = "project_id";
 
-	private static final String PROPERTY_PUSH_TOKEN = "registration_id";
-	private static final String PROPERTY_REGISTERED_ON_SERVER = "registered_on_server";
-	private static final String PROPERTY_FORCE_REGISTER = "force_register";
-	private static final String PROPERTY_LAST_REGISTRATION = "last_registration_change";
-	private static final String PROPERTY_LAST_FIREBASE_TOKEN_REGISTRATION = "last_firebase_registration";
-	private static final String PROPERTY_APP_VERSION = "app_version";
-	private static final String PROPERTY_USER_ID = "user_id";
-	private static final String PROPERTY_DEVICE_ID = "device_id";
-	private static final String PROPERTY_LOG_LEVEL = "log_level";
-	private static final String PROPERTY_BASE_URL = "pw_base_url";
-	private static final String PROPERTY_IS_REGISTERED_FOR_NOTIFICATION = "pw_registered_for_push";
-	private static final String PROPERTY_LANGUAGE = "pw_language";
-	private static final String PROPERTY_DENIED_NOTIFICATIONS = "pw_user_denied_notification_permission";
+    private static final String PROPERTY_PUSH_TOKEN = "registration_id";
+    private static final String PROPERTY_REGISTERED_ON_SERVER = "registered_on_server";
+    private static final String PROPERTY_FORCE_REGISTER = "force_register";
+    private static final String PROPERTY_LAST_REGISTRATION = "last_registration_change";
+    private static final String PROPERTY_LAST_FIREBASE_TOKEN_REGISTRATION = "last_firebase_registration";
+    private static final String PROPERTY_APP_VERSION = "app_version";
+    private static final String PROPERTY_USER_ID = "user_id";
+    private static final String PROPERTY_DEVICE_ID = "device_id";
+    private static final String PROPERTY_LOG_LEVEL = "log_level";
+    private static final String PROPERTY_BASE_URL = "pw_base_url";
+    private static final String PROPERTY_IS_REGISTERED_FOR_NOTIFICATION = "pw_registered_for_push";
+    private static final String PROPERTY_LANGUAGE = "pw_language";
+    private static final String PROPERTY_DENIED_NOTIFICATIONS = "pw_user_denied_notification_permission";
 
-	private static final String COMMUNICATION_ENABLE = "pw_communication_enable";
-	private static final String REMOVE_ALL_DEVICE_DATA = "pw_remove_all_device_data";
-	private static final String HWID = "pw_hwid";
-	private static final String API_TOKEN = "pw_api_token";
+    private static final String COMMUNICATION_ENABLE = "pw_communication_enable";
+    private static final String REMOVE_ALL_DEVICE_DATA = "pw_remove_all_device_data";
+    private static final String HWID = "pw_hwid";
+    private static final String API_TOKEN = "pw_api_token";
 
-	private final PreferenceStringValue pushToken;
-	private final PreferenceBooleanValue registeredOnServer;
-	private final PreferenceStringValue projectId;
-	private final PreferenceStringValue applicationId;
-	private final PreferenceLongValue lastPushRegistration;
-	private final PreferenceBooleanValue forceRegister;
-	private final PreferenceStringValue userId;
-	private final PreferenceStringValue deviceId;
-	private final PreferenceStringValue logLevel;
-	private final PreferenceStringValue baseUrl;
-	private final PreferenceBooleanValue communicationEnable;
-	private final PreferenceBooleanValue removeAllDeviceData;
-	private final PreferenceStringValue hwid;
-	private final PreferenceStringValue apiToken;
-	private final PreferenceStringValue language;
+    private final PreferenceStringValue pushToken;
+    private final PreferenceBooleanValue registeredOnServer;
+    private final PreferenceStringValue projectId;
+    private final PreferenceStringValue applicationId;
+    private final PreferenceLongValue lastPushRegistration;
+    private final PreferenceBooleanValue forceRegister;
+    private final PreferenceStringValue userId;
+    private final PreferenceStringValue deviceId;
+    private final PreferenceStringValue logLevel;
+    private final PreferenceStringValue baseUrl;
+    private final PreferenceBooleanValue communicationEnable;
+    private final PreferenceBooleanValue removeAllDeviceData;
+    private final PreferenceStringValue hwid;
+    private final PreferenceStringValue apiToken;
+    private final PreferenceStringValue language;
 
-	private final Config config;
-	private final DeviceRegistrar deviceRegistrar;
-	private PreferenceBooleanValue registeredForPush;
-	private PreferenceBooleanValue userDeniedNotificationPermission;
+    private final Config config;
+    private final DeviceRegistrar deviceRegistrar;
+    private PreferenceBooleanValue registeredForPush;
+    private PreferenceBooleanValue userDeniedNotificationPermission;
 
-	RegistrationPrefs(Config config, DeviceRegistrar deviceRegistrar) {
-		PWLog.noise("RegistrationPrefs()...");
-		this.config = config;
-		this.deviceRegistrar = deviceRegistrar;
+    RegistrationPrefs(Config config, DeviceRegistrar deviceRegistrar) {
+        PWLog.noise("RegistrationPrefs()...");
+        this.config = config;
+        this.deviceRegistrar = deviceRegistrar;
 
-		SharedPreferences preferences = AndroidPlatformModule.getPrefsProvider().providePrefs(PREFERENCE);
+        SharedPreferences preferences = AndroidPlatformModule.getPrefsProvider().providePrefs(PREFERENCE);
 
-		applicationId = new PreferenceStringValue(preferences, PROPERTY_APPLICATION_ID, "");
-		if (applicationId.get().isEmpty() && config.getAppId() != null) {
-			applicationId.set(config.getAppId());
-		}
+        applicationId = new PreferenceStringValue(preferences, PROPERTY_APPLICATION_ID, "");
+        if (applicationId.get().isEmpty() && config.getAppId() != null) {
+            applicationId.set(config.getAppId());
+        }
 
-		projectId = new PreferenceStringValue(preferences, PROPERTY_PROJECT_ID, "");
-		if (projectId.get().isEmpty() && config.getProjectId() != null) {
-			projectId.set(config.getProjectId());
-		}
+        projectId = new PreferenceStringValue(preferences, PROPERTY_PROJECT_ID, "");
+        if (projectId.get().isEmpty() && config.getProjectId() != null) {
+            projectId.set(config.getProjectId());
+        }
 
-		pushToken = new PreferenceStringValue(preferences, PROPERTY_PUSH_TOKEN, "");
-		PreferenceIntValue appVersion = new PreferenceIntValue(preferences, PROPERTY_APP_VERSION, 0);
+        pushToken = new PreferenceStringValue(preferences, PROPERTY_PUSH_TOKEN, "");
+        PreferenceIntValue appVersion = new PreferenceIntValue(preferences, PROPERTY_APP_VERSION, 0);
 
-		final String pushToken = this.pushToken.get();
-		registeredForPush = new PreferenceBooleanValue(preferences, PROPERTY_IS_REGISTERED_FOR_NOTIFICATION, pushToken != null && !pushToken.isEmpty());
-		forceRegister = new PreferenceBooleanValue(preferences, PROPERTY_FORCE_REGISTER, false);
-		userDeniedNotificationPermission = new PreferenceBooleanValue(preferences, PROPERTY_DENIED_NOTIFICATIONS, false);
+        final String pushToken = this.pushToken.get();
+        registeredForPush = new PreferenceBooleanValue(
+                preferences, PROPERTY_IS_REGISTERED_FOR_NOTIFICATION, pushToken != null && !pushToken.isEmpty());
+        forceRegister = new PreferenceBooleanValue(preferences, PROPERTY_FORCE_REGISTER, false);
+        userDeniedNotificationPermission =
+                new PreferenceBooleanValue(preferences, PROPERTY_DENIED_NOTIFICATIONS, false);
 
-		int newVersion = GeneralUtils.getAppVersion();
-		if (appVersion.get() != newVersion) {
-			// Registration should be reset after application update:
-			// http://stackoverflow.com/questions/11422806/why-do-gcm-docs-recommend-invalidating-registration-on-app-update
-			PWLog.noise(TAG, "App version changed from " + appVersion.get() + " to " + newVersion + "; resetting registration id");
-			this.pushToken.set("");
-			appVersion.set(newVersion);
-		}
+        int newVersion = GeneralUtils.getAppVersion();
+        if (appVersion.get() != newVersion) {
+            // Registration should be reset after application update:
+            // http://stackoverflow.com/questions/11422806/why-do-gcm-docs-recommend-invalidating-registration-on-app-update
+            PWLog.noise(
+                    TAG,
+                    "App version changed from " + appVersion.get() + " to " + newVersion
+                            + "; resetting registration id");
+            this.pushToken.set("");
+            appVersion.set(newVersion);
+        }
 
-		registeredOnServer = new PreferenceBooleanValue(preferences, PROPERTY_REGISTERED_ON_SERVER, false);
+        registeredOnServer = new PreferenceBooleanValue(preferences, PROPERTY_REGISTERED_ON_SERVER, false);
 
-		lastPushRegistration = new PreferenceLongValue(preferences, PROPERTY_LAST_REGISTRATION, 0);
-		userId = new PreferenceStringValue(preferences, PROPERTY_USER_ID, "");
-		deviceId = new PreferenceStringValue(preferences, PROPERTY_DEVICE_ID, "");
-		logLevel = new PreferenceStringValue(preferences, PROPERTY_LOG_LEVEL, config.getLogLevel());
-		communicationEnable = new PreferenceBooleanValue(preferences, COMMUNICATION_ENABLE, true);
-		removeAllDeviceData = new PreferenceBooleanValue(preferences, REMOVE_ALL_DEVICE_DATA, false);
+        lastPushRegistration = new PreferenceLongValue(preferences, PROPERTY_LAST_REGISTRATION, 0);
+        userId = new PreferenceStringValue(preferences, PROPERTY_USER_ID, "");
+        deviceId = new PreferenceStringValue(preferences, PROPERTY_DEVICE_ID, "");
+        logLevel = new PreferenceStringValue(preferences, PROPERTY_LOG_LEVEL, config.getLogLevel());
+        communicationEnable = new PreferenceBooleanValue(preferences, COMMUNICATION_ENABLE, true);
+        removeAllDeviceData = new PreferenceBooleanValue(preferences, REMOVE_ALL_DEVICE_DATA, false);
 
-		// Not before applicationId setting!
-		baseUrl = new PreferenceStringValue(preferences, PROPERTY_BASE_URL, "");
-		baseUrl.set(computeBaseUrl(baseUrl.get()));
+        // Not before applicationId setting!
+        baseUrl = new PreferenceStringValue(preferences, PROPERTY_BASE_URL, "");
+        baseUrl.set(computeBaseUrl(baseUrl.get()));
 
-		hwid = new PreferenceStringValue(preferences, HWID, "");
-		apiToken = new PreferenceStringValue(preferences, API_TOKEN, config.getApiToken());
-		String defaultLocale = "en";
-		language = new PreferenceStringValue(preferences, PROPERTY_LANGUAGE,
-				config.isCollectingDeviceLocaleAllowed()
-						? languageCode()
-						: defaultLocale);
+        hwid = new PreferenceStringValue(preferences, HWID, "");
+        apiToken = new PreferenceStringValue(preferences, API_TOKEN, config.getApiToken());
+        String defaultLocale = "en";
+        language = new PreferenceStringValue(
+                preferences,
+                PROPERTY_LANGUAGE,
+                config.isCollectingDeviceLocaleAllowed() ? languageCode() : defaultLocale);
 
-		PWLog.noise("RegistrationPrefs() done");
-	}
+        PWLog.noise("RegistrationPrefs() done");
+    }
 
-	public PreferenceBooleanValue communicationEnable(){
-		return communicationEnable;
-	}
+    public PreferenceBooleanValue communicationEnable() {
+        return communicationEnable;
+    }
 
-	public PreferenceBooleanValue removeAllDeviceData(){
-		return removeAllDeviceData;
-	}
+    public PreferenceBooleanValue removeAllDeviceData() {
+        return removeAllDeviceData;
+    }
 
-	public PreferenceStringValue applicationId() {
-		return applicationId;
-	}
+    public PreferenceStringValue applicationId() {
+        return applicationId;
+    }
 
-	public PreferenceStringValue projectId() {
-		return projectId;
-	}
+    public PreferenceStringValue projectId() {
+        return projectId;
+    }
 
-	public PreferenceStringValue pushToken() {
-		return pushToken;
-	}
+    public PreferenceStringValue pushToken() {
+        return pushToken;
+    }
 
-	public PreferenceBooleanValue registeredOnServer() {
-		return registeredOnServer;
-	}
+    public PreferenceBooleanValue registeredOnServer() {
+        return registeredOnServer;
+    }
 
-	@SuppressWarnings("WeakerAccess")
-	public PreferenceLongValue lastPushRegistration() {
-		return lastPushRegistration;
-	}
+    @SuppressWarnings("WeakerAccess")
+    public PreferenceLongValue lastPushRegistration() {
+        return lastPushRegistration;
+    }
 
-	public PreferenceBooleanValue forceRegister() {
-		return forceRegister;
-	}
+    public PreferenceBooleanValue forceRegister() {
+        return forceRegister;
+    }
 
-	public PreferenceStringValue userId() {
-		return userId;
-	}
+    public PreferenceStringValue userId() {
+        return userId;
+    }
 
-	public PreferenceStringValue deviceId() {
-		return deviceId;
-	}
+    public PreferenceStringValue deviceId() {
+        return deviceId;
+    }
 
-	public PreferenceStringValue logLevel() {
-		return logLevel;
-	}
+    public PreferenceStringValue logLevel() {
+        return logLevel;
+    }
 
-	public PreferenceStringValue baseUrl() {
-		return baseUrl;
-	}
+    public PreferenceStringValue baseUrl() {
+        return baseUrl;
+    }
 
-	@Override
-	public PreferenceStringValue hwid() {
-		return hwid;
-	}
+    @Override
+    public PreferenceStringValue hwid() {
+        return hwid;
+    }
 
-	public PreferenceStringValue apiToken() { return apiToken; }
+    public PreferenceStringValue apiToken() {
+        return apiToken;
+    }
 
-	public PreferenceStringValue language() {
-		return language;
-	}
+    public PreferenceStringValue language() {
+        return language;
+    }
 
-	private String computeBaseUrl(String preferenceUrl) {
-		String baseUrl = preferenceUrl;
-		if (TextUtils.isEmpty(baseUrl) || baseUrl.startsWith("http://")) {
-			baseUrl = getDefaultBaseUrl();
-		}
+    private String computeBaseUrl(String preferenceUrl) {
+        String baseUrl = preferenceUrl;
+        if (TextUtils.isEmpty(baseUrl) || baseUrl.startsWith("http://")) {
+            baseUrl = getDefaultBaseUrl();
+        }
 
-		if (!baseUrl.endsWith("/")) {
-			baseUrl += "/";
-		}
+        if (!baseUrl.endsWith("/")) {
+            baseUrl += "/";
+        }
 
-		return baseUrl;
-	}
+        return baseUrl;
+    }
 
-	public String getDefaultBaseUrl() {
-		String url = config.getRequestUrl();
+    public String getDefaultBaseUrl() {
+        String url = config.getRequestUrl();
 
-		if (TextUtils.isEmpty(url)) {
-			String appid = applicationId.get();
-			if (!TextUtils.equals(appid, "") && !appid.contains(".")) {
-				url = String.format(BASE_API_URL_FORMAT, appid);
-			} else {
-				url = OLD_BASE_API_URL;
-			}
-		}
+        if (TextUtils.isEmpty(url)) {
+            String appid = applicationId.get();
+            if (!TextUtils.equals(appid, "") && !appid.contains(".")) {
+                url = String.format(BASE_API_URL_FORMAT, appid);
+            } else {
+                url = OLD_BASE_API_URL;
+            }
+        }
 
-		return url;
-	}
+        return url;
+    }
 
-	public void removeAppId() {
-		applicationId().set("");
-		baseUrl().set("");
-		lastPushRegistration().set(0);
-		registeredOnServer.set(false);
-	}
+    public void removeAppId() {
+        applicationId().set("");
+        baseUrl().set("");
+        lastPushRegistration().set(0);
+        registeredOnServer.set(false);
+    }
 
-	public void setAppId(final String appId) {
-		applicationId().set(appId);
-		baseUrl().set(getDefaultBaseUrl());
-	}
+    public void setAppId(final String appId) {
+        String oldAppId = applicationId().get();
+        applicationId().set(appId);
 
-	public void setLanguage(@Nullable String language) {
-		if (language == null ) {
-			return;
-		}
+        // Only reset baseUrl if appId actually changed or baseUrl is empty
+        // This preserves custom baseUrl set via set_base_url command
+        String currentBaseUrl = baseUrl().get();
+        if (!TextUtils.equals(oldAppId, appId) || TextUtils.isEmpty(currentBaseUrl)) {
+            baseUrl().set(getDefaultBaseUrl());
+        }
+    }
 
-		language().set(language);
+    public void setLanguage(@Nullable String language) {
+        if (language == null) {
+            return;
+        }
 
-		lastPushRegistration().set(0);
-		deviceRegistrar.updateRegistration();
-	}
+        language().set(language);
 
-	public void setApiToken(String apiToken) {
-		if (apiToken == null) {
-			return;
-		}
-		apiToken().set(apiToken);
-	}
+        lastPushRegistration().set(0);
+        deviceRegistrar.updateRegistration();
+    }
 
-	public void removeSenderId() {
-		clearSenderIdInfo();
-		projectId().set("");
-	}
+    public void setApiToken(String apiToken) {
+        if (apiToken == null) {
+            return;
+        }
+        apiToken().set(apiToken);
+    }
 
-	public void clearSenderIdInfo() {
-		pushToken().set("");
-		lastPushRegistration().set(0);
-	}
+    public void removeSenderId() {
+        clearSenderIdInfo();
+        projectId().set("");
+    }
 
-	public PreferenceBooleanValue isRegisteredForPush() {
-		return registeredForPush;
-	}
+    public void clearSenderIdInfo() {
+        pushToken().set("");
+        lastPushRegistration().set(0);
+    }
 
-	public PreferenceBooleanValue hasUserDeniedNotificationPermission() {
-		return userDeniedNotificationPermission;
-	}
+    public PreferenceBooleanValue isRegisteredForPush() {
+        return registeredForPush;
+    }
 
-	/**
-	 * Create {@link com.pushwoosh.internal.platform.prefs.migration.MigrationScheme} associated with this class.
-	 * Don't forget add field here if it will be added to this class
-	 * @param prefsProvider - prefsProvider which will provide prefs for migrationScheme
-	 * @return MigrationScheme to correct migration from one prefs to another
-	 */
-	static MigrationScheme provideMigrationScheme(PrefsProvider prefsProvider) {
-		MigrationScheme migrationScheme = new MigrationScheme(PREFERENCE);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_APPLICATION_ID);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_PROJECT_ID);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_PUSH_TOKEN);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.INT, PROPERTY_APP_VERSION);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.BOOLEAN, PROPERTY_REGISTERED_ON_SERVER);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.LONG, PROPERTY_LAST_REGISTRATION);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.LONG, PROPERTY_LAST_FIREBASE_TOKEN_REGISTRATION);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_USER_ID);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_DEVICE_ID);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_LOG_LEVEL);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_BASE_URL);
+    public PreferenceBooleanValue hasUserDeniedNotificationPermission() {
+        return userDeniedNotificationPermission;
+    }
 
-		final SharedPreferences sharedPreferences = prefsProvider.providePrefs(PREFERENCE);
-		if (sharedPreferences == null) {
-			return migrationScheme;
-		}
-		if (sharedPreferences.contains(PROPERTY_IS_REGISTERED_FOR_NOTIFICATION)) {
-			migrationScheme.putBoolean(PROPERTY_IS_REGISTERED_FOR_NOTIFICATION, sharedPreferences.getBoolean(PROPERTY_IS_REGISTERED_FOR_NOTIFICATION, false));
-		} else {
-			final String token = sharedPreferences.getString(PROPERTY_PUSH_TOKEN, "");
-			migrationScheme.putBoolean(PROPERTY_IS_REGISTERED_FOR_NOTIFICATION, !TextUtils.isEmpty(token));
-		}
-		return migrationScheme;
-	}
+    /**
+     * Create {@link com.pushwoosh.internal.platform.prefs.migration.MigrationScheme} associated with this class.
+     * Don't forget add field here if it will be added to this class
+     * @param prefsProvider - prefsProvider which will provide prefs for migrationScheme
+     * @return MigrationScheme to correct migration from one prefs to another
+     */
+    static MigrationScheme provideMigrationScheme(PrefsProvider prefsProvider) {
+        MigrationScheme migrationScheme = new MigrationScheme(PREFERENCE);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_APPLICATION_ID);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_PROJECT_ID);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_PUSH_TOKEN);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.INT, PROPERTY_APP_VERSION);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.BOOLEAN, PROPERTY_REGISTERED_ON_SERVER);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.LONG, PROPERTY_LAST_REGISTRATION);
+        migrationScheme.put(
+                prefsProvider, MigrationScheme.AvailableType.LONG, PROPERTY_LAST_FIREBASE_TOKEN_REGISTRATION);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_USER_ID);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_DEVICE_ID);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_LOG_LEVEL);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_BASE_URL);
 
-	private String languageCode() {
-		//workaround to support simplified and traditional chinese on backend: https://jira.corp.pushwoosh.com/browse/PUSH-33298
-		return Locale.getDefault().getLanguage().equals("zh")
-				? Locale.getDefault().toLanguageTag()
-				: Locale.getDefault().getLanguage();
-	}
+        final SharedPreferences sharedPreferences = prefsProvider.providePrefs(PREFERENCE);
+        if (sharedPreferences == null) {
+            return migrationScheme;
+        }
+        if (sharedPreferences.contains(PROPERTY_IS_REGISTERED_FOR_NOTIFICATION)) {
+            migrationScheme.putBoolean(
+                    PROPERTY_IS_REGISTERED_FOR_NOTIFICATION,
+                    sharedPreferences.getBoolean(PROPERTY_IS_REGISTERED_FOR_NOTIFICATION, false));
+        } else {
+            final String token = sharedPreferences.getString(PROPERTY_PUSH_TOKEN, "");
+            migrationScheme.putBoolean(PROPERTY_IS_REGISTERED_FOR_NOTIFICATION, !TextUtils.isEmpty(token));
+        }
+        return migrationScheme;
+    }
+
+    private String languageCode() {
+        // workaround to support simplified and traditional chinese on backend:
+        // https://jira.corp.pushwoosh.com/browse/PUSH-33298
+        return Locale.getDefault().getLanguage().equals("zh")
+                ? Locale.getDefault().toLanguageTag()
+                : Locale.getDefault().getLanguage();
+    }
 }

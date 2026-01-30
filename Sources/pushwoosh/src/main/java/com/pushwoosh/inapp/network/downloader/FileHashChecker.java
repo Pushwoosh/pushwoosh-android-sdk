@@ -33,7 +33,6 @@ import androidx.core.util.Pair;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.internal.checker.ObjectChecker;
 import com.pushwoosh.internal.utils.FileUtils;
-import com.pushwoosh.internal.utils.PWLog;
 
 /**
  * This class check that md5sum of inApps's file equal to backend md5sum
@@ -43,28 +42,23 @@ import com.pushwoosh.internal.utils.PWLog;
  */
 class FileHashChecker implements ObjectChecker<Pair<File, Resource>> {
 
-	private static final String TAG = "[InApp]FileHashChecker";
-
 	@Override
 	public boolean check(Pair<File, Resource> check) {
 		File file = check.first;
 		Resource resource = check.second;
 
 		if(file == null || resource == null){
-			PWLog.noise(TAG, "incorrect state of arguments");
 			return false;
 		}
 
 		String resourceHash = resource.getHash();
 
-		// Resource with empty hash is valid
+		// Resource with empty hash is valid (no validation required)
 		if (resourceHash == null || resourceHash.isEmpty()) {
-			PWLog.noise(TAG, "Hash is empty for " + resource.getUrl());
 			return true;
 		}
 
 		String fileHash = FileUtils.getMd5Hash(file);
-		PWLog.noise(TAG, "Resource hash " + resourceHash + ", file hash " + fileHash);
 		return resourceHash.equals(fileHash);
 	}
 }

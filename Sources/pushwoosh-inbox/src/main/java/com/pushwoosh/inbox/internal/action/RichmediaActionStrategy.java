@@ -33,6 +33,9 @@ import com.pushwoosh.internal.utils.PWLog;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Handles Rich Media action from Inbox message click.
+ */
 class RichmediaActionStrategy implements InboxActionStrategy {
 	@Override
 	public void performAction(JSONObject actionParams) throws JSONException {

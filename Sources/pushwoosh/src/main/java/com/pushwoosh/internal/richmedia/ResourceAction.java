@@ -26,31 +26,42 @@
 
 package com.pushwoosh.internal.richmedia;
 
+import android.text.TextUtils;
+
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.richmedia.RichMediaController;
 
 /**
- * Action which happen when click on {@link com.pushwoosh.inapp.network.model.Resource} push
+ * Utility for triggering Rich Media display from various entry points.
  */
 public final class ResourceAction {
 
-	/**
-	 * Show view associated with {@param richMedia}
-	 * @param richMedia id of rich media
-	 */
-	public static void performRichMediaAction(String richMedia) {
-		ResourceWrapper resourceWrapper = new ResourceWrapper.Builder()
-				.setRichMedia(richMedia)
-				.setDelay(RepositoryModule.getNotificationPreferences().richMediaDelayMs().get())
-				.build();
+    /**
+     * Builds ResourceWrapper from Rich Media JSON and triggers display via RichMediaController.
+     * Used by Inbox and other entry points that need to show Rich Media.
+     */
+    public static void performRichMediaAction(String richMedia) {
+        PWLog.noise("ResourceAction", "performRichMediaAction()");
 
-		RichMediaController richMediaController = PushwooshPlatform.getInstance().getRichMediaController();
-		if (richMediaController != null)
-			richMediaController.showResourceWrapper(resourceWrapper);
-	}
+        if (TextUtils.isEmpty(richMedia)) {
+            PWLog.warn("ResourceAction", "richMedia is null or empty");
+            return;
+        }
 
-	private ResourceAction() {
-	}
+        ResourceWrapper resourceWrapper = new ResourceWrapper.Builder()
+                .setRichMedia(richMedia)
+                .setDelay(RepositoryModule.getNotificationPreferences()
+                        .richMediaDelayMs()
+                        .get())
+                .build();
+
+        RichMediaController richMediaController =
+                PushwooshPlatform.getInstance().getRichMediaController();
+        if (richMediaController != null) richMediaController.showResourceWrapper(resourceWrapper);
+    }
+
+    private ResourceAction() {}
 }

@@ -36,6 +36,10 @@ import org.json.JSONObject;
 
 public class InboxPerformActionStrategyFactory {
 
+	/**
+	 * Routes Inbox message action to appropriate strategy based on message type.
+	 * Types: PLAIN, RICH_MEDIA, URL, DEEP_LINK.
+	 */
 	public static void onActionPerformed(InboxMessageInternal inboxMessageInternal) {
 		InboxActionStrategy inboxActionStrategy;
 		InboxMessageType inboxType = InboxPayloadDataProvider.getInboxType(inboxMessageInternal.getActionParams());

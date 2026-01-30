@@ -26,11 +26,15 @@
 
 package com.pushwoosh.inapp.network.model;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_HASH;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_PRIORITY;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_REQUIRED;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_TAGS;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_TIME_STAMP;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_URL;
 
 import android.net.Uri;
+
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.inapp.exception.ResourceParseException;
@@ -39,16 +43,18 @@ import com.pushwoosh.internal.utils.JsonUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_HASH;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_PRIORITY;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_REQUIRED;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_TAGS;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_TIME_STAMP;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 class ResourceParseUtils {
 
+    // Examples:
+    // - From server in  post event response as richmedia key:
+    //   {"url":"https:\/\/richmedia.pushwoosh.com\/C\/A\/CAF38-1F50B.zip?ts=1730321891","code":"CAF38-1F50B","ts":1730321891,"hash":"d16cfc240fdbb9530acdb9908f4c0204"}
+    //
+    // - From push notification as rm key from push payload
+    //  {"ts":"1761804213","url":"https://richmedia.pushwoosh.com/8/5/8516C-47D37.zip?ts=1761804213"}
 	@NonNull
 	static Resource parseRichMedia(String richMedia) throws ResourceParseException {
 		try {

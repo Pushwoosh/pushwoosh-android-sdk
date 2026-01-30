@@ -27,19 +27,26 @@
 package com.pushwoosh.inapp.view.strategy;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
 
-import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 
+/**
+ * Factory that selects display strategy based on resource type and configuration.
+ */
 public class ResourceViewStrategyFactory {
+	private static final String TAG = "[InApp]ResourceViewStrategyFactory";
 
+	/**
+	 * Returns strategy based on type: RICH_MEDIA → RichMediaViewStrategy, IN_APP → InAppDefaultViewStrategy.
+	 */
 	@Nullable
 	public ResourceViewStrategy createStrategy(ResourceWrapper resourceWrapper) {
 		if (getContext() == null) {
-			PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
+			PWLog.error(TAG, "context is null");
 			return null;
 		}
 
@@ -49,7 +56,7 @@ public class ResourceViewStrategyFactory {
 					return new InAppRequiredViewStrategy(getContext());
 				}
 
-				return new InAppDefaultViewStrategy(getContext(), InAppModule.getInAppFolderProvider());
+				return new InAppDefaultViewStrategy(getContext());
 			case RICH_MEDIA:
 				if (resourceWrapper.isLockScreen()) {
 					return new RichMediaLockScreenViewStrategy(getContext(), resourceWrapper.getSound());
@@ -57,18 +64,31 @@ public class ResourceViewStrategyFactory {
 
 				return new RichMediaViewStrategy(getContext(), resourceWrapper.getDelay());
 			default:
-				return new InAppDefaultViewStrategy(getContext(), InAppModule.getInAppFolderProvider());
+				return new InAppDefaultViewStrategy(getContext());
 		}
 	}
 
+	/**
+	 * Selects strategy and triggers display.
+	 */
 	public void showResource(ResourceWrapper resourceWrapper) {
 		try {
+			String resourceCode = resourceWrapper.getResource() != null
+					? resourceWrapper.getResource().getCode()
+					: "unknown";
+			PWLog.noise(TAG, String.format("Starting to showResource, code: %s, type: %s",
+					resourceCode, resourceWrapper.getResourceType()));
+
 			ResourceViewStrategy strategy = createStrategy(resourceWrapper);
 			if (strategy != null) {
+				PWLog.noise(TAG, String.format("Selected strategy: %s for resource: %s",
+						strategy.getClass().getSimpleName(), resourceCode));
 				strategy.show(resourceWrapper.getResource());
+			} else {
+				PWLog.warn(TAG, String.format("No strategy created for resource: %s", resourceCode));
 			}
 		} catch (Throwable t) {
-			PWLog.error(t.getMessage());
+			PWLog.error(TAG, "Failed to show resource", t);
 		}
 	}
 

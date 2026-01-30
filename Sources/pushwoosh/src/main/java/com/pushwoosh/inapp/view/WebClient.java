@@ -26,9 +26,6 @@
 
 package com.pushwoosh.inapp.view;
 
-import java.util.Map;
-import java.util.logging.Logger;
-
 import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -54,174 +51,182 @@ import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
 
+import java.util.Map;
+import java.util.logging.Logger;
+
 public class WebClient extends WebViewClient implements JsCallback {
-	private static final String TAG = "[InApp]WebClient";
+    private static final String TAG = "[InApp]WebClient";
 
-	private static final String CLOSE = "close";
-	private static final String OPEN = "open";
+    private static final String CLOSE = "close";
+    private static final String OPEN = "open";
 
-	private static final String JS_PUSH_MANAGER = "pushManager";
-	private static final String JS_PUSHWOOSH = "pushwooshImpl";
+    private static final String JS_PUSH_MANAGER = "pushManager";
+    private static final String JS_PUSHWOOSH = "pushwooshImpl";
 
-	private final InAppView inAppView;
-	private final Map<String, Object> jsInterfaces;
+    private final InAppView inAppView;
+    private final Map<String, Object> jsInterfaces;
 
-	private PushwooshJSInterface pushwooshJSInterface;
+    private PushwooshJSInterface pushwooshJSInterface;
 
-	private Handler handler = new Handler(Looper.getMainLooper());
+    private Handler handler = new Handler(Looper.getMainLooper());
 
-	private Resource resource;
+    private Resource resource;
 
-	private View mainContainer;
+    private View mainContainer;
 
-	public WebClient(InAppView inAppView, Resource resource) {
-		this.inAppView = inAppView;
-		this.resource = resource;
+    public WebClient(InAppView inAppView, Resource resource) {
+        this.inAppView = inAppView;
+        this.resource = resource;
 
-		jsInterfaces = PushwooshPlatform.getInstance().pushwooshInApp().getJavascriptInterfaces();
-	}
+        jsInterfaces = PushwooshPlatform.getInstance().pushwooshInApp().getJavascriptInterfaces();
+    }
 
-	public void attachToWebView(WebView webView) {
-		String customData = RepositoryModule.getNotificationPreferences().customData().get();
-		String messageHash = RepositoryModule.getNotificationPreferences().messageHash().get();
+    public void attachToWebView(WebView webView) {
+        String customData =
+                RepositoryModule.getNotificationPreferences().customData().get();
+        String messageHash =
+                RepositoryModule.getNotificationPreferences().messageHash().get();
 
-		pushwooshJSInterface = new PushwooshJSInterface(this, webView, mainContainer, customData, messageHash);
+        pushwooshJSInterface = new PushwooshJSInterface(this, webView, mainContainer, customData, messageHash);
 
-		RepositoryModule.getNotificationPreferences().customData().set(null);
+        RepositoryModule.getNotificationPreferences().customData().set(null);
 
-		//WebView.setWebContentsDebuggingEnabled(true);
+        // WebView.setWebContentsDebuggingEnabled(true);
 
-		webView.setWebViewClient(this);
+        webView.setWebViewClient(this);
 
-		// add bridge to handle js calls to pushwoosh API
-		webView.addJavascriptInterface(new PushManagerJSInterface(webView, this), JS_PUSH_MANAGER);
-		webView.addJavascriptInterface(pushwooshJSInterface, JS_PUSHWOOSH);
+        // add bridge to handle js calls to pushwoosh API
+        webView.addJavascriptInterface(new PushManagerJSInterface(webView, this), JS_PUSH_MANAGER);
+        webView.addJavascriptInterface(pushwooshJSInterface, JS_PUSHWOOSH);
 
-		// add user javascript interfaces
-		for (Map.Entry<String, Object> entry : jsInterfaces.entrySet()) {
-			String name = entry.getKey();
-			Object jsInterface = entry.getValue();
-			webView.addJavascriptInterface(jsInterface, name);
-		}
-	}
+        // add user javascript interfaces
+        for (Map.Entry<String, Object> entry : jsInterfaces.entrySet()) {
+            String name = entry.getKey();
+            Object jsInterface = entry.getValue();
+            webView.addJavascriptInterface(jsInterface, name);
+        }
+    }
 
-	public void attachMainContainer(View view){
-		this.mainContainer = view;
-	}
+    public void attachMainContainer(View view) {
+        this.mainContainer = view;
+    }
 
-	@Override
-	public void onPageFinished(WebView view, String url) {
-		super.onPageFinished(view, url);
+    @Override
+    public void onPageFinished(WebView view, String url) {
+        super.onPageFinished(view, url);
+        PWLog.noise(TAG, String.format("onPageFinished(url: %s)", url));
 
-		PWLog.noise(TAG, "Finished loading url: " + url);
+        pushwooshJSInterface.onPageFinished(view, resource);
 
-		pushwooshJSInterface.onPageFinished(view, resource);
+        inAppView.onPageLoaded();
 
-		inAppView.onPageLoaded();
+        EventBus.sendEvent(new RichMediaPresentEvent(resource));
+    }
 
-		EventBus.sendEvent(new RichMediaPresentEvent(resource));
-	}
+    @Override
+    public void onPageStarted(WebView view, String url, Bitmap favicon) {
+        super.onPageStarted(view, url, favicon);
+        PWLog.noise(TAG, String.format("onPageStarted(url: %s)", url));
 
-	@Override
-	public void onPageStarted(WebView view, String url, Bitmap favicon) {
-		super.onPageStarted(view, url, favicon);
-		PWLog.noise(TAG, "Page started: " + url);
+        pushwooshJSInterface.onPageStarted(view, resource);
+    }
 
-		pushwooshJSInterface.onPageStarted(view, resource);
-	}
+    @Override
+    public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+        super.onReceivedError(view, request, error);
+        PWLog.error(TAG, String.format("onReceivedError(request: %s, error: %s)", request, error));
+    }
 
-	@Override
-	public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-		super.onReceivedError(view, request, error);
+    @SuppressWarnings("deprecation")
+    @Override
+    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+        PWLog.noise(TAG, String.format("shouldOverrideUrlLoading(url: %s)", url));
+        final Uri uri = Uri.parse(url);
+        return handleUri(view.getContext(), uri);
+    }
 
-		PWLog.error(TAG, "Page failed: " + request.toString() + "; " + error.toString());
-	}
+    @TargetApi(Build.VERSION_CODES.N)
+    @Override
+    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+        PWLog.noise(TAG, String.format("shouldOverrideUrlLoading(request: %s)", request.getUrl()));
+        final Uri uri = request.getUrl();
+        return handleUri(view.getContext(), uri);
+    }
 
-	@SuppressWarnings("deprecation")
-	@Override
-	public boolean shouldOverrideUrlLoading(WebView view, String url) {
-		final Uri uri = Uri.parse(url);
-		return handleUri(view.getContext(), uri);
-	}
+    private boolean handleUri(Context context, Uri uri) {
+        PWLog.noise(TAG, String.format("handleUri(uri: %s)", uri));
 
-	@TargetApi(Build.VERSION_CODES.N)
-	@Override
-	public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-		final Uri uri = request.getUrl();
-		return handleUri(view.getContext(), uri);
-	}
+        // custom pushwoosh scheme
+        if (uri.getScheme().equals("pushwoosh")) {
+            if (uri.getHost() != null) {
+                return applyPushwooshUrlScheme(uri.getHost(), context);
+            } else {
+                PWLog.error(TAG, "Wrong url format: " + uri);
+            }
 
-	private boolean handleUri(Context context, Uri uri) {
-		PWLog.noise(TAG, "Trying to open url: " + uri);
+            return true;
+        }
 
-		// custom pushwoosh scheme
-		if (uri.getScheme().equals("pushwoosh")) {
-			if (uri.getHost() != null) {
-				return applyPushwooshUrlScheme(uri.getHost(), context);
-			} else {
-				PWLog.error(TAG, "Wrong url format: " + uri);
-			}
+        if (!uri.getScheme().startsWith("file")) {
 
-			return true;
-		}
+            if (!isLockScreen()) {
+                openRemoteUrl(uri, context);
+            } else {
+                RepositoryModule.getLockScreenMediaStorage().cacheRemoteUrl(uri);
+            }
 
-		if (!uri.getScheme().startsWith("file")) {
+            inAppView.close();
+            return true;
+        }
 
-			if (!isLockScreen()) {
-				openRemoteUrl(uri, context);
-			} else {
-				RepositoryModule.getLockScreenMediaStorage().cacheRemoteUrl(uri);
-			}
+        return true;
+    }
 
-			inAppView.close();
-			return true;
-		}
+    private void openRemoteUrl(Uri url, Context context) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, url);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            context.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            PWLog.error("Can't open remote url: " + url, e);
+        }
+    }
 
-		return true;
-	}
+    private void launchDefaultActivity(final Context context) {
+        // launching default launcher category activity
+        try {
+            Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+            intent.addCategory("android.intent.category.LAUNCHER");
+            intent.setFlags(
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Logger.getLogger(getClass().getSimpleName()).severe("Failed to start default launch activity.");
+        }
+    }
 
-	private void openRemoteUrl(Uri url, Context context) {
-		Intent intent = new Intent(Intent.ACTION_VIEW, url);
-		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		try {
-			context.startActivity(intent);
-		} catch (ActivityNotFoundException e) {
-			PWLog.error("Can't open remote url: " + url, e);
-		}
-	}
+    private boolean applyPushwooshUrlScheme(String method, final Context context) {
+        if (method.equalsIgnoreCase(CLOSE)) {
+            inAppView.close();
+        } else if (method.equalsIgnoreCase(OPEN)) {
+            if (isLockScreen()) {
+                launchDefaultActivity(context);
+                inAppView.close();
+            }
+        } else {
+            PWLog.error(TAG, "Unrecognized pushwoosh method: " + method);
+        }
 
-	private void launchDefaultActivity(final Context context) {
-		//launching default launcher category activity
-		try {
-			Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-			intent.addCategory("android.intent.category.LAUNCHER");
-			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-			context.startActivity(intent);
-		} catch (ActivityNotFoundException e) {
-			Logger.getLogger(getClass().getSimpleName()).severe("Failed to start default launch activity.");
-		}
-	}
+        // do not let webview to open this url itself
+        return true;
+    }
 
-	private boolean applyPushwooshUrlScheme(String method, final Context context) {
-		if (method.equalsIgnoreCase(CLOSE)) {
-			inAppView.close();
-		} else if (method.equalsIgnoreCase(OPEN)) {
-			if (isLockScreen()) {
-				launchDefaultActivity(context);
-				inAppView.close();
-			}
-		} else {
-			PWLog.error(TAG, "Unrecognized pushwoosh method: " + method);
-		}
+    private boolean isLockScreen() {
+        return (inAppView.getMode() & InAppView.MODE_LOCKSCREEN) != 0;
+    }
 
-		//do not let webview to open this url itself
-		return true;
-	}
-
-	private boolean isLockScreen() {return (inAppView.getMode() & InAppView.MODE_LOCKSCREEN) != 0;}
-
-	@Override
-	public void close() {
-		handler.post(inAppView::close);
-	}
+    @Override
+    public void close() {
+        handler.post(inAppView::close);
+    }
 }

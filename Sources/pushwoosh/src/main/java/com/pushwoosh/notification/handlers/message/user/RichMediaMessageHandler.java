@@ -26,7 +26,6 @@
 
 package com.pushwoosh.notification.handlers.message.user;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 
@@ -36,6 +35,7 @@ import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.ApplicationOpenDetector;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.LockScreenUtils;
 import com.pushwoosh.notification.PushBundleDataProvider;
 import com.pushwoosh.notification.PushMessage;
@@ -47,114 +47,102 @@ import com.pushwoosh.richmedia.RichMediaController;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
-
 class RichMediaMessageHandler extends NotificationMessageHandler {
-	private static final String PW_FORCE_SHOW_RICH_MEDIA_FLAG = "pw_force_show_rm";
-	RichMediaMessageHandler() {
-		EventBus.subscribe(
-				ApplicationOpenDetector.ApplicationMovedToForegroundEvent.class,
-				event -> new ShowSilentRichMediaTask().executeOnExecutor(THREAD_POOL_EXECUTOR));
-	}
+    private static final String PW_FORCE_SHOW_RICH_MEDIA_FLAG = "pw_force_show_rm";
 
-	@Override
-	public void handlePushMessage(final PushMessage pushMessage) {
-		Bundle pushBundle = pushMessage.toBundle();
-		String richMedia = PushBundleDataProvider.getRichMedia(pushBundle);
-		NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
-		if (richMedia != null) {
-			loadRichMedia(richMedia);
-			if (PushBundleDataProvider.isSilent(pushBundle)) {
-				notificationPrefs.messageHash().set(PushBundleDataProvider.getPushHash(pushBundle));
-			}
-		}
+    RichMediaMessageHandler() {
+        EventBus.subscribe(
+                ApplicationOpenDetector.ApplicationMovedToForegroundEvent.class,
+                event -> BackgroundExecutor.parallel(() -> {
+                    SilentRichMediaStorage silentRichMediaStorage = RepositoryModule.getSilentRichMediaStorage();
+                    ResourceWrapper resourceWrapper = silentRichMediaStorage.getResourceWrapper();
+                    if (resourceWrapper != null) {
+                        showResourceWrapper(resourceWrapper);
+                    }
+                }));
+    }
 
-		super.handlePushMessage(pushMessage);
-	}
+    @Override
+    public void handlePushMessage(final PushMessage pushMessage) {
+        Bundle pushBundle = pushMessage.toBundle();
+        String richMedia = PushBundleDataProvider.getRichMedia(pushBundle);
+        NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+        if (richMedia != null) {
+            loadRichMedia(richMedia);
+            if (PushBundleDataProvider.isSilent(pushBundle)) {
+                notificationPrefs.messageHash().set(PushBundleDataProvider.getPushHash(pushBundle));
+            }
+        }
 
-	@Override
-	protected void handleNotification(final PushMessage pushMessage) {
-		final String richMedia = PushBundleDataProvider.getRichMedia(pushMessage.toBundle());
-		final String sound = pushMessage.getSound();
+        super.handlePushMessage(pushMessage);
+    }
 
-		if (pushMessage.isLockScreen()) {
-			if (LockScreenUtils.isScreenLocked()) {
-				showResource(richMedia, sound, true);
-			} else {
-				RepositoryModule.getLockScreenMediaStorage().cacheResource(pushMessage);
-			}
-		} else if (isSilentAndForceShowRmFlagPresent(pushMessage)) {
-			if (AndroidPlatformModule.isApplicationInForeground()) {
-				showResource(richMedia, sound, false);
-			} else {
-				RepositoryModule.getSilentRichMediaStorage().replaceResource(pushMessage);
-			}
-		}
-	}
+    /**
+     * Handles silent push with pw_force_show_rm flag or lock screen Rich Media.
+     * Shows immediately if app is in foreground, otherwise queues for display on app resume.
+     */
+    @Override
+    protected void handleNotification(final PushMessage pushMessage) {
+        final String richMedia = PushBundleDataProvider.getRichMedia(pushMessage.toBundle());
+        final String sound = pushMessage.getSound();
 
-	private void showResource(String richMedia, String sound, boolean isLockScreen) {
-		ResourceWrapper resourceWrapper = new ResourceWrapper.Builder()
-				.setRichMedia(richMedia)
-				.setSound(sound)
-				.setLockScreen(isLockScreen)
-				.build();
+        if (pushMessage.isLockScreen()) {
+            if (LockScreenUtils.isScreenLocked()) {
+                showResource(richMedia, sound, true);
+            } else {
+                RepositoryModule.getLockScreenMediaStorage().cacheResource(pushMessage);
+            }
+        } else if (isSilentAndForceShowRmFlagPresent(pushMessage)) {
+            if (AndroidPlatformModule.isApplicationInForeground()) {
+                showResource(richMedia, sound, false);
+            } else {
+                RepositoryModule.getSilentRichMediaStorage().replaceResource(pushMessage);
+            }
+        }
+    }
 
-		if (resourceWrapper == null) {
-			return;
-		}
+    private void showResource(String richMedia, String sound, boolean isLockScreen) {
+        ResourceWrapper resourceWrapper = new ResourceWrapper.Builder()
+                .setRichMedia(richMedia)
+                .setSound(sound)
+                .setLockScreen(isLockScreen)
+                .build();
 
-		new ShowResourceWrapperTask(resourceWrapper).executeOnExecutor(THREAD_POOL_EXECUTOR);
-	}
+        if (resourceWrapper == null) {
+            return;
+        }
 
-	private void loadRichMedia(final String richMedia) {
-		if (InAppModule.getInAppRepository() != null) {
-			InAppModule.getInAppRepository().prefetchRichMedia(richMedia);
-			PushwooshPlatform.getInstance().pushwooshRepository().prefetchTags();
-		}
-	}
+        BackgroundExecutor.parallel(() -> showResourceWrapper(resourceWrapper));
+    }
 
-	private boolean isSilentAndForceShowRmFlagPresent(PushMessage pushMessage) {
-		if (pushMessage == null || TextUtils.isEmpty(pushMessage.getCustomData()) || !pushMessage.isSilent()) {
-			return false;
-		}
-		try {
-			JSONObject jsonObject = new JSONObject(pushMessage.getCustomData());
-			return jsonObject.getBoolean(PW_FORCE_SHOW_RICH_MEDIA_FLAG);
-		} catch (JSONException e) {
-			return false;
-		}
-	}
+    /**
+     * Prefetches Rich Media ZIP when push is received.
+     * Called before notification is shown so content is ready when user clicks.
+     */
+    private void loadRichMedia(final String richMedia) {
+        if (InAppModule.getInAppRepository() != null) {
+            InAppModule.getInAppRepository().prefetchRichMedia(richMedia);
+            PushwooshPlatform.getInstance().pushwooshRepository().prefetchTags();
+        }
+    }
 
-	private static class ShowResourceWrapperTask extends AsyncTask<Void, Void, Void> {
-		private final ResourceWrapper resourceWrapper;
+    private boolean isSilentAndForceShowRmFlagPresent(PushMessage pushMessage) {
+        if (pushMessage == null || TextUtils.isEmpty(pushMessage.getCustomData()) || !pushMessage.isSilent()) {
+            return false;
+        }
+        try {
+            JSONObject jsonObject = new JSONObject(pushMessage.getCustomData());
+            return jsonObject.getBoolean(PW_FORCE_SHOW_RICH_MEDIA_FLAG);
+        } catch (JSONException e) {
+            return false;
+        }
+    }
 
-		ShowResourceWrapperTask(ResourceWrapper resourceWrapper) {
-			this.resourceWrapper = resourceWrapper;
-		}
-
-		@Override
-		protected Void doInBackground(Void... voids) {
-			showResourceWrapper(resourceWrapper);
-			return null;
-		}
-
-	}
-	private static class ShowSilentRichMediaTask extends AsyncTask<Void, Void, Void> {
-		@Override
-		protected Void doInBackground(Void... voids) {
-			SilentRichMediaStorage silentRichMediaStorage = RepositoryModule.getSilentRichMediaStorage();
-			ResourceWrapper resourceWrapper = silentRichMediaStorage.getResourceWrapper();
-			if (resourceWrapper != null) {
-				showResourceWrapper(resourceWrapper);
-			}
-			return null;
-		}
-	}
-
-	private static void showResourceWrapper(ResourceWrapper resourceWrapper) {
-		RichMediaController richMediaController = PushwooshPlatform.getInstance().getRichMediaController();
-		if (richMediaController != null) {
-			richMediaController.showResourceWrapper(resourceWrapper);
-		}
-	}
+    private static void showResourceWrapper(ResourceWrapper resourceWrapper) {
+        RichMediaController richMediaController =
+                PushwooshPlatform.getInstance().getRichMediaController();
+        if (richMediaController != null) {
+            richMediaController.showResourceWrapper(resourceWrapper);
+        }
+    }
 }

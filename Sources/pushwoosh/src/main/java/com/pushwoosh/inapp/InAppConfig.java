@@ -24,157 +24,152 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-
 public class InAppConfig {
-	private static final String TAG = "[InApp]InAppConfig";
+    private static final String TAG = "[InApp]InAppConfig";
 
-	private static class Column {
-		static final String KEY_LOCALIZATION = "localization";
-		static final String KEY_DEFAULT_LANGUAGE = "default_language";
-		static final String KEY_MODAL_POSITION = "position";
-		static final String KEY_PRESENT_ANIMATION = "present_animation";
-		static final String KEY_DISMISS_ANIMATION = "dismiss_animation";
-		static final String KEY_SWIPE_TO_DISMISS = "swipe_to_dismiss";
-	}
+    private static class Column {
+        static final String KEY_LOCALIZATION = "localization";
+        static final String KEY_DEFAULT_LANGUAGE = "default_language";
+        static final String KEY_MODAL_POSITION = "position";
+        static final String KEY_PRESENT_ANIMATION = "present_animation";
+        static final String KEY_DISMISS_ANIMATION = "dismiss_animation";
+        static final String KEY_SWIPE_TO_DISMISS = "swipe_to_dismiss";
+    }
 
-	private InAppFolderProvider inAppFolderProvider;
+    private InAppFolderProvider inAppFolderProvider;
 
-	public InAppConfig(InAppFolderProvider inAppFolderProvider) {
-		this.inAppFolderProvider = inAppFolderProvider;
-	}
+    public InAppConfig(InAppFolderProvider inAppFolderProvider) {
+        this.inAppFolderProvider = inAppFolderProvider;
+    }
 
-	private void parseModalPosition(JSONObject json, ModalRichmediaConfig config) {
-		if (json.has(Column.KEY_MODAL_POSITION)) {
-			try {
-				String position = json.getString(Column.KEY_MODAL_POSITION);
-				ModalRichMediaViewPosition pos = ModalRichMediaViewPosition.fromString(position);
-				if (pos != null) {
-					config.setViewPosition(pos);
-				}
-			} catch (JSONException e) {
-				PWLog.warn(TAG, "Failed to parse " + Column.KEY_MODAL_POSITION + ": " + e.getMessage());
-			}
-		}
-	}
+    private void parseModalPosition(JSONObject json, ModalRichmediaConfig config) {
+        if (json.has(Column.KEY_MODAL_POSITION)) {
+            try {
+                String position = json.getString(Column.KEY_MODAL_POSITION);
+                ModalRichMediaViewPosition pos = ModalRichMediaViewPosition.fromString(position);
+                if (pos != null) {
+                    config.setViewPosition(pos);
+                }
+            } catch (JSONException e) {
+                PWLog.warn(TAG, "Failed to parse " + Column.KEY_MODAL_POSITION + ": " + e.getMessage());
+            }
+        }
+    }
 
-	private void parsePresentAnimation(JSONObject json, ModalRichmediaConfig config) {
-		if (json.has(Column.KEY_PRESENT_ANIMATION)) {
-			try {
-				String animation = json.getString(Column.KEY_PRESENT_ANIMATION);
-				ModalRichMediaPresentAnimationType anim = ModalRichMediaPresentAnimationType.fromString(animation);
-				if (anim != null) {
-					config.setPresentAnimationType(anim);
-				}
-			} catch (JSONException e) {
-				PWLog.warn(TAG, "Failed to parse " + Column.KEY_PRESENT_ANIMATION + ": " + e.getMessage());
-			}
-		}
-	}
+    private void parsePresentAnimation(JSONObject json, ModalRichmediaConfig config) {
+        if (json.has(Column.KEY_PRESENT_ANIMATION)) {
+            try {
+                String animation = json.getString(Column.KEY_PRESENT_ANIMATION);
+                ModalRichMediaPresentAnimationType anim = ModalRichMediaPresentAnimationType.fromString(animation);
+                if (anim != null) {
+                    config.setPresentAnimationType(anim);
+                }
+            } catch (JSONException e) {
+                PWLog.warn(TAG, "Failed to parse " + Column.KEY_PRESENT_ANIMATION + ": " + e.getMessage());
+            }
+        }
+    }
 
-	private void parseDismissAnimation(JSONObject json, ModalRichmediaConfig config) {
-		if (json.has(Column.KEY_DISMISS_ANIMATION)) {
-			try {
-				String animation = json.getString(Column.KEY_DISMISS_ANIMATION);
-				ModalRichMediaDismissAnimationType anim = ModalRichMediaDismissAnimationType.fromString(animation);
-				if (anim != null) {
-					config.setDismissAnimationType(anim);
-				}
-			} catch (JSONException e) {
-				PWLog.warn(TAG, "Failed to parse " + Column.KEY_DISMISS_ANIMATION + ": " + e.getMessage());
-			}
-		}
-	}
+    private void parseDismissAnimation(JSONObject json, ModalRichmediaConfig config) {
+        if (json.has(Column.KEY_DISMISS_ANIMATION)) {
+            try {
+                String animation = json.getString(Column.KEY_DISMISS_ANIMATION);
+                ModalRichMediaDismissAnimationType anim = ModalRichMediaDismissAnimationType.fromString(animation);
+                if (anim != null) {
+                    config.setDismissAnimationType(anim);
+                }
+            } catch (JSONException e) {
+                PWLog.warn(TAG, "Failed to parse " + Column.KEY_DISMISS_ANIMATION + ": " + e.getMessage());
+            }
+        }
+    }
 
-	private void parseSwipeGestures(JSONObject json, ModalRichmediaConfig config) {
-		if (json.has(Column.KEY_SWIPE_TO_DISMISS)) {
-			try {
-				JSONArray swipeArray = json.getJSONArray(Column.KEY_SWIPE_TO_DISMISS);
-				Set<ModalRichMediaSwipeGesture> swipes = new HashSet<>();
-				for (int i = 0; i < swipeArray.length(); i++) {
-					ModalRichMediaSwipeGesture gesture = ModalRichMediaSwipeGesture.fromString(swipeArray.getString(i));
-					if (gesture != null && gesture != ModalRichMediaSwipeGesture.NONE) {
-						swipes.add(gesture);
-					}
-				}
-				config.setSwipeGestures(swipes);
-			} catch (JSONException e) {
-				PWLog.warn(TAG, "Failed to parse " + Column.KEY_SWIPE_TO_DISMISS + ": " + e.getMessage());
-			}
-		}
-	}
+    private void parseSwipeGestures(JSONObject json, ModalRichmediaConfig config) {
+        if (json.has(Column.KEY_SWIPE_TO_DISMISS)) {
+            try {
+                JSONArray swipeArray = json.getJSONArray(Column.KEY_SWIPE_TO_DISMISS);
+                Set<ModalRichMediaSwipeGesture> swipes = new HashSet<>();
+                for (int i = 0; i < swipeArray.length(); i++) {
+                    ModalRichMediaSwipeGesture gesture = ModalRichMediaSwipeGesture.fromString(swipeArray.getString(i));
+                    if (gesture != null && gesture != ModalRichMediaSwipeGesture.NONE) {
+                        swipes.add(gesture);
+                    }
+                }
+                config.setSwipeGestures(swipes);
+            } catch (JSONException e) {
+                PWLog.warn(TAG, "Failed to parse " + Column.KEY_SWIPE_TO_DISMISS + ": " + e.getMessage());
+            }
+        }
+    }
 
-	@WorkerThread
-	public Map<String, String> parseLocalizedStrings(String code) throws IOException, JSONException {
-		File configFile = inAppFolderProvider.getConfigFile(code);
-		String content = FileUtils.readFile(configFile);
-		JSONObject json = new JSONObject(content);
-		JSONObject localization = json.getJSONObject(Column.KEY_LOCALIZATION);
+    @WorkerThread
+    public Map<String, String> parseLocalizedStrings(String code) throws IOException, JSONException {
+        File configFile = inAppFolderProvider.getConfigFile(code);
+        String content = FileUtils.readFile(configFile);
+        JSONObject json = new JSONObject(content);
+        JSONObject localization = json.getJSONObject(Column.KEY_LOCALIZATION);
 
-		String defaultLanguage = json.getString(Column.KEY_DEFAULT_LANGUAGE);
-		PWLog.debug(TAG, "default language : " + defaultLanguage);
+        String defaultLanguage = json.getString(Column.KEY_DEFAULT_LANGUAGE);
 
-		String preferredLanguage = RepositoryModule.getRegistrationPreferences().language().get();
-		JSONObject localizedStrings;
+        String preferredLanguage =
+                RepositoryModule.getRegistrationPreferences().language().get();
+        JSONObject localizedStrings;
 
-		try {
-			localizedStrings = localization.getJSONObject(preferredLanguage);
-		} catch (JSONException e) {
-			PWLog.warn(TAG, "Preferred language not found, fall back to default");
-			localizedStrings = localization.getJSONObject(defaultLanguage);
-		}
+        try {
+            localizedStrings = localization.getJSONObject(preferredLanguage);
+        } catch (JSONException e) {
+            localizedStrings = localization.getJSONObject(defaultLanguage);
+        }
 
-		return parseLocalizedStrings(localizedStrings);
-	}
+        return parseLocalizedStrings(localizedStrings);
+    }
 
-	@WorkerThread
-	public ModalRichmediaConfig parseModalConfig(String code) throws IOException {
-		PWLog.noise(TAG, "parseModalConfig started for code: " + code);
-		
-		File configFile = inAppFolderProvider.getConfigFile(code);
-		if (!configFile.exists()) {
-			return null;
-		}
-		
-		try {
-			String content = FileUtils.readFile(configFile);
-			if (content == null || content.trim().isEmpty()) {
-				PWLog.warn(TAG, "Config file exists but is empty for code: " + code);
-				return null;
-			}
-			
-			JSONObject json = new JSONObject(content);
-			JSONObject styleSettingsJson = json.optJSONObject("style_settings");
-			
-			ModalRichmediaConfig config = new ModalRichmediaConfig();
+    @WorkerThread
+    public ModalRichmediaConfig parseModalConfig(String code) throws IOException {
+        PWLog.noise(TAG, "parseModalConfig started for code: " + code);
 
-			if (styleSettingsJson != null) {
-				parseModalPosition(styleSettingsJson, config);
-				parsePresentAnimation(styleSettingsJson, config);
-				parseDismissAnimation(styleSettingsJson, config);
-				parseSwipeGestures(styleSettingsJson, config);
-			}
-			
-			return config;
-			
-		} catch (JSONException e) {
-			PWLog.error(TAG, "Invalid JSON in config file for code: " + code, e);
-			throw new IOException("Malformed config file", e); // Convert to IOException for consistency
-		}
-	}
+        File configFile = inAppFolderProvider.getConfigFile(code);
+        if (!configFile.exists()) {
+            return null;
+        }
 
-	private Map<String, String> parseLocalizedStrings(JSONObject json) throws JSONException {
-		Map<String, String> result = new HashMap<>();
+        try {
+            String content = FileUtils.readFile(configFile);
+            if (content == null || content.trim().isEmpty()) {
+                PWLog.warn(TAG, "Config file exists but is empty for code: " + code);
+                return null;
+            }
 
-		PWLog.debug(TAG, "Localization : {");
-		Iterator<String> iter = json.keys();
-		while (iter.hasNext()) {
-			String key = iter.next();
-			String value = json.getString(key);
-			result.put(key, value);
-			PWLog.debug(TAG, "  \"" + key + "\" : \"" + value + "\"");
-		}
-		PWLog.debug(TAG, "}");
+            JSONObject json = new JSONObject(content);
+            JSONObject styleSettingsJson = json.optJSONObject("style_settings");
 
-		return result;
-	}
+            ModalRichmediaConfig config = new ModalRichmediaConfig();
+
+            if (styleSettingsJson != null) {
+                parseModalPosition(styleSettingsJson, config);
+                parsePresentAnimation(styleSettingsJson, config);
+                parseDismissAnimation(styleSettingsJson, config);
+                parseSwipeGestures(styleSettingsJson, config);
+            }
+
+            return config;
+
+        } catch (JSONException e) {
+            PWLog.error(TAG, "Invalid JSON in config file for code: " + code, e);
+            throw new IOException("Malformed config file", e); // Convert to IOException for consistency
+        }
+    }
+
+    private Map<String, String> parseLocalizedStrings(JSONObject json) throws JSONException {
+        Map<String, String> result = new HashMap<>();
+
+        Iterator<String> iter = json.keys();
+        while (iter.hasNext()) {
+            String key = iter.next();
+            String value = json.getString(key);
+            result.put(key, value);
+        }
+
+        return result;
+    }
 }

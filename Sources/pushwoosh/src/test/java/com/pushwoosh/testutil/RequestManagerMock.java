@@ -47,100 +47,99 @@ import org.mockito.Mockito;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class RequestManagerMock implements RequestManager {
-	private final Map<Class, JSONObject> responseMap = new HashMap<>();
-	private final Map<Class, NetworkException> exceptionMap = new HashMap<>();
-	private final Map<Class, Expectation<JSONObject>> expectations = new HashMap<>();
-	private ServerCommunicationManager serverCommunicationManager;
+    private final Map<Class, JSONObject> responseMap = new HashMap<>();
+    private final Map<Class, NetworkException> exceptionMap = new HashMap<>();
+    private final Map<Class, Expectation<JSONObject>> expectations = new HashMap<>();
+    private ServerCommunicationManager serverCommunicationManager;
 
-	@Override
-	public <Response> void sendRequest(PushRequest<Response> request) {
-		sendRequest(request, null);
-	}
+    @Override
+    public <Response> void sendRequest(PushRequest<Response> request) {
+        sendRequest(request, null);
+    }
 
-	@Override
-	public <Response> void sendRequest(PushRequest<Response> request, Callback<Response, NetworkException> callback) {
-		sendRequest(request, null, callback);
-	}
+    @Override
+    public <Response> void sendRequest(PushRequest<Response> request, Callback<Response, NetworkException> callback) {
+        sendRequest(request, null, callback);
+    }
 
-	@Override
-	public <Response> void sendRequest(final PushRequest<Response> request, final String baseUrl, final Callback<Response, NetworkException> callback) {
-		PWLog.noise("RequestManagerMock", "sendRequest: " + request.getMethod());
-		Result<Response, NetworkException> result = sendRequestSync(request);
+    @Override
+    public <Response> void sendRequest(
+            final PushRequest<Response> request,
+            final String baseUrl,
+            final Callback<Response, NetworkException> callback) {
+        PWLog.noise("RequestManagerMock", "sendRequest: " + request.getMethod());
+        Result<Response, NetworkException> result = sendRequestSync(request);
 
-		if (callback != null) {
-			new Handler(Looper.getMainLooper()).post(() -> {
-				callback.process(result);
-			});
-		}
-	}
+        if (callback != null) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                callback.process(result);
+            });
+        }
+    }
 
-	@Override
-	@NonNull
-	public <Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request) {
-		JSONObject params = null;
-		try {
-			params = PushRequestHelper.getParams(request);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+    @Override
+    @NonNull public <Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request) {
+        JSONObject params = null;
+        try {
+            params = PushRequestHelper.getParams(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-		for (Map.Entry<Class, Expectation<JSONObject>> entry : expectations.entrySet()) {
-			Class excpectedClass = entry.getKey();
-			Expectation expectation = entry.getValue();
+        for (Map.Entry<Class, Expectation<JSONObject>> entry : expectations.entrySet()) {
+            Class excpectedClass = entry.getKey();
+            Expectation expectation = entry.getValue();
 
-			if (excpectedClass.isAssignableFrom(request.getClass())) {
-				expectation.fulfilled(params);
-			}
-		}
+            if (excpectedClass.isAssignableFrom(request.getClass())) {
+                expectation.fulfilled(params);
+            }
+        }
 
-		if (responseMap.containsKey(request.getClass())) {
-			try {
-				return Result.fromData(request.parseResponse(responseMap.get(request.getClass())));
-			} catch (JSONException e) {
-				return Result.fromException(new NetworkException(e.getMessage()));
-			}
-		}
+        if (responseMap.containsKey(request.getClass())) {
+            try {
+                return Result.fromData(request.parseResponse(responseMap.get(request.getClass())));
+            } catch (JSONException e) {
+                return Result.fromException(new NetworkException(e.getMessage()));
+            }
+        }
 
-		if (exceptionMap.containsKey(request.getClass())) {
-			return Result.fromException(exceptionMap.get(request.getClass()));
-		}
+        if (exceptionMap.containsKey(request.getClass())) {
+            return Result.fromException(exceptionMap.get(request.getClass()));
+        }
 
-		return Result.fromData(null);
-	}
+        return Result.fromData(null);
+    }
 
-	@Override
-	public void updateBaseUrl(final String baseUrl) {
+    @Override
+    public void updateBaseUrl(final String baseUrl) {
+        com.pushwoosh.repository.RepositoryModule.getRegistrationPreferences()
+                .baseUrl()
+                .set(baseUrl);
+    }
 
-	}
+    @Override
+    public void setReverseProxyUrl(String url) {}
 
-	@Override
-	public void setReverseProxyUrl(String url) {
+    @Override
+    public void disableReverseProxy() {}
 
-	}
+    public void setResponse(JSONObject response, Class<? extends PushRequest> requestClass) {
+        responseMap.put(requestClass, response);
+    }
 
-	@Override
-	public void disableReverseProxy() {
+    public void setException(NetworkException exception, Class<? extends PushRequest> requestClass) {
+        exceptionMap.put(requestClass, exception);
+    }
 
-	}
+    public void clear() {
+        exceptionMap.clear();
+        responseMap.clear();
+    }
 
-	public void setResponse(JSONObject response, Class<? extends PushRequest> requestClass) {
-		responseMap.put(requestClass, response);
-	}
-
-	public void setException(NetworkException exception, Class<? extends PushRequest> requestClass) {
-		exceptionMap.put(requestClass, exception);
-	}
-
-	public void clear(){
-		exceptionMap.clear();
-		responseMap.clear();
-	}
-
-	public Expectation<JSONObject> expect(Class<? extends PushRequest> requestClass) {
-		Expectation expectation = Mockito.mock(Expectation.class);
-		expectations.put(requestClass, expectation);
-		return expectation;
-	}
+    public Expectation<JSONObject> expect(Class<? extends PushRequest> requestClass) {
+        Expectation expectation = Mockito.mock(Expectation.class);
+        expectations.put(requestClass, expectation);
+        return expectation;
+    }
 }

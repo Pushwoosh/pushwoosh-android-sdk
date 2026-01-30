@@ -27,9 +27,8 @@
 package com.pushwoosh.demoapp.utils
 
 import android.content.Context
-import android.content.res.Configuration
-import android.graphics.Color
 import android.graphics.Typeface
+import androidx.core.content.ContextCompat
 import com.pushwoosh.demoapp.R
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.model.customizing.formatter.InboxDateFormatter
@@ -43,57 +42,57 @@ class InboxStyleHelper {
             setupColors(context)
             setupTexts()
             setupAnimations()
-            setupImages(context)
-            setupFonts(context)
+            setupImages()
+            setupFonts()
             setupDateFormatter()
         }
 
         private fun setupColors(context: Context) {
-            val isDarkTheme = (context.resources.configuration.uiMode and
-                    Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            // Accent color - primary theme color
+            PushwooshInboxStyle.accentColor =
+                ContextCompat.getColor(context, R.color.md_theme_primary)
 
-            if (isDarkTheme) {
-                setupDarkTheme(context)
-            } else {
-                setupLightTheme(context)
-            }
-        }
-
-        private fun setupLightTheme(context: Context) {
-            // Light theme colors
-            PushwooshInboxStyle.accentColor = Color.parseColor("#FF6B35") // Vibrant orange
-
-            // Light background colors
-            PushwooshInboxStyle.backgroundColor = Color.parseColor("#FFFBFE") // White
-            PushwooshInboxStyle.highlightColor = Color.parseColor("#F5F5F5") // Light gray highlight
+            // Background colors
+            PushwooshInboxStyle.backgroundColor =
+                ContextCompat.getColor(context, R.color.md_theme_surface)
+            PushwooshInboxStyle.highlightColor =
+                ContextCompat.getColor(context, R.color.md_theme_surfaceContainerHigh)
 
             // Unread message colors
-            PushwooshInboxStyle.titleColor = Color.parseColor("#000000") // Black
-            PushwooshInboxStyle.descriptionColor = Color.parseColor("#000000") // Black
-            PushwooshInboxStyle.dateColor = Color.parseColor("#FFC107") // Bright amber
-            PushwooshInboxStyle.imageTypeColor = Color.parseColor("#4CAF50") // Bright green
+            PushwooshInboxStyle.titleColor =
+                ContextCompat.getColor(context, R.color.md_theme_onSurface)
+            PushwooshInboxStyle.descriptionColor =
+                ContextCompat.getColor(context, R.color.md_theme_onSurfaceVariant)
+            PushwooshInboxStyle.dateColor =
+                ContextCompat.getColor(context, R.color.md_theme_outline)
+            PushwooshInboxStyle.imageTypeColor =
+                ContextCompat.getColor(context, R.color.md_theme_primary)
 
-            // Read message colors
-            PushwooshInboxStyle.readTitleColor = Color.parseColor("#AAAAAA") // Medium gray
-            PushwooshInboxStyle.readDescriptionColor = Color.parseColor("#888888") // Darker gray
-            PushwooshInboxStyle.readDateColor = Color.parseColor("#666666") // Even darker gray
-            PushwooshInboxStyle.readImageTypeColor = Color.parseColor("#555555") // Very dark gray
+            // Read message colors - use muted variants
+            PushwooshInboxStyle.readTitleColor =
+                ContextCompat.getColor(context, R.color.md_theme_outline)
+            PushwooshInboxStyle.readDescriptionColor =
+                ContextCompat.getColor(context, R.color.md_theme_outline)
+            PushwooshInboxStyle.readDateColor =
+                ContextCompat.getColor(context, R.color.md_theme_outlineVariant)
+            PushwooshInboxStyle.readImageTypeColor =
+                ContextCompat.getColor(context, R.color.md_theme_outlineVariant)
 
             // Divider and bar colors
-            PushwooshInboxStyle.dividerColor = Color.parseColor("#E0E0E0") // Light divider
-            PushwooshInboxStyle.barBackgroundColor = Color.parseColor("#FFFFFF") // White toolbar
-            PushwooshInboxStyle.barAccentColor = Color.parseColor("#FF6B35") // Orange accent
-            PushwooshInboxStyle.barTextColor = Color.parseColor("#000000") // Black text
+            PushwooshInboxStyle.dividerColor =
+                ContextCompat.getColor(context, R.color.md_theme_outlineVariant)
+            PushwooshInboxStyle.barBackgroundColor =
+                ContextCompat.getColor(context, R.color.md_theme_surface)
+            PushwooshInboxStyle.barAccentColor =
+                ContextCompat.getColor(context, R.color.md_theme_primary)
+            PushwooshInboxStyle.barTextColor =
+                ContextCompat.getColor(context, R.color.md_theme_onSurface)
         }
 
         private fun setupTexts() {
-            // Custom empty and error messages
-            PushwooshInboxStyle.listEmptyText = "No messages yet! Check back later for updates."
-            PushwooshInboxStyle.listErrorMessage = "Oops! Something went wrong while loading your messages. Please try again."
-            
             // Toolbar title
-            PushwooshInboxStyle.barTitle = "My Messages"
-            
+            PushwooshInboxStyle.barTitle = "Inbox"
+
             // Text sizes (in SP)
             PushwooshInboxStyle.titleTextSize = 16f
             PushwooshInboxStyle.descriptionTextSize = 14f
@@ -101,91 +100,53 @@ class InboxStyleHelper {
         }
 
         private fun setupAnimations() {
-            // Set custom list item animation
             PushwooshInboxStyle.listAnimationResource = android.R.anim.fade_in
-            // Or disable animation completely:
-            // PushwooshInboxStyle.listAnimationResource = PushwooshInboxStyle.EMPTY_ANIMATION
         }
 
-        private fun setupImages(context: Context) {
-            // Set default icon for messages without images
-            PushwooshInboxStyle.defaultImageIcon = R.drawable.ic_launcher_background
-            
-            // Custom empty state image
-            // PushwooshInboxStyle.listEmptyImage = R.drawable.custom_empty_icon
-            
-            // Custom error state image  
-            // PushwooshInboxStyle.listErrorImage = R.drawable.custom_error_icon
+        private fun setupImages() {
+            PushwooshInboxStyle.defaultImageIcon = R.drawable.ic_inbox_message_icon
         }
 
-        private fun setupFonts(context: Context) {
-            // Set custom fonts if available
-            try {
-                // Example with custom font from assets
-                // val customFont = Typeface.createFromAsset(context.assets, "fonts/custom_font.ttf")
-                // PushwooshInboxStyle.setTitleFont(customFont)
-                
-                // Use system fonts
-                PushwooshInboxStyle.setTitleFont(Typeface.DEFAULT_BOLD)
-                PushwooshInboxStyle.setDescriptionFont(Typeface.DEFAULT)
-                PushwooshInboxStyle.setDateFont(Typeface.DEFAULT)
-            } catch (e: Exception) {
-                // Fallback to default fonts if custom fonts fail to load
-            }
+        private fun setupFonts() {
+            PushwooshInboxStyle.setTitleFont(Typeface.DEFAULT_BOLD)
+            PushwooshInboxStyle.setDescriptionFont(Typeface.DEFAULT)
+            PushwooshInboxStyle.setDateFont(Typeface.DEFAULT)
         }
 
         private fun setupDateFormatter() {
-            // Custom date formatter
-            PushwooshInboxStyle.dateFormatter = object : InboxDateFormatter {
-                private val todayFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-                private val thisWeekFormat = SimpleDateFormat("EEE HH:mm", Locale.getDefault())
-                private val olderFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
-                
-                override fun transform(date: Date): String {
-                    val now = Calendar.getInstance()
-                    val messageDate = Calendar.getInstance().apply { time = date }
-                    
-                    return when {
-                        // Today - show only time
-                        now.get(Calendar.DAY_OF_YEAR) == messageDate.get(Calendar.DAY_OF_YEAR) && 
-                        now.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) -> {
-                            todayFormat.format(date)
-                        }
-                        // This week - show day and time
-                        now.get(Calendar.WEEK_OF_YEAR) == messageDate.get(Calendar.WEEK_OF_YEAR) &&
-                        now.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) -> {
-                            thisWeekFormat.format(date)
-                        }
-                        // Older - show month and day
-                        else -> {
-                            olderFormat.format(date)
+            PushwooshInboxStyle.dateFormatter =
+                object : InboxDateFormatter {
+                    private val todayFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    private val thisWeekFormat = SimpleDateFormat("EEE HH:mm", Locale.getDefault())
+                    private val olderFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+
+                    override fun transform(date: Date): String {
+                        val now = Calendar.getInstance()
+                        val messageDate = Calendar.getInstance().apply { time = date }
+
+                        return when {
+                            // Today - show only time
+                            now.get(Calendar.DAY_OF_YEAR) ==
+                                messageDate.get(Calendar.DAY_OF_YEAR) &&
+                                now.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) -> {
+                                todayFormat.format(date)
+                            }
+                            // This week - show day and time
+                            now.get(Calendar.WEEK_OF_YEAR) ==
+                                messageDate.get(Calendar.WEEK_OF_YEAR) &&
+                                now.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) -> {
+                                thisWeekFormat.format(date)
+                            }
+                            // Older - show month and day
+                            else -> {
+                                olderFormat.format(date)
+                            }
                         }
                     }
                 }
-            }
-        }
-
-        fun setupDarkTheme(context: Context) {
-            // Dark theme color scheme
-            PushwooshInboxStyle.backgroundColor = Color.parseColor("#1C1B1F")
-            PushwooshInboxStyle.highlightColor = Color.parseColor("#2C2C2C")
-            
-            // Unread message colors for dark theme
-            PushwooshInboxStyle.titleColor = Color.parseColor("#FFFFFF")
-            PushwooshInboxStyle.descriptionColor = Color.parseColor("#CCCCCC")
-            PushwooshInboxStyle.dateColor = Color.parseColor("#999999")
-            
-            // Read message colors for dark theme
-            PushwooshInboxStyle.readTitleColor = Color.parseColor("#888888")
-            PushwooshInboxStyle.readDescriptionColor = Color.parseColor("#666666")
-            PushwooshInboxStyle.readDateColor = Color.parseColor("#555555")
-            
-            PushwooshInboxStyle.dividerColor = Color.parseColor("#2C2C2C")
-            PushwooshInboxStyle.barTextColor = Color.WHITE
         }
 
         fun resetToDefaults() {
-            // Clear all customizations to return to default styling
             PushwooshInboxStyle.clearColors()
             PushwooshInboxStyle.listEmptyText = null
             PushwooshInboxStyle.listErrorMessage = null

@@ -148,7 +148,7 @@ public class HomeFragment extends Fragment {
             }
 
             TagsBundle eventAttributes = attributeState
-                    ? new TagsBundle.Builder().putInt("attributes", 10).build()
+                    ? new TagsBundle.Builder().putInt("price", 99).putString("currency", "USD").build()
                     : null;
 
             InAppManager.getInstance().postEvent(eventName, eventAttributes, result -> {
@@ -239,8 +239,6 @@ public class HomeFragment extends Fragment {
      * Pushwoosh can trigger Live Updates via push notifications.
      */
     private void setupLiveUpdateControls() {
-        liveUpdateDemo = LiveUpdateDemo.getInstance(requireContext());
-
         TextView statusText = binding.liveUpdateStatus;
         Button btnStart = binding.btnLiveUpdateStart;
         Button btnUpdate = binding.btnLiveUpdateUpdate;
@@ -248,34 +246,41 @@ public class HomeFragment extends Fragment {
         Button btnCancel = binding.btnLiveUpdateCancel;
         MaterialSwitch switchAutoProgress = binding.switchAutoProgress;
 
-        // Update status display based on current state
-        updateStatusDisplay(statusText);
+        // Defer heavy initialization to avoid blocking main thread during layout
+        btnStart.post(() -> {
+            liveUpdateDemo = LiveUpdateDemo.getInstance(requireContext());
+            updateStatusDisplay(statusText);
+        });
 
         switchAutoProgress.setOnCheckedChangeListener((buttonView, isChecked) -> autoProgressEnabled = isChecked);
 
         btnStart.setOnClickListener(v -> {
+            if (liveUpdateDemo == null) return;
             liveUpdateDemo.start(autoProgressEnabled);
             updateStatusDisplay(statusText);
         });
 
         btnUpdate.setOnClickListener(v -> {
+            if (liveUpdateDemo == null) return;
             liveUpdateDemo.update();
             updateStatusDisplay(statusText);
         });
 
         btnFinish.setOnClickListener(v -> {
+            if (liveUpdateDemo == null) return;
             liveUpdateDemo.finish();
             updateStatusDisplay(statusText);
         });
 
         btnCancel.setOnClickListener(v -> {
+            if (liveUpdateDemo == null) return;
             liveUpdateDemo.cancel();
             updateStatusDisplay(statusText);
         });
     }
 
     private void updateStatusDisplay(TextView statusText) {
-        if (liveUpdateDemo.isRunning()) {
+        if (liveUpdateDemo != null && liveUpdateDemo.isRunning()) {
             int step = liveUpdateDemo.getCurrentStep() + 1;
             int total = liveUpdateDemo.getTotalSteps();
             statusText.setText(getString(R.string.live_update_status_running, step, total));

@@ -25,257 +25,268 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+
 /**
  * Implementation of {@link com.pushwoosh.internal.network.RequestManager}
  */
 class PushwooshRequestManager implements RequestManager {
-	private static final String TAG = "RequestManager";
-	private static final String DEVICE_REMOVED_MSG = "Device data was removed from Pushwoosh and all interactions were stopped";
-	private static final String COMMUNICATION_STOPPED_MSG = "Server communication stopped. Call Pushwoosh.startServerCommunication() to resume";
+    private static final String TAG = "RequestManager";
+    private static final String DEVICE_REMOVED_MSG =
+            "Device data was removed from Pushwoosh and all interactions were stopped";
+    private static final String COMMUNICATION_STOPPED_MSG =
+            "Server communication stopped. Call Pushwoosh.startServerCommunication() to resume";
 
-	private final RegistrationPrefs registrationPrefs;
-	private final ServerCommunicationManager serverCommunicationManager;
-	private String baseRequestUrl;
-	private boolean usingReverseProxy = false;
+    private final RegistrationPrefs registrationPrefs;
+    private final ServerCommunicationManager serverCommunicationManager;
+    private volatile String baseRequestUrl;
+    private volatile boolean usingReverseProxy = false;
 
-	PushwooshRequestManager(RegistrationPrefs registrationPrefs,
-							ServerCommunicationManager serverCommunicationManager) {
-		this.registrationPrefs = registrationPrefs;
-		this.serverCommunicationManager = serverCommunicationManager;
+    PushwooshRequestManager(
+            RegistrationPrefs registrationPrefs, ServerCommunicationManager serverCommunicationManager) {
+        this.registrationPrefs = registrationPrefs;
+        this.serverCommunicationManager = serverCommunicationManager;
 
-		baseRequestUrl = registrationPrefs.baseUrl().get();
-	}
+        baseRequestUrl = registrationPrefs.baseUrl().get();
+    }
 
-	private boolean isRemoveAllDataDevice(){
-		boolean removeAllDeviceData = registrationPrefs.removeAllDeviceData().get();
+    private boolean isRemoveAllDataDevice() {
+        boolean removeAllDeviceData = registrationPrefs.removeAllDeviceData().get();
 
-		if(removeAllDeviceData){
-			PWLog.noise(TAG,"remove all data device is true, it is block request to server");
-		}
-		return removeAllDeviceData;
-	}
+        if (removeAllDeviceData) {
+            PWLog.noise(TAG, "remove all data device is true, it is block request to server");
+        }
+        return removeAllDeviceData;
+    }
 
-	private <Response> void safeProcessCallback(
-			Callback<Response, NetworkException> callback,
-			Result<Response, NetworkException> result) {
-		if (callback == null) return;
-		try {
-			callback.process(result);
-		} catch (Exception e) {
-			PWLog.error(TAG, "Error processing callback: " + e.getMessage());
-		}
-	}
+    private <Response> void safeProcessCallback(
+            Callback<Response, NetworkException> callback, Result<Response, NetworkException> result) {
+        if (callback == null) return;
+        try {
+            callback.process(result);
+        } catch (Exception e) {
+            PWLog.error(TAG, "Error processing callback: " + e.getMessage());
+        }
+    }
 
-	@Override
-	public <Response> void sendRequest(final PushRequest<Response> request) {
-		sendRequest(request, null);
-	}
+    @Override
+    public <Response> void sendRequest(final PushRequest<Response> request) {
+        sendRequest(request, null);
+    }
 
-	public <Response> void sendRequest(PushRequest<Response> request, @Nullable Callback<Response, NetworkException> callback) {
-		sendRequest(request, baseRequestUrl, callback);
-	}
+    public <Response> void sendRequest(
+            PushRequest<Response> request, @Nullable Callback<Response, NetworkException> callback) {
+        sendRequest(request, baseRequestUrl, callback);
+    }
 
-	@Override
-	public <Response> void sendRequest(final PushRequest<Response> request, final String baseUrl, final Callback<Response, NetworkException> callback) {
-		BackgroundExecutor.network(() -> {
-			Result<Response, NetworkException> result = sendRequestSync(request, baseUrl);
-			if (callback != null) {
-				BackgroundExecutor.main(() -> safeProcessCallback(callback, result));
-			}
-		});
-	}
+    @Override
+    public <Response> void sendRequest(
+            final PushRequest<Response> request,
+            final String baseUrl,
+            final Callback<Response, NetworkException> callback) {
+        BackgroundExecutor.network(() -> {
+            Result<Response, NetworkException> result = sendRequestSync(request, baseUrl);
+            if (callback != null) {
+                BackgroundExecutor.main(() -> safeProcessCallback(callback, result));
+            }
+        });
+    }
 
-	@NonNull
-	public <Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request) {
-		return sendRequestSync(request, baseRequestUrl);
-	}
+    @NonNull public <Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request) {
+        return sendRequestSync(request, baseRequestUrl);
+    }
 
-	@Override
-	public void updateBaseUrl(final String baseUrl) {
-		saveBaseUrl(baseUrl);
-	}
+    @Override
+    public void updateBaseUrl(final String baseUrl) {
+        saveBaseUrl(baseUrl);
+    }
 
-	@Override
-	public void setReverseProxyUrl(String url) {
-		usingReverseProxy = true;
-		saveBaseUrl(url);
-	}
+    @Override
+    public void setReverseProxyUrl(String url) {
+        usingReverseProxy = true;
+        saveBaseUrl(url);
+    }
 
-	@Override
-	public void disableReverseProxy() {
-		usingReverseProxy = false;
-	}
+    @Override
+    public void disableReverseProxy() {
+        usingReverseProxy = false;
+    }
 
-	@NonNull
-	private <Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request, String baseUrl) {
-		if (baseUrl == null) {
-			baseUrl = baseRequestUrl;
-		}
-		if (isRemoveAllDataDevice()) {
-			return Result.fromException(new NetworkException(DEVICE_REMOVED_MSG));
-		}
-		if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
-			return Result.fromException(new NetworkException(COMMUNICATION_STOPPED_MSG));
-		}
+    @NonNull private <Response> Result<Response, NetworkException> sendRequestSync(
+            PushRequest<Response> request, String baseUrl) {
+        if (baseUrl == null) {
+            baseUrl = baseRequestUrl;
+        }
+        if (isRemoveAllDataDevice()) {
+            return Result.fromException(new NetworkException(DEVICE_REMOVED_MSG));
+        }
+        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
+            return Result.fromException(new NetworkException(COMMUNICATION_STOPPED_MSG));
+        }
 
-		Exception exception;
-		int statusCode = 0, pushwooshStatusCode = 0;
-		try {
-			JSONObject data = request.getParams();
-			NetworkResult result = makeRequest(baseUrl, data, request.getMethod());
+        Exception exception;
+        int statusCode = 0, pushwooshStatusCode = 0;
+        try {
+            JSONObject data = request.getParams();
+            NetworkResult result = makeRequest(baseUrl, data, request.getMethod());
 
-			statusCode = result.getStatus();
-			pushwooshStatusCode = result.getPushwooshStatus();
-			if (NetworkResult.STATUS_OK == statusCode && NetworkResult.STATUS_OK == pushwooshStatusCode) {
+            statusCode = result.getStatus();
+            pushwooshStatusCode = result.getPushwooshStatus();
+            if (NetworkResult.STATUS_OK == statusCode && NetworkResult.STATUS_OK == pushwooshStatusCode) {
 
-				JSONObject response = result.getResponse();
-				// honor base url change
-				if (response.has("base_url") && baseUrl.equals(baseRequestUrl) && !usingReverseProxy) {
-					String newBaseUrl = response.optString("base_url");
-					saveBaseUrl(newBaseUrl);
-				}
+                JSONObject response = result.getResponse();
+                // honor base url change
+                if (response.has("base_url") && baseUrl.equals(baseRequestUrl) && !usingReverseProxy) {
+                    String newBaseUrl = response.optString("base_url");
+                    saveBaseUrl(newBaseUrl);
+                }
 
-				JSONObject responseData = response.optJSONObject("response");
-				if (responseData == null) {
-					responseData = new JSONObject();
-				}
+                JSONObject responseData = response.optJSONObject("response");
+                if (responseData == null) {
+                    responseData = new JSONObject();
+                }
 
-				return Result.fromData(request.parseResponse(responseData));
-			} else {
-				exception = new NetworkException(result.getResponse().toString());
-			}
-		} catch (Exception ex) {
-			exception = ex;
-		}
-		PWLog.error(TAG, exception.getClass().getCanonicalName());
-		if (exception instanceof ConnectionException) {
-			PWLog.error(TAG, "ERROR: " + "connection error.");
-		} else {
-			PWLog.error(TAG, "ERROR: " + exception.getMessage(), exception);
-		}
+                return Result.fromData(request.parseResponse(responseData));
+            } else {
+                exception = new NetworkException(result.getResponse().toString());
+            }
+        } catch (Exception ex) {
+            exception = ex;
+        }
+        PWLog.error(TAG, exception.getClass().getCanonicalName());
+        if (exception instanceof ConnectionException) {
+            PWLog.error(TAG, "ERROR: " + "connection error.");
+        } else {
+            PWLog.error(TAG, "ERROR: " + exception.getMessage(), exception);
+        }
 
-		return Result.fromException(new ConnectionException(exception.getMessage(), statusCode, pushwooshStatusCode));
-	}
+        return Result.fromException(new ConnectionException(exception.getMessage(), statusCode, pushwooshStatusCode));
+    }
 
-	private void saveBaseUrl(String url) {
-		baseRequestUrl = url;
-		registrationPrefs.baseUrl().set(url);
-	}
+    private void saveBaseUrl(String url) {
+        baseRequestUrl = url;
+        registrationPrefs.baseUrl().set(url);
+    }
 
-	private String getApiToken() {
-		return "Token " + registrationPrefs.apiToken().get();
-	}
+    private String getApiToken() {
+        return "Token " + registrationPrefs.apiToken().get();
+    }
 
-	private NetworkResult makeRequest(final String baseUrl, JSONObject data, String methodName) throws Exception {
-		try {
-			URL url = new URL(baseUrl + methodName);
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    private NetworkResult makeRequest(final String baseUrl, JSONObject data, String methodName) throws Exception {
+        try {
+            URL url = new URL(baseUrl + methodName);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            connection.setRequestProperty("Authorization", getApiToken());
+            connection.setDoOutput(true);
 
-			connection.setRequestMethod("POST");
-			connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-			connection.setRequestProperty("Authorization", getApiToken());
-			connection.setDoOutput(true);
+            JSONObject requestJson = new JSONObject();
+            requestJson.put("request", data);
 
-			JSONObject requestJson = new JSONObject();
-			requestJson.put("request", data);
+            connection.setRequestProperty(
+                    "Content-Length", String.valueOf(requestJson.toString().getBytes().length));
+            connection.setUseCaches(false);
+            try (OutputStream connectionOutput = connection.getOutputStream()) {
+                connectionOutput.write(requestJson.toString().getBytes());
+                connectionOutput.flush();
+            }
 
-			connection.setRequestProperty("Content-Length", String.valueOf(requestJson.toString().getBytes().length));
-			connection.setUseCaches(false);
-			try (OutputStream connectionOutput = connection.getOutputStream()) {
-				connectionOutput.write(requestJson.toString().getBytes());
-				connectionOutput.flush();
-			}
+            NetworkResult networkResult = getNetworkResultFromConnection(connection);
+            PWLog.debug(
+                    TAG,
+                    "\n"
+                            + "| Pushwoosh request:\n"
+                            + "| - URL: " + url.toString() + "\n"
+                            + "| - Payload: " + requestJson.toString() + "\n"
+                            + "| - Response: " + networkResult.getResponse().toString() + "\n");
 
-			NetworkResult networkResult = getNetworkResultFromConnection(connection);
-			PWLog.debug(TAG, "\n"
-					+ "| Pushwoosh request:\n"
-					+ "| - URL: " + url.toString() + "\n"
-					+ "| - Payload: " + requestJson.toString() + "\n"
-					+ "| - Response: " + networkResult.getResponse().toString() + "\n");
+            return networkResult;
+        } catch (MalformedURLException e) {
+            // Reset base URL only for malformed URL (invalid format like "httz://...")
+            if (baseUrl.equals(baseRequestUrl)) {
+                PWLog.warn(TAG, "Malformed URL detected, resetting to default: " + e.getMessage());
+                baseRequestUrl = registrationPrefs.getDefaultBaseUrl();
+            }
+            throw e;
+        } catch (Exception e) {
+            // Don't reset on connection errors (server unavailable, timeout, etc.)
+            PWLog.warn(TAG, "Request failed: " + e.getMessage() + ", keeping current base URL");
+            throw e;
+        }
+    }
 
-			return networkResult;
-		} catch (Exception e) {
-			//reset base url
-			if (baseUrl.equals(baseRequestUrl)) {
-				baseRequestUrl = registrationPrefs.getDefaultBaseUrl();
-			}
+    private NetworkResult getNetworkResultFromConnection(HttpURLConnection connection) throws IOException {
+        InputStream inputStream;
+        JSONObject responseJson = new JSONObject();
+        int status = connection.getResponseCode();
+        int pushwooshStatus = 0;
+        if (isErrorResponseCode(connection.getResponseCode())) {
+            inputStream = new BufferedInputStream(connection.getErrorStream());
+            pushwooshStatus = status;
+            try {
+                responseJson.put("status_code", pushwooshStatus);
+                responseJson.put("status_message", connection.getResponseMessage());
+            } catch (JSONException e) {
+                PWLog.error(TAG, e.getMessage());
+            }
+        } else {
+            inputStream = new BufferedInputStream(connection.getInputStream());
+        }
 
-			throw e;
-		}
-	}
+        try {
+            if (connection.getContentLength() != 0) {
+                try (ByteArrayOutputStream dataCache = new ByteArrayOutputStream()) {
 
-	private NetworkResult getNetworkResultFromConnection(HttpURLConnection connection) throws IOException {
-		InputStream inputStream;
-		JSONObject responseJson = new JSONObject();
-		int status = connection.getResponseCode();
-		int pushwooshStatus = 0;
-		if (isErrorResponseCode(connection.getResponseCode())) {
-			inputStream = new BufferedInputStream(connection.getErrorStream());
-			pushwooshStatus = status;
-			try {
-				responseJson.put("status_code",pushwooshStatus);
-				responseJson.put("status_message", connection.getResponseMessage());
-			} catch (JSONException e) {
-				PWLog.error(TAG, e.getMessage());
-			}
-		} else {
-			inputStream = new BufferedInputStream(connection.getInputStream());
-		}
+                    // Fully read data
+                    byte[] buff = new byte[1024];
+                    int len;
+                    while ((len = inputStream.read(buff)) >= 0) {
+                        dataCache.write(buff, 0, len);
+                    }
 
-		try {
-			if (connection.getContentLength() != 0) {
-				try (ByteArrayOutputStream dataCache = new ByteArrayOutputStream()) {
+                    responseJson = new JSONObject(dataCache.toString().trim());
+                    pushwooshStatus = responseJson.getInt("status_code");
+                } catch (Exception e) {
+                    PWLog.error(TAG, e.getMessage());
+                }
+            }
+        } finally {
+            inputStream.close();
+        }
+        return new NetworkResult(status, pushwooshStatus, responseJson);
+    }
 
-					// Fully read data
-					byte[] buff = new byte[1024];
-					int len;
-					while ((len = inputStream.read(buff)) >= 0) {
-						dataCache.write(buff, 0, len);
-					}
+    private boolean isErrorResponseCode(int code) {
+        return code >= 400 && code < 600;
+    }
 
-					responseJson = new JSONObject(dataCache.toString().trim());
-					pushwooshStatus = responseJson.getInt("status_code");
-				} catch (Exception e) {
-					PWLog.error(TAG, e.getMessage());
-				}
-			}
-		} finally {
-			inputStream.close();
-		}
-		return new NetworkResult(status, pushwooshStatus, responseJson);
-	}
+    static class NetworkResult {
+        static final int STATUS_OK = 200;
+        static final int STATUS_NOT_FOUND = 404;
 
-	private boolean isErrorResponseCode(int code) {
-		return code >= 400 && code < 600;
-	}
+        private final int pushwooshStatus;
+        private final int status;
+        private final JSONObject response;
 
-	static class NetworkResult {
-		static final int STATUS_OK = 200;
-		static final int STATUS_NOT_FOUND = 404;
+        NetworkResult(int networkCode, int pushwooshCode, JSONObject data) {
+            status = networkCode;
+            pushwooshStatus = pushwooshCode;
+            response = data;
+        }
 
-		private int pushwooshStatus;
-		private int status;
-		private JSONObject response;
+        int getStatus() {
+            return status;
+        }
 
-		NetworkResult(int networkCode, int pushwooshCode, JSONObject data) {
-			status = networkCode;
-			pushwooshStatus = pushwooshCode;
-			response = data;
-		}
+        int getPushwooshStatus() {
+            return pushwooshStatus;
+        }
 
-		int getStatus() {
-			return status;
-		}
-
-		int getPushwooshStatus() {
-			return pushwooshStatus;
-		}
-
-		JSONObject getResponse() {
-			return response;
-		}
-	}
-
+        JSONObject getResponse() {
+            return response;
+        }
+    }
 }

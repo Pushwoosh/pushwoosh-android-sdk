@@ -83,13 +83,11 @@ public class ResourceWrapper {
 		private ResourceType resourceType = ResourceType.IN_APP;
 		private long delay = 0L;
 
-		Builder setResourceType(ResourceType resourceType) {
-			this.resourceType = resourceType;
-			return this;
-		}
-
 		public Builder setResource(Resource resource) {
 			this.resource = resource;
+			if (resource != null) {
+				this.resourceType = resource.isInApp() ? ResourceType.IN_APP : ResourceType.RICH_MEDIA;
+			}
 			return this;
 		}
 
@@ -101,8 +99,7 @@ public class ResourceWrapper {
 			Resource resource;
 			try {
 				resource = Resource.parseRichMedia(richMedia);
-				return setResource(resource)
-						.setResourceType(ResourceType.RICH_MEDIA);
+				return setResource(resource);
 			} catch (ResourceParseException e) {
 				PWLog.error("Can't parse richMedia: " + richMedia, e);
 			}

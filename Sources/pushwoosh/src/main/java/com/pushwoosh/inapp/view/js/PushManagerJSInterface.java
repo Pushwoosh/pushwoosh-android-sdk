@@ -125,12 +125,14 @@ public class PushManagerJSInterface {
                             String url = String.format("javascript:%s();", successCallbackFinal);
                             webView.loadUrl(url);
                         } else {
-                            String url = String.format("javascript:%s('%s');", errorCallbackFinal, result.getException().getMessage());
+                            String url = String.format(
+                                    "javascript:%s('%s');",
+                                    errorCallbackFinal, result.getException().getMessage());
                             webView.loadUrl(url);
                         }
                     }
                 }
-            }, false);
+            });
         } catch (JSONException e) {
             PWLog.error("Invalid arguments", e);
         }
@@ -164,7 +166,7 @@ public class PushManagerJSInterface {
     @JavascriptInterface
     public void registerForPushNotifications() {
         if (PushwooshPlatform.getInstance() != null)
-            PushwooshPlatform.getInstance().notificationManager().registerForPushNotifications(null,true, null);
+            PushwooshPlatform.getInstance().notificationManager().registerForPushNotifications(null, true, null);
     }
 
     /**
@@ -186,9 +188,8 @@ public class PushManagerJSInterface {
     public void sendTags(String tags) {
         try {
             JSONObject tagsJSObject = new JSONObject(tags);
-            TagsBundle tagsBundle = new TagsBundle.Builder()
-                    .putAll(tagsJSObject)
-                    .build();
+            TagsBundle tagsBundle =
+                    new TagsBundle.Builder().putAll(tagsJSObject).build();
             Pushwoosh.getInstance().setTags(tagsBundle);
         } catch (JSONException e) {
             PWLog.error("Invalid tags format, expected object with string properties", e);

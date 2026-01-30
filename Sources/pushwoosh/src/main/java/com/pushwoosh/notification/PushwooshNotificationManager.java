@@ -4,7 +4,6 @@ import static com.pushwoosh.repository.DeviceRegistrar.areNotificationsEnabled;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.text.TextUtils;
 
@@ -32,6 +31,7 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.registrar.ExistingTokenRegistrarWorker;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.NotificationPermissionActivity;
 import com.pushwoosh.internal.utils.PWLog;
@@ -55,7 +55,9 @@ public class PushwooshNotificationManager {
     private static final String TAG = "NotificationManager";
 
     public static class ApplicationIdReadyEvent implements Event {
-        public ApplicationIdReadyEvent() {/*do nothing*/}
+        public ApplicationIdReadyEvent() {
+            /*do nothing*/
+        }
     }
 
     private final RegistrationPrefs registrationPrefs;
@@ -65,6 +67,7 @@ public class PushwooshNotificationManager {
     private AtomicBoolean pushesRescheduled = new AtomicBoolean(false);
     private AtomicBoolean appIdReadyEventSent = new AtomicBoolean(false);
     private static final long EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 14;
+
     public PushwooshNotificationManager(PushRegistrar pushRegistrar, Config config) {
         this.config = config;
         this.pushRegistrar = pushRegistrar;
@@ -78,9 +81,12 @@ public class PushwooshNotificationManager {
         MessageSystemHandleChainProvider.init();
         NotificationOpenHandlerChainProvider.init();
 
-        String appId = TextUtils.isEmpty(config.getAppId()) ? registrationPrefs.applicationId().get() : config.getAppId();
+        String appId = TextUtils.isEmpty(config.getAppId())
+                ? registrationPrefs.applicationId().get()
+                : config.getAppId();
         String projectId = DeviceSpecificProvider.getInstance().projectId();
-        PWLog.debug(TAG, "initialized with app id: " + appId + ", sender id: " + projectId);;
+        PWLog.debug(TAG, "initialized with app id: " + appId + ", sender id: " + projectId);
+        ;
 
         if (!TextUtils.isEmpty(projectId)) {
             setSenderId(projectId);
@@ -107,13 +113,18 @@ public class PushwooshNotificationManager {
         if (!Objects.equals(oldAppId, appId)) {
             appIdReadyEventSent.set(false);
             if (registrationPrefs.registeredOnServer().get()) {
-                DeviceRegistrar.unregisterWithServer(registrationPrefs.pushToken().get(), registrationPrefs.baseUrl().get());
+                DeviceRegistrar.unregisterWithServer(
+                        registrationPrefs.pushToken().get(),
+                        registrationPrefs.baseUrl().get());
             }
 
-            new ClearRequestStorageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            BackgroundExecutor.parallel(
+                    () -> RepositoryModule.getRequestStorage().clear());
             registrationPrefs.removeAppId();
             needUpdateUrl = true;
-            registrationPrefs.forceRegister().set(registrationPrefs.isRegisteredForPush().get());
+            registrationPrefs
+                    .forceRegister()
+                    .set(registrationPrefs.isRegisteredForPush().get());
             registrationPrefs.setAppId(appId);
             EventBus.sendEvent(new AppIdChangedEvent(appId, oldAppId));
         }
@@ -159,8 +170,8 @@ public class PushwooshNotificationManager {
         }
 
         Context context = AndroidPlatformModule.getApplicationContext();
-        RequestPermissionHelper.requestPermissionsForClass(NotificationPermissionActivity.class,
-                context, new String[] {"android.permission.POST_NOTIFICATIONS"});
+        RequestPermissionHelper.requestPermissionsForClass(
+                NotificationPermissionActivity.class, context, new String[] {"android.permission.POST_NOTIFICATIONS"});
     }
 
     public void registerSMSNumber(String phoneNumber) {
@@ -168,7 +179,9 @@ public class PushwooshNotificationManager {
             if (result.isSuccess()) {
                 PWLog.info(TAG, "Registered phone number: " + phoneNumber);
             } else {
-                String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
+                String errorDescription = result.getException() == null
+                        ? ""
+                        : result.getException().getMessage();
                 if (TextUtils.isEmpty(errorDescription)) {
                     errorDescription = "Pushwoosh registration error";
                 }
@@ -183,7 +196,9 @@ public class PushwooshNotificationManager {
             if (result.isSuccess()) {
                 PWLog.info(TAG, "Registered phone number for Whatsapp: " + phoneNumber);
             } else {
-                String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
+                String errorDescription = result.getException() == null
+                        ? ""
+                        : result.getException().getMessage();
                 if (TextUtils.isEmpty(errorDescription)) {
                     errorDescription = "Pushwoosh registration error";
                 }
@@ -193,7 +208,10 @@ public class PushwooshNotificationManager {
         });
     }
 
-    public void registerForPushNotifications(Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback, boolean shouldRequestPermission, TagsBundle tags) {
+    public void registerForPushNotifications(
+            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback,
+            boolean shouldRequestPermission,
+            TagsBundle tags) {
         PWLog.noise(TAG, "registerForPushNotifications()");
 
         EventBus.subscribe(NotificationPermissionEvent.class, new EventListener<NotificationPermissionEvent>() {
@@ -201,7 +219,8 @@ public class PushwooshNotificationManager {
             public void onReceive(NotificationPermissionEvent event) {
                 boolean notificationsAllowed = true;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    notificationsAllowed = event.getGrantedPermissions().contains("android.permission.POST_NOTIFICATIONS");
+                    notificationsAllowed =
+                            event.getGrantedPermissions().contains("android.permission.POST_NOTIFICATIONS");
                 }
                 registerForPushesInternal(callback, notificationsAllowed, tags);
             }
@@ -210,19 +229,25 @@ public class PushwooshNotificationManager {
         try {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
                 registerForPushesInternal(callback, true, tags);
-            } else if (ContextCompat.checkSelfPermission(AndroidPlatformModule.getApplicationContext(),
-                    "android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+            } else if (ContextCompat.checkSelfPermission(
+                            AndroidPlatformModule.getApplicationContext(), "android.permission.POST_NOTIFICATIONS")
+                    != PackageManager.PERMISSION_GRANTED) {
                 // check if user has manually denied notification permission, if not - request permission
-                if (!RepositoryModule.getRegistrationPreferences().hasUserDeniedNotificationPermission().get() && shouldRequestPermission) {
+                if (!RepositoryModule.getRegistrationPreferences()
+                                .hasUserDeniedNotificationPermission()
+                                .get()
+                        && shouldRequestPermission) {
                     requestNotificationPermission();
-                // permission denied - register for pushes silently with notificationsAllowed == false
+                    // permission denied - register for pushes silently with notificationsAllowed == false
                 } else {
                     registerForPushesInternal(callback, false, tags);
                 }
-            // permission already granted - register silently with notificationsAllowed == true and
-            // set hasUserDeniedNotificationPermission to false in case permission was granted from app settings
+                // permission already granted - register silently with notificationsAllowed == true and
+                // set hasUserDeniedNotificationPermission to false in case permission was granted from app settings
             } else {
-                RepositoryModule.getRegistrationPreferences().hasUserDeniedNotificationPermission().set(false);
+                RepositoryModule.getRegistrationPreferences()
+                        .hasUserDeniedNotificationPermission()
+                        .set(false);
                 registerForPushesInternal(callback, true, tags);
             }
         } catch (Exception e) {
@@ -233,8 +258,7 @@ public class PushwooshNotificationManager {
 
     public void registerExistingToken(
             String token,
-            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback
-    ) {
+            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
         PWLog.noise(TAG, "RegisterExistingToken");
         if (TextUtils.isEmpty(token)) {
             PWLog.error(TAG, "Token is empty, ignoring method call");
@@ -249,17 +273,15 @@ public class PushwooshNotificationManager {
                 .setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
                 .build();
         PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                existingWorkerRequest,
-                ExistingTokenRegistrarWorker.TAG,
-                ExistingWorkPolicy.REPLACE
-        );
+                existingWorkerRequest, ExistingTokenRegistrarWorker.TAG, ExistingWorkPolicy.REPLACE);
     }
 
     private void registerForPushesInternal(Callback callback, boolean notificationsAllowed, TagsBundle tags) {
         PWLog.noise(TAG, "registerForPushesInternal()");
 
         try {
-            boolean communicationEnable = registrationPrefs.communicationEnable().get();
+            boolean communicationEnable =
+                    registrationPrefs.communicationEnable().get();
             if (!communicationEnable) {
                 PWLog.info(TAG, "Communication with Pushwoosh is disabled");
                 return;
@@ -277,7 +299,8 @@ public class PushwooshNotificationManager {
             if (TextUtils.isEmpty(pushToken) || (currentTime - regDate) > EXPIRATION_TIME) {
                 pushRegistrar.registerPW(tags);
             } else {
-                EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(pushToken, notificationsAllowed)));
+                EventBus.sendEvent(new RegistrationSuccessEvent(
+                        new RegisterForPushNotificationsResultData(pushToken, notificationsAllowed)));
             }
         } catch (Exception e) {
             PWLog.exception(e);
@@ -314,7 +337,8 @@ public class PushwooshNotificationManager {
     }
 
     public LocalNotificationRequest scheduleLocalNotification(LocalNotification notification) {
-        int requestId = LocalNotificationReceiver.scheduleNotification(notification.getExtras(), notification.getDelay());
+        int requestId =
+                LocalNotificationReceiver.scheduleNotification(notification.getExtras(), notification.getDelay());
         return new LocalNotificationRequest(requestId);
     }
 
@@ -323,13 +347,10 @@ public class PushwooshNotificationManager {
             PWLog.warn(TAG, "Local pushes already rescheduled");
             return;
         }
-        OneTimeWorkRequest request =
-                new OneTimeWorkRequest.Builder(RescheduleNotificationsWorker.class)
-                        .build();
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(RescheduleNotificationsWorker.class).build();
 
-        PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(request,
-                RescheduleNotificationsWorker.TAG,
-                ExistingWorkPolicy.KEEP);
+        PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                request, RescheduleNotificationsWorker.TAG, ExistingWorkPolicy.KEEP);
 
         pushesRescheduled.set(true);
     }
@@ -342,17 +363,24 @@ public class PushwooshNotificationManager {
         onRegisteredForRemoteNotifications(pushToken, tagsJson, false);
     }
 
-    private void onRegisteredForRemoteNotifications(String pushToken, String tagsJson, boolean shouldRetryRegistration) {
+    private void onRegisteredForRemoteNotifications(
+            String pushToken, String tagsJson, boolean shouldRetryRegistration) {
         PWLog.noise("PushwooshNotificationManager", String.format("onRegisteredForRemoteNotifications: %s", pushToken));
-        //todo: probably we should move this into `if (result.isSuccess) { ... }`
+        // todo: probably we should move this into `if (result.isSuccess) { ... }`
         registrationPrefs.pushToken().set(pushToken);
         if (DeviceSpecificProvider.getInstance() != null) {
             if (shouldRetryRegistration) {
                 DeviceRegistrar.registerWithServerWithRetries(
-                        pushToken,tagsJson,DeviceSpecificProvider.getInstance().deviceType(), provideServerRegistrationCallback(pushToken));
+                        pushToken,
+                        tagsJson,
+                        DeviceSpecificProvider.getInstance().deviceType(),
+                        provideServerRegistrationCallback(pushToken));
             } else {
                 DeviceRegistrar.registerWithServer(
-                        pushToken,tagsJson,DeviceSpecificProvider.getInstance().deviceType(), provideServerRegistrationCallback(pushToken));
+                        pushToken,
+                        tagsJson,
+                        DeviceSpecificProvider.getInstance().deviceType(),
+                        provideServerRegistrationCallback(pushToken));
             }
         }
     }
@@ -366,11 +394,7 @@ public class PushwooshNotificationManager {
                     registrationPrefs.registeredOnServer().set(true);
                     registrationPrefs.lastPushRegistration().set(new Date().getTime());
                     EventBus.sendEvent(new RegistrationSuccessEvent(
-                            new RegisterForPushNotificationsResultData(
-                                    pushToken,
-                                    areNotificationsEnabled()
-                            )
-                    ));
+                            new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
 
                     PWLog.info(TAG, String.format("successfully registered for push notifications: %s", pushToken));
                 } else {
@@ -399,14 +423,6 @@ public class PushwooshNotificationManager {
         if (pushRegistrar != null) {
             this.pushRegistrar = pushRegistrar;
             initPushRegistrar();
-        }
-    }
-
-    private static class ClearRequestStorageTask extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... voids) {
-            RepositoryModule.getRequestStorage().clear();
-            return null;
         }
     }
 }

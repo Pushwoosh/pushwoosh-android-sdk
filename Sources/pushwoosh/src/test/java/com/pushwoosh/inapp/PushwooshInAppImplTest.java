@@ -43,6 +43,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
@@ -82,6 +83,6 @@ public class PushwooshInAppImplTest {
     @Test
     public void reloadInApps() {
         pushwooshInApp.reloadInApps(null);
-        Mockito.verify(inAppRepositoryMock).loadInApps();
+        Mockito.verify(inAppRepositoryMock, timeout(100)).loadInApps();
     }
 }

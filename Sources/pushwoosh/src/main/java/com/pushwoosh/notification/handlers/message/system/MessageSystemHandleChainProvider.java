@@ -31,32 +31,32 @@ import androidx.annotation.NonNull;
 import com.pushwoosh.internal.chain.Chain;
 
 public class MessageSystemHandleChainProvider {
-	private static final MessageSystemHandleChainProvider INSTANCE = new MessageSystemHandleChainProvider();
+    private static final MessageSystemHandleChainProvider INSTANCE = new MessageSystemHandleChainProvider();
 
-	private MessageSystemHandleChainProvider() {/*do nothing*/}
+    private MessageSystemHandleChainProvider() {
+        /*do nothing*/
+    }
 
-	private Chain<MessageSystemHandler> messageSystemHandleChain;
+    private Chain<MessageSystemHandler> messageSystemHandleChain;
 
-	public static void init() {
-		INSTANCE.messageSystemHandleChain = generateDefault();
-	}
+    public static void init() {
+        INSTANCE.messageSystemHandleChain = generateDefault();
+    }
 
-	/**
-	 * Use this method for adding some not default {@link com.pushwoosh.notification.handlers.message.system.MessageSystemHandler}
-	 * If you want to add new MessageSystemHandler use {@link com.pushwoosh.internal.Plugin}
-	 * @return current chain of MessageSystemHandler
-	 */
-	@NonNull
-	public static Chain<MessageSystemHandler> getMessageSystemChain() {
-		return INSTANCE.messageSystemHandleChain;
-	}
+    /**
+     * Use this method for adding some not default {@link com.pushwoosh.notification.handlers.message.system.MessageSystemHandler}
+     * If you want to add new MessageSystemHandler use {@link com.pushwoosh.internal.Plugin}
+     * @return current chain of MessageSystemHandler
+     */
+    @NonNull public static Chain<MessageSystemHandler> getMessageSystemChain() {
+        return INSTANCE.messageSystemHandleChain;
+    }
 
-	@NonNull
-	private static Chain<MessageSystemHandler> generateDefault() {
-		return new MessageSystemHandleChain.Builder()
-				.addMessagePreHandler(new UserPushMessageSystemHandler())
-				.addMessagePreHandler(new LogLevelMessageSystemHandler())
-				.addMessagePreHandler(new BackwardsCompatibilityMessageSystemHandler())
-				.build();
-	}
+    @NonNull private static Chain<MessageSystemHandler> generateDefault() {
+        return new MessageSystemHandleChain.Builder()
+                .addMessagePreHandler(new UserPushMessageSystemHandler())
+                .addMessagePreHandler(new SystemCommandDispatcher())
+                .addMessagePreHandler(new BackwardsCompatibilityMessageSystemHandler())
+                .build();
+    }
 }

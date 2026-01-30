@@ -898,4 +898,10 @@ public class TagsBundle {
 	 * @return immutable map of tag names to their values
 	 */
 	public Map<String, Object> getMap(){ return tags; }
+
+	@Override
+	@NonNull
+	public String toString() {
+		return toJson().toString();
+	}
 }

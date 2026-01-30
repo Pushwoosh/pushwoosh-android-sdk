@@ -26,6 +26,14 @@
 
 package com.pushwoosh.inapp.network.model;
 
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_CODE;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_HASH;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_PRIORITY;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_REQUIRED;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_UPDATED;
+import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_URL;
+import static com.pushwoosh.inapp.network.model.ResourceParseUtils.convertTags;
+
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.inapp.exception.ResourceParseException;
@@ -39,14 +47,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_CODE;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_HASH;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_PRIORITY;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_REQUIRED;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_UPDATED;
-import static com.pushwoosh.inapp.network.model.Resource.Column.KEY_URL;
-import static com.pushwoosh.inapp.network.model.ResourceParseUtils.convertTags;
-
+// Resource can be:
+// * from push notification as rm key in payload - default push and customer journey builder v1 (as silent push with force show rich media flag)
+// * from post event as rich media code - customer journey builder v2
+// * from post event as in app code - instant inApps
+//
+// Every resource should have unique code and link in zip file with html content inside
 public class Resource implements Serializable, Comparable<Resource> {
 
 	private static final long serialVersionUID = 0L;

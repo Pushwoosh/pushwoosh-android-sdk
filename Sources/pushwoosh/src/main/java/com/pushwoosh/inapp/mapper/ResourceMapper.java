@@ -26,14 +26,7 @@
 
 package com.pushwoosh.inapp.mapper;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import android.net.Uri;
-import android.text.TextUtils;
 
 import androidx.annotation.WorkerThread;
 
@@ -44,88 +37,103 @@ import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.internal.utils.FileUtils;
 import com.pushwoosh.internal.utils.PWLog;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Class helper which map network {@link com.pushwoosh.inapp.network.model.Resource} model to view
  * {@link com.pushwoosh.inapp.model.HtmlData} model.
  */
 public class ResourceMapper {
-	private static final String TAG = "[InApp]ResourceMapper";
+    private static final String TAG = "[InApp]ResourceMapper";
 
-	private final InAppFolderProvider inAppFolderProvider;
-	private final InAppConfig config;
+    private final InAppFolderProvider inAppFolderProvider;
+    private final InAppConfig config;
 
-	public ResourceMapper(InAppFolderProvider inAppFolderProvider) {
-		this.inAppFolderProvider = inAppFolderProvider;
-		config = new InAppConfig(inAppFolderProvider);
-	}
+    public ResourceMapper(InAppFolderProvider inAppFolderProvider) {
+        this.inAppFolderProvider = inAppFolderProvider;
+        config = new InAppConfig(inAppFolderProvider);
+    }
 
-	@WorkerThread
-	public HtmlData map(Resource resource) throws IOException {
-		String baseUrl = Uri.fromFile(inAppFolderProvider.getInAppFolder(resource.getCode())).toString();
-		String htmlData = getHtmlData(resource.getCode(), resource.getTags());
+    @WorkerThread
+    public HtmlData map(Resource resource) throws IOException {
+        String baseUrl = Uri.fromFile(inAppFolderProvider.getInAppFolder(resource.getCode()))
+                .toString();
+        String htmlData = getHtmlData(resource.getCode(), resource.getTags());
 
-		return new HtmlData(resource.getCode(), baseUrl, htmlData);
-	}
+        return new HtmlData(resource.getCode(), baseUrl, htmlData);
+    }
 
-	protected String getHtmlData(String code, Map<String, String> tags) throws IOException {
-		File html = inAppFolderProvider.getInAppHtmlFile(code);
-		String content = FileUtils.readFile(html);
+    protected String getHtmlData(String code, Map<String, String> tags) throws IOException {
+        File html = inAppFolderProvider.getInAppHtmlFile(code);
+        String content = FileUtils.readFile(html);
 
-		try {
+        try {
 
-			content = postProcessHtml(content, Pattern.compile("\\{\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|(.[^\\}]*?)\\}\\}", Pattern.DOTALL), config.parseLocalizedStrings(code));
+            content = postProcessHtml(
+                    content,
+                    Pattern.compile("\\{\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|(.[^\\}]*?)\\}\\}", Pattern.DOTALL),
+                    config.parseLocalizedStrings(code));
 
-			// DOTALL is not safe here for it can false-positively match javascript like { if (a|b|c) {} }
-			content = postProcessHtml(content, Pattern.compile("\\{\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|(.[^\\}]*?)\\}\\}"), tags);
+            // DOTALL is not safe here for it can false-positively match javascript like { if (a|b|c) {} }
+            content = postProcessHtml(
+                    content, Pattern.compile("\\{\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|(.[^\\}]*?)\\}\\}"), tags);
 
-			// support template syntax like {{ Placeholder name | Type }}
-			content = postProcessHtml(content, Pattern.compile("\\{\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\}\\}"), config.parseLocalizedStrings(code));
+            // support template syntax like {{ Placeholder name | Type }}
+            content = postProcessHtml(
+                    content,
+                    Pattern.compile("\\{\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\}\\}"),
+                    config.parseLocalizedStrings(code));
 
-			// support dynamic content in Rich Medias with no default value
-			content = postProcessHtml(content, Pattern.compile("\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|\\}"), tags);
+            // support dynamic content in Rich Medias with no default value
+            content = postProcessHtml(content, Pattern.compile("\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|\\}"), tags);
 
-			// support dynamic content in Rich Medias with a default value
-			content = postProcessHtml(content, Pattern.compile("\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|(.[^\\}]*?)\\}"), tags);
+            // support dynamic content in Rich Medias with a default value
+            content = postProcessHtml(content, Pattern.compile("\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|(.[^\\}]*?)\\}"), tags);
 
-		} catch (Exception e) {
-			// Not error. Early inapps do not contain pushwoosh.json
-			PWLog.warn(TAG, "Failed to process html: " + e.getMessage());
-		}
+        } catch (Exception e) {
+            // Not error. Early inapps do not contain pushwoosh.json
+            PWLog.warn(TAG, "Failed to process html: " + e.getMessage());
+        }
 
-		return content;
-	}
+        return content;
+    }
 
-	private String postProcessHtml(String content, Pattern pattern, Map<String, String> tags) {
-		Matcher matcher = pattern.matcher(content);
+    private String postProcessHtml(String content, Pattern pattern, Map<String, String> tags) {
+        Matcher matcher = pattern.matcher(content);
 
-		while (matcher.find()) {
-			if (matcher.groupCount() == 3) {
-				content = processKeyTypeDefaultValuePattern(content, matcher.group(0), matcher.group(1), matcher.group(2), matcher.group(3), tags);
-			} else if (matcher.groupCount() == 2) {
-				//replace dynamic content placeholder with no default value with empty string
-				if (pattern.toString().equals("\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|\\}")) {
-					content = processKeyTypeDefaultValuePattern(content, matcher.group(0), matcher.group(1), matcher.group(2), "", tags);
-				}
-				content = processKeyTypeDefaultValuePattern(content, matcher.group(0), matcher.group(1), matcher.group(2), matcher.group(1), tags);
-			} else {
-				PWLog.warn(TAG, "Incorrect matching count");
-			}
-		}
+        while (matcher.find()) {
+            if (matcher.groupCount() == 3) {
+                content = processKeyTypeDefaultValuePattern(
+                        content, matcher.group(0), matcher.group(1), matcher.group(2), matcher.group(3), tags);
+            } else if (matcher.groupCount() == 2) {
+                // replace dynamic content placeholder with no default value with empty string
+                if (pattern.toString().equals("\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|\\}")) {
+                    content = processKeyTypeDefaultValuePattern(
+                            content, matcher.group(0), matcher.group(1), matcher.group(2), "", tags);
+                }
+                content = processKeyTypeDefaultValuePattern(
+                        content, matcher.group(0), matcher.group(1), matcher.group(2), matcher.group(1), tags);
+            } else {
+                PWLog.warn(TAG, "Incorrect matching count");
+            }
+        }
 
-		return content;
-	}
+        return content;
+    }
 
-	private String processKeyTypeDefaultValuePattern(String content, String totalKey, String key, String type, String defaultValue, Map<String, String> tags) {
-		PWLog.noise(TAG, "Key: \"" + key + "\", Type: \"" + type + "\", Default Value: \"" + defaultValue + "\"");
+    private String processKeyTypeDefaultValuePattern(
+            String content, String totalKey, String key, String type, String defaultValue, Map<String, String> tags) {
+        String value = defaultValue;
+        if (tags.containsKey(key)) {
+            value = tags.get(key);
+            value = InAppTagFormatModifier.format(value, type);
+        }
+        content = content.replace(totalKey, value);
 
-		String value = defaultValue;
-		if (tags.containsKey(key)) {
-			value = tags.get(key);
-			value = InAppTagFormatModifier.format(value, type);
-		}
-		content = content.replace(totalKey, value);
-		PWLog.debug(TAG, "Replacing \"" + totalKey + "\" with \"" + value + "\"");
-
-		return content;
-	}
+        return content;
+    }
 }

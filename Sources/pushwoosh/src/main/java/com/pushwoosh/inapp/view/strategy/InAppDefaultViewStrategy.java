@@ -28,93 +28,51 @@ package com.pushwoosh.inapp.view.strategy;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.network.model.Resource;
-import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.view.ModalRichMediaWindow;
 import com.pushwoosh.inapp.view.RichMediaWebActivity;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.richmedia.RichMediaManager;
 import com.pushwoosh.richmedia.RichMediaType;
 
-import java.lang.ref.WeakReference;
-
+/**
+ * Display strategy for In-App content.
+ * Uses MODAL (PopupWindow) or DEFAULT (Activity) based on RichMediaManager setting.
+ */
 class InAppDefaultViewStrategy implements ResourceViewStrategy {
-	private static final String TAG = "[InApp]InAppDefaultViewStrategy";
+    private static final String TAG = "[InApp]InAppDefaultViewStrategy";
 
-	private final Context context;
-	private final InAppFolderProvider inAppFolderProvider;
+    private final Context context;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-	InAppDefaultViewStrategy(Context context, InAppFolderProvider inAppFolderProvider) {
-		this.context = context;
-		this.inAppFolderProvider = inAppFolderProvider;
-	}
+    InAppDefaultViewStrategy(Context context) {
+        this.context = context;
+    }
 
-	@Override
-	public void show(Resource resource) {
-		if (resource == null) {
-			PWLog.noise(TAG, "resource is empty");
-			return;
-		}
+    @Override
+    public void show(Resource resource) {
+        PWLog.noise(TAG, "show()");
 
-		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentInAppCode(resource.getCode());
-		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentRichMediaCode(null);
+        if (resource == null) {
+            PWLog.error(TAG, "resource is empty");
+            return;
+        }
 
-		new ShowInAppTask(this, resource, () -> {
-			if (inAppFolderProvider.isInAppDownloaded(resource.getCode())) {
-				if (RichMediaManager.getRichMediaType() == RichMediaType.MODAL) {
-					ModalRichMediaWindow.showModalRichMediaWindow(resource);
-				} else if (RichMediaManager.getRichMediaType() == RichMediaType.DEFAULT) {
-					Intent intent = RichMediaWebActivity.createInAppIntent(context,resource);
-					context.startActivity(intent);
-				}
-			} else {
-				PWLog.noise(TAG, "resource is not downloaded, abort show inApp");
-			}
-		}).execute();
-	}
+        PushwooshPlatform.getInstance().pushwooshRepository().setCurrentInAppCode(resource.getCode());
+        PushwooshPlatform.getInstance().pushwooshRepository().setCurrentRichMediaCode(null);
 
-	private static class ShowInAppTask extends AsyncTask<Void, Void, Boolean> {
-		private final WeakReference<InAppDefaultViewStrategy> weakRef;
-		private final Resource resource;
-		private final OnShowInAppFailureCallback callback;
+        String message = String.format("presenting InApp with code: %s, url: %s", resource.getCode(), resource.getUrl());
+        PWLog.info(TAG, message);
 
-		public ShowInAppTask(InAppDefaultViewStrategy inAppDefaultViewStrategy,
-							 Resource resource,
-							 OnShowInAppFailureCallback callback) {
-			this.weakRef = new WeakReference<>(inAppDefaultViewStrategy);
-			this.resource = resource;
-			this.callback = callback;
-		}
-
-		@Override
-		protected Boolean doInBackground(Void... voids) {
-			if (weakRef.get() != null) {
-				return weakRef.get().inAppFolderProvider.isInAppDownloaded(resource.getCode());
-			}
-			return false;
-		}
-
-		@Override
-		protected void onPostExecute(Boolean isInAppDownloaded) {
-			super.onPostExecute(isInAppDownloaded);
-			if (isInAppDownloaded && weakRef.get() != null) {
-				Context context = weakRef.get().context;
-				if (RichMediaManager.getRichMediaType() == RichMediaType.MODAL) {
-					ModalRichMediaWindow.showModalRichMediaWindow(resource);
-				} else if (RichMediaManager.getRichMediaType() == RichMediaType.DEFAULT) {
-					Intent intent = RichMediaWebActivity.createInAppIntent(context, resource);
-					context.startActivity(intent);
-				}
-			} else {
-				callback.onFail();
-			}
-		}
-	}
-
-	private interface OnShowInAppFailureCallback {
-		void onFail();
-	}
+        if (RichMediaManager.getRichMediaType() == RichMediaType.MODAL) {
+            ModalRichMediaWindow.showModalRichMediaWindow(resource);
+        } else if (RichMediaManager.getRichMediaType() == RichMediaType.DEFAULT) {
+            Intent intent = RichMediaWebActivity.createInAppIntent(context, resource);
+            mainHandler.post(() -> context.startActivity(intent));
+        }
+    }
 }

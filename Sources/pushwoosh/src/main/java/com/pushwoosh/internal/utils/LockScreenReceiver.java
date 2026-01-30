@@ -68,21 +68,20 @@ public class LockScreenReceiver extends BroadcastReceiver {
     private static class ShowCachedResourceWrappersTask {
         public void execute() {
             BackgroundExecutor.parallel(() -> {
-                List<ResourceWrapper> resourceWrapperList =
+                List<ResourceWrapper> resources =
                         RepositoryModule.getLockScreenMediaStorage().getCachedResourcesList();
-                if (resourceWrapperList == null || resourceWrapperList.isEmpty()) {
+                if (resources == null || resources.isEmpty()) {
                     return;
                 }
 
-                RichMediaController richMediaController =
-                        PushwooshPlatform.getInstance().getRichMediaController();
-                if (richMediaController == null) {
+                RichMediaController controller = PushwooshPlatform.getInstance().getRichMediaController();
+                if (controller == null) {
                     PWLog.error(TAG, "RichMediaController is null");
                     return;
                 }
 
-                for (ResourceWrapper resourceWrapper : resourceWrapperList) {
-                    richMediaController.showResourceWrapper(resourceWrapper);
+                for (ResourceWrapper r : resources) {
+                    controller.showResourceWrapper(r);
                 }
                 RepositoryModule.getLockScreenMediaStorage().clearResources();
             });

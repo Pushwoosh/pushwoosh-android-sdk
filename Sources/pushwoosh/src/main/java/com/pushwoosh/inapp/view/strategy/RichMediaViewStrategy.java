@@ -39,36 +39,43 @@ import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.richmedia.RichMediaManager;
 import com.pushwoosh.richmedia.RichMediaType;
 
+/**
+ * Display strategy for Rich Media content.
+ * Uses MODAL (PopupWindow) or DEFAULT (Activity) based on RichMediaManager setting.
+ */
 class RichMediaViewStrategy implements ResourceViewStrategy {
-	private static final String TAG = "[InApp]RichMediaViewStrategy";
+    private static final String TAG = "RichMediaViewStrategy";
 
-	private final Context context;
-	private final long delay;
-	private Handler handler = new Handler(Looper.getMainLooper());
+    private final Context context;
+    private final long delay;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-	RichMediaViewStrategy(Context context, long delay) {
-		this.context = context;
-		this.delay = delay;
-	}
+    RichMediaViewStrategy(Context context, long delay) {
+        this.context = context;
+        this.delay = delay;
+    }
 
-	@Override
-	public void show(Resource resource) {
-		if (resource == null) {
-			PWLog.noise(TAG, "resource is empty");
-			return;
-		}
+    @Override
+    public void show(Resource resource) {
+        PWLog.noise(TAG, "show()");
 
-		String richMediaCode = resource.getCode().substring(2);
-		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentRichMediaCode(richMediaCode);
-		PushwooshPlatform.getInstance().pushwooshRepository().setCurrentInAppCode(null);
+        if (resource == null) {
+            PWLog.warn(TAG, "resource is empty");
+            return;
+        }
 
-		PWLog.info(TAG, "presenting richMedia with code: " + resource.getCode() + ", url: " + resource.getUrl());
+        String richMediaCode = resource.getCode().substring(2);
+        PushwooshPlatform.getInstance().pushwooshRepository().setCurrentRichMediaCode(richMediaCode);
+        PushwooshPlatform.getInstance().pushwooshRepository().setCurrentInAppCode(null);
 
-		if (RichMediaManager.getRichMediaType() == RichMediaType.MODAL) {
-			ModalRichMediaWindow.showModalRichMediaWindow(resource);
-		} else if (RichMediaManager.getRichMediaType() == RichMediaType.DEFAULT) {
-			Intent intent = RichMediaWebActivity.createRichMediaIntent(context, resource);
-			handler.postDelayed(() -> context.startActivity(intent), delay);
-		}
-	}
+        String message = String.format("presenting richMedia with code: %s, url: %s", resource.getCode(), resource.getUrl());
+        PWLog.info(TAG, message);
+
+        if (RichMediaManager.getRichMediaType() == RichMediaType.MODAL) {
+            ModalRichMediaWindow.showModalRichMediaWindow(resource);
+        } else if (RichMediaManager.getRichMediaType() == RichMediaType.DEFAULT) {
+            Intent intent = RichMediaWebActivity.createRichMediaIntent(context, resource);
+            mainHandler.postDelayed(() -> context.startActivity(intent), delay);
+        }
+    }
 }

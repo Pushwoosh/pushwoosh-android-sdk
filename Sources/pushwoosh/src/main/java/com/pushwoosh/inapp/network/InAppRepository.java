@@ -70,6 +70,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -78,11 +79,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InAppRepository {
     private static final String TAG = "[InApp]InAppRepository";
-    //Time while wait required inApp
+    // Time while wait required inApp
     private static final int REQUIRED_TIMEOUT_SECONDS = 5;
 
-    @Nullable
-    private RequestManager requestManager;
+    @Nullable private RequestManager requestManager;
+
     private final InAppStorage inAppStorage;
     private final InAppDownloader inAppDownloader;
     private final InAppDeployedChecker inAppDeployedChecker;
@@ -93,12 +94,13 @@ public class InAppRepository {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler main = new Handler(Looper.getMainLooper());
 
-    public InAppRepository(@Nullable RequestManager requestManager,
-                           InAppStorage inAppStorage,
-                           InAppDownloader inAppDownloader,
-                           ResourceMapper resourceMapper,
-                           InAppFolderProvider inAppFolderProvider,
-                           RegistrationPrefs registrationPrefs) {
+    public InAppRepository(
+            @Nullable RequestManager requestManager,
+            InAppStorage inAppStorage,
+            InAppDownloader inAppDownloader,
+            ResourceMapper resourceMapper,
+            InAppFolderProvider inAppFolderProvider,
+            RegistrationPrefs registrationPrefs) {
 
         this.requestManager = requestManager;
         this.inAppStorage = inAppStorage;
@@ -108,10 +110,17 @@ public class InAppRepository {
 
         inAppDeployedChecker = new InAppDeployedChecker(inAppStorage, inAppFolderProvider);
         EventBus.subscribe(InAppViewEvent.class, (event) -> {
-            PreferenceStringValue preferenceValue = RepositoryModule.getNotificationPreferences().messageHash();
+            PreferenceStringValue preferenceValue =
+                    RepositoryModule.getNotificationPreferences().messageHash();
             String msgHash = preferenceValue.get();
 
-            TriggerInAppActionRequest request = new TriggerInAppActionRequest(event.getResource().getCode(), msgHash, event.getResource().getCode());
+            PWLog.noise(
+                    TAG,
+                    String.format(
+                            "Sending show analytics for: %s",
+                            event.getResource().getCode()));
+            TriggerInAppActionRequest request = new TriggerInAppActionRequest(
+                    event.getResource().getCode(), msgHash, event.getResource().getCode());
             requestManager.sendRequest(request);
 
             RepositoryModule.getNotificationPreferences().messageHash().set(null);
@@ -168,25 +177,40 @@ public class InAppRepository {
     }
 
     private boolean downloadIfNeeded(Resource resource) {
-        if (!inAppDeployedChecker.check(resource)) {
-            if (inAppDownloader.isDownloading(resource)) {
-                return waitUntilDeploying(resource);
-            } else {
-                DownloadResult downloadResult = inAppDownloader.downloadAndDeploy(Collections.singletonList(resource));
-                return !downloadResult.getSuccess().isEmpty();
-            }
+        // Resource already deployed - nothing to do
+        if (inAppDeployedChecker.check(resource)) {
+            return true;
         }
 
-        return true;
+        // Resource is being downloaded by another thread - wait for completion
+        if (inAppDownloader.isDownloading(resource)) {
+            PWLog.noise(TAG, String.format("Waiting for resource download to complete: %s", resource.getCode()));
+            return waitUntilDeploying(resource);
+        }
+
+        // Initiate resource download
+        PWLog.noise(TAG, String.format("Starting download for resource: %s", resource.getCode()));
+        DownloadResult downloadResult = inAppDownloader.downloadAndDeploy(Collections.singletonList(resource));
+        boolean success = !downloadResult.getSuccess().isEmpty();
+
+        if (success) {
+            PWLog.info(TAG, String.format("Successfully downloaded resource: %s", resource.getCode()));
+        } else {
+            PWLog.error(TAG, String.format("Failed to download resource: %s", resource.getCode()));
+        }
+
+        return success;
     }
 
-    //if resource downloading now wait until it deploying or not
+    // if resource downloading now wait until it deploying or not
     private boolean waitUntilDeploying(Resource resource) {
         CountDownLatch latch = new CountDownLatch(1);
 
         final InAppEvent.EventType[] eventType = {InAppEvent.EventType.DEPLOY_FAILED};
         Subscription<InAppEvent> subscribe = EventBus.subscribe(InAppEvent.class, event -> {
-            if (event == null || (!event.getType().equals(InAppEvent.EventType.DEPLOY_FAILED) && !event.getType().equals(InAppEvent.EventType.DEPLOYED))) {
+            if (event == null
+                    || (!event.getType().equals(InAppEvent.EventType.DEPLOY_FAILED)
+                            && !event.getType().equals(InAppEvent.EventType.DEPLOYED))) {
                 return;
             }
 
@@ -302,7 +326,8 @@ public class InAppRepository {
     public void setEmail(String email, Callback<Boolean, PushwooshException> callback) {
         registerEmail(email, result -> {
             if (result.isSuccess()) {
-                String userId = RepositoryModule.getRegistrationPreferences().userId().get();
+                String userId =
+                        RepositoryModule.getRegistrationPreferences().userId().get();
                 registerEmailUser(email, userId, registerEmailUserResult -> {
                     if (callback == null) {
                         return;
@@ -327,7 +352,6 @@ public class InAppRepository {
         return getResultErrorMessage(result, "an error occurred during /registerEmailUser request");
     }
 
-
     private void registerEmail(@NonNull String email, @NonNull Callback<Boolean, PushwooshException> callback) {
         RegisterEmailRequest request = new RegisterEmailRequest(email);
         if (!updateRequestManagerIfNeeded() || requestManager == null) {
@@ -342,7 +366,8 @@ public class InAppRepository {
         });
     }
 
-    private void registerEmailUser(@NonNull String email, String userId, @NonNull Callback<Boolean, PushwooshException> callback) {
+    private void registerEmailUser(
+            @NonNull String email, String userId, @NonNull Callback<Boolean, PushwooshException> callback) {
         RegisterEmailUserRequest request = new RegisterEmailUserRequest(userId, email);
         if (!updateRequestManagerIfNeeded() || requestManager == null) {
             return;
@@ -356,8 +381,15 @@ public class InAppRepository {
         });
     }
 
-    public void richMediaAction(String richmediaCode, String inappCode, String messageHash, String actionAttributes, int actionType, Callback<Void, RichMediaActionException> callback) {
-        RichMediaActionRequest request = new RichMediaActionRequest(richmediaCode, inappCode, messageHash, actionAttributes, actionType);
+    public void richMediaAction(
+            String richmediaCode,
+            String inappCode,
+            String messageHash,
+            String actionAttributes,
+            int actionType,
+            Callback<Void, RichMediaActionException> callback) {
+        RichMediaActionRequest request =
+                new RichMediaActionRequest(richmediaCode, inappCode, messageHash, actionAttributes, actionType);
         if (!updateRequestManagerIfNeeded() || requestManager == null) {
             if (callback != null) {
                 callback.process(Result.fromException(new RichMediaActionException("Request Manager is null")));
@@ -373,15 +405,21 @@ public class InAppRepository {
                 callback.process(Result.fromData(result.getData()));
             } else {
                 if (result.getException() != null) {
-                    callback.process(Result.fromException(new RichMediaActionException(result.getException().getMessage())));
+                    callback.process(Result.fromException(
+                            new RichMediaActionException(result.getException().getMessage())));
                     PWLog.warn(TAG, result.getException().getMessage(), result.getException());
                 }
             }
         });
     }
-    
-    public void postEvent(String event, TagsBundle attributes, @Nullable Callback<Resource, PostEventException> callback) {
-        String currentSessionHash = PushwooshPlatform.getInstance().pushwooshRepository().getCurrentSessionHash();
+
+    /**
+     * Sends event to server. If response contains Rich Media or In-App code, triggers display.
+     */
+    public void postEvent(
+            String event, TagsBundle attributes, @Nullable Callback<Resource, PostEventException> callback) {
+        String currentSessionHash =
+                PushwooshPlatform.getInstance().pushwooshRepository().getCurrentSessionHash();
 
         PostEventRequest request = new PostEventRequest(event, currentSessionHash, attributes);
         if (!updateRequestManagerIfNeeded() || requestManager == null) {
@@ -395,7 +433,11 @@ public class InAppRepository {
         });
     }
 
-    public void mergeUserId(String oldUserId, String newUserId, boolean doMerge, @Nullable Callback<Void, MergeUserException> callback) {
+    public void mergeUserId(
+            String oldUserId,
+            String newUserId,
+            boolean doMerge,
+            @Nullable Callback<Void, MergeUserException> callback) {
         MergeUserRequest request = new MergeUserRequest(oldUserId, newUserId, doMerge);
         if (!updateRequestManagerIfNeeded() || requestManager == null) {
             if (callback != null) {
@@ -410,25 +452,32 @@ public class InAppRepository {
                     callback.process(Result.fromData(null));
                 } else {
                     if (result.getException() != null) {
-                        callback.process(Result.fromException(new MergeUserException(result.getException().getMessage())));
+                        callback.process(Result.fromException(
+                                new MergeUserException(result.getException().getMessage())));
                     }
                 }
             }
         });
     }
 
+    /**
+     * Downloads and extracts Rich Media ZIP to local storage.
+     */
     @SuppressWarnings("UnusedReturnValue")
     @WorkerThread
     public Result<Resource, ResourceParseException> prefetchRichMedia(String richMedia) {
+        PWLog.noise(TAG, String.format("prefetchRichMedia(), rich media: %s", richMedia));
         try {
-            Resource inapp = Resource.parseRichMedia(richMedia);
-            boolean downloaded = downloadIfNeeded(inapp);
+            Resource resource = Resource.parseRichMedia(richMedia);
+            updateInAppStorage(Collections.singletonList(resource)); // put this resource in db
+            boolean downloaded = downloadIfNeeded(resource);
 
             if (!downloaded) {
-                return Result.fromException(new ResourceParseException("Can't download or update richMedia: " + inapp.getCode()));
+                String msg = "Can't download or update richMedia: " + resource.getCode();
+                return Result.fromException(new ResourceParseException(msg));
             }
 
-            return Result.fromData(inapp);
+            return Result.fromData(resource);
         } catch (ResourceParseException e) {
             return Result.fromException(e);
         }
@@ -436,7 +485,8 @@ public class InAppRepository {
 
     @WorkerThread
     public Result<HtmlData, ResourceParseException> mapToHtmlData(Resource inapp) {
-        PWLog.noise("mapToHtmlData for resource " + inapp.getCode() + " inApp is required: " + inapp.isRequired() + " inAppLoaded: " + inAppLoaded.get());
+        PWLog.noise(
+                TAG, String.format("mapToHtmlData: code=%s, inAppListReady=%s", inapp.getCode(), inAppLoaded.get()));
         if (inapp.isNotDownload()) {
             try {
                 if (inAppLoaded.get() || (inapp.isRequired() && waitUntilObtainInApps())) {
@@ -444,25 +494,29 @@ public class InAppRepository {
                     if (resource != null) {
                         inapp = resource;
                     } else {
-                        return Result.fromException(new ResourceParseException(String.format("Rich media with code %s does not exist.", inapp.getCode())));
+                        return Result.fromException(new ResourceParseException(
+                                String.format("Rich media with code %s does not exist.", inapp.getCode())));
                     }
                 }
             } catch (Exception e) {
-                return Result.fromException(new ResourceParseException(String.format("Can't download or update richMedia: %s", inapp.getCode()), e));
+                return Result.fromException(new ResourceParseException(
+                        String.format("Can't download or update richMedia: %s", inapp.getCode()), e));
             }
         }
 
         if (!inAppDeployedChecker.check(inapp)) {
             boolean downloaded = downloadIfNeeded(inapp);
             if (!downloaded) {
-                return Result.fromException(new ResourceParseException("Can't download or update richMedia: " + inapp.getCode()));
+                return Result.fromException(
+                        new ResourceParseException("Can't download or update richMedia: " + inapp.getCode()));
             }
         }
 
         try {
             return Result.fromData(resourceMapper.map(inapp));
         } catch (IOException e) {
-            return Result.fromException(new ResourceParseException(String.format("Can't mapping resource %s to htmlData", inapp.getCode()), e));
+            return Result.fromException(new ResourceParseException(
+                    String.format("Can't mapping resource %s to htmlData", inapp.getCode()), e));
         }
     }
 
@@ -480,42 +534,51 @@ public class InAppRepository {
     }
 
     private String getResultErrorMessage(Result result, String defaultErrorMessage) {
-        return result.getException() == null || TextUtils.isEmpty(result.getException().getMessage())
+        return result.getException() == null
+                        || TextUtils.isEmpty(result.getException().getMessage())
                 ? defaultErrorMessage
                 : result.getException().getMessage();
     }
 
+    /**
+     * Parses postEvent response: richmedia JSON → Rich Media, code → In-App (fetches via getInApps).
+     */
     @WorkerThread
-    @Nullable
-    private Resource getResourceFromPostEvent(PostEventResponse response) {
+    @Nullable private Resource getResourceFromPostEvent(PostEventResponse response) {
+        PWLog.noise(TAG, "getResourceFromPostEvent()");
+
         try {
             String code = response.getCode();
             String richMediaJson = response.getRichMediaJson();
 
             Resource fromStorage = inAppStorage.getResource(code);
-            if (fromStorage != null) return fromStorage;
+            if (fromStorage != null) {
+                PWLog.noise(TAG, String.format("get inapp resource %s from local storage", code));
+                return fromStorage;
+            }
 
             if (code != null && !code.isEmpty()) {
                 List<Resource> list = this.getInAppsList();
 
-                for (Resource r: list) {
+                for (Resource r : list) {
                     if (code.equals(r.getCode())) {
                         updateInAppStorage(Collections.singletonList(r));
                         this.downloadIfNeeded(r);
+                        PWLog.noise(TAG, String.format("get inapp resource %s from server", code));
                         return r;
                     }
                 }
-                PWLog.error(TAG, "Failed to get rich media resource: InApp code is not registered");
+                PWLog.error(TAG, String.format("can't load inapp resource, code %s not found on server", code));
                 return null;
             } else if (richMediaJson != null && !richMediaJson.isEmpty()) {
+                PWLog.noise(TAG, String.format("get rich media resource from string: %s", richMediaJson));
                 this.prefetchRichMedia(richMediaJson);
                 return Resource.parseRichMedia(richMediaJson);
             }
         } catch (Exception e) {
-            PWLog.error(TAG, "Could not load resource from server by inapp or richmedia code", e);
+            PWLog.error(TAG, "getResourceFromPostEvent failed", e);
             return null;
         }
-        PWLog.noise(TAG, "No inapp data received");
         return null;
     }
 
@@ -543,18 +606,28 @@ public class InAppRepository {
 
     @WorkerThread
     private void updateInAppStorage(List<Resource> data) {
-        List<String> updateResource = new ArrayList<>();
-        updateResource.addAll(inAppStorage.saveOrUpdateResources(data));
+        // Get list of codes for resources that were actually updated
+        List<String> updatedResourceCodes = inAppStorage.saveOrUpdateResources(data);
 
-        for (String code : updateResource) {
+        if (updatedResourceCodes.isEmpty()) {
+            return;
+        }
+
+        PWLog.info(
+                TAG,
+                String.format(
+                        Locale.US,
+                        "Removing old files for %d updated resources: %s",
+                        updatedResourceCodes.size(),
+                        updatedResourceCodes));
+
+        for (String code : updatedResourceCodes) {
             inAppDownloader.removeResourceFiles(code);
         }
     }
 
     private void handlePostEventResponse(
-            Result<PostEventResponse, NetworkException> result,
-            Callback<Resource, PostEventException> callback
-            ) {
+            Result<PostEventResponse, NetworkException> result, Callback<Resource, PostEventException> callback) {
         if (callback == null) {
             return;
         }

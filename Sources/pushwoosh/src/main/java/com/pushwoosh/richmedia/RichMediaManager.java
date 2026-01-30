@@ -53,18 +53,18 @@ public class RichMediaManager {
             return;
         }
         RichMediaController richMediaController = pushwooshPlatform.getRichMediaController();
-        if (richMediaController != null)
-            richMediaController.setDelegate(delegate);
+        if (richMediaController != null) richMediaController.setDelegate(delegate);
     }
 
     public static void present(RichMedia richMedia) {
-        RichMediaController richMediaController = PushwooshPlatform.getInstance().getRichMediaController();
-        if (richMediaController != null)
-            richMediaController.present(richMedia);
+        RichMediaController richMediaController =
+                PushwooshPlatform.getInstance().getRichMediaController();
+        if (richMediaController != null) richMediaController.present(richMedia);
     }
 
     public static RichMediaStyle getRichMediaStyle() {
-        RichMediaController richMediaController = PushwooshPlatform.getInstance().getRichMediaController();
+        RichMediaController richMediaController =
+                PushwooshPlatform.getInstance().getRichMediaController();
         if (richMediaController != null) {
             return richMediaController.getRichMediaStyle();
         } else {
@@ -76,13 +76,19 @@ public class RichMediaManager {
         NotificationPrefs prefs = RepositoryModule.getNotificationPreferences();
 
         ModalRichMediaDismissAnimationType dismissType = config.getDismissAnimationType();
-        prefs.richMediaDismissAnimation().set(dismissType != null ? 
-            dismissType.getCode() : ModalRichMediaDismissAnimationType.FADE_OUT.getCode());
-        
+        prefs.richMediaDismissAnimation()
+                .set(
+                        dismissType != null
+                                ? dismissType.getCode()
+                                : ModalRichMediaDismissAnimationType.FADE_OUT.getCode());
+
         ModalRichMediaPresentAnimationType presentType = config.getPresentAnimationType();
-        prefs.richMediaPresentAnimation().set(presentType != null ? 
-            presentType.getCode() : ModalRichMediaPresentAnimationType.FADE_IN.getCode());
-        
+        prefs.richMediaPresentAnimation()
+                .set(
+                        presentType != null
+                                ? presentType.getCode()
+                                : ModalRichMediaPresentAnimationType.FADE_IN.getCode());
+
         Set<ModalRichMediaSwipeGesture> gestures = config.getSwipeGestures();
         int mask = 0;
         if (gestures != null) {
@@ -93,19 +99,19 @@ public class RichMediaManager {
         prefs.richMediaSwipeGestureBitMask().set(mask);
 
         ModalRichMediaViewPosition viewPos = config.getViewPosition();
-        prefs.richMediaViewPosition().set(viewPos != null ? 
-            viewPos.getCode() : ModalRichMediaViewPosition.FULLSCREEN.getCode());
-        
+        prefs.richMediaViewPosition()
+                .set(viewPos != null ? viewPos.getCode() : ModalRichMediaViewPosition.FULLSCREEN.getCode());
+
         ModalRichMediaWindowWidth windowWidth = config.getWindowWidth();
-        prefs.richMediaWindowWidth().set(windowWidth != null ? 
-            windowWidth.getCode() : ModalRichMediaWindowWidth.FULL_SCREEN.getCode());
-        
+        prefs.richMediaWindowWidth()
+                .set(windowWidth != null ? windowWidth.getCode() : ModalRichMediaWindowWidth.FULL_SCREEN.getCode());
+
         Boolean statusBarCovered = config.isStatusBarCovered();
         prefs.richMediaStatusBarCovered().set(statusBarCovered != null ? statusBarCovered : false);
-        
+
         Boolean respectEdgeToEdgeLayout = config.shouldRespectEdgeToEdgeLayout();
         prefs.richMediaRespectEdgeToEdgeLayout().set(respectEdgeToEdgeLayout != null ? respectEdgeToEdgeLayout : true);
-        
+
         Integer duration = config.getAnimationDuration();
         prefs.richMediaAnimationDuration().set(duration != null ? duration : 1000);
     }
@@ -114,12 +120,17 @@ public class RichMediaManager {
         NotificationPrefs prefs = RepositoryModule.getNotificationPreferences();
         ModalRichmediaConfig config = new ModalRichmediaConfig()
                 .setAnimationDuration(prefs.richMediaAnimationDuration().get())
-                .setDismissAnimationType(ModalRichMediaDismissAnimationType.getByCode(prefs.richMediaDismissAnimation().get()))
-                .setPresentAnimationType(ModalRichMediaPresentAnimationType.getByCode(prefs.richMediaPresentAnimation().get()))
-                .setViewPosition(ModalRichMediaViewPosition.getByCode(prefs.richMediaViewPosition().get()))
-                .setWindowWidth(ModalRichMediaWindowWidth.getByCode(prefs.richMediaWindowWidth().get()))
+                .setDismissAnimationType(ModalRichMediaDismissAnimationType.getByCode(
+                        prefs.richMediaDismissAnimation().get()))
+                .setPresentAnimationType(ModalRichMediaPresentAnimationType.getByCode(
+                        prefs.richMediaPresentAnimation().get()))
+                .setViewPosition(ModalRichMediaViewPosition.getByCode(
+                        prefs.richMediaViewPosition().get()))
+                .setWindowWidth(ModalRichMediaWindowWidth.getByCode(
+                        prefs.richMediaWindowWidth().get()))
                 .setStatusBarCovered(prefs.richMediaStatusBarCovered().get())
-                .setRespectEdgeToEdgeLayout(prefs.richMediaRespectEdgeToEdgeLayout().get());
+                .setRespectEdgeToEdgeLayout(
+                        prefs.richMediaRespectEdgeToEdgeLayout().get());
 
         int mask = prefs.richMediaSwipeGestureBitMask().get();
         Set<ModalRichMediaSwipeGesture> set = new HashSet<>();
@@ -158,7 +169,6 @@ public class RichMediaManager {
             return;
         }
         notificationPrefs.richMediaType().set(type.ordinal());
-        PWLog.info("RichMediaManager", "RichMediaType set to " + type.name());
     }
 
     /**
@@ -180,8 +190,7 @@ public class RichMediaManager {
             return RichMediaType.DEFAULT;
         }
         int ordinal = notificationPrefs.richMediaType().get();
-        RichMediaType type = RichMediaType.values()[ordinal];
-        PWLog.noise("RichMediaManager", "Returning richMediaType value: " + type.name());
-        return type;
+        RichMediaType[] values = RichMediaType.values();
+        return (ordinal >= 0 && ordinal < values.length) ? values[ordinal] : RichMediaType.DEFAULT;
     }
 }

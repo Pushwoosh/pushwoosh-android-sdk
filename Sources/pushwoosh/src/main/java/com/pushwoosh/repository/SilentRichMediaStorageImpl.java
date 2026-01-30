@@ -13,6 +13,10 @@ import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushBundleDataProvider;
 import com.pushwoosh.notification.PushMessage;
 
+/**
+ * Stores Rich Media for deferred display when app receives silent push while in background.
+ * Content is retrieved and shown when app moves to foreground.
+ */
 public class SilentRichMediaStorageImpl extends SQLiteOpenHelper implements SilentRichMediaStorage {
     private static final String TAG = SilentRichMediaStorageImpl.class.getSimpleName();
     private static final String DB_NAME = "silentRichMediaStorage.db";
@@ -50,6 +54,9 @@ public class SilentRichMediaStorageImpl extends SQLiteOpenHelper implements Sile
         db.execSQL(createLocalNotificationTable);
     }
 
+    /**
+     * Stores Rich Media for later display. Replaces any previously stored content.
+     */
     @Override
     public void replaceResource(PushMessage pushMessage) {
         synchronized (mutex) {

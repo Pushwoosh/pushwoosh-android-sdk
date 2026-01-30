@@ -27,7 +27,6 @@
 package com.pushwoosh.repository;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Build;
 
 import com.pushwoosh.internal.Plugin;
@@ -37,6 +36,7 @@ import com.pushwoosh.internal.platform.prefs.PrefsFactory;
 import com.pushwoosh.internal.platform.prefs.PrefsProvider;
 import com.pushwoosh.internal.platform.prefs.migration.MigrationScheme;
 import com.pushwoosh.internal.platform.prefs.migration.PrefsMigration;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.UUIDFactory;
@@ -46,167 +46,160 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class RepositoryModule {
-	private static NotificationPrefs notificationPreferences;
-	private static RegistrationPrefs registrationPreferences;
-	private static LocalNotificationStorage localNotificationStorage;
-	private static RequestStorage requestStorage;
-	private static LockScreenMediaStorage lockScreenMediaStorage;
-	private static PushBundleStorage pushBundleStorage;
-	private static InboxNotificationStorage inboxNotificationStorage;
-	private static SilentRichMediaStorage silentRichMediaStorage;
-	private static SummaryNotificationStorage summaryNotificationStorage;
+    private static NotificationPrefs notificationPreferences;
+    private static RegistrationPrefs registrationPreferences;
+    private static LocalNotificationStorage localNotificationStorage;
+    private static RequestStorage requestStorage;
+    private static LockScreenMediaStorage lockScreenMediaStorage;
+    private static PushBundleStorage pushBundleStorage;
+    private static InboxNotificationStorage inboxNotificationStorage;
+    private static SilentRichMediaStorage silentRichMediaStorage;
+    private static SummaryNotificationStorage summaryNotificationStorage;
 
-	public static void init(Config config, UUIDFactory uuidFactory, DeviceRegistrar deviceRegistrar) {
+    public static void init(Config config, UUIDFactory uuidFactory, DeviceRegistrar deviceRegistrar) {
 
-		migratePrefsIfNeeded(config);
+        migratePrefsIfNeeded(config);
 
-		if (notificationPreferences == null) {
-			notificationPreferences = new NotificationPrefs(config);
-		}
+        if (notificationPreferences == null) {
+            notificationPreferences = new NotificationPrefs(config);
+        }
 
-		if (registrationPreferences == null) {
-			registrationPreferences = new RegistrationPrefs(config, deviceRegistrar);
-		}
+        if (registrationPreferences == null) {
+            registrationPreferences = new RegistrationPrefs(config, deviceRegistrar);
+        }
 
-		if (localNotificationStorage == null) {
-			createLocalNotificationStorage();
-		}
+        if (localNotificationStorage == null) {
+            createLocalNotificationStorage();
+        }
 
-		if (requestStorage == null) {
-			Context context = AndroidPlatformModule.getApplicationContext();
-			requestStorage = new RequestStorage(context, uuidFactory);
-		}
+        if (requestStorage == null) {
+            Context context = AndroidPlatformModule.getApplicationContext();
+            requestStorage = new RequestStorage(context, uuidFactory);
+        }
 
-		if (lockScreenMediaStorage == null) {
-			Context context = AndroidPlatformModule.getApplicationContext();
-			lockScreenMediaStorage = new LockScreenMediaStorageImpl(context);
-		}
+        if (lockScreenMediaStorage == null) {
+            Context context = AndroidPlatformModule.getApplicationContext();
+            lockScreenMediaStorage = new LockScreenMediaStorageImpl(context);
+        }
 
-		if (pushBundleStorage == null) {
-			Context context = AndroidPlatformModule.getApplicationContext();
-			pushBundleStorage = new PushBundleStorageImpl(context);
-		}
+        if (pushBundleStorage == null) {
+            Context context = AndroidPlatformModule.getApplicationContext();
+            pushBundleStorage = new PushBundleStorageImpl(context);
+        }
 
-		if (inboxNotificationStorage == null) {
-			Context context = AndroidPlatformModule.getApplicationContext();
-			inboxNotificationStorage = new InboxNotificationStorageImpl(context);
-		}
+        if (inboxNotificationStorage == null) {
+            Context context = AndroidPlatformModule.getApplicationContext();
+            inboxNotificationStorage = new InboxNotificationStorageImpl(context);
+        }
 
-		if (silentRichMediaStorage == null) {
-			Context context = AndroidPlatformModule.getApplicationContext();
-			silentRichMediaStorage = new SilentRichMediaStorageImpl(context);
-		}
+        if (silentRichMediaStorage == null) {
+            Context context = AndroidPlatformModule.getApplicationContext();
+            silentRichMediaStorage = new SilentRichMediaStorageImpl(context);
+        }
 
-		if (summaryNotificationStorage == null) {
-			Context context = AndroidPlatformModule.getApplicationContext();
-			summaryNotificationStorage = new SummaryNotificationStorageImpl(context);
-			new UpdateSummaryNotificationStorageTask(summaryNotificationStorage).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
-		}
-	}
+        if (summaryNotificationStorage == null) {
+            Context context = AndroidPlatformModule.getApplicationContext();
+            summaryNotificationStorage = new SummaryNotificationStorageImpl(context);
+            BackgroundExecutor.serial(() -> {
+                if (Build.VERSION.SDK_INT >= 23) {
+                    summaryNotificationStorage.update(StatusBarNotificationHelper.getSummaryNotificationsIds());
+                }
+            });
+        }
+    }
 
-	private static void createLocalNotificationStorage() {
-		Context context = AndroidPlatformModule.getApplicationContext();
-		if (context == null) {
-			PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
-			return;
-		}
+    private static void createLocalNotificationStorage() {
+        Context context = AndroidPlatformModule.getApplicationContext();
+        if (context == null) {
+            PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
+            return;
+        }
 
-		DbLocalNotificationHelper dbLocalNotificationHelper = new DbLocalNotificationHelper(context);
-		localNotificationStorage = new LocalNotificationStorage(dbLocalNotificationHelper);
-	}
+        DbLocalNotificationHelper dbLocalNotificationHelper = new DbLocalNotificationHelper(context);
+        localNotificationStorage = new LocalNotificationStorage(dbLocalNotificationHelper);
+    }
 
-	private static void migratePrefsIfNeeded(Config config) {
-		PWLog.noise("Migrate prefs if needed");
-		final PrefsMigration prefsMigration = AndroidPlatformModule.getPrefsMigration();
+    private static void migratePrefsIfNeeded(Config config) {
+        PWLog.noise("Migrate prefs if needed");
+        final PrefsMigration prefsMigration = AndroidPlatformModule.getPrefsMigration();
 
-		if (prefsMigration == null) {
-			return;
-		}
+        if (prefsMigration == null) {
+            return;
+        }
 
-		final PrefsProvider prevPrefsProvider = PrefsFactory.getPrevPrefsProvider();
+        final PrefsProvider prevPrefsProvider = PrefsFactory.getPrevPrefsProvider();
 
-		if (prevPrefsProvider == null) {
-			return;
-		}
+        if (prevPrefsProvider == null) {
+            return;
+        }
 
-		PWLog.noise("Start migration with prevPrefsProvider: " + prevPrefsProvider.getClass().getName());
+        PWLog.noise("Start migration with prevPrefsProvider: "
+                + prevPrefsProvider.getClass().getName());
 
-		Collection<MigrationScheme> migrationSchemes = new ArrayList<>();
-		migrationSchemes.add(RegistrationPrefs.provideMigrationScheme(prevPrefsProvider));
-		migrationSchemes.add(NotificationPrefs.provideMigrationScheme(prevPrefsProvider));
+        Collection<MigrationScheme> migrationSchemes = new ArrayList<>();
+        migrationSchemes.add(RegistrationPrefs.provideMigrationScheme(prevPrefsProvider));
+        migrationSchemes.add(NotificationPrefs.provideMigrationScheme(prevPrefsProvider));
 
-		for (Plugin plugin : config.getPlugins()) {
-			final Collection<? extends MigrationScheme> prefsMigrationSchemes = plugin.getPrefsMigrationSchemes(prevPrefsProvider);
-			if (prefsMigrationSchemes != null) {
-				migrationSchemes.addAll(prefsMigrationSchemes);
-			}
-		}
+        for (Plugin plugin : config.getPlugins()) {
+            final Collection<? extends MigrationScheme> prefsMigrationSchemes =
+                    plugin.getPrefsMigrationSchemes(prevPrefsProvider);
+            if (prefsMigrationSchemes != null) {
+                migrationSchemes.addAll(prefsMigrationSchemes);
+            }
+        }
 
-		prefsMigration.migrate(migrationSchemes);
-	}
+        prefsMigration.migrate(migrationSchemes);
+    }
 
-	public static NotificationPrefs getNotificationPreferences() {
-		return notificationPreferences;
-	}
+    public static NotificationPrefs getNotificationPreferences() {
+        return notificationPreferences;
+    }
 
-	public static void setNotificationPreferences(NotificationPrefs prefs) {
-		notificationPreferences = prefs;
-	}
+    public static void setNotificationPreferences(NotificationPrefs prefs) {
+        notificationPreferences = prefs;
+    }
 
-	public static RegistrationPrefs getRegistrationPreferences() {
-		return registrationPreferences;
-	}
+    public static RegistrationPrefs getRegistrationPreferences() {
+        return registrationPreferences;
+    }
 
-	public static void setRegistrationPreferences(RegistrationPrefs prefs) {
-		registrationPreferences = prefs;
-	}
+    public static void setRegistrationPreferences(RegistrationPrefs prefs) {
+        registrationPreferences = prefs;
+    }
 
-	public static LocalNotificationStorage getLocalNotificationStorage() {
-		return localNotificationStorage;
-	}
+    public static LocalNotificationStorage getLocalNotificationStorage() {
+        return localNotificationStorage;
+    }
 
-	public static void setLocalNotificationStorage(LocalNotificationStorage storage) {
-		localNotificationStorage = storage;
-	}
+    public static void setLocalNotificationStorage(LocalNotificationStorage storage) {
+        localNotificationStorage = storage;
+    }
 
-	public static RequestStorage getRequestStorage() {
-		return requestStorage;
-	}
+    public static RequestStorage getRequestStorage() {
+        return requestStorage;
+    }
 
-	public static void setRequestStorage(RequestStorage storage) {
-		requestStorage = storage;
-	}
+    public static void setRequestStorage(RequestStorage storage) {
+        requestStorage = storage;
+    }
 
-	public static LockScreenMediaStorage getLockScreenMediaStorage() {
-		return lockScreenMediaStorage;
-	}
+    public static LockScreenMediaStorage getLockScreenMediaStorage() {
+        return lockScreenMediaStorage;
+    }
 
-	public static PushBundleStorage getPushBundleStorage() {
-		return pushBundleStorage;
-	}
+    public static PushBundleStorage getPushBundleStorage() {
+        return pushBundleStorage;
+    }
 
-	public static InboxNotificationStorage getInboxNotificationStorage() {
-		return inboxNotificationStorage;
-	}
+    public static InboxNotificationStorage getInboxNotificationStorage() {
+        return inboxNotificationStorage;
+    }
 
-	public static SilentRichMediaStorage getSilentRichMediaStorage() {
-		return silentRichMediaStorage;
-	}
-	public static SummaryNotificationStorage getSummaryNotificationStorage() { return summaryNotificationStorage; }
+    public static SilentRichMediaStorage getSilentRichMediaStorage() {
+        return silentRichMediaStorage;
+    }
 
-	private static class UpdateSummaryNotificationStorageTask extends AsyncTask<Void, Void, Void>{
-		SummaryNotificationStorage summaryNotificationStorage;
-
-		public UpdateSummaryNotificationStorageTask(SummaryNotificationStorage summaryNotificationStorage) {
-			this.summaryNotificationStorage = summaryNotificationStorage;
-		}
-
-		@Override
-		protected Void doInBackground(Void... voids) {
-			if (Build.VERSION.SDK_INT >= 23) {
-				summaryNotificationStorage.update(StatusBarNotificationHelper.getSummaryNotificationsIds());
-			}
-			return null;
-		}
-	}
+    public static SummaryNotificationStorage getSummaryNotificationStorage() {
+        return summaryNotificationStorage;
+    }
 }

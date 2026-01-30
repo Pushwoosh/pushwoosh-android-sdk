@@ -29,27 +29,28 @@ package com.pushwoosh.richmedia;
 import com.pushwoosh.exception.PushwooshException;
 
 /**
- * Interface for Rich Media presentation managing.
+ * Delegate for customizing Rich Media presentation lifecycle.
+ * Set via RichMediaController.setDelegate().
  */
 public interface RichMediaPresentingDelegate {
 
     /**
-     * Checks the delegate whether the Rich Media should be displayed.
+     * Called before display. Return false to cancel, then call present() manually when ready.
      */
     boolean shouldPresent(RichMedia richMedia);
 
     /**
-     * Tells the delegate that Rich Media has been displayed.
+     * Called when content is displayed to user.
      */
     void onPresent(RichMedia richMedia);
 
     /**
-     * Tells the delegate that error during Rich Media presenting has been occured.
+     * Called on display error.
      */
     void onError(RichMedia richMedia, PushwooshException pushwooshException);
 
     /**
-     * Tells the delegate that Rich Media has been closed.
+     * Called when content is closed by user.
      */
     void onClose(RichMedia richMedia);
 }
