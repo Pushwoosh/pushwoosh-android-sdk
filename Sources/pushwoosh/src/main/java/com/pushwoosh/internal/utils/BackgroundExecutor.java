@@ -37,7 +37,7 @@ public final class BackgroundExecutor {
      * Execute task on serial executor.
      * Tasks run sequentially in FIFO order.
      */
-    public static void serial(Runnable task) {
+    public static void execute(Runnable task) {
         SERIAL.execute(wrapWithErrorHandling(task));
     }
 
@@ -45,7 +45,7 @@ public final class BackgroundExecutor {
      * Execute task on parallel executor.
      * Tasks run concurrently on cached thread pool.
      */
-    public static void parallel(Runnable task) {
+    public static void executeOnPool(Runnable task) {
         PARALLEL.execute(wrapWithErrorHandling(task));
     }
 

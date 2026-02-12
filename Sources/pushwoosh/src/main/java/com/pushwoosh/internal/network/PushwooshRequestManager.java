@@ -165,6 +165,7 @@ class PushwooshRequestManager implements RequestManager {
     }
 
     private void saveBaseUrl(String url) {
+        PWLog.info(TAG, String.format("Set base url: %s", url));
         baseRequestUrl = url;
         registrationPrefs.baseUrl().set(url);
     }
@@ -212,8 +213,7 @@ class PushwooshRequestManager implements RequestManager {
             }
             throw e;
         } catch (Exception e) {
-            // Don't reset on connection errors (server unavailable, timeout, etc.)
-            PWLog.warn(TAG, "Request failed: " + e.getMessage() + ", keeping current base URL");
+            PWLog.error(TAG, "Request failed: " + e.getMessage(), e);
             throw e;
         }
     }

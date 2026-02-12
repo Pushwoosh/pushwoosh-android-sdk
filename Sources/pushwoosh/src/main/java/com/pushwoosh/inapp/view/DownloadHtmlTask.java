@@ -1,6 +1,5 @@
 package com.pushwoosh.inapp.view;
 
-import android.os.AsyncTask;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.function.Result;
@@ -13,9 +12,10 @@ import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.platform.utils.DeviceUtils;
-import com.pushwoosh.internal.platform.utils.GeneralUtils;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.JsonUtils;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
 import org.json.JSONException;
@@ -23,41 +23,63 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
-
-public class DownloadHtmlTask extends AsyncTask<Void, Void, Result<HtmlData, ResourceParseException>> {
+public class DownloadHtmlTask {
     private final Resource inApp;
     private final DownloadListener downloadListener;
-    private final InAppRepository inAppRepository = InAppModule.getInAppRepository();
+    private final InAppRepository inAppRepository;
+    private final NotificationPrefs notificationPrefs;
+    private volatile boolean cancelled = false;
 
-    public interface DownloadListener{
-       void startLoading();
+    public interface DownloadListener {
+        void startLoading();
 
-       void sendResult(Result<HtmlData, ResourceParseException> result);
+        void sendResult(Result<HtmlData, ResourceParseException> result);
     }
 
     public DownloadHtmlTask(Resource inApp, DownloadListener downloadListener) {
         this.inApp = inApp;
         this.downloadListener = downloadListener;
+        this.inAppRepository = InAppModule.getInAppRepository();
+        this.notificationPrefs = RepositoryModule.getNotificationPreferences();
     }
 
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
+    public void cancel(boolean mayInterruptIfRunning) {
+        cancelled = true;
+    }
+
+    public void execute() {
+        PWLog.noise("DownloadHtmlTask", "execute()");
         downloadListener.startLoading();
-    }
 
-    @Override
-    protected Result<HtmlData, ResourceParseException> doInBackground(Void... params) {
-        JSONObject tags = RepositoryModule.getNotificationPreferences().tags().get();
-        try {
-            Map<String, Object> rawTags = JsonUtils.jsonToMap(tags);
-            addMissingTags(rawTags);
-            inApp.setTags(rawTags);
-        } catch (JSONException e) {
-            PWLog.error("Failed parse tags", e);
-        }
+        BackgroundExecutor.executeOnPool(() -> {
+            JSONObject tags = notificationPrefs.tags().get();
+            try {
+                Map<String, Object> rawTags = JsonUtils.jsonToMap(tags);
+                addMissingTags(rawTags);
+                inApp.setTags(rawTags);
+            } catch (JSONException e) {
+                PWLog.error("DownloadHtmlTask", "Failed parse tags", e);
+            }
 
-        return inAppRepository.mapToHtmlData(inApp);
+            Result<HtmlData, ResourceParseException> result;
+            if (inAppRepository != null) {
+                result = inAppRepository.mapToHtmlData(inApp);
+            } else {
+                result = Result.fromException(new ResourceParseException("InAppRepository is not initialized"));
+            }
+
+            if (!cancelled) {
+                BackgroundExecutor.main(() -> {
+                    if (cancelled) {
+                        return;
+                    }
+                    if (!result.isSuccess()) {
+                        EventBus.sendEvent(new RichMediaErrorEvent(inApp, result.getException()));
+                    }
+                    downloadListener.sendResult(result);
+                });
+            }
+        });
     }
 
     /**
@@ -68,22 +90,13 @@ public class DownloadHtmlTask extends AsyncTask<Void, Void, Result<HtmlData, Res
             return;
         }
 
-        if (RepositoryModule.getNotificationPreferences().isCollectingDeviceOsVersionAllowed().get()) {
+        if (notificationPrefs.isCollectingDeviceOsVersionAllowed().get()) {
             tags.put("OS Version", android.os.Build.VERSION.RELEASE);
         }
-        if (RepositoryModule.getNotificationPreferences().isCollectingDeviceModelAllowed().get()) {
+        if (notificationPrefs.isCollectingDeviceModelAllowed().get()) {
             tags.put("Device Model", DeviceUtils.getDeviceName());
         }
 
         InAppTagFormatModifier.convertGeoTags(tags);
-    }
-
-    @Override
-    protected void onPostExecute(Result<HtmlData, ResourceParseException> result) {
-        super.onPostExecute(result);
-        if (!result.isSuccess()) {
-            EventBus.sendEvent(new RichMediaErrorEvent(inApp, result.getException()));
-        }
-        downloadListener.sendResult(result);
     }
 }

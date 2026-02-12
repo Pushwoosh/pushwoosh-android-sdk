@@ -3,13 +3,9 @@ package com.pushwoosh.notification;
 import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.exception.NotificationIdNotFoundException;
@@ -22,7 +18,6 @@ import com.pushwoosh.repository.RepositoryModule;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class NotificationIntentHelper {
 
@@ -34,16 +29,22 @@ public class NotificationIntentHelper {
     public static final String EXTRA_PUSHWOOSH_NOTIFICATION_ID = "pushwoosh_notification_id";
     public static final int SUMMARY_GROUP_ID = 20191017;
 
-    public static void processIntent(Context context, Intent intent) {
+    public static void processIntent(Context context, Intent intent, Runnable onComplete) {
         if (intent == null) {
+            onComplete.run();
             return;
         }
         if (intent.getBooleanExtra(EXTRA_IS_DELETE_INTENT, false)) {
+            PWLog.debug("NotificationIntentHelper", "processIntent: delete intent");
             handleDeleteIntent(intent);
+            onComplete.run();
         } else if (intent.getBooleanExtra(EXTRA_IS_SUMMARY_NOTIFICATION, false)) {
-            handleNotificationGroup(intent);
+            PWLog.debug("NotificationIntentHelper", "processIntent: summary notification click");
+            handleNotificationGroup(intent, onComplete);
         } else {
+            PWLog.debug("NotificationIntentHelper", "processIntent: single notification click");
             handleNotification(intent);
+            onComplete.run();
         }
     }
 
@@ -57,7 +58,7 @@ public class NotificationIntentHelper {
             PWLog.exception(e);
         }
         if (intent.getBooleanExtra(EXTRA_IS_SUMMARY_NOTIFICATION, false)) {
-            BackgroundExecutor.serial(
+            BackgroundExecutor.execute(
                     () -> RepositoryModule.getPushBundleStorage().removeGroupPushBundles());
             return;
         }
@@ -65,7 +66,9 @@ public class NotificationIntentHelper {
         if (rowId > 0) {
             int summaryNotificationId = intent.getIntExtra(EXTRA_GROUP_ID, 0);
             removeGroupPushBundle(rowId);
-            updateSummaryNotification(summaryNotificationId);
+            if (summaryNotificationId > 0) {
+                updateSummaryNotification(summaryNotificationId);
+            }
         }
     }
 
@@ -82,24 +85,52 @@ public class NotificationIntentHelper {
         long rowId = intent.getLongExtra(EXTRA_NOTIFICATION_ROW_ID, 0);
         if (rowId != 0) {
             removeGroupPushBundle(rowId);
-            ;
         }
 
         int summaryNotificationId = intent.getIntExtra(EXTRA_GROUP_ID, 0);
-        if (summaryNotificationId != 0) {
+        if (summaryNotificationId > 0) {
             updateSummaryNotification(summaryNotificationId);
         }
     }
 
-    private static void handleNotificationGroup(Intent intent) {
+    private static void handleNotificationGroup(Intent intent, Runnable onComplete) {
         int summaryNotificationId = intent.getIntExtra(EXTRA_GROUP_ID, 0);
-        if (summaryNotificationId != 0) {
-            new GetGroupPushMessagesTask(
-                            pushMessages -> onGetGroupPushMessagesSuccess(pushMessages),
-                            () -> onGetGroupPushMessagesFail(intent),
-                            summaryNotificationId)
-                    .executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+        if (summaryNotificationId == 0 || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            onComplete.run();
+            return;
         }
+
+        BackgroundExecutor.execute(() -> {
+            try {
+                String groupId = getSummaryNotificationGroupForId(summaryNotificationId);
+                if (groupId == null) {
+                    PWLog.warn("NotificationIntentHelper", "Group ID not found for summary notification: " + summaryNotificationId);
+                    BackgroundExecutor.main(() -> {
+                        onGetGroupPushMessagesFail(intent);
+                        onComplete.run();
+                    });
+                    return;
+                }
+
+                List<PushMessage> messages = getGroupPushMessages(groupId);
+                NotificationBuilderManager.cancelLastStatusBarNotificationForGroup(groupId);
+
+                BackgroundExecutor.main(() -> {
+                    if (!messages.isEmpty()) {
+                        onGetGroupPushMessagesSuccess(messages);
+                    } else {
+                        onGetGroupPushMessagesFail(intent);
+                    }
+                    onComplete.run();
+                });
+            } catch (Throwable t) {
+                PWLog.exception(t);
+                BackgroundExecutor.main(() -> {
+                    onGetGroupPushMessagesFail(intent);
+                    onComplete.run();
+                });
+            }
+        });
     }
 
     private static void onGetGroupPushMessagesSuccess(List<PushMessage> pushMessages) {
@@ -117,7 +148,7 @@ public class NotificationIntentHelper {
     }
 
     private static void removeGroupPushBundle(long rowId) {
-        BackgroundExecutor.serial(() -> {
+        BackgroundExecutor.execute(() -> {
             Context context = AndroidPlatformModule.getApplicationContext();
             if (context == null) {
                 PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
@@ -127,68 +158,23 @@ public class NotificationIntentHelper {
         });
     }
 
-    private static class GetGroupPushMessagesTask extends AsyncTask<Void, Void, List<PushMessage>> {
-        private final GetGroupPushMessagesSuccessCallback successCallback;
-        private final GetGroupPushMessagesFailureCallback failureCallback;
-        private final int summaryNotificationId;
-
-        public GetGroupPushMessagesTask(
-                @NonNull GetGroupPushMessagesSuccessCallback successCallback,
-                @NonNull GetGroupPushMessagesFailureCallback failureCallback,
-                int summaryNotificationId) {
-            this.successCallback = successCallback;
-            this.failureCallback = failureCallback;
-            this.summaryNotificationId = summaryNotificationId;
+    private static List<PushMessage> getGroupPushMessages(String groupId) {
+        List<Bundle> pushBundles = RepositoryModule.getPushBundleStorage().getGroupPushBundles();
+        if (pushBundles == null || pushBundles.isEmpty()) {
+            return Collections.emptyList();
         }
-
-        @RequiresApi(api = Build.VERSION_CODES.M)
-        @Override
-        protected List<PushMessage> doInBackground(Void... voids) {
-            try {
-                List<PushMessage> pushMessages = getPushMessages();
-                String groupId = getSummaryNotificationGroupForId(summaryNotificationId);
-                List<PushMessage> pushMessagesForGroup = null;
-                // summary notification is generated only for Android N and higher, so it's safe to use streams
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                    pushMessagesForGroup = pushMessages.stream()
-                            .filter(pushMessage -> groupId.equals(pushMessage.getGroupId()))
-                            .collect(Collectors.toList());
-                }
-
-                NotificationBuilderManager.cancelLastStatusBarNotificationForGroup(groupId);
-
-                return pushMessagesForGroup;
-            } catch (Exception e) {
-                return null;
+        List<PushMessage> messages = new ArrayList<>();
+        for (Bundle pushBundle : pushBundles) {
+            PushMessage pushMessage = new PushMessage(pushBundle);
+            if (groupId.equals(pushMessage.getGroupId())) {
+                messages.add(pushMessage);
             }
         }
-
-        @Override
-        protected void onPostExecute(List<PushMessage> pushMessages) {
-            super.onPostExecute(pushMessages);
-            if (pushMessages != null && !pushMessages.isEmpty()) {
-                successCallback.onSuccess(pushMessages);
-            } else {
-                failureCallback.onFail();
-            }
-        }
-
-        private List<PushMessage> getPushMessages() {
-            List<Bundle> pushBundles = RepositoryModule.getPushBundleStorage().getGroupPushBundles();
-            if (pushBundles == null || pushBundles.isEmpty()) {
-                return Collections.emptyList();
-            }
-            List<PushMessage> pushMessagesList = new ArrayList<>();
-            for (Bundle pushBundle : pushBundles) {
-                PushMessage pushMessage = new PushMessage(pushBundle);
-                pushMessagesList.add(new PushMessage(pushBundle));
-            }
-            return pushMessagesList;
-        }
+        return messages;
     }
 
     private static void updateSummaryNotification(int notificationId) {
-        BackgroundExecutor.serial(() -> {
+        BackgroundExecutor.execute(() -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 String groupId = getSummaryNotificationGroupForId(notificationId);
                 if (groupId == null) {
@@ -226,11 +212,4 @@ public class NotificationIntentHelper {
         }
     }
 
-    private interface GetGroupPushMessagesSuccessCallback {
-        void onSuccess(List<PushMessage> pushMessages);
-    }
-
-    private interface GetGroupPushMessagesFailureCallback {
-        void onFail();
-    }
 }

@@ -511,7 +511,7 @@ public class InboxRepository {
         }
 
         public void execute() {
-            BackgroundExecutor.serial(() -> {
+            BackgroundExecutor.execute(() -> {
                 InboxRepository inboxRepository = inboxRepositoryReference.get();
                 if (inboxRepository == null) {
                     return;
@@ -549,7 +549,7 @@ public class InboxRepository {
         }
 
         public void execute() {
-            BackgroundExecutor.parallel(() -> {
+            BackgroundExecutor.executeOnPool(() -> {
                 InboxRepository inboxRepository = inboxRepositoryReference.get();
                 if (inboxRepository == null) {
                     return;
@@ -578,7 +578,7 @@ public class InboxRepository {
         }
 
         public void execute() {
-            BackgroundExecutor.parallel(() -> {
+            BackgroundExecutor.executeOnPool(() -> {
                 InboxRepository inboxRepository = inboxRepositoryReference.get();
                 if (inboxRepository == null) {
                     return;

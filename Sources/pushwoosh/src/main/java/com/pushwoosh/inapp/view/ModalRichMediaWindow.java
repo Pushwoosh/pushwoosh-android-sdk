@@ -7,7 +7,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -46,7 +45,8 @@ import com.pushwoosh.richmedia.RichMediaManager;
 
 import java.lang.ref.WeakReference;
 
-public class ModalRichMediaWindow extends PopupWindow implements InAppView, DownloadHtmlTask.DownloadListener, OnRichMediaListener {
+public class ModalRichMediaWindow extends PopupWindow
+        implements InAppView, DownloadHtmlTask.DownloadListener, OnRichMediaListener {
     private final String TAG = "[InApp] ModalRichMediaWindow";
     private static final long DEFAULT_ANIMATION_DURATION_MS = 1000L;
     private int mode;
@@ -56,13 +56,11 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
     private int topInset = 0;
     private int bottomInset = 0;
 
-
     private HtmlData htmlData;
-    private AsyncTask<Void, Void, Result<HtmlData, ResourceParseException>> downloadHtmlDataTask;
+    private DownloadHtmlTask downloadHtmlDataTask;
     private WeakReference<OnRichMediaListener> onRichMediaListener = new WeakReference<>(null);
 
-    @Nullable
-    private ResourceWebView resourceWebView;
+    @Nullable private ResourceWebView resourceWebView;
 
     @SuppressLint("ClickableViewAccessibility")
     public ModalRichMediaWindow(Context context, Resource resource) {
@@ -85,11 +83,11 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
         this.setFocusable(true);
         this.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         this.setInputMethodMode(PopupWindow.INPUT_METHOD_NEEDED);
-        this.setOnDismissListener(()-> {
+        this.setOnDismissListener(() -> {
             EventBus.sendEvent(new RichMediaCloseEvent(resource));
         });
 
-        //set vertical insets depending on gravity
+        // set vertical insets depending on gravity
         if (config.getViewPosition() == ModalRichMediaViewPosition.TOP) {
             topInset = ModalRichMediaWindowUtils.getSystemWindowInsetTop();
         }
@@ -97,8 +95,7 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
             bottomInset = ModalRichMediaWindowUtils.getSystemWindowInsetBottom(config);
         }
 
-
-        //Dragging and swiping
+        // Dragging and swiping
         this.setClippingEnabled(false);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             this.setTouchModal(false);
@@ -114,7 +111,8 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
                         startX = motionEvent.getRawX();
                         startY = motionEvent.getRawY();
 
-                        if (!ModalRichMediaWindowUtils.isTouchInsidePopupWindow(ModalRichMediaWindow.this, motionEvent)) {
+                        if (!ModalRichMediaWindowUtils.isTouchInsidePopupWindow(
+                                ModalRichMediaWindow.this, motionEvent)) {
                             return true;
                         }
                         break;
@@ -122,20 +120,21 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
                     case MotionEvent.ACTION_MOVE: {
                         float dx = motionEvent.getRawX() - startX;
                         float dy = motionEvent.getRawY() - startY;
-                        ModalRichMediaWindowUtils.movePopupOnDragEvent(ModalRichMediaWindow.this, (int) dx, (int) dy, config);
+                        ModalRichMediaWindowUtils.movePopupOnDragEvent(
+                                ModalRichMediaWindow.this, (int) dx, (int) dy, config);
                         break;
                     }
                     case MotionEvent.ACTION_UP: {
                         float endX = motionEvent.getRawX();
                         float endY = motionEvent.getRawY();
-                        if (!ModalRichMediaWindowUtils.dismissOnSwipeThreshold(ModalRichMediaWindow.this, endX-startX, endY - startY, config)) {
-                            ModalRichMediaWindowUtils.movePopupOnDragEvent(ModalRichMediaWindow.this, 0,0, config);
+                        if (!ModalRichMediaWindowUtils.dismissOnSwipeThreshold(
+                                ModalRichMediaWindow.this, endX - startX, endY - startY, config)) {
+                            ModalRichMediaWindowUtils.movePopupOnDragEvent(ModalRichMediaWindow.this, 0, 0, config);
                         }
                         break;
                     }
                 }
                 return false;
-
             }
         });
 
@@ -150,25 +149,25 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
         resourceWebView.setWebViewClient(new WebClient(this, resource));
         downloadHtmlData(resource);
         setContentView(resourceWebView);
-
     }
 
     private ModalRichmediaConfig loadEffectiveConfig(Context context, Resource resource) {
         PWLog.noise(TAG, "loadEffectiveConfig for resource: " + resource.getCode());
-        
+
         try {
             ContextInAppFolderProvider folderProvider = new ContextInAppFolderProvider(context);
             InAppConfig inAppConfig = new InAppConfig(folderProvider);
             ModalRichmediaConfig resourceConfig = inAppConfig.parseModalConfig(resource.getCode());
-            
+
             if (resourceConfig != null) {
                 resource.setResourceModalConfig(resourceConfig);
                 return ModalConfigResolver.getEffectiveConfig(resource);
             } else {
-                PWLog.debug(TAG, "No resource-specific config found for " + resource.getCode() + ", using global config");
+                PWLog.debug(
+                        TAG, "No resource-specific config found for " + resource.getCode() + ", using global config");
                 return RichMediaManager.getDefaultRichMediaConfig();
             }
-            
+
         } catch (Exception e) {
             PWLog.error(TAG, "Failed to load config for " + resource.getCode() + ": " + e.getMessage(), e);
             return RichMediaManager.getDefaultRichMediaConfig();
@@ -181,25 +180,30 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
     public static void showModalRichMediaWindow(Resource resource) {
         PWLog.noise("[InApp] ModalRichMediaWindow", "showModalRichMediaWindow for resource: " + resource.getCode());
         Handler handler = new Handler(Looper.getMainLooper());
-        //if we have an instance of top activity we create popupwindow, otherwise we subscribe for event until there is one
-        //postDelayed has 1000ms delay to ensure activity is instantiated and has non-null WindowToken
-        handler.postDelayed(()->{
-            if (PushwooshPlatform.getInstance().getTopActivity() == null) {
-                EventBus.subscribe(ActivityBroughtOnTopEvent.class, new EventListener<ActivityBroughtOnTopEvent>() {
-                    @Override
-                    public void onReceive(ActivityBroughtOnTopEvent event) {
-                        //this event can be called multiple times before handler.postDelayed finishes, so we only count first event
-                        if (event.count.get() <= 1) {
-                            createPopupWindow(resource);
-                        }
-                        EventBus.unsubscribe(ActivityBroughtOnTopEvent.class, this);
-                        ActivityBroughtOnTopEvent.resetCount();
+        // if we have an instance of top activity we create popupwindow, otherwise we subscribe for event until there is
+        // one
+        // postDelayed has 1000ms delay to ensure activity is instantiated and has non-null WindowToken
+        handler.postDelayed(
+                () -> {
+                    if (PushwooshPlatform.getInstance().getTopActivity() == null) {
+                        EventBus.subscribe(
+                                ActivityBroughtOnTopEvent.class, new EventListener<ActivityBroughtOnTopEvent>() {
+                                    @Override
+                                    public void onReceive(ActivityBroughtOnTopEvent event) {
+                                        // this event can be called multiple times before handler.postDelayed finishes,
+                                        // so we only count first event
+                                        if (event.count.get() <= 1) {
+                                            createPopupWindow(resource);
+                                        }
+                                        EventBus.unsubscribe(ActivityBroughtOnTopEvent.class, this);
+                                        ActivityBroughtOnTopEvent.resetCount();
+                                    }
+                                });
+                    } else {
+                        createPopupWindow(resource);
                     }
-                });
-            } else {
-                createPopupWindow(resource);
-            }
-        }, 1000);
+                },
+                1000);
     }
 
     private static void createPopupWindow(Resource resource) {
@@ -209,7 +213,9 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
             ModalRichMediaWindowUtils.getParentViewAsync(view -> {
                 Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
                 if (topActivity == null || view.getWindowToken() == null) {
-                    PWLog.error("[InApp] ModalRichMediaWindow", "createPopupWindow failed: topActivity or windowToken is null");
+                    PWLog.error(
+                            "[InApp] ModalRichMediaWindow",
+                            "createPopupWindow failed: topActivity or windowToken is null");
                     return;
                 }
                 ModalRichMediaWindow popupWindow = new ModalRichMediaWindow(topActivity, resource);
@@ -218,10 +224,12 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
             Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
             View parentView = ModalRichMediaWindowUtils.getParentView();
             if (topActivity == null || parentView == null || parentView.getWindowToken() == null) {
-                PWLog.error("[InApp] ModalRichMediaWindow", "createPopupWindow failed: topActivity, parentView or windowToken is null");
+                PWLog.error(
+                        "[InApp] ModalRichMediaWindow",
+                        "createPopupWindow failed: topActivity, parentView or windowToken is null");
                 return;
             }
-            //window itself will be shown later when resource web view is loaded
+            // window itself will be shown later when resource web view is loaded
             ModalRichMediaWindow popupWindow = new ModalRichMediaWindow(topActivity, resource);
         }
     }
@@ -231,7 +239,7 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
         downloadHtmlDataTask.execute();
     }
 
-    //InAppView override methods
+    // InAppView override methods
     @Override
     public void close() {
         if (resourceWebView != null) {
@@ -242,9 +250,7 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
                 animator.setDuration(duration != null ? duration.longValue() : DEFAULT_ANIMATION_DURATION_MS);
                 animator.addListener(new Animator.AnimatorListener() {
                     @Override
-                    public void onAnimationStart(@NonNull Animator animator) {
-
-                    }
+                    public void onAnimationStart(@NonNull Animator animator) {}
 
                     @Override
                     public void onAnimationEnd(@NonNull Animator animator) {
@@ -252,14 +258,10 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
                     }
 
                     @Override
-                    public void onAnimationCancel(@NonNull Animator animator) {
-
-                    }
+                    public void onAnimationCancel(@NonNull Animator animator) {}
 
                     @Override
-                    public void onAnimationRepeat(@NonNull Animator animator) {
-
-                    }
+                    public void onAnimationRepeat(@NonNull Animator animator) {}
                 });
                 animator.start();
             }
@@ -271,7 +273,7 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
     }
 
     @Override
-        public void onPageLoaded() {
+    public void onPageLoaded() {
         if (resourceWebView != null) {
             resourceWebView.hideProgress();
 
@@ -286,7 +288,8 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
                     });
                 } else {
                     if (ModalRichMediaWindowUtils.getParentView() != null) {
-                        showAtLocationOrSubscribeToActivityBroughtOnTop(ModalRichMediaWindowUtils.getParentView(), gravity, xCoordinate, yCoordinate);
+                        showAtLocationOrSubscribeToActivityBroughtOnTop(
+                                ModalRichMediaWindowUtils.getParentView(), gravity, xCoordinate, yCoordinate);
                     }
                 }
 
@@ -302,11 +305,15 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
         }
     }
 
-    private void showAtLocationOrSubscribeToActivityBroughtOnTop(View parentView, int gravity, int xCoordinate, int yCoordinate) {
+    private void showAtLocationOrSubscribeToActivityBroughtOnTop(
+            View parentView, int gravity, int xCoordinate, int yCoordinate) {
         if (PushwooshPlatform.getInstance().getTopActivity() != null) {
             this.showAtLocation(parentView, gravity, xCoordinate, yCoordinate);
-            PWLog.info(TAG, String.format("Rich media displayed to user: %s, position: %s",
-                    resource.getCode(), config.getViewPosition()));
+            PWLog.info(
+                    TAG,
+                    String.format(
+                            "Rich media displayed to user: %s, position: %s",
+                            resource.getCode(), config.getViewPosition()));
         } else {
             EventBus.subscribe(ActivityBroughtOnTopEvent.class, new EventListener<ActivityBroughtOnTopEvent>() {
                 @Override
@@ -320,12 +327,13 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
 
     @Override
     public int getMode() {
-            return mode;
+        return mode;
     }
 
-    //DownloadHtmlTask.DownloadListener override methods
+    // DownloadHtmlTask.DownloadListener override methods
     @Override
-    public void startLoading() { final com.pushwoosh.inapp.view.OnRichMediaListener onRichMediaListener = this.onRichMediaListener.get();
+    public void startLoading() {
+        final com.pushwoosh.inapp.view.OnRichMediaListener onRichMediaListener = this.onRichMediaListener.get();
         if (onRichMediaListener != null) {
             onRichMediaListener.startLoadingRichMedia();
         }
@@ -382,7 +390,8 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
             baseUrl += "/";
         }
 
-        resourceWebView.loadDataWithBaseURL(baseUrl, htmlContentWithPushwooshInterface(htmlContent), "text/html", "UTF-8", null);
+        resourceWebView.loadDataWithBaseURL(
+                baseUrl, htmlContentWithPushwooshInterface(htmlContent), "text/html", "UTF-8", null);
         return true;
     }
 
@@ -404,8 +413,10 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
     }
 
     private String htmlContentWithPushwooshInterface(String content) {
-        String messageHash = RepositoryModule.getNotificationPreferences().messageHash().get();
-        String jsInterface = String.format(PushwooshJSInterface.PUSHWOOSH_JS,
+        String messageHash =
+                RepositoryModule.getNotificationPreferences().messageHash().get();
+        String jsInterface = String.format(
+                PushwooshJSInterface.PUSHWOOSH_JS,
                 Pushwoosh.getInstance().getHwid(),
                 GeneralUtils.SDK_VERSION,
                 Pushwoosh.getInstance().getApplicationCode(),
@@ -413,8 +424,7 @@ public class ModalRichMediaWindow extends PopupWindow implements InAppView, Down
                 !resource.isInApp() ? resource.getCode().substring(2) : "",
                 DeviceSpecificProvider.getInstance().deviceType(),
                 messageHash != null ? messageHash : "",
-                resource.isInApp() ? resource.getCode() : ""
-        );
+                resource.isInApp() ? resource.getCode() : "");
         return content.replace("<head>", "<head>\n<script type=\"text/javascript\">" + jsInterface + "</script>");
     }
 }

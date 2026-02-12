@@ -67,7 +67,7 @@ public class LockScreenReceiver extends BroadcastReceiver {
 
     private static class ShowCachedResourceWrappersTask {
         public void execute() {
-            BackgroundExecutor.parallel(() -> {
+            BackgroundExecutor.executeOnPool(() -> {
                 List<ResourceWrapper> resources =
                         RepositoryModule.getLockScreenMediaStorage().getCachedResourcesList();
                 if (resources == null || resources.isEmpty()) {
@@ -96,7 +96,7 @@ public class LockScreenReceiver extends BroadcastReceiver {
         }
 
         public void execute() {
-            BackgroundExecutor.parallel(() -> {
+            BackgroundExecutor.executeOnPool(() -> {
                 List<Uri> uris = RepositoryModule.getLockScreenMediaStorage().getCachedRemoteUrls();
 
                 if (callback != null) {
@@ -108,7 +108,7 @@ public class LockScreenReceiver extends BroadcastReceiver {
 
     private static class ClearRemoteUrlsTask {
         public void execute() {
-            BackgroundExecutor.parallel(() -> {
+            BackgroundExecutor.executeOnPool(() -> {
                 RepositoryModule.getLockScreenMediaStorage().clearRemoteUrls();
             });
         }

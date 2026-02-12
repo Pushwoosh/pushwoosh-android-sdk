@@ -26,6 +26,8 @@
 
 package com.pushwoosh.inapp.view.strategy.model;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -92,7 +94,7 @@ public class ResourceWrapper {
 		}
 
 		public Builder setRichMedia(String richMedia) {
-			if (richMedia == null) {
+			if (TextUtils.isEmpty(richMedia)) {
 				return this;
 			}
 

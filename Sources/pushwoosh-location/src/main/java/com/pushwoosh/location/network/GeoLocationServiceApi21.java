@@ -28,7 +28,7 @@ package com.pushwoosh.location.network;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;
-import android.os.AsyncTask;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import android.os.Build;
 import android.os.PersistableBundle;
 import androidx.annotation.RequiresApi;
@@ -53,7 +53,7 @@ public class GeoLocationServiceApi21 extends JobService {
 	private static final int GET_NEAREST_TYPE = 0;
 	private static final int DISABLE_LOCATION_TYPE = 1;
 
-	private AsyncTask<Void, Void, Void> jobTask;
+	private JobExecutor jobTask;
 
 	public static PersistableBundle createGetNearestExtras(boolean forceUpdate) {
 		PersistableBundle persistableBundle = new PersistableBundle();
@@ -117,7 +117,7 @@ public class GeoLocationServiceApi21 extends JobService {
 	}
 
 
-	private static class JobExecutor extends AsyncTask<Void, Void, Void> {
+	private static class JobExecutor {
 		private final int type;
 		private final WeakReference<GetNearestZoneJobApplier> jobApplayer;
 		private final WeakReference<JobFinished> jobFinished;
@@ -130,11 +130,10 @@ public class GeoLocationServiceApi21 extends JobService {
 			this.forceUpdate = forceUpdate;
 		}
 
-		@Override
-		protected Void doInBackground(Void... voids) {
+		private void doInBackground() {
 			GetNearestZoneJobApplier applier = jobApplayer.get();
 			if (applier == null) {
-				return null;
+				return;
 			}
 			switch (type) {
 				case GET_NEAREST_TYPE:
@@ -144,17 +143,24 @@ public class GeoLocationServiceApi21 extends JobService {
 					applier.locationDisable();
 					break;
 			}
-
-			return null;
 		}
 
-		@Override
-		protected void onPostExecute(Void aVoid) {
-			super.onPostExecute(aVoid);
+		private void onPostExecute() {
 			JobFinished jobFinished = this.jobFinished.get();
 			if (jobFinished != null) {
 				jobFinished.taskFinish();
 			}
+		}
+
+		void execute() {
+			BackgroundExecutor.execute(() -> {
+				doInBackground();
+				BackgroundExecutor.main(this::onPostExecute);
+			});
+		}
+
+		void cancel(boolean mayInterruptIfRunning) {
+			// no-op: jobApplayer.cancel() handles cancellation
 		}
 	}
 

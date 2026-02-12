@@ -72,10 +72,18 @@ public class ResourceViewStrategyFactory {
 	 * Selects strategy and triggers display.
 	 */
 	public void showResource(ResourceWrapper resourceWrapper) {
+		if (resourceWrapper == null) {
+			PWLog.warn(TAG, "resourceWrapper is null, aborting show");
+			return;
+		}
+
+		if (resourceWrapper.getResource() == null) {
+			PWLog.warn(TAG, "resource is null, aborting show");
+			return;
+		}
+
 		try {
-			String resourceCode = resourceWrapper.getResource() != null
-					? resourceWrapper.getResource().getCode()
-					: "unknown";
+			String resourceCode = resourceWrapper.getResource().getCode();
 			PWLog.noise(TAG, String.format("Starting to showResource, code: %s, type: %s",
 					resourceCode, resourceWrapper.getResourceType()));
 

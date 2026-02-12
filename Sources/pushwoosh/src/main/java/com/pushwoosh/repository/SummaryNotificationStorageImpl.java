@@ -16,7 +16,7 @@ import com.pushwoosh.internal.utils.PWLog;
 import java.util.List;
 
 public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements SummaryNotificationStorage {
-    private static final String TAG = SummaryNotificationStorage.class.getSimpleName();
+    private static final String TAG = "SummaryNotificationStorage";
     private static final String DB_NAME = "SummaryNotificationIds.db";
     private static final int VERSION = 1;
 
@@ -140,7 +140,7 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
                                 db.setTransactionSuccessful();
                                 return getStatusBarId(cursor);
                             } else {
-                                PWLog.error("Can't get StatusBarNotification with group id: " + groupId);
+                                PWLog.noise(TAG, "Can't get StatusBarNotification with group id: " + groupId);
                                 throw new GroupIdNotFoundException("Can't get StatusBarNotification with group id: " + groupId);
                             }
                         }
@@ -153,7 +153,7 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
             } catch (GroupIdNotFoundException e) {
                 throw e;
             } catch (Exception e) {
-                PWLog.error("Can't get StatusBarNotification with group id: " + groupId, e);
+                PWLog.error(TAG,"Can't get StatusBarNotification with group id: " + groupId, e);
                 throw new GroupIdNotFoundException("Can't get StatusBarNotification with group id: " + groupId);
             }
         }

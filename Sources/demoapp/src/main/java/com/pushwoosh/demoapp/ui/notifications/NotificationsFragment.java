@@ -11,8 +11,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.snackbar.Snackbar;
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.demoapp.databinding.FragmentNotificationsBinding;
+import com.pushwoosh.location.PushwooshLocation;
 import com.pushwoosh.richmedia.RichMediaManager;
 import com.pushwoosh.richmedia.RichMediaType;
 
@@ -71,6 +73,30 @@ public class NotificationsFragment extends Fragment {
                     RichMediaManager.setRichMediaType(RichMediaType.DEFAULT);
                 }
             }
+        });
+
+        MaterialSwitch locationTracking = binding.switchLocationTracking;
+        locationTracking.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    PushwooshLocation.startLocationTracking(result -> {
+                        if (binding == null) return;
+                        if (result.isSuccess()) {
+                            Snackbar.make(binding.getRoot(), "Location tracking started", Snackbar.LENGTH_SHORT).show();
+                        } else {
+                            locationTracking.setChecked(false);
+                            Snackbar.make(binding.getRoot(), "Location error: " + result.getException().getMessage(), Snackbar.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    PushwooshLocation.stopLocationTracking();
+                }
+            }
+        });
+
+        binding.buttonBackgroundLocation.setOnClickListener(v -> {
+            PushwooshLocation.requestBackgroundLocationPermission();
         });
 
         return root;

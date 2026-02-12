@@ -32,7 +32,6 @@ import android.content.Intent;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -44,9 +43,6 @@ import androidx.annotation.Nullable;
 
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.PushwooshPlatform;
-import com.pushwoosh.exception.PushwooshException;
-import com.pushwoosh.function.Callback;
-import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.event.RichMediaCloseEvent;
 import com.pushwoosh.inapp.exception.ResourceParseException;
 import com.pushwoosh.inapp.model.HtmlData;
@@ -55,6 +51,7 @@ import com.pushwoosh.inapp.view.js.PushwooshJSInterface;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.NotificationUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.NotificationPrefs;
@@ -267,13 +264,7 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
         Uri soundUri = NotificationUtils.getSoundUri(sound);
         if (soundUri != null && !isSoundPlayed) {
             isSoundPlayed = true;
-            new GetRingtoneTask(this, soundUri, result -> {
-                        Ringtone sound = result.getData();
-                        if (sound != null) {
-                            sound.play();
-                        }
-                    })
-                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            playSoundAsync(soundUri);
         }
 
         if (!isAnimated) {
@@ -331,41 +322,32 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
         }
     }
 
+    private void playSoundAsync(Uri soundUri) {
+        WeakReference<RichMediaWebActivity> ref = new WeakReference<>(this);
+        BackgroundExecutor.executeOnPool(() -> {
+            RichMediaWebActivity activity = ref.get();
+            if (activity == null) {
+                PWLog.warn(TAG, "Cannot play sound: activity was destroyed");
+                return;
+            }
+
+            try {
+                Ringtone ringtone = RingtoneManager.getRingtone(activity, soundUri);
+                if (ringtone == null) {
+                    PWLog.warn(TAG, "Cannot play sound: ringtone is null for uri: " + soundUri);
+                    return;
+                }
+                BackgroundExecutor.main(ringtone::play);
+            } catch (Exception e) {
+                PWLog.error(TAG, "Failed to get ringtone: " + soundUri, e);
+            }
+        });
+    }
+
     @Override
     public void onBackPressed() {
         if (onBackPressedEnable) {
             close();
-        }
-    }
-
-    private static class GetRingtoneTask extends AsyncTask<Void, Void, Ringtone> {
-        private final WeakReference<Context> contextWeakRef;
-        private final Uri soundUri;
-        private final Callback<Ringtone, PushwooshException> callback;
-
-        public GetRingtoneTask(Context context, Uri soundUri, Callback<Ringtone, PushwooshException> callback) {
-            this.contextWeakRef = new WeakReference<>(context);
-            this.soundUri = soundUri;
-            this.callback = callback;
-        }
-
-        @Override
-        protected Ringtone doInBackground(Void... voids) {
-            if (contextWeakRef.get() == null) {
-                return null;
-            }
-            try {
-                return RingtoneManager.getRingtone(contextWeakRef.get(), soundUri);
-            } catch (Exception e) {
-                PWLog.error("Failed parse ringtone with songUri: " + soundUri, e);
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Ringtone ringtone) {
-            super.onPostExecute(ringtone);
-            callback.process(Result.from(ringtone, null));
         }
     }
 }

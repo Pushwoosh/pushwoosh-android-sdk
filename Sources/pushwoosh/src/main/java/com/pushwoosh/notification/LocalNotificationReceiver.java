@@ -45,7 +45,7 @@ public class LocalNotificationReceiver extends BroadcastReceiver {
             }
             storage.removeLocalNotification(Integer.parseInt(pushId));
 
-            BackgroundExecutor.parallel(() -> {
+            BackgroundExecutor.executeOnPool(() -> {
                 NotificationServiceExtension notificationServiceExtension =
                         PushwooshPlatform.getInstance().notificationService();
                 notificationServiceExtension.handleMessage(extras);

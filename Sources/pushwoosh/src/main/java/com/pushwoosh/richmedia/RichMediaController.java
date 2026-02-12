@@ -75,6 +75,15 @@ public class RichMediaController {
      */
     public void showResourceWrapper(ResourceWrapper resourceWrapper) {
         PWLog.noise(TAG, "showResourceWrapper()");
+        if (resourceWrapper == null) {
+            PWLog.warn(TAG, "resourceWrapper is null, aborting show");
+            return;
+        }
+
+        if (resourceWrapper.getResource() == null) {
+            PWLog.warn(TAG, "resource is null, aborting show");
+            return;
+        }
         if (delegate != null) {
             PWLog.info(TAG, "using delegate to handle show process");
             useDelegate(resourceWrapper);

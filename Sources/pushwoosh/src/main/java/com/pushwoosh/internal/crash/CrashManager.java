@@ -77,7 +77,7 @@ class CrashManager {
         registerHandler();
 
         PWLog.debug("Executing CrashManager");
-        BackgroundExecutor.parallel(this::execute);
+        BackgroundExecutor.executeOnPool(this::execute);
     }
 
     /**

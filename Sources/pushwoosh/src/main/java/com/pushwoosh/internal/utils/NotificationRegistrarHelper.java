@@ -26,7 +26,6 @@
 
 package com.pushwoosh.internal.utils;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.work.BackoffPolicy;
@@ -44,123 +43,116 @@ import com.pushwoosh.repository.RepositoryModule;
 
 import java.util.concurrent.TimeUnit;
 
-
 public final class NotificationRegistrarHelper {
+    private static final String TAG = "NotificationRegistrarHelper";
 
-	private NotificationRegistrarHelper() {/*do nothing*/}
+    private NotificationRegistrarHelper() {
+        /*do nothing*/
+    }
 
-	public static boolean isRegisteredForRemoteNotifications() {
-		return RepositoryModule.getRegistrationPreferences().isRegisteredForPush().get();
-	}
+    public static boolean isRegisteredForRemoteNotifications() {
+        return RepositoryModule.getRegistrationPreferences()
+                .isRegisteredForPush()
+                .get();
+    }
 
-	public static void onRegisteredForRemoteNotifications(final String registrationId, String tagsJson) {
-		PWLog.noise("NotificationRegistrarHelper", String.format("onRegisteredForRemoteNotifications: %s", registrationId));
-		// this if checks whether device is registered with Pushwoosh and does not allow passing a token if it is not
-		//todo: remove this check
-		if (!isRegisteredForRemoteNotifications()) {
-			PWLog.warn(
-					"NotificationRegistrarHelper",
-					"Device should be registered directly to continue registration, token change ignored"
-			);
-			return;
-		}
+    public static void onRegisteredForRemoteNotifications(final String registrationId, String tagsJson) {
+        PWLog.noise(TAG, String.format("onRegisteredForRemoteNotifications: %s", registrationId));
+        // this if checks whether device is registered with Pushwoosh and does not allow passing a token if it is not
+        // todo: remove this check
+        if (!isRegisteredForRemoteNotifications()) {
+            PWLog.warn(
+                    TAG,
+                    "Device should be registered directly to continue registration, token change ignored");
+            return;
+        }
 
-		PushwooshNotificationManager notificationManager = PushwooshPlatform.getInstance().notificationManager();
-		notificationManager.onRemoteTokenReceived(registrationId, tagsJson);
-	}
+        PushwooshNotificationManager notificationManager =
+                PushwooshPlatform.getInstance().notificationManager();
+        notificationManager.onRemoteTokenReceived(registrationId, tagsJson);
+    }
 
-	public static void clearToken() {
-		RepositoryModule.getRegistrationPreferences().pushToken().set("");
-	}
+    public static void clearToken() {
+        RepositoryModule.getRegistrationPreferences().pushToken().set("");
+    }
 
-	public static void onUnregisteredFromRemoteNotifications(final String registrationId) {
-		PushwooshNotificationManager notificationManager = PushwooshPlatform.getInstance().notificationManager();
-		notificationManager.onUnregisteredFromRemoteNotifications(registrationId);
-	}
+    public static void onUnregisteredFromRemoteNotifications(final String registrationId) {
+        PushwooshNotificationManager notificationManager =
+                PushwooshPlatform.getInstance().notificationManager();
+        notificationManager.onUnregisteredFromRemoteNotifications(registrationId);
+    }
 
-	public static void onFailedToRegisterForRemoteNotifications(final String errorId) {
-		PushwooshNotificationManager notificationManager = PushwooshPlatform.getInstance().notificationManager();
-		notificationManager.onFailedToRegisterForRemoteNotifications(errorId);
-	}
+    public static void onFailedToRegisterForRemoteNotifications(final String errorId) {
+        PushwooshNotificationManager notificationManager =
+                PushwooshPlatform.getInstance().notificationManager();
+        notificationManager.onFailedToRegisterForRemoteNotifications(errorId);
+    }
 
-	public static void handleMessage(final Bundle bundle) {
-		boolean handleUsingWorkManager = RepositoryModule.getNotificationPreferences() != null &&
-				RepositoryModule.getNotificationPreferences().handleNotificationsUsingWorkManager().get();
-		if (handleUsingWorkManager) {
-			handleMessageUsingWorkManager(bundle);
-		} else {
-			handleMessageBundle(bundle);
-		}
-	}
+    public static void handleMessage(final Bundle bundle) {
+        boolean handleUsingWorkManager = RepositoryModule.getNotificationPreferences() != null
+                && RepositoryModule.getNotificationPreferences()
+                        .handleNotificationsUsingWorkManager()
+                        .get();
+        if (handleUsingWorkManager) {
+            handleMessageUsingWorkManager(bundle);
+        } else {
+            handleMessageBundle(bundle);
+        }
+    }
 
-	public static void onFailedToUnregisterFromRemoteNotifications(String message) {
-		PushwooshNotificationManager notificationManager = PushwooshPlatform.getInstance().notificationManager();
-		notificationManager.onFailedToUnregisterFromRemoteNotifications(message);
-	}
+    public static void onFailedToUnregisterFromRemoteNotifications(String message) {
+        PushwooshNotificationManager notificationManager =
+                PushwooshPlatform.getInstance().notificationManager();
+        notificationManager.onFailedToUnregisterFromRemoteNotifications(message);
+    }
 
-	public static void handleMessageBundle(final Bundle bundle) {
-		try {
-			NotificationServiceExtension notificationServiceExtension = PushwooshPlatform.getInstance().notificationService();
-			notificationServiceExtension.handleMessage(bundle);
-		} catch (Exception e) {
-			PWLog.exception(e);
-		}
-	}
+    public static void handleMessageBundle(final Bundle bundle) {
+        PWLog.noise(TAG, "handleMessageBundle");
+        try {
+            NotificationServiceExtension notificationServiceExtension =
+                    PushwooshPlatform.getInstance().notificationService();
+            notificationServiceExtension.handleMessage(bundle);
+        } catch (Exception e) {
+            PWLog.exception(e);
+        }
+    }
 
-	private static void handleMessageUsingWorkManager(final Bundle bundle) {
-		new ScheduleHandleMessageWorkerTask(bundle, () -> handleMessageBundle(bundle))
-				.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-	}
+    private static void handleMessageUsingWorkManager(final Bundle bundle) {
+        PWLog.noise(TAG, "handleMessageUsingWorkManager");
+        BackgroundExecutor.executeOnPool(() -> {
+            boolean scheduled = tryScheduleWorker(bundle);
+            if (!scheduled) {
+                handleMessageBundle(bundle);
+            }
+        });
+    }
 
-	private static class ScheduleHandleMessageWorkerTask extends AsyncTask<Void, Void, Boolean> {
-		final Bundle pushBundle;
-		final HandleRemoteMessageFailureCallback failureCallback;
+    private static boolean tryScheduleWorker(Bundle bundle) {
+        PushBundleStorage storage = RepositoryModule.getPushBundleStorage();
+        if (storage == null) {
+            PWLog.error(TAG, "PushBundleStorage is null");
+            return false;
+        }
+        try {
+            long id = storage.putPushBundle(bundle);
+            scheduleWorker(id);
+            return true;
+        } catch (Exception e) {
+            PWLog.error(TAG, "Failed to schedule worker", e);
+            return false;
+        }
+    }
 
-		public ScheduleHandleMessageWorkerTask(Bundle pushBundle,
-											   HandleRemoteMessageFailureCallback failureCallback) {
-			this.pushBundle = pushBundle;
-			this.failureCallback = failureCallback;
-		}
-
-		@Override
-		protected Boolean doInBackground(Void... voids) {
-			PushBundleStorage storage = RepositoryModule.getPushBundleStorage();
-			if (storage != null) {
-				try {
-					long id = storage.putPushBundle(pushBundle);
-					scheduleWorker(id);
-				} catch (Exception e) {
-					return false;
-				}
-			}
-			return true;
-		}
-
-		@Override
-		protected void onPostExecute(Boolean success) {
-			super.onPostExecute(success);
-			if (!success && failureCallback != null) {
-				failureCallback.onFail();
-			}
-		}
-
-		private void scheduleWorker(long id) {
-			Data inputData = new Data.Builder()
-					.putLong(HandleMessageWorker.DATA_PUSH_BUNDLE_ID, id)
-					.build();
-			OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(HandleMessageWorker.class)
-					.setInputData(inputData)
-					.setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
-					.setBackoffCriteria(BackoffPolicy.LINEAR, 5, TimeUnit.SECONDS)
-					.build();
-			PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(request,
-					HandleMessageWorker.TAG,
-					ExistingWorkPolicy.APPEND);
-		}
-	}
-
-	private interface HandleRemoteMessageFailureCallback {
-		void onFail();
-	}
-
+    private static void scheduleWorker(long id) {
+        Data inputData = new Data.Builder()
+                .putLong(HandleMessageWorker.DATA_PUSH_BUNDLE_ID, id)
+                .build();
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(HandleMessageWorker.class)
+                .setInputData(inputData)
+                .setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 5, TimeUnit.SECONDS)
+                .build();
+        PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                request, HandleMessageWorker.TAG, ExistingWorkPolicy.APPEND);
+    }
 }

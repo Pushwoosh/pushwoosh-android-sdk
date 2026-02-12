@@ -113,7 +113,6 @@ class NotificationOpenHandler {
 			}
 		} catch (ActivityNotFoundException e) {
 			launchDefaultActivity = true;
-			PWLog.warn("Can't launch activity. Are you sure you have an activity with '" + intentAction + "' action in your manifest? Launching default activity.");
 		}
 
 		if (!launchDefaultActivity) {

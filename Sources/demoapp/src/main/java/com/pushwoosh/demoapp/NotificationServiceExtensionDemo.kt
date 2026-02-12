@@ -11,13 +11,6 @@ class NotificationServiceExtensionDemo : NotificationServiceExtension() {
     public override fun onMessageReceived(message: PushMessage): Boolean {
         super.onMessageReceived(message)
         PWLog.debug(TAG, "PushMessage received: " + message.toJson().toString())
-
-//        if (isAppOnForeground && applicationContext != null) {
-//            val mainHandler = Handler(applicationContext!!.mainLooper)
-//            mainHandler.post { handlePush(message) }
-//            return true
-//        }
-
         return false
     }
 

@@ -15,7 +15,7 @@ class InboxObserverAsyncTask<T> {
     }
 
     public void execute() {
-        BackgroundExecutor.serial(() -> {
+        BackgroundExecutor.execute(() -> {
             T result = task.run();
 
             if (callback != null) {

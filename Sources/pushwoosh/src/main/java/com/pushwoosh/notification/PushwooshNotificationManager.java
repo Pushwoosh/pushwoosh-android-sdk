@@ -118,7 +118,7 @@ public class PushwooshNotificationManager {
                         registrationPrefs.baseUrl().get());
             }
 
-            BackgroundExecutor.parallel(
+            BackgroundExecutor.executeOnPool(
                     () -> RepositoryModule.getRequestStorage().clear());
             registrationPrefs.removeAppId();
             needUpdateUrl = true;

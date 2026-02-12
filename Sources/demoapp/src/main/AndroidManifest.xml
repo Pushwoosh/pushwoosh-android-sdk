@@ -5,6 +5,7 @@
 
     <!-- Required for Live Update notifications (promoted ongoing notifications) -->
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -23,6 +24,7 @@
         <meta-data android:name="com.pushwoosh.apitoken" android:value="@string/pushwoosh_api_token"/>
         <meta-data android:name="com.pushwoosh.rich_media_type" android:value="Modal" />
         <meta-data android:name="com.pushwoosh.log_level" android:value="NOISE" />
+        <meta-data android:name="com.pushwoosh.multi_notification_mode" android:value="true" />
 
         <meta-data
             android:name="com.pushwoosh.notification_service_extension"

@@ -58,7 +58,7 @@ public class NetworkModule {
      * @param task - task for executing
      */
     public static void execute(Runnable task) {
-        BackgroundExecutor.parallel(() -> {
+        BackgroundExecutor.executeOnPool(() -> {
             try {
                 task.run();
             } catch (Throwable e) {

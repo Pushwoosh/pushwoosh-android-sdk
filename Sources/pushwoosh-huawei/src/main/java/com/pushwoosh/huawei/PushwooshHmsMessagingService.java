@@ -22,7 +22,7 @@ public class PushwooshHmsMessagingService extends HmsMessageService {
                 PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
                 return;
             }
-            BackgroundExecutor.serial(() -> PushwooshHmsHelper.onMessageReceived(context, remoteMessage));
+            BackgroundExecutor.execute(() -> PushwooshHmsHelper.onMessageReceived(context, remoteMessage));
         } catch (Exception e) {
             PWLog.error(TAG, "Failed to handle message", e);
         }

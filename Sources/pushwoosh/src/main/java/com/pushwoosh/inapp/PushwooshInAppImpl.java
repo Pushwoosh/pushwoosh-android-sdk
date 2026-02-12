@@ -245,7 +245,7 @@ public class PushwooshInAppImpl {
         }
 
         public void execute() {
-            BackgroundExecutor.parallel(() -> {
+            BackgroundExecutor.executeOnPool(() -> {
                 Result<Void, NetworkException> result = reloadInApps();
                 BackgroundExecutor.main(() -> onPostExecute(result));
             });

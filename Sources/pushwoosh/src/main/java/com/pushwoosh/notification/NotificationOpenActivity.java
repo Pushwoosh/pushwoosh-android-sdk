@@ -10,14 +10,12 @@ public class NotificationOpenActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        NotificationIntentHelper.processIntent(this, getIntent());
-        finish();
+        NotificationIntentHelper.processIntent(this, getIntent(), this::finish);
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        NotificationIntentHelper.processIntent(this, intent);
-        finish();
+        NotificationIntentHelper.processIntent(this, intent, this::finish);
     }
 }

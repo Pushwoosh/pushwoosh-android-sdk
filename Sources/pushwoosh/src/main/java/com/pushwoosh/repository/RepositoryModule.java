@@ -100,7 +100,7 @@ public class RepositoryModule {
         if (summaryNotificationStorage == null) {
             Context context = AndroidPlatformModule.getApplicationContext();
             summaryNotificationStorage = new SummaryNotificationStorageImpl(context);
-            BackgroundExecutor.serial(() -> {
+            BackgroundExecutor.execute(() -> {
                 if (Build.VERSION.SDK_INT >= 23) {
                     summaryNotificationStorage.update(StatusBarNotificationHelper.getSummaryNotificationsIds());
                 }

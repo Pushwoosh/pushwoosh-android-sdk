@@ -26,9 +26,13 @@
 
 package com.pushwoosh.inapp.view;
 
+import static com.pushwoosh.inapp.view.InAppFragment.Status.ERROR;
+import static com.pushwoosh.inapp.view.InAppFragment.Status.LOADING;
+import static com.pushwoosh.inapp.view.InAppFragment.Status.SUCCESS;
+
 import android.app.Fragment;
-import android.os.AsyncTask;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -38,11 +42,6 @@ import com.pushwoosh.inapp.model.HtmlData;
 import com.pushwoosh.inapp.network.model.Resource;
 
 import java.lang.ref.WeakReference;
-
-import static com.pushwoosh.inapp.view.InAppFragment.Status.ERROR;
-import static com.pushwoosh.inapp.view.InAppFragment.Status.LOADING;
-import static com.pushwoosh.inapp.view.InAppFragment.Status.SUCCESS;
-
 
 public class InAppFragment extends Fragment implements DownloadHtmlTask.DownloadListener {
     private static final String TAG = "[InApp]InAppFragment";
@@ -54,9 +53,11 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
     private static final String KEY_ERROR = TAG + ".key_ERROR";
 
     public enum Status {
-        LOADING, SUCCESS, ERROR, NONE
+        LOADING,
+        SUCCESS,
+        ERROR,
+        NONE
     }
-
 
     public static InAppFragment createInstance(Resource inapp) {
         InAppFragment instance = new InAppFragment();
@@ -68,8 +69,7 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
         return instance;
     }
 
-
-    private AsyncTask<Void, Void, Result<HtmlData, ResourceParseException>> downloadHtmlDataTask;
+    private DownloadHtmlTask downloadHtmlDataTask;
     private WeakReference<com.pushwoosh.inapp.view.OnRichMediaListener> onRichMediaListener = new WeakReference<>(null);
 
     private Status state = Status.NONE;
@@ -148,6 +148,9 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
     }
 
     private void notifyListener(Result<HtmlData, ResourceParseException> result) {
+        if (this.onRichMediaListener == null) {
+            return;
+        }
         com.pushwoosh.inapp.view.OnRichMediaListener onRichMediaListener = this.onRichMediaListener.get();
         if (onRichMediaListener == null) {
             return;
@@ -203,7 +206,6 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
         if (onRichMediaListener != null) {
             onRichMediaListener.startLoadingRichMedia();
         }
-
     }
 
     @Override

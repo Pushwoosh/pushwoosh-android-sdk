@@ -27,6 +27,7 @@
 package com.pushwoosh.notification.handlers.notification;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
@@ -50,6 +51,10 @@ class RichMediaPushNotificationOpenHandler implements PushNotificationOpenHandle
 	@Override
 	public void postHandleNotification(final Bundle pushBundle) {
 		String richMedia = PushBundleDataProvider.getRichMedia(pushBundle);
+		if (TextUtils.isEmpty(richMedia)) {
+			return;
+		}
+
 		ResourceWrapper resourceWrapper = new ResourceWrapper.Builder()
 				.setRichMedia(richMedia)
 				.setDelay(notificationPrefs.richMediaDelayMs().get())

@@ -53,7 +53,7 @@ class RichMediaMessageHandler extends NotificationMessageHandler {
     RichMediaMessageHandler() {
         EventBus.subscribe(
                 ApplicationOpenDetector.ApplicationMovedToForegroundEvent.class,
-                event -> BackgroundExecutor.parallel(() -> {
+                event -> BackgroundExecutor.executeOnPool(() -> {
                     SilentRichMediaStorage silentRichMediaStorage = RepositoryModule.getSilentRichMediaStorage();
                     ResourceWrapper resourceWrapper = silentRichMediaStorage.getResourceWrapper();
                     if (resourceWrapper != null) {
@@ -67,7 +67,7 @@ class RichMediaMessageHandler extends NotificationMessageHandler {
         Bundle pushBundle = pushMessage.toBundle();
         String richMedia = PushBundleDataProvider.getRichMedia(pushBundle);
         NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
-        if (richMedia != null) {
+        if (!TextUtils.isEmpty(richMedia)) {
             loadRichMedia(richMedia);
             if (PushBundleDataProvider.isSilent(pushBundle)) {
                 notificationPrefs.messageHash().set(PushBundleDataProvider.getPushHash(pushBundle));
@@ -84,6 +84,10 @@ class RichMediaMessageHandler extends NotificationMessageHandler {
     @Override
     protected void handleNotification(final PushMessage pushMessage) {
         final String richMedia = PushBundleDataProvider.getRichMedia(pushMessage.toBundle());
+        if (TextUtils.isEmpty(richMedia)) {
+            return;
+        }
+
         final String sound = pushMessage.getSound();
 
         if (pushMessage.isLockScreen()) {
@@ -108,11 +112,7 @@ class RichMediaMessageHandler extends NotificationMessageHandler {
                 .setLockScreen(isLockScreen)
                 .build();
 
-        if (resourceWrapper == null) {
-            return;
-        }
-
-        BackgroundExecutor.parallel(() -> showResourceWrapper(resourceWrapper));
+        BackgroundExecutor.executeOnPool(() -> showResourceWrapper(resourceWrapper));
     }
 
     /**
