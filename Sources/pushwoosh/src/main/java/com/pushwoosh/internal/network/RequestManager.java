@@ -31,6 +31,8 @@ import androidx.annotation.NonNull;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 
+import java.util.Map;
+
 /**
  * Interface which associated with communication with pushwoosh service
  */
@@ -70,14 +72,11 @@ public interface RequestManager {
 	void updateBaseUrl(String baseUrl);
 
 	/**
-	 * Change default base url to reverse proxy url
-	 * @param url - reverse proxy url
+	 * Set or disable reverse proxy URL with optional custom HTTP headers.
+	 * Pass null as url to disable reverse proxy and restore default server URL.
+	 * @param url - reverse proxy url, or null to disable
+	 * @param headers - optional map of custom HTTP headers (may be null)
 	 */
-	void setReverseProxyUrl(String url);
+	void setReverseProxyUrl(String url, Map<String, String> headers);
 
-	/**
-	 * Disables reverse proxy. Default base url must be changed manually,
-	 * @see #updateBaseUrl(String)
-	 */
-	void disableReverseProxy();
 }

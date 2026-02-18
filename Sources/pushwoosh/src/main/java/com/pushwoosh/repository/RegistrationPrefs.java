@@ -73,7 +73,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private static final String REMOVE_ALL_DEVICE_DATA = "pw_remove_all_device_data";
     private static final String HWID = "pw_hwid";
     private static final String API_TOKEN = "pw_api_token";
-
     private final PreferenceStringValue pushToken;
     private final PreferenceBooleanValue registeredOnServer;
     private final PreferenceStringValue projectId;
@@ -89,7 +88,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private final PreferenceStringValue hwid;
     private final PreferenceStringValue apiToken;
     private final PreferenceStringValue language;
-
     private final Config config;
     private final DeviceRegistrar deviceRegistrar;
     private PreferenceBooleanValue registeredForPush;

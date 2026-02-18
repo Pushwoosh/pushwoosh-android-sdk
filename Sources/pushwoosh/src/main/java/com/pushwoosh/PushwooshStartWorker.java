@@ -11,6 +11,7 @@ import com.pushwoosh.internal.event.AppIdChangedEvent;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.event.InitHwidEvent;
+import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
 import com.pushwoosh.internal.event.ServerCommunicationStartedEvent;
 import com.pushwoosh.internal.platform.ApplicationOpenDetector;
 import com.pushwoosh.internal.platform.utils.DeviceUuidGetter;
@@ -22,6 +23,8 @@ import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,6 +41,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class PushwooshStartWorker {
     public static final String TAG = PushwooshStartWorker.class.getSimpleName();
+
+    private interface StartupCondition {
+        void start(CountDownLatch latch, AtomicBoolean hasFailed);
+    }
+
     private final Config config;
     private final RegistrationPrefs preferences;
     private final PushwooshRepository pushwooshRepository;
@@ -114,15 +122,23 @@ public class PushwooshStartWorker {
         // subscribe for pushwoosh internal events
         subscribeForSdkEvents();
 
-        // run async 2 task: hwid and app_code
-        final CountDownLatch latch = new CountDownLatch(2);
+        // collect startup conditions
+        List<StartupCondition> conditions = new ArrayList<>();
+        conditions.add(this::fetchDeviceHwidAsync);
+        conditions.add(this::fetchAppCodeAsync);
+        if (config.isReverseProxyAllowed()) {
+            conditions.add(this::fetchReverseProxyAsync);
+        }
+
+        final CountDownLatch latch = new CountDownLatch(conditions.size());
         final AtomicBoolean hasFailed = new AtomicBoolean(false);
         final long initializeStartTime = System.currentTimeMillis();
 
-        fetchDeviceHwidAsync(latch, hasFailed);
-        fetchAppCodeAsync(latch, hasFailed);
+        for (StartupCondition condition : conditions) {
+            condition.start(latch, hasFailed);
+        }
 
-        // when tasks is both ready => start sdk finally
+        // when all tasks are ready => start sdk finally
         sdkExecutor.submit(() -> {
             try {
                 PWLog.debug(TAG, "Waiter task is waiting for latch...");
@@ -233,6 +249,8 @@ public class PushwooshStartWorker {
                 } catch (Throwable e) {
                     PWLog.error(TAG, "can't store device hwid", e);
                     hasFailed.set(true);
+                    releaseAll(latch);
+                    return;
                 }
                 latch.countDown();
             });
@@ -240,7 +258,7 @@ public class PushwooshStartWorker {
             PWLog.error(TAG, "can't fetchDeviceHwid", e);
 
             hasFailed.set(true);
-            latch.countDown();
+            releaseAll(latch);
         }
     }
 
@@ -275,6 +293,9 @@ public class PushwooshStartWorker {
                             } catch (Throwable e) {
                                 PWLog.error(TAG, "can't fetch application code", e);
                                 hasFailed.set(true);
+                                EventBus.unsubscribe(PushwooshNotificationManager.ApplicationIdReadyEvent.class, this);
+                                releaseAll(latch);
+                                return;
                             }
                             EventBus.unsubscribe(PushwooshNotificationManager.ApplicationIdReadyEvent.class, this);
 
@@ -284,6 +305,26 @@ public class PushwooshStartWorker {
         } catch (Throwable e) {
             PWLog.error(TAG, "can't subscribe to fetch app code", e);
             hasFailed.set(true);
+            releaseAll(latch);
+        }
+    }
+
+    private void fetchReverseProxyAsync(CountDownLatch latch, AtomicBoolean hasFailed) {
+        PWLog.noise(TAG, "fetchReverseProxyAsync()");
+        EventBus.subscribe(
+                ReverseProxyReadyEvent.class,
+                new EventListener<ReverseProxyReadyEvent>() {
+                    @Override
+                    public void onReceive(ReverseProxyReadyEvent event) {
+                        PWLog.debug(TAG, "reverse proxy configured");
+                        EventBus.unsubscribe(ReverseProxyReadyEvent.class, this);
+                        latch.countDown();
+                    }
+                });
+    }
+
+    private void releaseAll(CountDownLatch latch) {
+        while (latch.getCount() > 0) {
             latch.countDown();
         }
     }

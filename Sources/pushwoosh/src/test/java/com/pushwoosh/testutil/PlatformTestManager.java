@@ -69,6 +69,7 @@ import com.pushwoosh.repository.RepositoryModule;
 import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.shadows.ShadowLog;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -209,6 +210,14 @@ public class PlatformTestManager {
 
 	private void startUp() throws InterruptedException {
 		pushwooshPlatform.onApplicationCreated();
+		// Idle main looper to process setReady() posted from background thread
+		for (int i = 0; i < 20; i++) {
+			ShadowLooper.idleMainLooper();
+			if (SdkStateProvider.getInstance().isReady()) {
+				break;
+			}
+			Thread.sleep(100);
+		}
 		// Wait until SDK is initialized and block for 1 second
 		CountDownLatch latch = new CountDownLatch(1);
 		SdkStateProvider.getInstance().executeOrQueue(latch::countDown);

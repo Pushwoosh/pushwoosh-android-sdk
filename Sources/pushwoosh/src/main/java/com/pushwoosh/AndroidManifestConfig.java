@@ -74,6 +74,7 @@ class AndroidManifestConfig implements Config {
 	private boolean isCollectingDeviceModelAllowed = true;
 	private boolean isCollectingLifecycleEventsAllowed = true;
 	private boolean shouldShowFullscreenRichMedia = false;
+	private boolean reverseProxyAllowed = false;
 
 	@IdRes
 	private int notificationIcon = 0;
@@ -128,6 +129,7 @@ class AndroidManifestConfig implements Config {
 		showPushnotificationAlert = applicationInfo.metaData.getBoolean("com.pushwoosh.foreground_push", false);
 		handleNotificationsUsingWorkManager = applicationInfo.metaData.getBoolean("com.pushwoosh.handle_notifications_using_workmanager", false);
 		shouldShowFullscreenRichMedia = applicationInfo.metaData.getBoolean("com.pushwoosh.show_fullscreen_richmedia", true);
+		reverseProxyAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_reverse_proxy", false);
 
 		String notificationIconPath = applicationInfo.metaData.getString("com.pushwoosh.notification_icon");
 		if (notificationIconPath != null) {
@@ -354,5 +356,10 @@ class AndroidManifestConfig implements Config {
 	@Override
 	public String getApiToken() {
 		return apiToken;
+	}
+
+	@Override
+	public boolean isReverseProxyAllowed() {
+		return reverseProxyAllowed;
 	}
 }

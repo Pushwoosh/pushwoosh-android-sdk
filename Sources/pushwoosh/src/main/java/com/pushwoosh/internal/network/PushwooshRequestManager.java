@@ -27,6 +27,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Implementation of {@link com.pushwoosh.internal.network.RequestManager}
@@ -41,12 +43,16 @@ class PushwooshRequestManager implements RequestManager {
     private final RegistrationPrefs registrationPrefs;
     private final ServerCommunicationManager serverCommunicationManager;
     private volatile String baseRequestUrl;
-    private volatile boolean usingReverseProxy = false;
+    private volatile String reverseProxyUrl;
+    private volatile Map<String, String> customHeaders = new HashMap<>();
+    private final boolean reverseProxyRequired;
 
     PushwooshRequestManager(
-            RegistrationPrefs registrationPrefs, ServerCommunicationManager serverCommunicationManager) {
+            RegistrationPrefs registrationPrefs, ServerCommunicationManager serverCommunicationManager,
+            boolean reverseProxyRequired) {
         this.registrationPrefs = registrationPrefs;
         this.serverCommunicationManager = serverCommunicationManager;
+        this.reverseProxyRequired = reverseProxyRequired;
 
         baseRequestUrl = registrationPrefs.baseUrl().get();
     }
@@ -77,7 +83,7 @@ class PushwooshRequestManager implements RequestManager {
 
     public <Response> void sendRequest(
             PushRequest<Response> request, @Nullable Callback<Response, NetworkException> callback) {
-        sendRequest(request, baseRequestUrl, callback);
+        sendRequest(request, null, callback);
     }
 
     @Override
@@ -103,20 +109,19 @@ class PushwooshRequestManager implements RequestManager {
     }
 
     @Override
-    public void setReverseProxyUrl(String url) {
-        usingReverseProxy = true;
-        saveBaseUrl(url);
-    }
-
-    @Override
-    public void disableReverseProxy() {
-        usingReverseProxy = false;
+    public void setReverseProxyUrl(String url, Map<String, String> headers) {
+        reverseProxyUrl = url;
+        customHeaders = headers != null ? new HashMap<>(headers) : new HashMap<>();
     }
 
     @NonNull private <Response> Result<Response, NetworkException> sendRequestSync(
             PushRequest<Response> request, String baseUrl) {
         if (baseUrl == null) {
             baseUrl = baseRequestUrl;
+        }
+        if (reverseProxyRequired && reverseProxyUrl == null) {
+            PWLog.error(TAG, "Reverse proxy is required but not configured. Request blocked.");
+            return Result.fromException(new NetworkException("Reverse proxy is required but not configured"));
         }
         if (isRemoveAllDataDevice()) {
             return Result.fromException(new NetworkException(DEVICE_REMOVED_MSG));
@@ -137,7 +142,7 @@ class PushwooshRequestManager implements RequestManager {
 
                 JSONObject response = result.getResponse();
                 // honor base url change
-                if (response.has("base_url") && baseUrl.equals(baseRequestUrl) && !usingReverseProxy) {
+                if (response.has("base_url") && baseUrl.equals(baseRequestUrl) && reverseProxyUrl == null) {
                     String newBaseUrl = response.optString("base_url");
                     saveBaseUrl(newBaseUrl);
                 }
@@ -176,10 +181,16 @@ class PushwooshRequestManager implements RequestManager {
 
     private NetworkResult makeRequest(final String baseUrl, JSONObject data, String methodName) throws Exception {
         try {
-            URL url = new URL(baseUrl + methodName);
+            String effectiveUrl = reverseProxyUrl != null ? reverseProxyUrl : baseUrl;
+            URL url = new URL(effectiveUrl + methodName);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             connection.setRequestMethod("POST");
+            if (reverseProxyUrl != null) {
+                for (Map.Entry<String, String> header : customHeaders.entrySet()) {
+                    connection.setRequestProperty(header.getKey(), header.getValue());
+                }
+            }
             connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
             connection.setRequestProperty("Authorization", getApiToken());
             connection.setDoOutput(true);

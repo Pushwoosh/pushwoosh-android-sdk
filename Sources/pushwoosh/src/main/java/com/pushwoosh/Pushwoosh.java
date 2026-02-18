@@ -21,7 +21,10 @@ import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.internal.PushRegistrarHelper;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
 import com.pushwoosh.internal.event.Subscription;
+import com.pushwoosh.internal.network.NetworkModule;
+import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.utils.NotificationUtils;
 import com.pushwoosh.internal.utils.PWLog;
@@ -40,6 +43,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -841,48 +845,39 @@ public class Pushwoosh {
     }
 
     /**
-     * Controls whether push notifications should be displayed when the app is in foreground.
+     * Controls whether system notifications are suppressed when the app is in the foreground.
      * <p>
-     * By default, push notifications are shown even when the app is in foreground. Set this to false
-     * if you want to suppress notification display when the app is active and handle them programmatically instead.
-     * This is useful when you want to show in-app UI instead of system notifications while the app is open.
-     * <br><br>
+     * When set to {@code true}, push notifications received while the app is in the foreground
+     * will not produce a system notification. The push data is still delivered to the SDK
+     * and any registered {@link com.pushwoosh.notification.NotificationServiceExtension} callbacks.
+     * By default this is {@code false}, meaning notifications are displayed normally regardless
+     * of the app state.
+     * <p>
+     * This can also be configured declaratively in {@code AndroidManifest.xml} without any Java code:
+     * <pre>
+     * {@code
+     * <meta-data
+     *     android:name="com.pushwoosh.foreground_push"
+     *     android:value="true" />
+     * }
+     * </pre>
+     * The manifest value serves as the initial default; calling this method at runtime overrides it.
+     * <p>
      * Example:
      * <pre>
      * {@code
-     *   // Suppress notifications when app is in foreground
-     *   public class MyApplication extends Application {
-     *       @Override
-     *       public void onCreate() {
-     *           super.onCreate();
+     * // Suppress foreground notifications at runtime
+     * Pushwoosh.getInstance().setShowPushnotificationAlert(true);
      *
-     *           // Don't show system notifications when app is active
-     *           Pushwoosh.getInstance().setShowPushnotificationAlert(false);
-     *       }
-     *   }
-     *
-     *   // Handle foreground pushes programmatically using NotificationServiceExtension
-     *   public class MyNotificationService extends NotificationServiceExtension {
-     *       @Override
-     *       public boolean onMessageReceived(PushMessage message) {
-     *           if (isAppInForeground()) {
-     *               // Show custom in-app UI instead of notification
-     *               showInAppMessage(message.getMessage());
-     *               return true; // Prevent default notification
-     *           }
-     *           return false; // Show default notification when app is background
-     *       }
-     *   }
-     *
-     *   // Re-enable notifications based on user preference
-     *   private void updateNotificationSettings(boolean showNotifications) {
-     *       Pushwoosh.getInstance().setShowPushnotificationAlert(showNotifications);
-     *       Log.d("App", "Foreground notifications " + (showNotifications ? "enabled" : "disabled"));
-     *   }
+     * // Re-enable foreground notifications
+     * Pushwoosh.getInstance().setShowPushnotificationAlert(false);
      * }
      * </pre>
      *
-     * @param showAlert true to show notifications when app is in foreground (default), false to suppress them
+     * @param showAlert {@code true} to suppress system notifications when the app is in the foreground,
+     *                  {@code false} to display them normally (default)
+     *
+     * @see com.pushwoosh.notification.NotificationServiceExtension#onMessageReceived(com.pushwoosh.notification.PushMessage)
      */
     public void setShowPushnotificationAlert(boolean showAlert) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setShowPushnotificationAlert()");
@@ -2188,6 +2183,80 @@ public class Pushwoosh {
             registrationPrefs.setApiToken(token);
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set api token", e);
+        }
+    }
+
+    /**
+     * @see #setReverseProxy(String, Map)
+     */
+    public void setReverseProxy(@NonNull String url) {
+        setReverseProxy(url, null);
+    }
+
+    /**
+     * Routes all SDK network requests through the specified reverse proxy URL
+     * and sets custom HTTP headers for all requests.
+     * Settings are not persisted and must be set on every app start.
+     *
+     * <p><b>Requires</b> {@code com.pushwoosh.allow_reverse_proxy} meta-data set to {@code true}
+     * in AndroidManifest.xml:
+     * <pre>
+     * {@code
+     *   <meta-data android:name="com.pushwoosh.allow_reverse_proxy" android:value="true" />
+     * }
+     * </pre>
+     *
+     * <p><b>Important:</b> This method must be called in {@code Application.onCreate()}, not in
+     * {@code Activity.onCreate()}. The SDK initializes automatically via ContentProvider before
+     * your Application class is created. Calling this method in {@code Application.onCreate()}
+     * guarantees that the reverse proxy URL is set before any SDK network requests are sent.
+     *
+     * <pre>
+     * {@code
+     *   // Enable reverse proxy with custom headers
+     *   Map<String, String> headers = new HashMap<>();
+     *   headers.put("X-Proxy-Auth", "my-token");
+     *   Pushwoosh.getInstance().setReverseProxy("https://your-proxy.example.com/json/1.3/", headers);
+     * }
+     * </pre>
+     *
+     * @param url the reverse proxy URL (must be a valid https:// or http:// URL)
+     * @param headers optional map of custom HTTP headers (may be null)
+     */
+    public void setReverseProxy(@NonNull String url, @Nullable Map<String, String> headers) {
+        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setReverseProxy()");
+        try {
+            PushwooshPlatform platform = PushwooshPlatform.getInstance();
+            if (platform != null && !platform.getConfig().isReverseProxyAllowed()) {
+                PWLog.warn("Pushwoosh", "setReverseProxy() ignored. Set com.pushwoosh.allow_reverse_proxy to true in AndroidManifest.xml");
+                return;
+            }
+            if (TextUtils.isEmpty(url)) {
+                PWLog.error("Pushwoosh", "setReverseProxy() ignored: URL must not be null or empty");
+                return;
+            }
+            if (!url.startsWith("https://") && !url.startsWith("http://")) {
+                PWLog.error("Pushwoosh", "setReverseProxy() ignored: URL must start with https:// or http://");
+                return;
+            }
+            try {
+                new java.net.URL(url);
+            } catch (java.net.MalformedURLException e) {
+                PWLog.error("Pushwoosh", "setReverseProxy() ignored: malformed URL: " + url);
+                return;
+            }
+            if (!url.endsWith("/")) {
+                url = url + "/";
+            }
+            RequestManager requestManager = NetworkModule.getRequestManager();
+            if (requestManager == null) {
+                PWLog.warn("Pushwoosh", "setReverseProxy() ignored: SDK is not initialized yet");
+                return;
+            }
+            requestManager.setReverseProxyUrl(url, headers);
+            EventBus.sendEvent(new ReverseProxyReadyEvent());
+        } catch (Exception e) {
+            PWLog.error("Pushwoosh", "can't set reverse proxy", e);
         }
     }
 

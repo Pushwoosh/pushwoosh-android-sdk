@@ -40,6 +40,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLog;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -153,6 +154,16 @@ public class PushwooshStartWorkerTest {
     }
 
     private void ensureStarted() throws InterruptedException {
+        // setReady() is now posted to main looper, so we need to idle it
+        // to process the pending message in Robolectric's LEGACY mode
+        for (int i = 0; i < 20; i++) {
+            ShadowLooper.idleMainLooper();
+            if (SdkStateProvider.getInstance().isReady()) {
+                break;
+            }
+            Thread.sleep(100);
+        }
+
         CountDownLatch latch = new CountDownLatch(1);
         SdkStateProvider.getInstance().executeOrQueue(latch::countDown);
 
@@ -287,6 +298,15 @@ public class PushwooshStartWorkerTest {
         // verify that sending the missing event unblocks everything
         EventBus.sendEvent(new PushwooshNotificationManager.ApplicationIdReadyEvent());
 
+        // idle main looper to process setReady() posted from background thread
+        for (int i = 0; i < 20; i++) {
+            ShadowLooper.idleMainLooper();
+            if (SdkStateProvider.getInstance().isReady()) {
+                break;
+            }
+            Thread.sleep(100);
+        }
+
         // now the queued task should execute
         assertTrue("Task should execute after missing event arrives",
                 queuedTaskLatch.await(2, TimeUnit.SECONDS));
@@ -343,6 +363,15 @@ public class PushwooshStartWorkerTest {
         ensureInitializingState();
 
         initializeAndRunPushwooshStartWorker();
+
+        // idle main looper to process setReady() posted from background thread
+        for (int i = 0; i < 20; i++) {
+            ShadowLooper.idleMainLooper();
+            if (SdkStateProvider.getInstance().isReady()) {
+                break;
+            }
+            Thread.sleep(100);
+        }
 
         // Now the queued task should execute when SDK becomes ready
         assertTrue("Queued task should execute after SDK initialization",

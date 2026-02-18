@@ -37,6 +37,10 @@ import java.util.List;
  * <li><b>Context Access</b> - Access application context for custom logic</li>
  * </ul>
  * <p>
+ * <b>Note:</b> For simple foreground suppression without any Java code, use the
+ * {@code com.pushwoosh.foreground_push} manifest metadata instead of subclassing.
+ * See {@link com.pushwoosh.Pushwoosh#setShowPushnotificationAlert(boolean)} for details.
+ * <p>
  * <b>Setup:</b>
  * <p>
  * 1. Create a public class extending NotificationServiceExtension with a public no-args constructor:

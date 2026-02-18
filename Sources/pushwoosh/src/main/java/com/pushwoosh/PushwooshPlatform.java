@@ -101,7 +101,7 @@ public class PushwooshPlatform {
         registrationPrefs = RepositoryModule.getRegistrationPreferences();
         serverCommunicationManager = new ServerCommunicationManager();
 
-        NetworkModule.init(registrationPrefs, serverCommunicationManager);
+        NetworkModule.init(registrationPrefs, serverCommunicationManager, config.isReverseProxyAllowed());
 
         notificationManager = new PushwooshNotificationManager(builder.pushRegistrar, config);
         pushwooshInApp = new PushwooshInAppImpl(new PushwooshInAppServiceImpl(), serverCommunicationManager);

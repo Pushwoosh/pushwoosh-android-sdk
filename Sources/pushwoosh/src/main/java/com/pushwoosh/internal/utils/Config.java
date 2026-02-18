@@ -97,7 +97,12 @@ public interface Config {
 	boolean isServerCommunicationAllowed();
 
 	/**
-	 * @return if false, the SDK is allowed to show foreground push notifications.
+	 * Returns whether system notifications should be suppressed when the app is in the foreground.
+	 * <p>
+	 * Read from {@code <meta-data android:name="com.pushwoosh.foreground_push" android:value="true"/>}
+	 * in {@code AndroidManifest.xml}. Defaults to {@code false}.
+	 *
+	 * @return {@code true} to suppress foreground notifications, {@code false} to display them normally
 	 */
 	boolean showPushNotificationAlert();
 
@@ -163,4 +168,9 @@ public interface Config {
 
 	@NonNull
 	RichMediaType getRichMediaType();
+
+	/**
+	 * @return If true, the SDK allows routing requests through a reverse proxy URL set via {@code setReverseProxy()}.
+	 */
+	boolean isReverseProxyAllowed();
 }

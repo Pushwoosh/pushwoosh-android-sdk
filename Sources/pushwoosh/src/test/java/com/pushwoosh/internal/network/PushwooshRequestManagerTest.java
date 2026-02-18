@@ -190,7 +190,7 @@ public class PushwooshRequestManagerTest {
 
 		ServerCommunicationManager serverCommunicationManager = mock(ServerCommunicationManager.class);
 		Mockito.when(serverCommunicationManager.isServerCommunicationAllowed()).thenReturn(true);
-		requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager);
+		requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager, false);
 
 		pushRegistrarMock = mock(PushRegistrar.class);
 

@@ -39,9 +39,10 @@ public class NetworkModule {
     private static RequestManager requestManager;
 
     public static void init(
-            RegistrationPrefs registrationPrefs, ServerCommunicationManager serverCommunicationManager) {
+            RegistrationPrefs registrationPrefs, ServerCommunicationManager serverCommunicationManager,
+            boolean reverseProxyRequired) {
         if (requestManager == null) {
-            requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager);
+            requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager, reverseProxyRequired);
         }
     }
 
