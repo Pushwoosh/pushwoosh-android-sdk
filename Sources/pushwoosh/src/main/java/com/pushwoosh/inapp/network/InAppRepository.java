@@ -639,6 +639,12 @@ public class InAppRepository {
                 // worker thread
                 io.submit(() -> {
                     Resource postEventResource = getResourceFromPostEvent(result.getData());
+                    if (postEventResource != null && !TextUtils.isEmpty(data.getMessageHash())) {
+                        PWLog.info(TAG, "Setting messageHash from postEvent response: " + data.getMessageHash());
+                        RepositoryModule.getNotificationPreferences()
+                                .messageHash()
+                                .set(data.getMessageHash());
+                    }
                     // presenting rich media is UI operation, should be done in main thread
                     main.post(() -> {
                         callback.process(Result.fromData(postEventResource));

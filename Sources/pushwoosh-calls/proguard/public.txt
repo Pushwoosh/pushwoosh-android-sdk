@@ -1,5 +1,6 @@
 -keep public class com.pushwoosh.calls.PushwooshCallSettings {*;}
 -keep public class com.pushwoosh.calls.listener.CallEventListener { *; }
+-keep class * implements com.pushwoosh.calls.listener.CallEventListener { *; }
 -keep public interface com.pushwoosh.calls.CallPermissionsCallback {
     public *;
 }

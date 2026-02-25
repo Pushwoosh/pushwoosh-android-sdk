@@ -35,12 +35,14 @@ public class PostEventResponse {
 	private final String code;
 	private final String richMediaJson;
 	private final boolean isRequired;
+	private final String messageHash;
 
 	@WorkerThread
 	PostEventResponse(JSONObject response) throws JSONException {
 		code = response.optString("code");
 		richMediaJson = response.optString("richmedia");
 		isRequired = response.optBoolean("required", false);
+		messageHash = response.optString("message_hash");
 	}
 
 	public String getCode() {
@@ -53,5 +55,9 @@ public class PostEventResponse {
 
 	public boolean isRequired() {
 		return isRequired;
+	}
+
+	public String getMessageHash() {
+		return messageHash;
 	}
 }
