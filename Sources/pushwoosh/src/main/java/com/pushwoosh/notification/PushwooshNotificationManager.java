@@ -144,7 +144,7 @@ public class PushwooshNotificationManager {
 
     public void setSenderId(String senderId) {
         if (TextUtils.isEmpty(senderId)) {
-            throw new IllegalArgumentException("Sender id is empty");
+            return;
         }
 
         String oldSenderId = registrationPrefs.projectId().get();

@@ -306,7 +306,9 @@ public class Pushwoosh {
      * </pre>
      *
      * @param senderId GCM/FCM sender id
+     * @deprecated Sender ID is no longer required
      */
+    @Deprecated
     public void setSenderId(@NonNull String senderId) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setSenderId()");
         try {
@@ -333,7 +335,9 @@ public class Pushwoosh {
      * </pre>
      *
      * @return Current GCM/FCM sender id
+     * @deprecated Sender ID is no longer required.
      */
+    @Deprecated
     public String getSenderId() {
         try {
             if (ensureInitialized()) {

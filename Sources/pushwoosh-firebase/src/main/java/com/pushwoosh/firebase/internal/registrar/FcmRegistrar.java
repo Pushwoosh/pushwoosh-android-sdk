@@ -37,8 +37,6 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.repository.RegistrationPrefs;
-import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.tags.TagsBundle;
 
 import androidx.work.Data;
@@ -88,18 +86,13 @@ public class FcmRegistrar implements PushRegistrar {
 
 		@Nullable
 		private final Context context;
-		private final RegistrationPrefs registrationPrefs;
 
 		private Impl() {
 			context = AndroidPlatformModule.getApplicationContext();
-			registrationPrefs = RepositoryModule.getRegistrationPreferences();
 		}
 
 		void checkDevice(final String appId) throws Exception {
-			String senderId = registrationPrefs.projectId().get();
-
 			GeneralUtils.checkNotNullOrEmpty(appId, "mAppId");
-			GeneralUtils.checkNotNullOrEmpty(senderId, "mSenderId");
 
 			// Make sure the manifest was properly set - comment out this line
 			// while developing the app, then uncomment it when it's ready.

@@ -135,9 +135,8 @@ public class PushwooshSettingsTest {
 		assertThat(registrationPrefs.projectId().get(), is(projectIdTest));
 	}
 
-	//Tests application throws IllegalArgumentException and empty string set in registrationPrefs as SenderId value
-	// when AndroidManifest SenderId = '' and setSenderId method called with empty string
-	@Test(expected = IllegalArgumentException.class)
+	//Tests that setSenderId with empty string is a no-op (no exception, projectId unchanged)
+	@Test
 	public void setEmptyProjectIdTest() throws Exception {
 		//Preconditions:
 		String projectIdTest = "";
@@ -149,5 +148,9 @@ public class PushwooshSettingsTest {
 		platformTestManager = new PlatformTestManager(config);
 		platformTestManager.setUp();
 		platformTestManager.getNotificationManager().setSenderId(projectIdTest);
+
+		//Postconditions: projectId should remain empty (no-op)
+		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
+		assertThat(registrationPrefs.projectId().get(), is(""));
 	}
 }
