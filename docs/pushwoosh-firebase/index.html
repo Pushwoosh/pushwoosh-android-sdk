@@ -94,6 +94,7 @@
   <div class="breadcrumbs"></div>
   <div class="cover ">
     <h1 class="cover"><span><span>pushwoosh-firebase</span></span></h1>
+    <div class="platform-hinted UnderCoverText" data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-firebase/main"><p class="paragraph">Integrates Pushwoosh with Firebase Cloud Messaging (FCM) on Android. By default, the SDK handles FCM automatically and no additional code is required. Add this dependency when you need to deliver push notifications through FCM and want optional manual control over the messaging service integration. If your app registers a custom <code class="lang-kotlin">FirebaseMessagingService</code> — for example to co-exist with another push provider — use PushwooshFcmHelper to forward FCM callbacks to Pushwoosh.</p></div></div>
   </div>
   <h2 class="">Packages</h2>
   <div class="table"><a data-name="145911954%2FPackages%2F-555745950" anchor-label="com.pushwoosh.firebase" id="145911954%2FPackages%2F-555745950" data-filterable-set=":pushwoosh-firebase/main"></a>
@@ -111,7 +112,9 @@
             </div>
           </div>
         </div>
-        <div></div>
+        <div><span class="brief-comment"><a data-name="145911954%2FPackages%2F-555745950" anchor-label="com.pushwoosh.firebase" id="145911954%2FPackages%2F-555745950" data-filterable-set=":pushwoosh-firebase/main"></a>
+            <p class="paragraph"><a href="com.pushwoosh.firebase/-pushwoosh-fcm-helper/index.html">PushwooshFcmHelper</a> is required only when your app defines a custom <code class="lang-kotlin">FirebaseMessagingService</code>. Call it from <code class="lang-kotlin">onNewToken</code> to keep Pushwoosh informed of token refreshes, and from <code class="lang-kotlin">onMessageReceived</code> to route Pushwoosh messages to the SDK while letting other providers handle their own messages.</p>
+          </span></div>
       </div>
     </div>
   </div>

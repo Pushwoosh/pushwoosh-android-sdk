@@ -40,7 +40,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 35
     ext.global_targetVersion = 35
-    ext.global_versionName = "6.7.58"
+    ext.global_versionName = "6.7.59"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"
@@ -111,6 +111,34 @@ if (isDokkaTask) {
             if (subproject.name != 'demoapp' && !subproject.name.contains('stub')) {
                 dokka(project(":${subproject.name}"))
             }
+        }
+    }
+    tasks.register("dokkaPostProcess") {
+        dependsOn("dokkaGenerate")
+
+        doLast {
+            def outputDir = project.property("dokkaOutputDir")
+            def indexFile = file("${outputDir}/index.html")
+            def newHeading = '<h2 class="">Pushwoosh Android SDK Documentation</h2>'
+
+            def content = indexFile.text
+            content = content.replace('<title>All modules</title>',
+                                      '<title>Pushwoosh Android SDK Documentation</title>')
+            content = content.replace('<h2 class="">All modules:</h2>', newHeading)
+
+            def descFile = file("docs/index-description.html")
+            if (descFile.exists()) {
+                content = content.replace(newHeading, newHeading + "\n" + descFile.text.strip())
+            }
+
+            indexFile.text = content
+
+            def logo = file("../public/sdk/Documentation/logo-icon.svg")
+            if (logo.exists()) {
+                file("${outputDir}/images/logo-icon.svg").bytes = logo.bytes
+            }
+
+            logger.lifecycle("✅ Dokka post-processing complete")
         }
     }
 } else {

@@ -94,6 +94,7 @@
   <div class="breadcrumbs"></div>
   <div class="cover ">
     <h1 class="cover"><span><span>pushwoosh-huawei</span></span></h1>
+    <div class="platform-hinted UnderCoverText" data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-huawei/main"><p class="paragraph">Integrates Pushwoosh with Huawei Mobile Services (HMS) Push Kit on Android. By default, the SDK handles HMS automatically and no additional code is required. Add this dependency when your app targets Huawei devices and needs to deliver push notifications through HMS Push Kit. If your app registers a custom <code class="lang-kotlin">HmsMessageService</code> — for example to co-exist with another push provider — use PushwooshHmsHelper to forward HMS callbacks to Pushwoosh.</p></div></div>
   </div>
   <h2 class="">Packages</h2>
   <div class="table"><a data-name="1986137778%2FPackages%2F576838210" anchor-label="com.pushwoosh.huawei" id="1986137778%2FPackages%2F576838210" data-filterable-set=":pushwoosh-huawei/main"></a>
@@ -111,7 +112,9 @@
             </div>
           </div>
         </div>
-        <div></div>
+        <div><span class="brief-comment"><a data-name="1986137778%2FPackages%2F576838210" anchor-label="com.pushwoosh.huawei" id="1986137778%2FPackages%2F576838210" data-filterable-set=":pushwoosh-huawei/main"></a>
+            <p class="paragraph"><a href="com.pushwoosh.huawei/-pushwoosh-hms-helper/index.html">PushwooshHmsHelper</a> is required only when your app defines a custom <code class="lang-kotlin">HmsMessageService</code>. Call it from <code class="lang-kotlin">onNewToken</code> to keep Pushwoosh informed of token refreshes, and from <code class="lang-kotlin">onMessageReceived</code> to route Pushwoosh messages to the SDK while letting other providers handle their own messages.</p>
+          </span></div>
       </div>
     </div>
   </div>

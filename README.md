@@ -12,8 +12,8 @@ Pushwoosh Android SDK
 
 ```groovy
 dependencies {
-    implementation 'com.pushwoosh:pushwoosh:6.7.58'
-    implementation 'com.pushwoosh:pushwoosh-firebase:6.7.58'
+    implementation 'com.pushwoosh:pushwoosh:6.7.59'
+    implementation 'com.pushwoosh:pushwoosh-firebase:6.7.59'
 }
 ```
 

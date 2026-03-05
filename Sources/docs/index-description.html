@@ -1,0 +1,93 @@
+<style>
+  .pw-tagline {
+    font-size: 1.05em;
+    color: var(--color-text-light, rgba(0,0,0,0.7));
+    margin: 8px 0 28px;
+    line-height: 1.6;
+    max-width: 680px;
+  }
+
+
+  .pw-section-title {
+    font-size: 1.15em;
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+
+  .pw-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 48px;
+    max-width: 760px;
+  }
+
+  .pw-step {
+    line-height: 1.6;
+  }
+
+  .pw-step-body {
+    font-size: 0.97em;
+  }
+
+  .pw-step-body code {
+    background: var(--color-background-inline-code, rgba(0,0,0,0.08));
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    font-family: monospace;
+  }
+
+  .pw-step-body p {
+    margin: 0 0 6px;
+  }
+
+  .pw-divider {
+    border: none;
+    border-top: 1px solid var(--ring-line-color, #dfe5eb);
+    margin: 0 0 36px;
+  }
+</style>
+
+<p class="pw-tagline">
+  Complete API reference for the Pushwoosh Android SDK — push notifications,
+  in-app messaging, location-based campaigns, and more. Add only the modules your app needs.
+</p>
+
+<hr class="pw-divider">
+
+<div class="pw-section-title">Quick Start</div>
+
+<div class="pw-steps">
+  <div class="pw-step">
+    <div class="pw-step-body">
+      <p>Apply the Firebase plugin and add the SDK dependency to <code>build.gradle</code>:</p>
+      <pre><code>plugins {
+    id 'com.google.gms.google-services'
+}
+
+dependencies {
+    implementation 'com.pushwoosh:pushwoosh-firebase:VERSION'
+}</code></pre>
+        <p></p>
+      <p>Place <code>google-services.json</code> (downloaded from Firebase Console) into the <code>app/</code> folder.</p>
+    </div>
+  </div>
+
+  <div class="pw-step">
+    <div class="pw-step-body">
+      <p>Add your Pushwoosh App ID and API token to <code>AndroidManifest.xml</code>:</p>
+      <pre><code>&lt;meta-data android:name="com.pushwoosh.appid" android:value="XXXXX-XXXXX"/&gt;
+&lt;meta-data android:name="com.pushwoosh.apitoken" android:value="YOUR-DEVICE-API-TOKEN"/&gt;</code></pre>
+    </div>
+  </div>
+
+  <div class="pw-step">
+    <div class="pw-step-body">
+      <p>Call when the user agrees to receive notifications (e.g. on a button tap):</p>
+      <pre><code>Pushwoosh.getInstance().registerForPushNotifications();</code></pre>
+    </div>
+  </div>
+</div>
+
+<hr class="pw-divider">

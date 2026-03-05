@@ -4,6 +4,8 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
 }
 
+rootProject.name = 'pushwoosh-android-sdk'
+
 include ':pushwoosh-huawei'
 include ':pushwoosh', ':pushwoosh-badge', ':pushwoosh-location', ':pushwoosh-amazon', ':amazon-stub', ':pushwoosh-inbox-ui', ':pushwoosh-inbox', ':pushwoosh-firebase'
 project(':amazon-stub').projectDir = new File('pushwoosh-amazon/amazon-stub')

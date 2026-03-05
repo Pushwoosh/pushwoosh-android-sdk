@@ -204,6 +204,12 @@ def configureDokkaSourceSet(sourceSet) {
         matchingRegex.set(".*\\.internal.*")
         suppress.set(true)
     }
+
+    // Include module doc if present (module + package descriptions)
+    def moduleDoc = new File(rootProject.projectDir, "docs/${project.name}.md")
+    if (moduleDoc.exists()) {
+        sourceSet.includes.from(moduleDoc)
+    }
 }
 
 // ============================================

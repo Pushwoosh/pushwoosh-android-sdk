@@ -78,6 +78,99 @@
   <div class="breadcrumbs"></div>
   <div class="cover ">
     <h2 class="">Pushwoosh Android SDK Documentation</h2>
+<style>
+  .pw-tagline {
+    font-size: 1.05em;
+    color: var(--color-text-light, rgba(0,0,0,0.7));
+    margin: 8px 0 28px;
+    line-height: 1.6;
+    max-width: 680px;
+  }
+
+
+  .pw-section-title {
+    font-size: 1.15em;
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+
+  .pw-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 48px;
+    max-width: 760px;
+  }
+
+  .pw-step {
+    line-height: 1.6;
+  }
+
+  .pw-step-body {
+    font-size: 0.97em;
+  }
+
+  .pw-step-body code {
+    background: var(--color-background-inline-code, rgba(0,0,0,0.08));
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    font-family: monospace;
+  }
+
+  .pw-step-body p {
+    margin: 0 0 6px;
+  }
+
+  .pw-divider {
+    border: none;
+    border-top: 1px solid var(--ring-line-color, #dfe5eb);
+    margin: 0 0 36px;
+  }
+</style>
+
+<p class="pw-tagline">
+  Complete API reference for the Pushwoosh Android SDK — push notifications,
+  in-app messaging, location-based campaigns, and more. Add only the modules your app needs.
+</p>
+
+<hr class="pw-divider">
+
+<div class="pw-section-title">Quick Start</div>
+
+<div class="pw-steps">
+  <div class="pw-step">
+    <div class="pw-step-body">
+      <p>Apply the Firebase plugin and add the SDK dependency to <code>build.gradle</code>:</p>
+      <pre><code>plugins {
+    id 'com.google.gms.google-services'
+}
+
+dependencies {
+    implementation 'com.pushwoosh:pushwoosh-firebase:VERSION'
+}</code></pre>
+        <p></p>
+      <p>Place <code>google-services.json</code> (downloaded from Firebase Console) into the <code>app/</code> folder.</p>
+    </div>
+  </div>
+
+  <div class="pw-step">
+    <div class="pw-step-body">
+      <p>Add your Pushwoosh App ID and API token to <code>AndroidManifest.xml</code>:</p>
+      <pre><code>&lt;meta-data android:name="com.pushwoosh.appid" android:value="XXXXX-XXXXX"/&gt;
+&lt;meta-data android:name="com.pushwoosh.apitoken" android:value="YOUR-DEVICE-API-TOKEN"/&gt;</code></pre>
+    </div>
+  </div>
+
+  <div class="pw-step">
+    <div class="pw-step-body">
+      <p>Call when the user agrees to receive notifications (e.g. on a button tap):</p>
+      <pre><code>Pushwoosh.getInstance().registerForPushNotifications();</code></pre>
+    </div>
+  </div>
+</div>
+
+<hr class="pw-divider">
     <div class="table"><a data-name="-1933209477%2FMain%2F0" anchor-label="pushwoosh" id="-1933209477%2FMain%2F0" data-filterable-set=""></a>
       <div class="table-row">
         <div class="main-subrow ">
@@ -86,7 +179,9 @@
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1933209477%2FMain%2F0"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
-          <div><span class="brief-comment"></span></div>
+          <div><span class="brief-comment">
+              <p class="paragraph">Core module of the Pushwoosh SDK. Handles push notification registration, user segmentation via tags, in-app messaging, and rich media. Start here — all other modules depend on this one.</p>
+            </span></div>
         </div>
       </div>
 <a data-name="-1563683291%2FMain%2F0" anchor-label="pushwoosh-badge" id="-1563683291%2FMain%2F0" data-filterable-set=""></a>
@@ -97,7 +192,9 @@
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1563683291%2FMain%2F0"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
-          <div><span class="brief-comment"></span></div>
+          <div><span class="brief-comment">
+              <p class="paragraph">Adds application icon badge number management to the Pushwoosh SDK. When Pushwoosh delivers a push notification, this module automatically updates the badge count on the app icon across a wide range of Android launchers. Add this dependency when you need to display or control unread notification counts on the app icon. The primary entry point is PushwooshBadge.</p>
+            </span></div>
         </div>
       </div>
 <a data-name="1652087859%2FMain%2F0" anchor-label="pushwoosh-calls" id="1652087859%2FMain%2F0" data-filterable-set=""></a>
@@ -108,7 +205,9 @@
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1652087859%2FMain%2F0"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
-          <div><span class="brief-comment"></span></div>
+          <div><span class="brief-comment">
+              <p class="paragraph">Adds VoIP call support to the Pushwoosh SDK. When Pushwoosh delivers a VoIP push notification, this module intercepts it, registers the call with the Android Telecom Framework, and presents the system incoming-call UI. Add this dependency when you need to deliver VoIP calls via push and integrate them with a calling solution such as WebRTC, Twilio, or Agora. The primary configuration entry point is PushwooshCallSettings.</p>
+            </span></div>
         </div>
       </div>
 <a data-name="-94757773%2FMain%2F0" anchor-label="pushwoosh-firebase" id="-94757773%2FMain%2F0" data-filterable-set=""></a>
@@ -119,7 +218,9 @@
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-94757773%2FMain%2F0"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
-          <div><span class="brief-comment"></span></div>
+          <div><span class="brief-comment">
+              <p class="paragraph">Integrates Pushwoosh with Firebase Cloud Messaging (FCM) on Android. By default, the SDK handles FCM automatically and no additional code is required. Add this dependency when you need to deliver push notifications through FCM and want optional manual control over the messaging service integration. If your app registers a custom <code class="lang-kotlin">FirebaseMessagingService</code> — for example to co-exist with another push provider — use PushwooshFcmHelper to forward FCM callbacks to Pushwoosh.</p>
+            </span></div>
         </div>
       </div>
 <a data-name="-1149858093%2FMain%2F0" anchor-label="pushwoosh-huawei" id="-1149858093%2FMain%2F0" data-filterable-set=""></a>
@@ -130,7 +231,9 @@
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1149858093%2FMain%2F0"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
-          <div><span class="brief-comment"></span></div>
+          <div><span class="brief-comment">
+              <p class="paragraph">Integrates Pushwoosh with Huawei Mobile Services (HMS) Push Kit on Android. By default, the SDK handles HMS automatically and no additional code is required. Add this dependency when your app targets Huawei devices and needs to deliver push notifications through HMS Push Kit. If your app registers a custom <code class="lang-kotlin">HmsMessageService</code> — for example to co-exist with another push provider — use PushwooshHmsHelper to forward HMS callbacks to Pushwoosh.</p>
+            </span></div>
         </div>
       </div>
 <a data-name="-862255966%2FMain%2F0" anchor-label="pushwoosh-inbox" id="-862255966%2FMain%2F0" data-filterable-set=""></a>
@@ -141,7 +244,9 @@
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-862255966%2FMain%2F0"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
-          <div><span class="brief-comment"></span></div>
+          <div><span class="brief-comment">
+              <p class="paragraph">Provides a persistent message inbox that stores push notifications delivered by Pushwoosh, letting users revisit them after dismissing the system tray alert. Add this dependency when you want to surface a message center inside your app where users can read, act on, and delete received pushes. The primary entry point for loading and managing inbox messages is PushwooshInbox.</p>
+            </span></div>
         </div>
       </div>
 <a data-name="-244035137%2FMain%2F0" anchor-label="pushwoosh-inbox-ui" id="-244035137%2FMain%2F0" data-filterable-set=""></a>
@@ -152,7 +257,9 @@
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-244035137%2FMain%2F0"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
-          <div><span class="brief-comment"></span></div>
+          <div><span class="brief-comment">
+              <p class="paragraph">Provides ready-made UI components for displaying the Pushwoosh message inbox inside your app, so you can surface a message center without building list screens from scratch. Add this dependency when you want a Fragment or a standalone Activity that renders the inbox messages delivered by Pushwoosh and handles read/delete interactions out of the box. The primary entry point for obtaining the inbox UI is PushwooshInboxUi.</p>
+            </span></div>
         </div>
       </div>
 <a data-name="2075758213%2FMain%2F0" anchor-label="pushwoosh-location" id="2075758213%2FMain%2F0" data-filterable-set=""></a>
@@ -163,7 +270,9 @@
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2075758213%2FMain%2F0"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
-          <div><span class="brief-comment"></span></div>
+          <div><span class="brief-comment">
+              <p class="paragraph">Enables geo push notifications by tracking the device's location and registering it with Pushwoosh geozones. When the device enters a configured geozone, Pushwoosh delivers the associated push notification. Add this dependency when you need to trigger pushes based on the user's physical location. The primary entry point is PushwooshLocation.</p>
+            </span></div>
         </div>
       </div>
     </div>

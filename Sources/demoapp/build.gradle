@@ -1,9 +1,13 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 
-apply from: '../scripts/buildSdk/build.gradle'
-apply from: '../scripts/prepareAar/build.gradle'
-apply from: '../scripts/buildSdk/configureDependencies.gradle'
+def isLocalBuild = rootProject.findProject(':pushwoosh') != null
+
+if (isLocalBuild) {
+    apply from: '../scripts/buildSdk/build.gradle'
+    apply from: '../scripts/prepareAar/build.gradle'
+    apply from: '../scripts/buildSdk/configureDependencies.gradle'
+}
 
 android {
     namespace 'com.pushwoosh.demoapp'
@@ -22,7 +26,9 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.debug
-            debuggable true
+            if (isLocalBuild) {
+                debuggable true
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -36,6 +42,29 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+}
+
+// Pushwoosh SDK modules — single list for both local and Maven builds.
+// To add a new module: just append to this list.
+def pushwooshModules = [
+    'pushwoosh',
+    'pushwoosh-firebase',
+    'pushwoosh-badge',
+    'pushwoosh-calls',
+    'pushwoosh-location',
+    'pushwoosh-amazon',
+    'pushwoosh-huawei',
+    'pushwoosh-inbox',
+    'pushwoosh-inbox-ui',
+]
+
+// In standalone Maven builds, exclude legacy Android Support Library pulled transitively
+// by some SDK modules (e.g. pushwoosh-badge) to avoid duplicate class errors vs androidx.core.
+// Not needed in local builds where project dependencies don't cause this conflict.
+if (!isLocalBuild) {
+    configurations.all {
+        exclude group: 'com.android.support'
     }
 }
 
@@ -54,17 +83,15 @@ dependencies {
     implementation libs.work.runtime
     implementation libs.glide
 
-
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    debugApi project(':pushwoosh')
-    debugApi project(':pushwoosh-firebase')
-    debugApi project(':pushwoosh-badge')
-    debugApi project(':pushwoosh-calls')
-    debugApi project(':pushwoosh-location')
-    debugApi project(':pushwoosh-amazon')
-    debugApi project(':pushwoosh-huawei')
-    debugApi project(':pushwoosh-inbox')
-    debugApi project(':pushwoosh-inbox-ui')
+    // Pushwoosh SDK — auto-switch between project refs and Maven artifacts
+    def pwVersion = libs.versions.pushwooshFirebase.get()
+    pushwooshModules.each { module ->
+        if (isLocalBuild) {
+            debugApi project(":$module")
+        } else {
+            implementation "com.pushwoosh:$module:$pwVersion"
+        }
+    }
 
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
@@ -73,3 +100,8 @@ dependencies {
 
 apply plugin: "com.google.gms.google-services"
 
+if (!isLocalBuild) {
+    googleServices {
+        disableVersionCheck = true
+    }
+}

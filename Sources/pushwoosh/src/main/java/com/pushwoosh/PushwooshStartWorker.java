@@ -363,7 +363,6 @@ public class PushwooshStartWorker {
         String sdkVersion = GeneralUtils.SDK_VERSION;
         String deviceHwid = preferences.hwid().get();
         String applicationCode = preferences.applicationId().get();
-        String fcmProjectId = preferences.projectId().get();
         String apiToken = prettyApiToken(preferences.apiToken().get());
         String pushToken = preferences.pushToken().get();
         String baseURL = preferences.baseUrl().get();
@@ -373,7 +372,6 @@ public class PushwooshStartWorker {
         PWLog.info(TAG, "PUSHWOOSH BASE URL: " + baseURL);
 
         PWLog.info(TAG, "APP CODE: " + applicationCode);
-        PWLog.info(TAG, "FIREBASE PROJECT ID: " + fcmProjectId);
         PWLog.info(TAG, "HWID: " + deviceHwid);
         PWLog.info(TAG, "PUSH TOKEN: " + pushToken);
 
