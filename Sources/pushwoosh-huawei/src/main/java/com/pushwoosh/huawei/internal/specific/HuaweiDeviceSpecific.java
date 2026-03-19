@@ -8,7 +8,6 @@ import static com.pushwoosh.internal.specific.DeviceSpecificProvider.HUAWEI_TYPE
 
 public class HuaweiDeviceSpecific implements DeviceSpecific {
     private static final int HUAWEI_DEVICE_TYPE = 17;
-    private static final String HUAWEI_PROJECT_ID = "HUAWEI_DEVICE";
 
     private HuaweiPushRegistrar pushRegistrar;
 
@@ -29,11 +28,6 @@ public class HuaweiDeviceSpecific implements DeviceSpecific {
     @Override
     public int deviceType() {
         return HUAWEI_DEVICE_TYPE;
-    }
-
-    @Override
-    public String projectId() {
-        return HUAWEI_PROJECT_ID;
     }
 
     @Override

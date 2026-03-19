@@ -54,11 +54,6 @@ public interface DeviceSpecific {
 	int deviceType();
 
 	/**
-	 * @return senderId which is setting up for the application
-	 */
-	String projectId();
-
-	/**
 	 * @return type of current DeviceSpecific
 	 */
 	String type();

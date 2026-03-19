@@ -75,7 +75,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private static final String API_TOKEN = "pw_api_token";
     private final PreferenceStringValue pushToken;
     private final PreferenceBooleanValue registeredOnServer;
-    private final PreferenceStringValue projectId;
     private final PreferenceStringValue applicationId;
     private final PreferenceLongValue lastPushRegistration;
     private final PreferenceBooleanValue forceRegister;
@@ -103,11 +102,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         applicationId = new PreferenceStringValue(preferences, PROPERTY_APPLICATION_ID, "");
         if (applicationId.get().isEmpty() && config.getAppId() != null) {
             applicationId.set(config.getAppId());
-        }
-
-        projectId = new PreferenceStringValue(preferences, PROPERTY_PROJECT_ID, "");
-        if (projectId.get().isEmpty() && config.getProjectId() != null) {
-            projectId.set(config.getProjectId());
         }
 
         pushToken = new PreferenceStringValue(preferences, PROPERTY_PUSH_TOKEN, "");
@@ -166,10 +160,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
     public PreferenceStringValue applicationId() {
         return applicationId;
-    }
-
-    public PreferenceStringValue projectId() {
-        return projectId;
     }
 
     public PreferenceStringValue pushToken() {
@@ -283,12 +273,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         apiToken().set(apiToken);
     }
 
-    public void removeSenderId() {
-        clearSenderIdInfo();
-        projectId().set("");
-    }
-
-    public void clearSenderIdInfo() {
+    public void clearPushRegistrationInfo() {
         pushToken().set("");
         lastPushRegistration().set(0);
     }

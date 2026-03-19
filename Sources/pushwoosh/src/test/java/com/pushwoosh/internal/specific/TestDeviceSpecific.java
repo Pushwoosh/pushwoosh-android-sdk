@@ -50,11 +50,6 @@ public class TestDeviceSpecific implements DeviceSpecific{
 	}
 
 	@Override
-	public String projectId() {
-		return "testProjectId";
-	}
-
-	@Override
 	public String type() {
 		return "testType";
 	}

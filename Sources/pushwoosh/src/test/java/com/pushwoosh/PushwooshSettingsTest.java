@@ -10,17 +10,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.LooperMode;
 
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by etkachenko on 3/30/17.
  */
 
 @RunWith(RobolectricTestRunner.class)
+@LooperMode(LooperMode.Mode.LEGACY)
 @org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class PushwooshSettingsTest {
 	private PlatformTestManager platformTestManager;
@@ -92,65 +93,4 @@ public class PushwooshSettingsTest {
 		platformTestManager.getNotificationManager().setAppId(appIDTest);
 	}
 
-	//
-	// ProjectId part
-	//-----------------------------------------------------------------------
-
-	@Test
-	public void setMetaProjectIdTest() throws Exception {
-		//Preconditions:
-		String projectIdTest = "Test_ProjectId";
-		String projectIdTestMeta = "Test_ProjectId_Meta";
-
-		Config config = MockConfig.createMock();
-		when(config.getProjectId()).thenReturn(projectIdTestMeta);
-
-		//Steps:
-		platformTestManager = new PlatformTestManager(config);
-		platformTestManager.setUp();
-		platformTestManager.getNotificationManager().setSenderId(projectIdTest);
-
-		//Postconditions:
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
-		assertThat(registrationPrefs.projectId().get(), is(projectIdTest));
-	}
-
-	//Tests ProjectId value from setSenderId method set in registrationPrefs when AndroidManifest AppId value is not presented
-	@Test
-	public void setProjectIdTest() throws Exception {
-		//Preconditions:
-		String projectIdTest = "Test_ProjectId";
-		String projectIdTestMeta = null;
-
-		Config config = MockConfig.createMock();
-		when(config.getProjectId()).thenReturn(projectIdTestMeta);
-
-		//Steps:
-		platformTestManager = new PlatformTestManager(config);
-		platformTestManager.setUp();
-		platformTestManager.getNotificationManager().setSenderId(projectIdTest);
-
-		//Postconditions:
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
-		assertThat(registrationPrefs.projectId().get(), is(projectIdTest));
-	}
-
-	//Tests that setSenderId with empty string is a no-op (no exception, projectId unchanged)
-	@Test
-	public void setEmptyProjectIdTest() throws Exception {
-		//Preconditions:
-		String projectIdTest = "";
-		String projectIdTestMeta = "";
-		Config config = MockConfig.createMock();
-		when(config.getProjectId()).thenReturn(projectIdTestMeta);
-
-		//Steps:
-		platformTestManager = new PlatformTestManager(config);
-		platformTestManager.setUp();
-		platformTestManager.getNotificationManager().setSenderId(projectIdTest);
-
-		//Postconditions: projectId should remain empty (no-op)
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
-		assertThat(registrationPrefs.projectId().get(), is(""));
-	}
 }

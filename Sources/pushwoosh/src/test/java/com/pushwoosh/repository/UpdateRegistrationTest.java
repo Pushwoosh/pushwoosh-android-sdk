@@ -40,7 +40,6 @@ import static org.mockito.Mockito.when;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.platform.ApplicationOpenDetector;
-import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.testutil.Expectation;
@@ -63,8 +62,6 @@ import org.robolectric.shadows.ShadowLooper;
 @org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class UpdateRegistrationTest {
 	private static final String PUSH_TOKEN = "test_pushToken";
-	public static final String TEST_PROJECT_ID = "testProjectId";
-
 	private Config config;
 
 	private PlatformTestManager platformTestManager;
@@ -189,43 +186,6 @@ public class UpdateRegistrationTest {
 		verify(expectation, never()).fulfilled(requestCaptor.capture());
 	}
 
-	@Test
-	public void registeredSenderIdIfRegisteredBefore_changeSenderId() throws JSONException {
-		String newSenderId = "test_SenderIdNew";
-
-		//init
-		initForRegistration();
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
-		PushRegistrar pushRegistrar = platformTestManager.getPushRegistrar();
-
-		//Steps
-		platformTestManager.getNotificationManager().setSenderId(newSenderId);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		// Postconditions:
-		verify(pushRegistrar).registerPW(null);
-		assertThat(newSenderId, is(equalTo(registrationPrefs.projectId().get())));
-	}
-
-	@Test
-	public void notRegisteredSenderIdIfNotRegisteredBefore_changeSenderId() throws JSONException {
-		String newSenderId = "test_SenderIdNew";
-
-		//init
-		initForRegistration();
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
-		registrationPrefs.pushToken().set("");
-		PushRegistrar pushRegistrar = platformTestManager.getPushRegistrar();
-
-		//Steps
-		platformTestManager.getNotificationManager().setSenderId(newSenderId);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		// Postconditions:
-		verify(pushRegistrar, never()).registerPW(null);
-		assertThat(newSenderId, is(equalTo(registrationPrefs.projectId().get())));
-	}
-
 	//Tests updateRegistration method with testToken == null, forceRegister == true, outdated lastPushRegistration
 	@Test
 	public void nullRegIdUpdateRegistrationTest() throws Exception {
@@ -253,14 +213,12 @@ public class UpdateRegistrationTest {
 	//Tests updateRegistration method with testRegId != null, forceRegister == false, fresh lastPushRegistration
 	@Test
 	public void falseForceRegisterUpdateRegistrationTest() throws Exception {
-		when(config.getProjectId()).thenReturn(TEST_PROJECT_ID);
 		platformTestManager = new PlatformTestManager(config);
 		RequestManagerMock requestManagerMock = platformTestManager.getRequestManager();
 		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
 
 		Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
 
-		registrationPrefs.projectId().set(TEST_PROJECT_ID);
 		registrationPrefs.applicationId().set(APP_ID);
 		registrationPrefs.pushToken().set(PUSH_TOKEN);
 		registrationPrefs.forceRegister().set(false);

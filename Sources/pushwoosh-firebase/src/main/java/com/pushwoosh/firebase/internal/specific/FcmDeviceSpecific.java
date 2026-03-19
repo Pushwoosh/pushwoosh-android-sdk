@@ -26,7 +26,6 @@
 
 package com.pushwoosh.firebase.internal.specific;
 
-import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.firebase.internal.registrar.FcmRegistrar;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.specific.DeviceSpecific;
@@ -55,11 +54,6 @@ final class FcmDeviceSpecific implements DeviceSpecific {
 	@Override
 	public int deviceType() {
 		return ANDROID_DEVICE_TYPE;
-	}
-
-	@Override
-	public String projectId() {
-		return GeneralUtils.getSenderId();
 	}
 
 	@Override

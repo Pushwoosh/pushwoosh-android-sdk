@@ -293,59 +293,20 @@ public class Pushwoosh {
     }
 
     /**
-     * Sets the FCM/GCM sender ID for push notifications.
-     * <p>
-     * This method provides a runtime alternative to defining "com.pushwoosh.senderid" metadata in AndroidManifest.xml.
-     * The sender ID can be found in your Firebase Console project settings.
-     * <br><br>
-     * Example:
-     * <pre>
-     * {@code
-     *   Pushwoosh.getInstance().setSenderId("123456789012");
-     * }
-     * </pre>
-     *
-     * @param senderId GCM/FCM sender id
-     * @deprecated Sender ID is no longer required
+     * @param senderId GCM/FCM sender id (ignored)
+     * @deprecated Sender ID is no longer required. This method is a no-op.
      */
     @Deprecated
     public void setSenderId(@NonNull String senderId) {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setSenderId()");
-        try {
-            if (ensureInitialized()) {
-                notificationManager.setSenderId(senderId);
-            }
-        } catch (Exception e) {
-            PWLog.error("Pushwoosh", "can't set sender id", e);
-        }
+        // no-op: senderId is no longer used
     }
 
     /**
-     * Returns the current GCM/FCM sender ID.
-     * <p>
-     * This method retrieves the sender ID that was set either via {@link #setSenderId(String)}
-     * or through the "com.pushwoosh.senderid" metadata in AndroidManifest.xml.
-     * <br><br>
-     * Example:
-     * <pre>
-     * {@code
-     *   String senderId = Pushwoosh.getInstance().getSenderId();
-     *   Log.d("Pushwoosh", "Sender ID: " + senderId);
-     * }
-     * </pre>
-     *
-     * @return Current GCM/FCM sender id
+     * @return always returns empty string; sender ID is no longer required.
      * @deprecated Sender ID is no longer required.
      */
     @Deprecated
     public String getSenderId() {
-        try {
-            if (ensureInitialized()) {
-                return registrationPrefs.projectId().get();
-            }
-        } catch (Exception e) {
-            PWLog.error("Pushwoosh", "can't get sender id", e);
-        }
         return "";
     }
 

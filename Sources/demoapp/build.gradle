@@ -99,6 +99,7 @@ dependencies {
 }
 
 apply plugin: "com.google.gms.google-services"
+apply plugin: 'com.huawei.agconnect'
 
 if (!isLocalBuild) {
     googleServices {

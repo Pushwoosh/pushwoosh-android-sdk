@@ -33,7 +33,6 @@ import com.pushwoosh.internal.specific.DeviceSpecific;
 final class AmazonDeviceSpecific implements DeviceSpecific {
 	private static final int AMAZON_DEVICE_TYPE = 9;
 	private static final String AMAZON_PERMISSION_SUFFIX = ".permission.RECEIVE_ADM_MESSAGE";
-	private static final String AMAZON_PROJECT_ID = "AMAZON_DEVICE";
 	private static final String AMAZON_TYPE = "Amazon";
 
 	private final PushRegistrar pushRegistrar = new AdmRegistrar();
@@ -51,11 +50,6 @@ final class AmazonDeviceSpecific implements DeviceSpecific {
 	@Override
 	public int deviceType() {
 		return AMAZON_DEVICE_TYPE;
-	}
-
-	@Override
-	public String projectId() {
-		return AMAZON_PROJECT_ID;
 	}
 
 	@Override

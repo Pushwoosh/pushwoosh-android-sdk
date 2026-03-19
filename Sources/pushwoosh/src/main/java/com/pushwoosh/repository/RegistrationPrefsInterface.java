@@ -38,8 +38,6 @@ interface RegistrationPrefsInterface {
 
     PreferenceStringValue applicationId();
 
-    PreferenceStringValue projectId();
-
     PreferenceStringValue pushToken();
 
     PreferenceBooleanValue registeredOnServer();

@@ -40,7 +40,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 35
     ext.global_targetVersion = 35
-    ext.global_versionName = "6.7.59"
+    ext.global_versionName = "6.7.60"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"
@@ -136,6 +136,24 @@ if (isDokkaTask) {
             def logo = file("../public/sdk/Documentation/logo-icon.svg")
             if (logo.exists()) {
                 file("${outputDir}/images/logo-icon.svg").bytes = logo.bytes
+            }
+
+            def customCss = file("docs/pushwoosh-docs.css")
+            if (customCss.exists()) {
+                file("${outputDir}/styles/pushwoosh-docs.css").text = customCss.text
+                def outputPath = file(outputDir).toPath()
+                fileTree(outputDir).matching { include '**/*.html' }.each { htmlFile ->
+                    def html = htmlFile.text
+                    if (!html.contains('pushwoosh-docs.css')) {
+                        def relPath = outputPath.relativize(htmlFile.toPath()).toString()
+                        def depth = relPath.count('/')
+                        def prefix = '../' * depth
+                        def link = "<link href=\"${prefix}styles/pushwoosh-docs.css\" rel=\"Stylesheet\">"
+                        html = html.replace('</head>', link + '\n</head>')
+                        htmlFile.text = html
+                    }
+                }
+                logger.lifecycle("✅ Injected pushwoosh-docs.css into all HTML pages")
             }
 
             logger.lifecycle("✅ Dokka post-processing complete")

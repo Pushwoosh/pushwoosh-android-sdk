@@ -33,6 +33,7 @@
 <script type="text/javascript" src="scripts/prism.js" async="async"></script>
 <script type="text/javascript" src="ui-kit/ui-kit.min.js" defer="defer"></script>
 <script type="text/javascript" src="scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+<link href="styles/pushwoosh-docs.css" rel="Stylesheet">
 </head>
 <body>
     <div class="root">
@@ -79,98 +80,274 @@
   <div class="cover ">
     <h2 class="">Pushwoosh Android SDK Documentation</h2>
 <style>
-  .pw-tagline {
-    font-size: 1.05em;
-    color: var(--color-text-light, rgba(0,0,0,0.7));
-    margin: 8px 0 28px;
-    line-height: 1.6;
-    max-width: 680px;
+  .pw-hero {
+    margin: 4px 0 32px;
+    padding: 24px 28px;
+    background: var(--code-background, rgba(39,40,44,0.04));
+    border-radius: 10px;
+    border: 1px solid var(--border-color, rgba(39,40,44,0.15));
+    position: relative;
+    overflow: hidden;
   }
 
+  .pw-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(56,189,248,0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(127,82,255,0.03) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .pw-hero-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-family: var(--default-monospace-font-family);
+    font-size: 0.75em;
+    color: var(--default-font-color);
+    opacity: 0.45;
+  }
+
+  .pw-hero-top .pw-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3fb950;
+    box-shadow: 0 0 6px rgba(63,185,80,0.4);
+  }
+
+  .pw-tagline {
+    font-size: 1.0em;
+    font-weight: 400;
+    color: var(--default-font-color);
+    opacity: 0.75;
+    line-height: 1.7;
+    max-width: 640px;
+    margin: 0;
+    position: relative;
+  }
+
+  .pw-quick-start {
+    margin: 0 0 36px;
+  }
+
+  .pw-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
 
   .pw-section-title {
-    font-size: 1.15em;
+    font-family: var(--default-monospace-font-family);
+    font-size: 0.82em;
     font-weight: 600;
-    margin-bottom: 18px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--default-font-color);
+    opacity: 0.6;
+    margin: 0;
+    padding: 6px 14px;
+    background: var(--code-background, rgba(39,40,44,0.04));
+    border: 1px solid var(--border-color, rgba(39,40,44,0.1));
+    border-radius: 6px;
+  }
+
+  .pw-section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border-color, rgba(39,40,44,0.12));
   }
 
   .pw-steps {
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    margin-bottom: 48px;
-    max-width: 760px;
+    gap: 12px;
   }
 
   .pw-step {
-    line-height: 1.6;
+    border: 1px solid var(--border-color, rgba(39,40,44,0.1));
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--background-color, #fff);
+  }
+
+  .pw-step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--code-background, rgba(39,40,44,0.03));
+    border-bottom: 1px solid var(--border-color, rgba(39,40,44,0.08));
+  }
+
+  .pw-step-prompt {
+    font-family: var(--default-monospace-font-family);
+    font-size: 0.82em;
+    font-weight: 500;
+    color: #3fb950;
+  }
+
+  .pw-step-label {
+    font-family: var(--default-monospace-font-family);
+    font-size: 0.78em;
+    font-weight: 500;
+    color: var(--default-font-color);
+    opacity: 0.5;
   }
 
   .pw-step-body {
-    font-size: 0.97em;
-  }
-
-  .pw-step-body code {
-    background: var(--color-background-inline-code, rgba(0,0,0,0.08));
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.92em;
-    font-family: monospace;
+    padding: 18px 20px;
   }
 
   .pw-step-body p {
-    margin: 0 0 6px;
+    font-size: 0.9em;
+    color: var(--default-font-color);
+    opacity: 0.8;
+    line-height: 1.65;
+    margin: 0 0 10px;
   }
 
-  .pw-divider {
+  .pw-step-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .pw-step-body code {
+    font-family: var(--default-monospace-font-family);
+    font-size: 0.86em;
+    background: var(--code-background, rgba(39,40,44,0.06));
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: var(--default-font-color);
+    border: 1px solid var(--border-color, rgba(39,40,44,0.08));
+  }
+
+  .pw-step-body pre {
+    margin: 10px 0 12px;
+    padding: 16px 20px;
+    background: var(--code-background, rgba(39,40,44,0.04));
+    border-radius: 8px;
+    border: 1px solid var(--border-color, rgba(39,40,44,0.1));
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .pw-step-body pre::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-family: var(--default-monospace-font-family);
+    font-size: 0.68em;
+    color: var(--default-font-color);
+    opacity: 0.3;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .pw-step-body pre code {
+    font-family: var(--default-monospace-font-family);
+    font-size: 0.84em;
+    line-height: 1.7;
+    background: none;
     border: none;
-    border-top: 1px solid var(--ring-line-color, #dfe5eb);
-    margin: 0 0 36px;
+    padding: 0;
+    border-radius: 0;
+    color: var(--default-font-color);
+    opacity: 0.85;
+  }
+
+  .pw-end-divider {
+    border: none;
+    height: 1px;
+    background: var(--border-color, rgba(39,40,44,0.12));
+    margin: 36px 0;
+  }
+
+  @media (max-width: 640px) {
+    .pw-hero {
+      padding: 18px;
+    }
+    .pw-step-header {
+      padding: 10px 14px;
+    }
+    .pw-step-body {
+      padding: 14px;
+    }
+    .pw-step-body pre {
+      padding: 12px 14px;
+    }
   }
 </style>
 
-<p class="pw-tagline">
-  Complete API reference for the Pushwoosh Android SDK — push notifications,
-  in-app messaging, location-based campaigns, and more. Add only the modules your app needs.
-</p>
+<div class="pw-hero">
+  <div class="pw-hero-top">
+    <span class="pw-dot"></span>
+    <span>pushwoosh-android-sdk</span>
+  </div>
+  <p class="pw-tagline">
+    Complete API reference for the Pushwoosh Android SDK — push notifications,
+    in-app messaging, location-based campaigns, and more. Add only the modules your app needs.
+  </p>
+</div>
 
-<hr class="pw-divider">
+<div class="pw-quick-start">
+  <div class="pw-section-header">
+    <div class="pw-section-title">Quick Start</div>
+    <div class="pw-section-line"></div>
+  </div>
 
-<div class="pw-section-title">Quick Start</div>
-
-<div class="pw-steps">
-  <div class="pw-step">
-    <div class="pw-step-body">
-      <p>Apply the Firebase plugin and add the SDK dependency to <code>build.gradle</code>:</p>
-      <pre><code>plugins {
+  <div class="pw-steps">
+    <div class="pw-step">
+      <div class="pw-step-header">
+        <span class="pw-step-prompt">$</span>
+        <span class="pw-step-label">step 1 — add dependency</span>
+      </div>
+      <div class="pw-step-body">
+        <p>Apply the Firebase plugin and add the SDK dependency to <code>build.gradle</code>:</p>
+        <pre data-lang="groovy"><code>plugins {
     id 'com.google.gms.google-services'
 }
 
 dependencies {
     implementation 'com.pushwoosh:pushwoosh-firebase:VERSION'
 }</code></pre>
-        <p></p>
-      <p>Place <code>google-services.json</code> (downloaded from Firebase Console) into the <code>app/</code> folder.</p>
+        <p>Place <code>google-services.json</code> (downloaded from Firebase Console) into the <code>app/</code> folder.</p>
+      </div>
     </div>
-  </div>
 
-  <div class="pw-step">
-    <div class="pw-step-body">
-      <p>Add your Pushwoosh App ID and API token to <code>AndroidManifest.xml</code>:</p>
-      <pre><code>&lt;meta-data android:name="com.pushwoosh.appid" android:value="XXXXX-XXXXX"/&gt;
+    <div class="pw-step">
+      <div class="pw-step-header">
+        <span class="pw-step-prompt">$</span>
+        <span class="pw-step-label">step 2 — configure manifest</span>
+      </div>
+      <div class="pw-step-body">
+        <p>Add your Pushwoosh App ID and API token to <code>AndroidManifest.xml</code>:</p>
+        <pre data-lang="xml"><code>&lt;meta-data android:name="com.pushwoosh.appid" android:value="XXXXX-XXXXX"/&gt;
 &lt;meta-data android:name="com.pushwoosh.apitoken" android:value="YOUR-DEVICE-API-TOKEN"/&gt;</code></pre>
+      </div>
     </div>
-  </div>
 
-  <div class="pw-step">
-    <div class="pw-step-body">
-      <p>Call when the user agrees to receive notifications (e.g. on a button tap):</p>
-      <pre><code>Pushwoosh.getInstance().registerForPushNotifications();</code></pre>
+    <div class="pw-step">
+      <div class="pw-step-header">
+        <span class="pw-step-prompt">$</span>
+        <span class="pw-step-label">step 3 — register for push</span>
+      </div>
+      <div class="pw-step-body">
+        <p>Call when the user agrees to receive notifications (e.g. on a button tap):</p>
+        <pre data-lang="java"><code>Pushwoosh.getInstance().registerForPushNotifications();</code></pre>
+      </div>
     </div>
   </div>
 </div>
 
-<hr class="pw-divider">
+<hr class="pw-end-divider">
     <div class="table"><a data-name="-1933209477%2FMain%2F0" anchor-label="pushwoosh" id="-1933209477%2FMain%2F0" data-filterable-set=""></a>
       <div class="table-row">
         <div class="main-subrow ">

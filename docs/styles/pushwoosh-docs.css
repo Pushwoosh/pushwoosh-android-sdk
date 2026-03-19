@@ -1,0 +1,43 @@
+/*
+ * Pushwoosh custom overrides for Dokka-generated documentation.
+ * Injected into all HTML pages via dokkaPostProcess.
+ * Improves readability of module/package tables.
+ */
+
+/* --- Table row spacing --- */
+
+.cover > .table {
+    gap: 0;
+}
+
+.cover > .table > .table-row {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-color, rgba(39, 40, 44, 0.12));
+}
+
+.cover > .table > .table-row:last-of-type {
+    border-bottom: none;
+}
+
+/* --- Module/package name prominence --- */
+
+.cover > .table .main-subrow > .w-100 > .inline-flex > div > a {
+    font-size: 1.05em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* --- Description de-emphasis --- */
+
+.cover > .table .main-subrow > div:last-child {
+    margin-top: 4px;
+}
+
+.cover > .table .brief-comment {
+    line-height: 1.6;
+    opacity: 0.55;
+}
+
+.cover > .table .brief-comment .paragraph {
+    margin: 0;
+}

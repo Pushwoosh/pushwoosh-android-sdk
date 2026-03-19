@@ -49,7 +49,6 @@ public class RepositoryTestManager {
 	public static void destroyRegistrationPrefs(RegistrationPrefs registrationPrefs) {
 		registrationPrefs.pushToken().set(null);
 		registrationPrefs.registeredOnServer().set(false);
-		registrationPrefs.projectId().set(null);
 		registrationPrefs.applicationId().set(null);
 		registrationPrefs.lastPushRegistration().set(0);
 		registrationPrefs.forceRegister().set(false);

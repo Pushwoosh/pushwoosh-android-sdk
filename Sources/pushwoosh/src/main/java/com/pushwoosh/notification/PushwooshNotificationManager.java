@@ -84,13 +84,7 @@ public class PushwooshNotificationManager {
         String appId = TextUtils.isEmpty(config.getAppId())
                 ? registrationPrefs.applicationId().get()
                 : config.getAppId();
-        String projectId = DeviceSpecificProvider.getInstance().projectId();
-        PWLog.debug(TAG, "initialized with app id: " + appId + ", sender id: " + projectId);
-        ;
-
-        if (!TextUtils.isEmpty(projectId)) {
-            setSenderId(projectId);
-        }
+        PWLog.debug(TAG, "initialized with app id: " + appId);
 
         if (!TextUtils.isEmpty(appId)) {
             setAppId(appId);
@@ -142,26 +136,12 @@ public class PushwooshNotificationManager {
         }
     }
 
+    /**
+     * @deprecated Sender ID is no longer required. This method is a no-op.
+     */
+    @Deprecated
     public void setSenderId(String senderId) {
-        if (TextUtils.isEmpty(senderId)) {
-            return;
-        }
-
-        String oldSenderId = registrationPrefs.projectId().get();
-        boolean needRegister = false;
-        if (!TextUtils.equals(oldSenderId, senderId) && !TextUtils.isEmpty(oldSenderId)) {
-            PWLog.info(TAG, "Sender ID changed, clearing token");
-            if (!registrationPrefs.pushToken().get().isEmpty()) {
-                needRegister = true;
-            }
-            registrationPrefs.removeSenderId();
-        }
-
-        registrationPrefs.projectId().set(senderId);
-
-        if (needRegister) {
-            pushRegistrar.registerPW(null);
-        }
+        // no-op: senderId is no longer used
     }
 
     public static void requestNotificationPermission() {
@@ -365,7 +345,7 @@ public class PushwooshNotificationManager {
 
     private void onRegisteredForRemoteNotifications(
             String pushToken, String tagsJson, boolean shouldRetryRegistration) {
-        PWLog.noise("PushwooshNotificationManager", String.format("onRegisteredForRemoteNotifications: %s", pushToken));
+        PWLog.noise(TAG, String.format("onRegisteredForRemoteNotifications: %s", pushToken));
         // todo: probably we should move this into `if (result.isSuccess) { ... }`
         registrationPrefs.pushToken().set(pushToken);
         if (DeviceSpecificProvider.getInstance() != null) {
@@ -411,7 +391,7 @@ public class PushwooshNotificationManager {
     }
 
     public void onUnregisteredFromRemoteNotifications(String pushToken) {
-        registrationPrefs.clearSenderIdInfo();
+        registrationPrefs.clearPushRegistrationInfo();
         DeviceRegistrar.unregisterWithServer(pushToken);
     }
 

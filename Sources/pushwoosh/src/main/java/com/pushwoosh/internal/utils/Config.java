@@ -43,11 +43,6 @@ public interface Config {
 	 */
 	String getAppId();
 
-	/**
-	 * @return Sets the Firebase project sender ID.
-	 */
-	String getProjectId();
-
 	String getApiToken();
 
 

@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * background tasks safely.
  */
 public class PushwooshStartWorker {
-    public static final String TAG = PushwooshStartWorker.class.getSimpleName();
+    private static final String TAG = "PushwooshStartWorker";
 
     private interface StartupCondition {
         void start(CountDownLatch latch, AtomicBoolean hasFailed);
@@ -310,7 +310,7 @@ public class PushwooshStartWorker {
     }
 
     private void fetchReverseProxyAsync(CountDownLatch latch, AtomicBoolean hasFailed) {
-        PWLog.noise(TAG, "fetchReverseProxyAsync()");
+        PWLog.warn(TAG, "Reverse proxy is enabled. SDK startup is paused — waiting for setReverseProxy() to be called.");
         EventBus.subscribe(
                 ReverseProxyReadyEvent.class,
                 new EventListener<ReverseProxyReadyEvent>() {
@@ -351,7 +351,7 @@ public class PushwooshStartWorker {
      * <ul>
      *   <li>SDK status and version</li>
      *   <li>Base URL configuration</li>
-     *   <li>Application code and Firebase project ID</li>
+     *   <li>Application code</li>
      *   <li>Device HWID and push token</li>
      *   <li>Obfuscated API token</li>
      * </ul>

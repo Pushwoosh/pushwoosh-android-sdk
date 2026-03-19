@@ -82,7 +82,6 @@ public class PushwooshStartWorkerTest {
         when(registrationPrefsMock.userId().get()).thenReturn("");
         when(registrationPrefsMock.apiToken().get()).thenReturn("test-api-token");
         when(registrationPrefsMock.baseUrl().get()).thenReturn("https://test.api.pushwoosh.com");
-        when(registrationPrefsMock.projectId().get()).thenReturn("test-project-id");
         when(registrationPrefsMock.pushToken().get()).thenReturn("test-push-token");
     }
 

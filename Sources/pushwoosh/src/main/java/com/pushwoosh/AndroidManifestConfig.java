@@ -51,9 +51,8 @@ import java.util.List;
  * Encapsulates all pushwoosh metadata parameters in AndroidManifest.xml
  */
 class AndroidManifestConfig implements Config {
-	private static final String TAG = "Config";
+	private static final String TAG = "AndroidManifestConfig";
 	private String appId = null;
-	private String projectId = null;
 	private String apiToken = null;
 	private String logLevel = null;
 	private String requestUrl = null;
@@ -93,7 +92,6 @@ class AndroidManifestConfig implements Config {
 		}
 
 		appId = getString(applicationInfo.metaData, "com.pushwoosh.appid", "PW_APPID");
-		projectId = getString(applicationInfo.metaData, "com.pushwoosh.senderid", "PW_PROJECT_ID");
 		apiToken = getString(applicationInfo.metaData, "com.pushwoosh.apitoken", "PW_API_TOKEN");
 
 		String trustedPackagesString = getString(applicationInfo.metaData, "com.pushwoosh.trusted_package_names", null);
@@ -103,13 +101,6 @@ class AndroidManifestConfig implements Config {
 		if (trustedPackageNames.length > 0) {
 			for (int i = 0; i < trustedPackageNames.length; ++i) {
 				trustedPackageNames[i] = trustedPackageNames[i].trim();
-			}
-		}
-
-		if (!TextUtils.isEmpty(projectId)) {
-			// remove extra "A" or " " before number (is used to trick AndroidManifest.xml that value is string)
-			if (!Character.isDigit(projectId.charAt(0))) {
-				projectId = projectId.substring(1);
 			}
 		}
 
@@ -221,11 +212,6 @@ class AndroidManifestConfig implements Config {
 	@Override
 	public String getAppId() {
 		return appId;
-	}
-
-	@Override
-	public String getProjectId() {
-		return projectId;
 	}
 
 	@Override

@@ -53,10 +53,6 @@ public class DeviceSpecificProvider {
 		return deviceSpecific.deviceType();
 	}
 
-	public String projectId() {
-		return deviceSpecific.projectId();
-	}
-
 	public String type() {
 		return deviceSpecific.type();
 	}

@@ -48,10 +48,8 @@ import android.text.TextUtils;
 import android.util.TypedValue;
 
 import com.pushwoosh.BuildConfig;
-import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.repository.RepositoryModule;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -238,8 +236,4 @@ public class GeneralUtils {
 		return AndroidPlatformModule.getAppInfoProvider().getVersionCode();
 	}
 
-	public static String getSenderId() {
-		String manifestSenderId = PushwooshPlatform.getInstance().getConfig().getProjectId();
-		return manifestSenderId == null || manifestSenderId.isEmpty() ? RepositoryModule.getRegistrationPreferences().projectId().get() : manifestSenderId;
-	}
 }
