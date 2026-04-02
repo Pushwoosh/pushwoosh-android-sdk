@@ -104,12 +104,12 @@ class InboxViewHolder(adapter: InboxAdapter,
             Glide.with(itemView.context)
                     .load(colorSchemeProvider.defaultIcon)
                     .listener(object : RequestListener<Drawable> {
-                        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
+                        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                             inboxImageView.setImageDrawable(colorSchemeProvider.defaultIcon)
                             return true
                         }
 
-                        override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+                        override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                             return false
                         }
 

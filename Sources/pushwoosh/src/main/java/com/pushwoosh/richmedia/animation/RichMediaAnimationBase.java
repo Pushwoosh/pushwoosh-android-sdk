@@ -11,6 +11,24 @@ public abstract class RichMediaAnimationBase implements RichMediaAnimation {
         Animation animation = getOpenAnimation(parentView);
         if (animation != null) {
             animation.setDuration(DURATION_MILLIS);
+            animation.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation a) {
+                    if (contentView != null && contentView.isAttachedToWindow()) {
+                        contentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                    }
+                }
+
+                @Override
+                public void onAnimationEnd(Animation a) {
+                    if (contentView != null && contentView.isAttachedToWindow()) {
+                        contentView.setLayerType(View.LAYER_TYPE_NONE, null);
+                    }
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation a) {}
+            });
             if (contentView != null) {
                 contentView.startAnimation(animation);
             }
@@ -22,8 +40,37 @@ public abstract class RichMediaAnimationBase implements RichMediaAnimation {
         Animation animation = getCloseAnimation(parentView);
         if (animation != null) {
             animation.setDuration(DURATION_MILLIS);
-            animation.setAnimationListener(listener);
-            contentView.startAnimation(animation);
+            animation.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation a) {
+                    if (contentView != null && contentView.isAttachedToWindow()) {
+                        contentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                    }
+                    if (listener != null) {
+                        listener.onAnimationStart(a);
+                    }
+                }
+
+                @Override
+                public void onAnimationEnd(Animation a) {
+                    if (contentView != null && contentView.isAttachedToWindow()) {
+                        contentView.setLayerType(View.LAYER_TYPE_NONE, null);
+                    }
+                    if (listener != null) {
+                        listener.onAnimationEnd(a);
+                    }
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation a) {
+                    if (listener != null) {
+                        listener.onAnimationRepeat(a);
+                    }
+                }
+            });
+            if (contentView != null) {
+                contentView.startAnimation(animation);
+            }
         }
     }
 

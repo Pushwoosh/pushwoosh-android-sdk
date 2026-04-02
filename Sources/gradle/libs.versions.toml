@@ -1,7 +1,7 @@
 [versions]
 activityKtx = "1.8.1"
 firebaseMessaging = "24.0.0"
-glide = "4.7.1"
+glide = "4.16.0"
 googleServices = "4.4.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -15,7 +15,7 @@ navigationFragment = "2.7.7"
 navigationUi = "2.7.7"
 coreKtx = "1.10.1"
 playServicesLocation = "21.0.1"
-pushwooshFirebase = "6.7.60"
+pushwooshFirebase = "6.7.61"
 swiperefreshlayout = "1.1.0"
 workRuntime = "2.8.1"
 
