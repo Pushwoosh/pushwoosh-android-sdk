@@ -14,6 +14,7 @@ import com.pushwoosh.internal.event.InitHwidEvent;
 import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
 import com.pushwoosh.internal.event.ServerCommunicationStartedEvent;
 import com.pushwoosh.internal.platform.ApplicationOpenDetector;
+import com.pushwoosh.internal.platform.KnockPatternDetector;
 import com.pushwoosh.internal.platform.utils.DeviceUuidGetter;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.utils.Config;
@@ -55,6 +56,7 @@ public class PushwooshStartWorker {
     private final PushwooshDefaultEvents pushwooshDefaultEvents;
     private final PushRegistrarHelper pushRegistrarHelper;
     private final DeviceUuidGetter deviceUuidGetter;
+    private final KnockPatternDetector knockPatternDetector = new KnockPatternDetector();
 
     public PushwooshStartWorker(
             Config config,
@@ -222,6 +224,11 @@ public class PushwooshStartWorker {
             PWLog.noise(TAG, "onServerCommunicationStartedEvent()");
             SdkStateProvider.getInstance().executeOrQueue(this::fixDefaultUserId);
         });
+
+        // attach knock pattern detector for test device registration shortcut
+        EventBus.subscribe(
+                ApplicationOpenDetector.ApplicationMovedToForegroundEvent.class,
+                event -> knockPatternDetector.onForeground());
     }
     /**
      * Asynchronously fetches the device Hardware ID (HWID).
@@ -310,17 +317,16 @@ public class PushwooshStartWorker {
     }
 
     private void fetchReverseProxyAsync(CountDownLatch latch, AtomicBoolean hasFailed) {
-        PWLog.warn(TAG, "Reverse proxy is enabled. SDK startup is paused — waiting for setReverseProxy() to be called.");
-        EventBus.subscribe(
-                ReverseProxyReadyEvent.class,
-                new EventListener<ReverseProxyReadyEvent>() {
-                    @Override
-                    public void onReceive(ReverseProxyReadyEvent event) {
-                        PWLog.debug(TAG, "reverse proxy configured");
-                        EventBus.unsubscribe(ReverseProxyReadyEvent.class, this);
-                        latch.countDown();
-                    }
-                });
+        PWLog.warn(
+                TAG, "Reverse proxy is enabled. SDK startup is paused — waiting for setReverseProxy() to be called.");
+        EventBus.subscribe(ReverseProxyReadyEvent.class, new EventListener<ReverseProxyReadyEvent>() {
+            @Override
+            public void onReceive(ReverseProxyReadyEvent event) {
+                PWLog.debug(TAG, "reverse proxy configured");
+                EventBus.unsubscribe(ReverseProxyReadyEvent.class, this);
+                latch.countDown();
+            }
+        });
     }
 
     private void releaseAll(CountDownLatch latch) {
