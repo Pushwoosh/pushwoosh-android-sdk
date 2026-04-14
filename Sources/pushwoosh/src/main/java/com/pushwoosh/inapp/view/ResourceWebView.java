@@ -253,8 +253,16 @@ public class ResourceWebView extends FrameLayout {
     }
 
     protected void clear() {
-        webView.setWebViewClient(null);
-        webView = null;
+        if (webView != null) {
+            webView.setWebViewClient(null);
+            webView.stopLoading();
+            ViewGroup parent = (ViewGroup) webView.getParent();
+            if (parent != null) {
+                parent.removeView(webView);
+            }
+            webView.destroy();
+            webView = null;
+        }
     }
 
     private View createDefaultLoadingView(Context context) {
