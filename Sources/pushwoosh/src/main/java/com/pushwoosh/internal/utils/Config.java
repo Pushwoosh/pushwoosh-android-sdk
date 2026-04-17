@@ -26,134 +26,130 @@
 
 package com.pushwoosh.internal.utils;
 
-import com.pushwoosh.richmedia.RichMediaType;
-
-import java.util.Collection;
-
 import androidx.annotation.ColorInt;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.internal.Plugin;
 import com.pushwoosh.internal.PluginProvider;
+import com.pushwoosh.richmedia.RichMediaType;
+
+import java.util.Collection;
 
 public interface Config {
-	/**
-	 * @return Sets the Pushwoosh application ID
-	 */
-	String getAppId();
+    /**
+     * @return Sets the Pushwoosh application ID
+     */
+    String getAppId();
 
-	String getApiToken();
+    String getApiToken();
 
+    /**
+     * @return Sets logging level.
+     */
+    String getLogLevel();
 
-	/**
-	 * @return Sets logging level.
-	 */
-	String getLogLevel();
+    /**
+     * @return Overrides the Pushwoosh server base url.
+     */
+    String getRequestUrl();
 
-	/**
-	 * @return Overrides the Pushwoosh server base url.
-	 */
-	String getRequestUrl();
+    /**
+     * @return Custom NotificationServiceExtension.
+     */
+    Class<?> getNotificationService();
 
-	/**
-	 * @return Custom NotificationServiceExtension.
-	 */
-	Class<?> getNotificationService();
+    /**
+     * @return Custom NotificationFactory.
+     */
+    Class<?> getNotificationFactory();
 
-	/**
-	 * @return Custom NotificationFactory.
-	 */
-	Class<?> getNotificationFactory();
+    /**
+     * @return Custom SummaryNotificationFactory.
+     */
+    Class<?> getSummaryNotificationFactory();
 
-	/**
-	 * @return Custom SummaryNotificationFactory.
-	 */
-	Class<?> getSummaryNotificationFactory();
+    /**
+     * @return If true, notification will be grouped. If false, the last received notification will be displayed only.
+     */
+    boolean isMultinotificationMode();
 
-	/**
-	 * @return If true, notification will be grouped. If false, the last received notification will be displayed only.
-	 */
-	boolean isMultinotificationMode();
-
-	/**
-	 * @return If true, SDK will only be initialized when lazyInit is called.
-	 */
+    /**
+     * @return If true, SDK will only be initialized when lazyInit is called.
+     */
     boolean isLazySdkInitialization();
 
     /**
-	 * @return If true, notification should unlock screen on arrive
-	 */
-	boolean isLightscreenNotification();
+     * @return If true, notification should unlock screen on arrive
+     */
+    boolean isLightscreenNotification();
 
-	/**
-	 * @return If true, the SDK is allowed to send network requests to Pushwoosh servers.
-	 */
-	boolean isServerCommunicationAllowed();
+    /**
+     * @return If true, the SDK is allowed to send network requests to Pushwoosh servers.
+     */
+    boolean isServerCommunicationAllowed();
 
-	/**
-	 * Returns whether system notifications should be suppressed when the app is in the foreground.
-	 * <p>
-	 * Read from {@code <meta-data android:name="com.pushwoosh.foreground_push" android:value="true"/>}
-	 * in {@code AndroidManifest.xml}. Defaults to {@code false}.
-	 *
-	 * @return {@code true} to suppress foreground notifications, {@code false} to display them normally
-	 */
-	boolean showPushNotificationAlert();
+    /**
+     * Returns whether system notifications should be suppressed when the app is in the foreground.
+     * <p>
+     * Read from {@code <meta-data android:name="com.pushwoosh.foreground_push" android:value="true"/>}
+     * in {@code AndroidManifest.xml}. Defaults to {@code false}.
+     *
+     * @return {@code true} to suppress foreground notifications, {@code false} to display them normally
+     */
+    boolean showPushNotificationAlert();
 
-	/**
-	 * @return If true, SDK will add top margin to Rich Media view
-	 */
-	boolean shouldShowFullscreenRichMedia();
+    /**
+     * @return If true, SDK will add top margin to Rich Media view
+     */
+    boolean shouldShowFullscreenRichMedia();
 
-	/**
-	 * @return If true, the SDK is allowed to collect and to send device OS version to Pushwoosh.
-	 */
-	boolean isCollectingDeviceOsVersionAllowed();
+    /**
+     * @return If true, the SDK is allowed to collect and to send device OS version to Pushwoosh.
+     */
+    boolean isCollectingDeviceOsVersionAllowed();
 
-	/**
-	 * @return If true, the SDK is allowed to collect and to send device locale to Pushwoosh.
-	 */
-	boolean isCollectingDeviceLocaleAllowed();
+    /**
+     * @return If true, the SDK is allowed to collect and to send device locale to Pushwoosh.
+     */
+    boolean isCollectingDeviceLocaleAllowed();
 
+    /**
+     * @return If true, the SDK is allowed to collect and to send device model to Pushwoosh.
+     */
+    boolean isCollectingDeviceModelAllowed();
 
-	/**
-	 * @return If true, the SDK is allowed to collect and to send device model to Pushwoosh.
-	 */
-	boolean isCollectingDeviceModelAllowed();
+    /**
+     * @return If true, SDK is allowed to collect and send app lifecycle events to Pushwoosh
+     */
+    boolean isCollectingLifecycleEventsAllowed();
 
-	/**
-	 * @return If true, SDK is allowed to collect and send app lifecycle events to Pushwoosh
-	 */
-	boolean isCollectingLifecycleEventsAllowed();
+    /**
+     * @return If true, the WorkManager is set to handle notifications.
+     */
+    boolean handleNotificationsUsingWorkManager();
 
-	/**
-	 * @return If true, the WorkManager is set to handle notifications.
-	 */
-	boolean handleNotificationsUsingWorkManager();
+    /**
+     * @return Custom notification (small) icon resource name. If null, default application icon will be used.
+     */
+    @IdRes
+    int getNotificationIcon();
 
-	/**
-	 * @return Custom notification (small) icon resource name. If null, default application icon will be used.
-	 */
-	@IdRes
-	int getNotificationIcon();
+    /**
+     * @return Notification (small) icon background color.
+     */
+    @ColorInt
+    int getNotificationIconColor();
 
-	/**
-	 * @return Notification (small) icon background color.
-	 */
-	@ColorInt
-	int getNotificationIconColor();
+    /**
+     * @return Pushwoosh extension plugins
+     */
+    @NonNull Collection<Plugin> getPlugins();
 
-	/**
-	 * @return Pushwoosh extension plugins
-	 */
-	@NonNull
-	Collection<Plugin> getPlugins();
-
-	/**
-	 * @return plugin provider which return specific settings for each plugins such as Native, Cordova and other
-	 */
-	PluginProvider getPluginProvider();
+    /**
+     * @return plugin provider which return specific settings for each plugins such as Native, Cordova and other
+     */
+    PluginProvider getPluginProvider();
 
     boolean getSendPushStatIfShowForegroundDisabled();
 
@@ -161,11 +157,15 @@ public interface Config {
 
     void setLazySdkInitialization(boolean value);
 
-	@NonNull
-	RichMediaType getRichMediaType();
+    @NonNull RichMediaType getRichMediaType();
 
-	/**
-	 * @return If true, the SDK allows routing requests through a reverse proxy URL set via {@code setReverseProxy()}.
-	 */
-	boolean isReverseProxyAllowed();
+    /**
+     * @return If true, the SDK allows routing requests through a reverse proxy URL set via {@code setReverseProxy()}.
+     */
+    boolean isReverseProxyAllowed();
+
+    /**
+     * @return Idle timeout in seconds. 0 means idle detection is disabled.
+     */
+    int getIdleTimeoutSeconds();
 }

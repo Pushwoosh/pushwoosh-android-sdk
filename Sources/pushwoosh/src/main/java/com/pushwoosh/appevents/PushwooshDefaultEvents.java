@@ -2,6 +2,9 @@ package com.pushwoosh.appevents;
 
 import android.app.Application;
 
+import androidx.annotation.Nullable;
+
+import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.InAppManager;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
@@ -22,6 +25,7 @@ public class PushwooshDefaultEvents {
     static final String APPLICATION_OPENED_EVENT = "PW_ApplicationOpen";
     static final String SCREEN_OPENED_EVENT = "PW_ScreenOpen";
     static final String APPLICATION_CLOSED_EVENT = "PW_ApplicationMinimized";
+    static final String USER_IDLE_EVENT = "PW_UserIdle";
 
     /**
      * Initializes event tracking by registering activity lifecycle callbacks
@@ -50,7 +54,7 @@ public class PushwooshDefaultEvents {
      * @param activityName Name of the activity (for screen events)
      * @return Bundle with event attributes
      */
-    static TagsBundle buildAttributes(String eventName, String activityName) {
+    private static TagsBundle.Builder buildBaseAttributes() {
         TagsBundle.Builder attributes = new TagsBundle.Builder();
         attributes.putInt("device_type", DeviceSpecificProvider.getInstance().deviceType());
         if (AndroidPlatformModule.getAppInfoProvider() != null
@@ -59,10 +63,24 @@ public class PushwooshDefaultEvents {
                     "application_version",
                     AndroidPlatformModule.getAppInfoProvider().getVersionName());
         }
+        return attributes;
+    }
+
+    static TagsBundle buildAttributes(String eventName, String activityName) {
+        TagsBundle.Builder attributes = buildBaseAttributes();
         if (eventName.equals(SCREEN_OPENED_EVENT) && activityName != null) {
             attributes.putString("screen_name", activityName);
         }
+        return attributes.build();
+    }
 
+    static TagsBundle buildIdleAttributes(@Nullable String activityName, int idleSeconds, long sessionDurationSeconds) {
+        TagsBundle.Builder attributes = buildBaseAttributes();
+        if (activityName != null) {
+            attributes.putString("screen_name", activityName);
+        }
+        attributes.putInt("idle_seconds", idleSeconds);
+        attributes.putLong("session_duration", sessionDurationSeconds);
         return attributes.build();
     }
 
@@ -76,8 +94,18 @@ public class PushwooshDefaultEvents {
                 if (app == null) {
                     EventBus.subscribe(ApplicationOpenEvent.class, applicationOpenEventListener);
                 } else {
-                    activityLifecycleCallbacks =
-                            new com.pushwoosh.appevents.PushwooshAppLifecycleCallbacks((eventName, activityName) -> {
+                    int idleTimeout =
+                            PushwooshPlatform.getInstance().getConfig().getIdleTimeoutSeconds();
+                    PushwooshAppLifecycleCallbacks.IdleEventCallback idleEventCallback = null;
+                    if (idleTimeout > 0) {
+                        idleEventCallback = (actName, idleSec, sessionDur) -> {
+                            SdkStateProvider.getInstance().executeOrQueue(() -> {
+                                postEvent(USER_IDLE_EVENT, buildIdleAttributes(actName, idleSec, sessionDur));
+                            });
+                        };
+                    }
+                    activityLifecycleCallbacks = new PushwooshAppLifecycleCallbacks(
+                            (eventName, activityName) -> {
                                 SdkStateProvider.getInstance().executeOrQueue(() -> {
                                     switch (eventName) {
                                         case PushwooshAppLifecycleCallbacks.APPLICATION_OPENED_EVENT:
@@ -97,7 +125,9 @@ public class PushwooshDefaultEvents {
                                             break;
                                     }
                                 });
-                            });
+                            },
+                            idleTimeout,
+                            idleEventCallback);
                     app.registerActivityLifecycleCallbacks(activityLifecycleCallbacks);
                 }
             }

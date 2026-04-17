@@ -25,6 +25,7 @@
         <meta-data android:name="com.pushwoosh.rich_media_type" android:value="Modal" />
         <meta-data android:name="com.pushwoosh.log_level" android:value="NOISE" />
         <meta-data android:name="com.pushwoosh.multi_notification_mode" android:value="true" />
+        <meta-data android:name="com.pushwoosh.idle_timeout_seconds" android:value="10" />
 
 
         <meta-data

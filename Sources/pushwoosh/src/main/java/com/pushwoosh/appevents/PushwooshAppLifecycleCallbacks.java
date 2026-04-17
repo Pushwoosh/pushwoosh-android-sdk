@@ -5,7 +5,11 @@ import android.app.Application;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -14,29 +18,42 @@ import androidx.fragment.app.FragmentManager;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.event.ActivityBroughtOnTopEvent;
 import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.utils.PWLog;
 
 /**
  * Tracks application lifecycle events and notifies about screen/application state changes.
  * Handles activity and fragment lifecycle callbacks to detect when app is opened, closed or screen is changed.
  */
 class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+    private static final String TAG = "PushwooshAppLifecycleCallbacks";
     private static final int SCREEN_OPENED_EVENT_DELAY = 100;
 
-    private Handler handler = new Handler();
-    private LifeCycleCallback callback;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final LifeCycleCallback callback;
     private int activitiesCount;
     private String activityName;
+    private String currentScreenName;
+    private long foregroundTimestamp;
+
+    @Nullable private IdleDetector idleDetector;
+
+    @Nullable private IdleEventCallback idleEventCallback;
 
     static final String APPLICATION_OPENED_EVENT = "ApplicationOpened";
     static final String SCREEN_OPENED_EVENT = "ScreenOpened";
     static final String APPLICATION_CLOSED_EVENT = "ApplicationClosed";
 
-    /**
-     * Creates new lifecycle callback handler
-     * @param callback Callback to be invoked when lifecycle events occur
-     */
-    PushwooshAppLifecycleCallbacks(@NonNull LifeCycleCallback callback) {
+    PushwooshAppLifecycleCallbacks(
+            @NonNull LifeCycleCallback callback,
+            int idleTimeoutSeconds,
+            @Nullable IdleEventCallback idleEventCallback) {
         this.callback = callback;
+        if (idleTimeoutSeconds <= 0 || idleEventCallback == null) {
+            return;
+        }
+        this.idleEventCallback = idleEventCallback;
+        this.idleDetector = new IdleDetector(idleTimeoutSeconds, this::onIdleDetected);
+        PWLog.debug(TAG, "Idle detection enabled with timeout " + idleTimeoutSeconds + "s");
     }
 
     /**
@@ -45,8 +62,9 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
      * @param savedInstanceState Saved instance state
      */
     @Override
-    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+    public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
         if (PushwooshPlatform.getInstance().getConfig().isCollectingLifecycleEventsAllowed()) {
+            currentScreenName = null;
             if (activity instanceof FragmentActivity) {
                 registerSupportFragmentListener((FragmentActivity) activity);
             }
@@ -62,28 +80,48 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
      * @param activity Activity containing support fragments
      */
     private void registerSupportFragmentListener(FragmentActivity activity) {
-        activity.getSupportFragmentManager().registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
-            @Override
-            public void onFragmentStarted(FragmentManager fm, Fragment fragment) {
-                super.onFragmentStarted(fm, fragment);
-                notifyScreenOpened();
-            }
-        }, true);
+        activity.getSupportFragmentManager()
+                .registerFragmentLifecycleCallbacks(
+                        new FragmentManager.FragmentLifecycleCallbacks() {
+                            @Override
+                            public void onFragmentStarted(@NonNull FragmentManager fm, @NonNull Fragment fragment) {
+                                super.onFragmentStarted(fm, fragment);
+                                if (isUserFragment(fragment.getClass())) {
+                                    currentScreenName = fragment.getClass().getSimpleName();
+                                }
+                                notifyScreenOpened();
+                            }
+                        },
+                        true);
     }
 
     /**
      * Registers fragment lifecycle callbacks for native fragments (API 26+)
      * @param activity Activity containing native fragments
      */
+    @SuppressWarnings("deprecation")
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void registerFragmentListener(Activity activity) {
-        activity.getFragmentManager().registerFragmentLifecycleCallbacks(new android.app.FragmentManager.FragmentLifecycleCallbacks() {
-            @Override
-            public void onFragmentStarted(android.app.FragmentManager fm, android.app.Fragment fragment) {
-                super.onFragmentStarted(fm, fragment);
-                notifyScreenOpened();
-            }
-        }, true);
+        activity.getFragmentManager()
+                .registerFragmentLifecycleCallbacks(
+                        new android.app.FragmentManager.FragmentLifecycleCallbacks() {
+                            @Override
+                            public void onFragmentStarted(
+                                    android.app.FragmentManager fm, android.app.Fragment fragment) {
+                                super.onFragmentStarted(fm, fragment);
+                                if (isUserFragment(fragment.getClass())) {
+                                    currentScreenName = fragment.getClass().getSimpleName();
+                                }
+                                notifyScreenOpened();
+                            }
+                        },
+                        true);
+    }
+
+    private static boolean isUserFragment(Class<?> fragmentClass) {
+        String name = fragmentClass.getName();
+        return !name.startsWith("androidx.") && !name.startsWith("android.") && !name.startsWith("com.google.")
+                && !name.startsWith("com.pushwoosh.");
     }
 
     /**
@@ -91,9 +129,7 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
      */
     private void notifyScreenOpened() {
         handler.removeCallbacksAndMessages(null);
-        handler.postDelayed(
-                () -> callback.invoke(SCREEN_OPENED_EVENT, activityName),
-                SCREEN_OPENED_EVENT_DELAY);
+        handler.postDelayed(() -> callback.invoke(SCREEN_OPENED_EVENT, activityName), SCREEN_OPENED_EVENT_DELAY);
     }
 
     /**
@@ -101,10 +137,11 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
      * @param activity Started activity
      */
     @Override
-    public void onActivityStarted(Activity activity) {
+    public void onActivityStarted(@NonNull Activity activity) {
         if (PushwooshPlatform.getInstance().getConfig().isCollectingLifecycleEventsAllowed()) {
             activityName = activity.getClass().getName();
             if (activitiesCount == 0) {
+                foregroundTimestamp = SystemClock.elapsedRealtime();
                 callback.invoke(APPLICATION_OPENED_EVENT, activityName);
             }
             activitiesCount++;
@@ -116,9 +153,12 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
      * @param activity Resumed activity
      */
     @Override
-    public void onActivityResumed(Activity activity) {
+    public void onActivityResumed(@NonNull Activity activity) {
         PushwooshPlatform.getInstance().setTopActivity(activity);
         EventBus.sendEvent(ActivityBroughtOnTopEvent.getInstance());
+        if (idleDetector != null) {
+            idleDetector.onActivityResumed(activity);
+        }
     }
 
     /**
@@ -126,8 +166,12 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
      * @param activity Paused activity
      */
     @Override
-    public void onActivityPaused(Activity activity) {
-        if (PushwooshPlatform.getInstance().getTopActivity() != null && PushwooshPlatform.getInstance().getTopActivity() == activity) {
+    public void onActivityPaused(@NonNull Activity activity) {
+        if (idleDetector != null) {
+            idleDetector.onActivityPaused();
+        }
+        if (PushwooshPlatform.getInstance().getTopActivity() != null
+                && PushwooshPlatform.getInstance().getTopActivity() == activity) {
             PushwooshPlatform.getInstance().setTopActivity(null);
         }
     }
@@ -137,15 +181,19 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
      * @param activity Stopped activity
      */
     @Override
-    public void onActivityStopped(Activity activity) {
-        if (PushwooshPlatform.getInstance().getTopActivity() != null && PushwooshPlatform.getInstance().getTopActivity() == activity) {
+    public void onActivityStopped(@NonNull Activity activity) {
+        if (PushwooshPlatform.getInstance().getTopActivity() != null
+                && PushwooshPlatform.getInstance().getTopActivity() == activity) {
             PushwooshPlatform.getInstance().setTopActivity(null);
         }
         if (PushwooshPlatform.getInstance().getConfig().isCollectingLifecycleEventsAllowed()) {
             activitiesCount--;
-        if (activitiesCount == 0) {
-            callback.invoke(APPLICATION_CLOSED_EVENT, activityName);
-        }
+            if (activitiesCount == 0) {
+                if (idleDetector != null) {
+                    idleDetector.onAppBackgrounded();
+                }
+                callback.invoke(APPLICATION_CLOSED_EVENT, activityName);
+            }
         }
     }
 
@@ -155,29 +203,47 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
      * @param outState Bundle to save state
      */
     @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-    }
+    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {}
 
     /**
      * Called when activity is destroyed. Clears top activity reference if needed.
      * @param activity Destroyed activity
      */
     @Override
-    public void onActivityDestroyed(Activity activity) {
-        if (PushwooshPlatform.getInstance().getTopActivity() != null && PushwooshPlatform.getInstance().getTopActivity() == activity) {
+    public void onActivityDestroyed(@NonNull Activity activity) {
+        if (PushwooshPlatform.getInstance().getTopActivity() != null
+                && PushwooshPlatform.getInstance().getTopActivity() == activity) {
             PushwooshPlatform.getInstance().setTopActivity(null);
         }
+    }
+
+    /**
+     * Called when user idle is detected. Enriches event with session data and forwards to callback.
+     * @param activitySimpleName Simple name of the activity where idle was detected
+     * @param idleSeconds Number of seconds user was idle
+     */
+    private void onIdleDetected(String activitySimpleName, int idleSeconds) {
+        if (idleEventCallback == null) {
+            return;
+        }
+        long sessionDuration = (SystemClock.elapsedRealtime() - foregroundTimestamp) / 1000;
+        String screenName;
+        if (currentScreenName != null) {
+            screenName = activitySimpleName + "/" + currentScreenName;
+        } else {
+            screenName = activitySimpleName;
+        }
+        idleEventCallback.onIdle(screenName, idleSeconds, sessionDuration);
     }
 
     /**
      * Callback interface for lifecycle events
      */
     public interface LifeCycleCallback {
-        /**
-         * Called when lifecycle event occurs
-         * @param eventName Name of the event
-         * @param activityName Name of the activity
-         */
         void invoke(String eventName, String activityName);
+    }
+
+    interface IdleEventCallback {
+        void onIdle(String activityName, int idleSeconds, long sessionDurationSeconds);
     }
 }

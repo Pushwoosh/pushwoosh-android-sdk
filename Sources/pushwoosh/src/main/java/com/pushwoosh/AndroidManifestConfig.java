@@ -28,11 +28,12 @@ package com.pushwoosh;
 
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
+import android.text.TextUtils;
+
 import androidx.annotation.ColorInt;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
-import android.text.TextUtils;
 
 import com.pushwoosh.internal.NativePluginProvider;
 import com.pushwoosh.internal.Plugin;
@@ -51,301 +52,324 @@ import java.util.List;
  * Encapsulates all pushwoosh metadata parameters in AndroidManifest.xml
  */
 class AndroidManifestConfig implements Config {
-	private static final String TAG = "AndroidManifestConfig";
-	private String appId = null;
-	private String apiToken = null;
-	private String logLevel = null;
-	private String requestUrl = null;
-	private String richMediaType = null;
-	private String[] trustedPackageNames = {};
-	private Class<?> notificationService;
-	private Class<?> notificationFactory;
-	private Class<?> summaryNotificationFactory;
-	private boolean lazySdkInitialization = false;
-	private boolean multinotificationMode = false;
-	private boolean lightscreenNotification = false;
-	private boolean sendPushStatIfShowForegroundDisabled = false;
-	private boolean isServerCommunicationAllowed = true;
-	private boolean showPushnotificationAlert = false;
-	private boolean handleNotificationsUsingWorkManager = false;
-	private boolean isCollectingDeviceOsVersionAllowed = true;
-	private boolean isCollectingDeviceLocaleAllowed = true;
-	private boolean isCollectingDeviceModelAllowed = true;
-	private boolean isCollectingLifecycleEventsAllowed = true;
-	private boolean shouldShowFullscreenRichMedia = false;
-	private boolean reverseProxyAllowed = false;
+    private static final String TAG = "AndroidManifestConfig";
+    private String appId = null;
+    private String apiToken = null;
+    private String logLevel = null;
+    private String requestUrl = null;
+    private String richMediaType = null;
+    private String[] trustedPackageNames = {};
+    private Class<?> notificationService;
+    private Class<?> notificationFactory;
+    private Class<?> summaryNotificationFactory;
+    private boolean lazySdkInitialization = false;
+    private boolean multinotificationMode = false;
+    private boolean lightscreenNotification = false;
+    private boolean sendPushStatIfShowForegroundDisabled = false;
+    private boolean isServerCommunicationAllowed = true;
+    private boolean showPushnotificationAlert = false;
+    private boolean handleNotificationsUsingWorkManager = false;
+    private boolean isCollectingDeviceOsVersionAllowed = true;
+    private boolean isCollectingDeviceLocaleAllowed = true;
+    private boolean isCollectingDeviceModelAllowed = true;
+    private boolean isCollectingLifecycleEventsAllowed = true;
+    private boolean shouldShowFullscreenRichMedia = false;
+    private boolean reverseProxyAllowed = false;
+    private int idleTimeoutSeconds = 0;
 
-	@IdRes
-	private int notificationIcon = 0;
+    @IdRes
+    private int notificationIcon = 0;
 
-	@ColorInt
-	private int notificationIconColor = 0;
+    @ColorInt
+    private int notificationIconColor = 0;
 
-	private final List<Plugin> plugins = new ArrayList<>();
-	private PluginProvider pluginProvider;
+    private final List<Plugin> plugins = new ArrayList<>();
+    private PluginProvider pluginProvider;
 
-	AndroidManifestConfig() {
-		ApplicationInfo applicationInfo = AndroidPlatformModule.getAppInfoProvider().getApplicationInfo();
-		if (applicationInfo == null || applicationInfo.metaData == null) {
-			PWLog.warn(TAG, "no metadata found");
-			return;
-		}
+    AndroidManifestConfig() {
+        ApplicationInfo applicationInfo =
+                AndroidPlatformModule.getAppInfoProvider().getApplicationInfo();
+        if (applicationInfo == null || applicationInfo.metaData == null) {
+            PWLog.warn(TAG, "no metadata found");
+            return;
+        }
 
-		appId = getString(applicationInfo.metaData, "com.pushwoosh.appid", "PW_APPID");
-		apiToken = getString(applicationInfo.metaData, "com.pushwoosh.apitoken", "PW_API_TOKEN");
+        appId = getString(applicationInfo.metaData, "com.pushwoosh.appid", "PW_APPID");
+        apiToken = getString(applicationInfo.metaData, "com.pushwoosh.apitoken", "PW_API_TOKEN");
 
-		String trustedPackagesString = getString(applicationInfo.metaData, "com.pushwoosh.trusted_package_names", null);
-		if (!TextUtils.isEmpty(trustedPackagesString)) {
-			trustedPackageNames = trustedPackagesString.split(",");
-		}
-		if (trustedPackageNames.length > 0) {
-			for (int i = 0; i < trustedPackageNames.length; ++i) {
-				trustedPackageNames[i] = trustedPackageNames[i].trim();
-			}
-		}
+        String trustedPackagesString = getString(applicationInfo.metaData, "com.pushwoosh.trusted_package_names", null);
+        if (!TextUtils.isEmpty(trustedPackagesString)) {
+            trustedPackageNames = trustedPackagesString.split(",");
+        }
+        if (trustedPackageNames.length > 0) {
+            for (int i = 0; i < trustedPackageNames.length; ++i) {
+                trustedPackageNames[i] = trustedPackageNames[i].trim();
+            }
+        }
 
-		logLevel = getString(applicationInfo.metaData, "com.pushwoosh.log_level", "PW_LOG_LEVEL");
-		requestUrl = getString(applicationInfo.metaData, "com.pushwoosh.base_url", "PushwooshUrl");
-		richMediaType = getString(applicationInfo.metaData, "com.pushwoosh.rich_media_type", "RichMediaType");
+        logLevel = getString(applicationInfo.metaData, "com.pushwoosh.log_level", "PW_LOG_LEVEL");
+        requestUrl = getString(applicationInfo.metaData, "com.pushwoosh.base_url", "PushwooshUrl");
+        richMediaType = getString(applicationInfo.metaData, "com.pushwoosh.rich_media_type", "RichMediaType");
 
-		notificationService = getClass(applicationInfo.metaData, "com.pushwoosh.notification_service_extension");
-		notificationFactory = getClass(applicationInfo.metaData, "com.pushwoosh.notification_factory");
-		summaryNotificationFactory = getClass(applicationInfo.metaData, "com.pushwoosh.summary_notification_factory");
+        notificationService = getClass(applicationInfo.metaData, "com.pushwoosh.notification_service_extension");
+        notificationFactory = getClass(applicationInfo.metaData, "com.pushwoosh.notification_factory");
+        summaryNotificationFactory = getClass(applicationInfo.metaData, "com.pushwoosh.summary_notification_factory");
 
-		lazySdkInitialization = applicationInfo.metaData.getBoolean("com.pushwoosh.lazy_initialization", false);
-		multinotificationMode = applicationInfo.metaData.getBoolean("com.pushwoosh.multi_notification_mode", false);
-		lightscreenNotification = applicationInfo.metaData.getBoolean("com.pushwoosh.light_screen_notification", false);
-		sendPushStatIfShowForegroundDisabled = applicationInfo.metaData.getBoolean("com.pushwoosh.send_push_stats_if_alert_disabled", false);
-		isServerCommunicationAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_server_communication", true);
-		showPushnotificationAlert = applicationInfo.metaData.getBoolean("com.pushwoosh.foreground_push", false);
-		handleNotificationsUsingWorkManager = applicationInfo.metaData.getBoolean("com.pushwoosh.handle_notifications_using_workmanager", false);
-		shouldShowFullscreenRichMedia = applicationInfo.metaData.getBoolean("com.pushwoosh.show_fullscreen_richmedia", true);
-		reverseProxyAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_reverse_proxy", false);
+        lazySdkInitialization = applicationInfo.metaData.getBoolean("com.pushwoosh.lazy_initialization", false);
+        multinotificationMode = applicationInfo.metaData.getBoolean("com.pushwoosh.multi_notification_mode", false);
+        lightscreenNotification = applicationInfo.metaData.getBoolean("com.pushwoosh.light_screen_notification", false);
+        sendPushStatIfShowForegroundDisabled =
+                applicationInfo.metaData.getBoolean("com.pushwoosh.send_push_stats_if_alert_disabled", false);
+        isServerCommunicationAllowed =
+                applicationInfo.metaData.getBoolean("com.pushwoosh.allow_server_communication", true);
+        showPushnotificationAlert = applicationInfo.metaData.getBoolean("com.pushwoosh.foreground_push", false);
+        handleNotificationsUsingWorkManager =
+                applicationInfo.metaData.getBoolean("com.pushwoosh.handle_notifications_using_workmanager", false);
+        shouldShowFullscreenRichMedia =
+                applicationInfo.metaData.getBoolean("com.pushwoosh.show_fullscreen_richmedia", true);
+        reverseProxyAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_reverse_proxy", false);
 
-		String notificationIconPath = applicationInfo.metaData.getString("com.pushwoosh.notification_icon");
-		if (notificationIconPath != null) {
-			// AndroidManifest.xml contains full path of notification icon e.g "res/drawable-xxhdpi-v11/notification_small_icon.png"
-			// Need to extract resource name from path first
-			String resourceName = FileUtils.getLastPathComponent(notificationIconPath);
-			resourceName = FileUtils.removeExtension(resourceName);
-			notificationIcon = AndroidPlatformModule.getResourceProvider().getIdentifier(resourceName, "drawable");
-		}
+        String notificationIconPath = applicationInfo.metaData.getString("com.pushwoosh.notification_icon");
+        if (notificationIconPath != null) {
+            // AndroidManifest.xml contains full path of notification icon e.g
+            // "res/drawable-xxhdpi-v11/notification_small_icon.png"
+            // Need to extract resource name from path first
+            String resourceName = FileUtils.getLastPathComponent(notificationIconPath);
+            resourceName = FileUtils.removeExtension(resourceName);
+            notificationIcon = AndroidPlatformModule.getResourceProvider().getIdentifier(resourceName, "drawable");
+        }
 
-		notificationIconColor = applicationInfo.metaData.getInt("com.pushwoosh.notification_icon_color", NotificationCompat.COLOR_DEFAULT);
+        notificationIconColor = applicationInfo.metaData.getInt(
+                "com.pushwoosh.notification_icon_color", NotificationCompat.COLOR_DEFAULT);
 
-		for (String key : applicationInfo.metaData.keySet()) {
-			if (key.startsWith("com.pushwoosh.plugin.")) {
-				try {
-					//noinspection unchecked
-					Class<? extends Plugin> pluginClass = (Class<? extends Plugin>) getClass(applicationInfo.metaData, key);
-					if (pluginClass != null) {
-						plugins.add(pluginClass.newInstance());
-					}
-				} catch (Exception ignore) {
+        for (String key : applicationInfo.metaData.keySet()) {
+            if (key.startsWith("com.pushwoosh.plugin.")) {
+                try {
+                    //noinspection unchecked
+                    Class<? extends Plugin> pluginClass =
+                            (Class<? extends Plugin>) getClass(applicationInfo.metaData, key);
+                    if (pluginClass != null) {
+                        plugins.add(pluginClass.newInstance());
+                    }
+                } catch (Exception ignore) {
 
-				}
-			}
-		}
-		try {
-			//noinspection unchecked
-			Class<? extends PluginProvider> pluginProviderClass = (Class<? extends PluginProvider>) getClass(applicationInfo.metaData, "com.pushwoosh.internal.plugin_provider");
-			if (pluginProviderClass != null) {
-				pluginProvider = pluginProviderClass.newInstance();
-			}
-		} catch (Exception ignore) {
-		}
+                }
+            }
+        }
+        try {
+            //noinspection unchecked
+            Class<? extends PluginProvider> pluginProviderClass = (Class<? extends PluginProvider>)
+                    getClass(applicationInfo.metaData, "com.pushwoosh.internal.plugin_provider");
+            if (pluginProviderClass != null) {
+                pluginProvider = pluginProviderClass.newInstance();
+            }
+        } catch (Exception ignore) {
+        }
 
-		if (pluginProvider == null) {
-			pluginProvider = new NativePluginProvider();
-		}
+        if (pluginProvider == null) {
+            pluginProvider = new NativePluginProvider();
+        }
 
-		boolean isCollectingDeviceDataAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_data", true);
-		if (!isCollectingDeviceDataAllowed) {
-			isCollectingDeviceOsVersionAllowed = false;
-			isCollectingDeviceLocaleAllowed = false;
-			isCollectingDeviceModelAllowed = false;
-			isCollectingLifecycleEventsAllowed = false;
-		} else {
-			isCollectingDeviceOsVersionAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_os_version", true);
-			isCollectingDeviceLocaleAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_locale", true);
-			isCollectingDeviceModelAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_model", true);
-			isCollectingLifecycleEventsAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_events", true);
-		}
-	}
+        idleTimeoutSeconds = applicationInfo.metaData.getInt("com.pushwoosh.idle_timeout_seconds", 0);
 
-	private String getString(Bundle metadata, String key, String deprecatedKey) {
-		String result = metadata.getString(key);
-		if (result == null) {
-			Object resultObject = metadata.get(key);
-			result = (resultObject != null) ? String.valueOf(resultObject) : metadata.getString(deprecatedKey);
+        boolean isCollectingDeviceDataAllowed =
+                applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_data", true);
+        if (!isCollectingDeviceDataAllowed) {
+            isCollectingDeviceOsVersionAllowed = false;
+            isCollectingDeviceLocaleAllowed = false;
+            isCollectingDeviceModelAllowed = false;
+            isCollectingLifecycleEventsAllowed = false;
+            idleTimeoutSeconds = 0;
+        } else {
+            isCollectingDeviceOsVersionAllowed =
+                    applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_os_version", true);
+            isCollectingDeviceLocaleAllowed =
+                    applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_locale", true);
+            isCollectingDeviceModelAllowed =
+                    applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_model", true);
+            isCollectingLifecycleEventsAllowed =
+                    applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_events", true);
+            if (!isCollectingLifecycleEventsAllowed) {
+                idleTimeoutSeconds = 0;
+            }
+        }
+    }
 
-			if (result != null) {
-				PWLog.warn("'" + deprecatedKey + "' is deprecated, consider using '" + key + "'");
-			}
-		}
-		return result;
-	}
+    private String getString(Bundle metadata, String key, String deprecatedKey) {
+        String result = metadata.getString(key);
+        if (result == null) {
+            Object resultObject = metadata.get(key);
+            result = (resultObject != null) ? String.valueOf(resultObject) : metadata.getString(deprecatedKey);
 
-	private Class<?> getClass(Bundle metadata, String key) {
-		String className = metadata.getString(key);
-		if (className != null && className.startsWith(".")) {
-			className = AndroidPlatformModule.getAppInfoProvider().getPackageName() + className;
-		}
+            if (result != null) {
+                PWLog.warn("'" + deprecatedKey + "' is deprecated, consider using '" + key + "'");
+            }
+        }
+        return result;
+    }
 
-		if (className != null) {
-			try {
-				Class<?> clazz = Class.forName(className);
-				clazz.getConstructor();
-				return clazz;
-			} catch (ClassNotFoundException e) {
-				PWLog.exception(e);
-				throw new IllegalStateException("Could not find class for name: " + className);
-			} catch (NoSuchMethodException e) {
-				PWLog.exception(e);
-				throw new IllegalStateException("Could not find public default constructor for class: " + className);
-			}
-		}
+    private Class<?> getClass(Bundle metadata, String key) {
+        String className = metadata.getString(key);
+        if (className != null && className.startsWith(".")) {
+            className = AndroidPlatformModule.getAppInfoProvider().getPackageName() + className;
+        }
 
-		return null;
-	}
+        if (className != null) {
+            try {
+                Class<?> clazz = Class.forName(className);
+                clazz.getConstructor();
+                return clazz;
+            } catch (ClassNotFoundException e) {
+                PWLog.exception(e);
+                throw new IllegalStateException("Could not find class for name: " + className);
+            } catch (NoSuchMethodException e) {
+                PWLog.exception(e);
+                throw new IllegalStateException("Could not find public default constructor for class: " + className);
+            }
+        }
 
-	@Override
-	public String getAppId() {
-		return appId;
-	}
+        return null;
+    }
 
-	@Override
-	public String getLogLevel() {
-		return logLevel;
-	}
+    @Override
+    public String getAppId() {
+        return appId;
+    }
 
-	@Override
-	public String getRequestUrl() {
-		return requestUrl;
-	}
+    @Override
+    public String getLogLevel() {
+        return logLevel;
+    }
 
-	@Override
-	public Class<?> getNotificationService() {
-		return notificationService;
-	}
+    @Override
+    public String getRequestUrl() {
+        return requestUrl;
+    }
 
-	@Override
-	public Class<?> getNotificationFactory() {
-		return notificationFactory;
-	}
+    @Override
+    public Class<?> getNotificationService() {
+        return notificationService;
+    }
 
-	@Override
-	public Class<?> getSummaryNotificationFactory() {
-		return summaryNotificationFactory;
-	}
+    @Override
+    public Class<?> getNotificationFactory() {
+        return notificationFactory;
+    }
 
+    @Override
+    public Class<?> getSummaryNotificationFactory() {
+        return summaryNotificationFactory;
+    }
 
-	@Override
-	public boolean isLazySdkInitialization() {
-		return lazySdkInitialization;
-	}
+    @Override
+    public boolean isLazySdkInitialization() {
+        return lazySdkInitialization;
+    }
 
-	@Override
-	public boolean isMultinotificationMode() {
-		return multinotificationMode;
-	}
+    @Override
+    public boolean isMultinotificationMode() {
+        return multinotificationMode;
+    }
 
-	@Override
-	public boolean isLightscreenNotification() {
-		return lightscreenNotification;
-	}
+    @Override
+    public boolean isLightscreenNotification() {
+        return lightscreenNotification;
+    }
 
-	@Override
-	public boolean isServerCommunicationAllowed() {
-		return isServerCommunicationAllowed;
-	}
+    @Override
+    public boolean isServerCommunicationAllowed() {
+        return isServerCommunicationAllowed;
+    }
 
-	@Override
-	public boolean showPushNotificationAlert() {
-		return showPushnotificationAlert;
-	}
+    @Override
+    public boolean showPushNotificationAlert() {
+        return showPushnotificationAlert;
+    }
 
-	@Override
-	public boolean shouldShowFullscreenRichMedia() {
-		return shouldShowFullscreenRichMedia;
-	}
+    @Override
+    public boolean shouldShowFullscreenRichMedia() {
+        return shouldShowFullscreenRichMedia;
+    }
 
-	@Override
-	public boolean isCollectingDeviceOsVersionAllowed() {
-		return isCollectingDeviceOsVersionAllowed;
-	}
+    @Override
+    public boolean isCollectingDeviceOsVersionAllowed() {
+        return isCollectingDeviceOsVersionAllowed;
+    }
 
-	@Override
-	public boolean isCollectingDeviceLocaleAllowed() {
-		return isCollectingDeviceLocaleAllowed;
-	}
+    @Override
+    public boolean isCollectingDeviceLocaleAllowed() {
+        return isCollectingDeviceLocaleAllowed;
+    }
 
-	@Override
-	public boolean isCollectingDeviceModelAllowed() {
-		return isCollectingDeviceModelAllowed;
-	}
+    @Override
+    public boolean isCollectingDeviceModelAllowed() {
+        return isCollectingDeviceModelAllowed;
+    }
 
-	@Override
-	public boolean isCollectingLifecycleEventsAllowed() {
-		return isCollectingLifecycleEventsAllowed;
-	}
+    @Override
+    public boolean isCollectingLifecycleEventsAllowed() {
+        return isCollectingLifecycleEventsAllowed;
+    }
 
-	@Override
-	public boolean handleNotificationsUsingWorkManager() {
-		return handleNotificationsUsingWorkManager;
-	}
+    @Override
+    public boolean handleNotificationsUsingWorkManager() {
+        return handleNotificationsUsingWorkManager;
+    }
 
-	@Override
-	@IdRes
-	public int getNotificationIcon() {
-		return notificationIcon;
-	}
+    @Override
+    @IdRes
+    public int getNotificationIcon() {
+        return notificationIcon;
+    }
 
-	@Override
-	@ColorInt
-	public int getNotificationIconColor() {
-		return notificationIconColor;
-	}
+    @Override
+    @ColorInt
+    public int getNotificationIconColor() {
+        return notificationIconColor;
+    }
 
-	@Override
-	@NonNull
-	public Collection<Plugin> getPlugins() {
-		return plugins;
-	}
+    @Override
+    @NonNull public Collection<Plugin> getPlugins() {
+        return plugins;
+    }
 
-	@Override
-	public PluginProvider getPluginProvider() {
-		return pluginProvider;
-	}
+    @Override
+    public PluginProvider getPluginProvider() {
+        return pluginProvider;
+    }
 
-	@Override
-	public boolean getSendPushStatIfShowForegroundDisabled() {
-		return sendPushStatIfShowForegroundDisabled;
-	}
+    @Override
+    public boolean getSendPushStatIfShowForegroundDisabled() {
+        return sendPushStatIfShowForegroundDisabled;
+    }
 
-	@Override
-	public String[] getTrustedPackageNames() {
-		return trustedPackageNames;
-	}
+    @Override
+    public String[] getTrustedPackageNames() {
+        return trustedPackageNames;
+    }
 
-	@Override
-	public void setLazySdkInitialization(boolean value) {
-		lazySdkInitialization = value;
-	}
+    @Override
+    public void setLazySdkInitialization(boolean value) {
+        lazySdkInitialization = value;
+    }
 
-	@NonNull
-	@Override
-	public RichMediaType getRichMediaType() {
-		return RichMediaType.fromString(richMediaType);
-	}
+    @NonNull @Override
+    public RichMediaType getRichMediaType() {
+        return RichMediaType.fromString(richMediaType);
+    }
 
-	@Override
-	public String getApiToken() {
-		return apiToken;
-	}
+    @Override
+    public String getApiToken() {
+        return apiToken;
+    }
 
-	@Override
-	public boolean isReverseProxyAllowed() {
-		return reverseProxyAllowed;
-	}
+    @Override
+    public boolean isReverseProxyAllowed() {
+        return reverseProxyAllowed;
+    }
+
+    @Override
+    public int getIdleTimeoutSeconds() {
+        return idleTimeoutSeconds;
+    }
 }
