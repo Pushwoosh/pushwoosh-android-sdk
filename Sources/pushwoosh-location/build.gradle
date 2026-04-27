@@ -76,6 +76,7 @@ android {
 dependencies {
     api project(':pushwoosh')
 
+    implementation "androidx.core:core:${androidx_core}"
     implementation "androidx.legacy:legacy-support-v4:${legacy_support_v4}"
     implementation "com.google.android.gms:play-services-base:${googlePlayService}"
     implementation "com.google.android.gms:play-services-location:${googleLocationServices}"

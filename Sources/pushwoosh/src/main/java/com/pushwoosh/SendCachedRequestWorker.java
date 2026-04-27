@@ -1,7 +1,9 @@
 package com.pushwoosh;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
+import androidx.work.WorkerParameters;
 
 import com.pushwoosh.internal.network.CachedRequest;
 import com.pushwoosh.internal.network.ConnectionException;
@@ -9,12 +11,10 @@ import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.network.RequestStorage;
+import com.pushwoosh.internal.work.BasePushwooshWorker;
 import com.pushwoosh.repository.RepositoryModule;
 
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
-
-public class SendCachedRequestWorker extends Worker {
+public class SendCachedRequestWorker extends BasePushwooshWorker {
     public static final String TAG = "SendCachedRequestWorker";
     public static final String DATA_CACHED_REQUEST_ID = "data_cached_request_id";
     private static final int RETRY_COUNT = 3;
@@ -23,8 +23,12 @@ public class SendCachedRequestWorker extends Worker {
         super(context, workerParams);
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
+    protected String getLogTag() {
+        return TAG;
+    }
+
+    @NonNull @Override
     public Result doWork() {
         long id = getInputData().getLong(DATA_CACHED_REQUEST_ID, -1);
         if (id == -1) {

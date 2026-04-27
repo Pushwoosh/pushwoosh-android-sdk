@@ -417,3 +417,12 @@
     public *;
 }
 
+# WorkManager Worker subclasses. Duplicates androidx.work consumer-rules
+# (-keep class * extends androidx.work.Worker), but pinning here explicitly
+# documents intent and decouples us from upstream rule changes. WorkManager
+# finds workers by fully-qualified name via reflection at enqueue time.
+-keep class com.pushwoosh.internal.work.BasePushwooshWorker { *; }
+-keep class * extends com.pushwoosh.internal.work.BasePushwooshWorker {
+    public <init>(android.content.Context, androidx.work.WorkerParameters);
+}
+

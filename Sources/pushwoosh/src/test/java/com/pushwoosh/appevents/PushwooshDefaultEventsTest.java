@@ -85,6 +85,45 @@ public class PushwooshDefaultEventsTest {
             pushwooshDefaultEvents.postEvent(PushwooshDefaultEvents.APPLICATION_CLOSED_EVENT, attributes);
             verify(InAppManager.getInstance(), times(1))
                     .postEvent(PushwooshDefaultEvents.APPLICATION_CLOSED_EVENT, attributes);
+
+            TagsBundle exitIntentAttributes =
+                    PushwooshDefaultEvents.buildExitIntentAttributes("MainActivity/Profile", 42L, 15);
+            pushwooshDefaultEvents.postEvent(PushwooshDefaultEvents.APPLICATION_EXIT_EVENT, exitIntentAttributes);
+            verify(InAppManager.getInstance(), times(1))
+                    .postEvent(PushwooshDefaultEvents.APPLICATION_EXIT_EVENT, exitIntentAttributes);
+        }
+    }
+
+    @Test
+    public void checkBuildExitIntentAttributes() {
+        try (MockedStatic<PushwooshPlatform> pushwooshPlatformMockedStatic = mockStatic(PushwooshPlatform.class);
+                MockedStatic<DeviceSpecificProvider> deviceSpecificProviderMockedStatic =
+                        mockStatic(DeviceSpecificProvider.class);
+                MockedStatic<AndroidPlatformModule> platformModuleMockedStatic =
+                        mockStatic(AndroidPlatformModule.class)) {
+            deviceSpecificProviderMockedStatic
+                    .when(DeviceSpecificProvider::getInstance)
+                    .thenReturn(deviceSpecificProvider);
+            platformModuleMockedStatic
+                    .when(AndroidPlatformModule::getAppInfoProvider)
+                    .thenReturn(appInfoProvider);
+            pushwooshPlatformMockedStatic.when(PushwooshPlatform::getInstance).thenReturn(pushwooshPlatform);
+
+            TagsBundle withScreen = PushwooshDefaultEvents.buildExitIntentAttributes("MainActivity/Profile", 42L, 15);
+
+            Assert.assertNotNull(withScreen);
+            Assert.assertEquals(10, withScreen.getInt("device_type", -1));
+            Assert.assertEquals("v1.0.0", withScreen.getString("application_version"));
+            Assert.assertEquals("MainActivity/Profile", withScreen.getString("screen_name"));
+            Assert.assertEquals(42L, withScreen.getLong("session_duration", -1L));
+            Assert.assertEquals(15, withScreen.getInt("exit_intent_seconds", -1));
+
+            TagsBundle withoutScreen = PushwooshDefaultEvents.buildExitIntentAttributes(null, 7L, 30);
+
+            Assert.assertNotNull(withoutScreen);
+            Assert.assertNull(withoutScreen.getString("screen_name"));
+            Assert.assertEquals(7L, withoutScreen.getLong("session_duration", -1L));
+            Assert.assertEquals(30, withoutScreen.getInt("exit_intent_seconds", -1));
         }
     }
 

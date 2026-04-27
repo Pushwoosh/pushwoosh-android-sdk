@@ -33,6 +33,9 @@ import android.content.IntentSender;
 import android.os.Bundle;
 import android.util.AndroidRuntimeException;
 
+import androidx.annotation.Nullable;
+import androidx.core.content.IntentCompat;
+
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationServices;
@@ -44,8 +47,6 @@ import com.pushwoosh.internal.event.Event;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.TranslucentActivity;
-
-import androidx.annotation.Nullable;
 
 public class ResolutionActivity extends TranslucentActivity {
     private static final String TAG = "ResolutionActivity";
@@ -62,14 +63,13 @@ public class ResolutionActivity extends TranslucentActivity {
         } catch (AndroidRuntimeException e) {
             // ignore
         }
-
     }
 
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LocationSettingsRequest request =
-                (LocationSettingsRequest) getIntent().getParcelableExtra(KEY_SETTINGS_REQUEST);
+                IntentCompat.getParcelableExtra(getIntent(), KEY_SETTINGS_REQUEST, LocationSettingsRequest.class);
         if (request == null) {
             finish();
             return;
@@ -77,7 +77,8 @@ public class ResolutionActivity extends TranslucentActivity {
         // The only way to show resolutiom dialog is to use method startResolutionForResult of
         // ResolvableApiException. There is no better way to pass ResolvableApiException from
         // GoogleLocationProvider to this activity so we have to make the same task again here.
-        Task<LocationSettingsResponse> task = LocationServices.getSettingsClient(this).checkLocationSettings(request);
+        Task<LocationSettingsResponse> task =
+                LocationServices.getSettingsClient(this).checkLocationSettings(request);
         task.addOnCompleteListener(completedTask -> {
             try {
                 LocationSettingsResponse response = task.getResult(ApiException.class);
@@ -88,9 +89,7 @@ public class ResolutionActivity extends TranslucentActivity {
                         ResolvableApiException resolvable = (ResolvableApiException) exception;
                         // Show the dialog by calling startResolutionForResult(),
                         // and check the result in onActivityResult().
-                        resolvable.startResolutionForResult(
-                                this,
-                                REQUEST_CHECK_SETTINGS);
+                        resolvable.startResolutionForResult(this, REQUEST_CHECK_SETTINGS);
                     } catch (IntentSender.SendIntentException e) {
                         PWLog.error("Can't start resolution for status code" + exception.getStatusCode(), e);
                     } catch (ClassCastException e) {

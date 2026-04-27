@@ -168,4 +168,10 @@ public interface Config {
      * @return Idle timeout in seconds. 0 means idle detection is disabled.
      */
     int getIdleTimeoutSeconds();
+
+    /**
+     * @return Exit Intent timeout in seconds. 0 means Exit Intent detection is disabled.
+     *         Values are clamped to [10, 30] by the detector.
+     */
+    int getExitIntentTimeoutSeconds();
 }

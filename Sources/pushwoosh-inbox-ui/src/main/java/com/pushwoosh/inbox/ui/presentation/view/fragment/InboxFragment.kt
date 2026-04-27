@@ -124,10 +124,13 @@ open class InboxFragment : BaseFragment(), InboxView {
         // Set up the toolbar with back button
         val activity = activity as? androidx.appcompat.app.AppCompatActivity
 
-        // Detect if fragment is embedded in Activity with existing toolbar
-        // If yes, we need to remove fitsSystemWindows padding to prevent gap
+        // Disable fitsSystemWindows on the root when host is responsible for status-bar inset:
+        //  - host Activity has its own actionBar (legacy embed scenario);
+        //  - or caller explicitly hides our toolbar (showToolbar=false), e.g. embedding into a
+        //    Fragment with custom header, or into an edge-to-edge Activity without supportActionBar.
+        // Otherwise (standalone InboxActivity, default embed) keep the inset on the root.
         val isEmbeddedInActivityWithToolbar = activity?.supportActionBar != null
-        if (isEmbeddedInActivityWithToolbar) {
+        if (isEmbeddedInActivityWithToolbar || !shouldShowToolbar()) {
             view.fitsSystemWindows = false
         }
 

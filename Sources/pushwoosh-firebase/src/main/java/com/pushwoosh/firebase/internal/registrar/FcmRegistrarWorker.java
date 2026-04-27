@@ -3,17 +3,16 @@ package com.pushwoosh.firebase.internal.registrar;
 import android.content.Context;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+import androidx.work.WorkerParameters;
+
 import com.pushwoosh.firebase.internal.utils.FirebaseTokenHelper;
 import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.internal.work.BasePushwooshWorker;
 import com.pushwoosh.repository.RepositoryModule;
-import com.pushwoosh.tags.TagsBundle;
 
-import androidx.annotation.NonNull;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
-
-public class FcmRegistrarWorker extends Worker {
+public class FcmRegistrarWorker extends BasePushwooshWorker {
     public static final String DATA_REGISTER = "DATA_REGISTER";
     public static final String DATA_UNREGISTER = "DATA_UNREGISTER";
     public static final String DATA_TAGS = "DATA_TAGS";
@@ -24,10 +23,16 @@ public class FcmRegistrarWorker extends Worker {
         super(context, workerParams);
     }
 
+    @NonNull @Override
+    protected String getLogTag() {
+        return TAG;
+    }
+
     private static void registerPW(String tagsJson) {
         String error = "";
         try {
-            String savedPushToken = RepositoryModule.getRegistrationPreferences().pushToken().get();
+            String savedPushToken =
+                    RepositoryModule.getRegistrationPreferences().pushToken().get();
             if (!TextUtils.isEmpty(savedPushToken)) {
                 FirebaseTokenHelper.deleteFirebaseToken();
             }
@@ -49,7 +54,8 @@ public class FcmRegistrarWorker extends Worker {
 
     private static void unregisterPW() {
         try {
-            String token = RepositoryModule.getRegistrationPreferences().pushToken().get();
+            String token =
+                    RepositoryModule.getRegistrationPreferences().pushToken().get();
             NotificationRegistrarHelper.onUnregisteredFromRemoteNotifications(token);
         } catch (Exception e) {
             PWLog.error(TAG, "Fcm deregistration error", e);
@@ -57,8 +63,7 @@ public class FcmRegistrarWorker extends Worker {
         }
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
     public Result doWork() {
         boolean register = getInputData().getBoolean(DATA_REGISTER, false);
         boolean unregister = getInputData().getBoolean(DATA_UNREGISTER, false);

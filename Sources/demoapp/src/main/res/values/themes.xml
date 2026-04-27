@@ -45,6 +45,7 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
 
         <!-- Button styles -->
         <item name="materialButtonStyle">@style/Widget.Demoapp.Button</item>
@@ -53,14 +54,14 @@
 
     <!-- Primary filled button -->
     <style name="Widget.Demoapp.Button" parent="Widget.Material3.Button">
-        <item name="cornerRadius">12dp</item>
+        <item name="cornerRadius">100dp</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
     </style>
 
     <!-- Outlined button for secondary actions -->
     <style name="Widget.Demoapp.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="cornerRadius">12dp</item>
+        <item name="cornerRadius">100dp</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
         <item name="strokeColor">@color/md_theme_outline</item>
@@ -69,7 +70,7 @@
 
     <!-- Tonal button for tertiary actions -->
     <style name="Widget.Demoapp.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
-        <item name="cornerRadius">12dp</item>
+        <item name="cornerRadius">100dp</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
     </style>

@@ -26,8 +26,11 @@
 
 package com.pushwoosh.notification.builder;
 
+import static org.mockito.ArgumentMatchers.eq;
+
 import android.app.PendingIntent;
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -42,22 +45,20 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-import static org.mockito.ArgumentMatchers.eq;
-
 /**
  * Created by aevstefeev on 12/03/2018.
  */
-
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
 public class NotificationBuilderManagerTest {
 
+    // Pre-Oreo test: on API >= 26 createNotificationBuilder returns NotificationBuilderApi26.
     @Test
+    @Config(sdk = 23)
     public void createNotificationBuilder() throws Exception {
         Context context = RuntimeEnvironment.application;
 
-        NotificationBuilder notificationBuilder =
-                NotificationBuilderManager.createNotificationBuilder(context, "id");
+        NotificationBuilder notificationBuilder = NotificationBuilderManager.createNotificationBuilder(context, "id");
 
         Assert.assertTrue(notificationBuilder instanceof NotificationBuilderApi14);
     }
@@ -78,8 +79,7 @@ public class NotificationBuilderManagerTest {
         Mockito.verify(notificationBuilder).addAction(eq(17301540), eq("title"), Mockito.any(PendingIntent.class));
     }
 
-    @NonNull
-    private Action getActionMock() {
+    @NonNull private Action getActionMock() {
         Action action = Mockito.mock(Action.class);
         Mockito.when(action.getIcon()).thenReturn("android.R.drawable.ic_media_play");
         Mockito.when(action.getType()).thenReturn(Action.Type.ACTIVITY);
@@ -88,5 +88,4 @@ public class NotificationBuilderManagerTest {
         Mockito.when(action.getActionClass()).thenReturn(Object.class);
         return action;
     }
-
 }

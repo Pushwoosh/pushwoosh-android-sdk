@@ -27,15 +27,14 @@
 package com.pushwoosh.inbox.ui.presentation.view.activity
 
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.R
 import com.pushwoosh.inbox.ui.presentation.view.fragment.InboxFragment
-
 
 open class InboxActivity : AppCompatActivity() {
 
@@ -47,29 +46,38 @@ open class InboxActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        
+
         // Set system bars to match inbox background color for consistency
         setupSystemBars()
-        
+
         setContentView(R.layout.pw_activity_inbox)
-        
+
         // Apply background color to activity root view and content container
         val backgroundColor = PushwooshInboxStyle.backgroundColor
         if (backgroundColor != null) {
-            findViewById<android.view.View>(android.R.id.content).setBackgroundColor(backgroundColor)
-            findViewById<android.view.View>(R.id.inboxContentContainer)?.setBackgroundColor(backgroundColor)
+            findViewById<android.view.View>(android.R.id.content)
+                .setBackgroundColor(backgroundColor)
+            findViewById<android.view.View>(R.id.inboxContentContainer)
+                ?.setBackgroundColor(backgroundColor)
         }
-        
+
         attachInboxFragment()
     }
 
     private fun setupSystemBars() {
         val backgroundColor = PushwooshInboxStyle.backgroundColor
         if (backgroundColor != null) {
-            // Set status bar and navigation bar colors to match inbox background
-            window.statusBarColor = backgroundColor
-            window.navigationBarColor = backgroundColor
-            
+            // statusBarColor / navigationBarColor are no-ops on API 35+ (edge-to-edge enforced).
+            // Keep assigning them on older APIs so clients that rely on
+            // PushwooshInboxStyle.backgroundColor
+            // still see coloured system bars.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                @Suppress("DEPRECATION")
+                window.statusBarColor = backgroundColor
+                @Suppress("DEPRECATION")
+                window.navigationBarColor = backgroundColor
+            }
+
             // Determine if we need light or dark status bar icons based on background brightness
             val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
             val isLightBackground = isColorLight(backgroundColor)
@@ -80,7 +88,7 @@ open class InboxActivity : AppCompatActivity() {
 
     private fun isColorLight(color: Int): Boolean {
         val red = Color.red(color)
-        val green = Color.green(color) 
+        val green = Color.green(color)
         val blue = Color.blue(color)
         // Calculate luminance using standard formula
         val luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255
@@ -89,7 +97,8 @@ open class InboxActivity : AppCompatActivity() {
 
     protected open fun attachInboxFragment() {
         var needToAdd = true
-        val fragment = supportFragmentManager.findFragmentByTag(FRAGMENT_TAG)?.also { needToAdd = false }
+        val fragment =
+            supportFragmentManager.findFragmentByTag(FRAGMENT_TAG)?.also { needToAdd = false }
                 ?: InboxFragment()
 
         val beginTransaction = supportFragmentManager.beginTransaction()

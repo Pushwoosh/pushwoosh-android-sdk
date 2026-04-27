@@ -5,13 +5,13 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.work.Data;
-import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.network.ConnectionException;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.internal.work.BasePushwooshWorker;
 import com.pushwoosh.repository.PushwooshRepository;
 
 /**
@@ -36,10 +36,10 @@ import com.pushwoosh.repository.PushwooshRepository;
  * @see SdkStateProvider for SDK state management
  * @see PushwooshRepository for the actual statistics delivery
  */
-public class PushStatisticsWorker extends Worker {
+public class PushStatisticsWorker extends BasePushwooshWorker {
     /** Tag used for logging purposes. */
     public static final String TAG = "PushStatisticsWorker";
-    
+
     // Data keys for WorkManager input data
     /** Key for the event type in WorkManager input data. */
     public static final String DATA_EVENT_TYPE = "DATA_EVENT_TYPE";
@@ -47,7 +47,7 @@ public class PushStatisticsWorker extends Worker {
     public static final String DATA_PUSH_HASH = "DATA_PUSH_HASH";
     /** Key for the push notification metadata in WorkManager input data. */
     public static final String DATA_METADATA = "DATA_METADATA";
-    
+
     // Event types supported by this worker
     /** Event type constant for push notification delivery events. */
     public static final String EVENT_DELIVERY = "delivery";
@@ -77,7 +77,7 @@ public class PushStatisticsWorker extends Worker {
                 .putString(DATA_METADATA, metadata)
                 .build();
     }
-    
+
     /**
      * Constructs a new PushStatisticsWorker.
      * <p>
@@ -89,6 +89,11 @@ public class PushStatisticsWorker extends Worker {
      */
     public PushStatisticsWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
+    }
+
+    @NonNull @Override
+    protected String getLogTag() {
+        return TAG;
     }
 
     /**
@@ -111,8 +116,7 @@ public class PushStatisticsWorker extends Worker {
      *         {@link Result#retry()} if the SDK is not ready or the request failed,
      *         {@link Result#failure()} if required input data is missing or event type is unknown
      */
-    @NonNull
-    @Override
+    @NonNull @Override
     public Result doWork() {
         PWLog.noise(TAG, String.format("doWork(), %s attempt", getRunAttemptCount()));
         String eventType = getInputData().getString(DATA_EVENT_TYPE);
@@ -144,7 +148,7 @@ public class PushStatisticsWorker extends Worker {
             }
 
             com.pushwoosh.function.Result<Void, NetworkException> result =
-                sendStatisticsEventSync(eventType, pushHash, metadata);
+                    sendStatisticsEventSync(eventType, pushHash, metadata);
 
             if (result.isSuccess()) {
                 return Result.success();
@@ -152,7 +156,7 @@ public class PushStatisticsWorker extends Worker {
 
             NetworkException exception = result.getException();
             if (exception == null) {
-                PWLog.error(TAG, String.format("Failed to send %s event due to null exception", eventType));;
+                PWLog.error(TAG, String.format("Failed to send %s event due to null exception", eventType));
                 return Result.failure();
             }
 
@@ -169,7 +173,7 @@ public class PushStatisticsWorker extends Worker {
             return Result.retry();
         }
     }
-    
+
     /**
      * Sends a push notification statistics event synchronously.
      * <p>
@@ -182,7 +186,8 @@ public class PushStatisticsWorker extends Worker {
      * @param metadata additional metadata associated with the push notification, may be null
      * @return Result containing success or NetworkException with error details
      */
-    private com.pushwoosh.function.Result<Void, NetworkException> sendStatisticsEventSync(String eventType, String hash, String metadata) {
+    private com.pushwoosh.function.Result<Void, NetworkException> sendStatisticsEventSync(
+            String eventType, String hash, String metadata) {
         PWLog.noise(TAG, "sendStatisticsEventSync(), eventType: " + eventType);
         try {
             PushwooshRepository repository = getPushwooshRepository();
@@ -192,8 +197,8 @@ public class PushStatisticsWorker extends Worker {
             }
 
             return EVENT_DELIVERY.equals(eventType)
-                ? repository.sendPushDeliveredSync(hash, metadata)
-                : repository.sendPushOpenedSync(hash, metadata);
+                    ? repository.sendPushDeliveredSync(hash, metadata)
+                    : repository.sendPushOpenedSync(hash, metadata);
 
         } catch (Exception e) {
             PWLog.error(TAG, "Failed to send " + eventType + " event", e);
@@ -256,7 +261,7 @@ public class PushStatisticsWorker extends Worker {
                 return false;
         }
     }
-    
+
     /**
      * Retrieves the PushwooshRepository instance for sending statistics.
      * <p>

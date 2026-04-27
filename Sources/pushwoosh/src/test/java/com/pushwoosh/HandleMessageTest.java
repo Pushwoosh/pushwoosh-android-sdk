@@ -230,7 +230,9 @@ public class HandleMessageTest {
     //
 
     // Tests setSoundType ALWAYS
+    // Pre-Oreo test: Notification.sound is migrated to NotificationChannel since API 26.
     @Test
+    @org.robolectric.annotation.Config(sdk = 23)
     public void setAlwaysSoundTypeTest() throws Exception {
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
 
@@ -272,7 +274,9 @@ public class HandleMessageTest {
     }
 
     // Tests setSoundType DEFAULT_MODE
+    // Pre-Oreo test: Notification.sound is migrated to NotificationChannel since API 26.
     @Test
+    @org.robolectric.annotation.Config(sdk = 23)
     public void setDefaultSoundTypeTest() throws Exception {
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
 
@@ -363,7 +367,9 @@ public class HandleMessageTest {
     //
 
     // Tests setLedColor, MAGENTA == #F0F
+    // Pre-Oreo test: Notification.ledARGB is migrated to NotificationChannel since API 26.
     @Test
+    @org.robolectric.annotation.Config(sdk = 23)
     public void setLedColorTest() throws Exception {
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
 
@@ -384,7 +390,9 @@ public class HandleMessageTest {
     }
 
     // Tests setLedColor uses defaultValue
+    // Pre-Oreo test: Notification.ledARGB is migrated to NotificationChannel since API 26.
     @Test
+    @org.robolectric.annotation.Config(sdk = 23)
     public void defaultLedColorTest() throws Exception {
         ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
 

@@ -11,12 +11,12 @@ if (isLocalBuild) {
 
 android {
     namespace 'com.pushwoosh.demoapp'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.pushwoosh.demoapp"
         minSdk 24
-        targetSdk 35
+        targetSdk 36
         versionCode 2
         versionName "1.1"
 
@@ -87,7 +87,7 @@ dependencies {
     def pwVersion = libs.versions.pushwooshFirebase.get()
     pushwooshModules.each { module ->
         if (isLocalBuild) {
-            debugApi project(":$module")
+            api project(":$module")
         } else {
             implementation "com.pushwoosh:$module:$pwVersion"
         }
@@ -99,7 +99,6 @@ dependencies {
 }
 
 apply plugin: "com.google.gms.google-services"
-apply plugin: 'com.huawei.agconnect'
 
 if (!isLocalBuild) {
     googleServices {

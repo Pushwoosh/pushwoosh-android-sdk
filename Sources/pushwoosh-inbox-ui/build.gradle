@@ -46,7 +46,7 @@ android {
 
     defaultConfig {
         minSdkVersion global_minSdkVersion
-        targetSdkVersion global_compileSdkVersion
+        targetSdkVersion global_targetVersion
         versionCode 1
         versionName global_versionName
 
@@ -84,9 +84,9 @@ dependencies {
 
     implementation libs.activity.ktx
     implementation libs.appcompat
-    implementation "androidx.recyclerview:recyclerview:${support}"
+    implementation "androidx.recyclerview:recyclerview:${recyclerview}"
     implementation libs.swiperefreshlayout
-    implementation "com.google.android.material:material:${support}"
+    implementation "com.google.android.material:material:${material}"
 
     implementation "androidx.constraintlayout:constraintlayout:${constraint}"
     implementation "com.github.bumptech.glide:glide:${glide}"

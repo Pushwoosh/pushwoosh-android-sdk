@@ -12,6 +12,7 @@ import android.view.WindowInsets;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.view.ModalRichMediaWindow;
@@ -31,8 +32,7 @@ public class ModalRichMediaWindowUtils {
     static int screenHeight = Resources.getSystem().getDisplayMetrics().heightPixels;
     static int statusBarInset = 0;
 
-    @Nullable
-    public static View getParentView() {
+    @Nullable public static View getParentView() {
         Activity activity = PushwooshPlatform.getInstance().getTopActivity();
         if (activity == null) {
             return null;
@@ -47,7 +47,6 @@ public class ModalRichMediaWindowUtils {
 
         return decorView.findViewById(android.R.id.content);
     }
-
 
     public static void getParentViewAsync(Consumer<View> callback) {
         Activity topActivity = PushwooshPlatform.getInstance().getTopActivity();
@@ -66,7 +65,6 @@ public class ModalRichMediaWindowUtils {
         }
     }
 
-
     public static ValueAnimator dismissWindowWithFadeOutAnimation(ModalRichMediaWindow window) {
         ValueAnimator fadeInAnimator = ValueAnimator.ofFloat(1f, 0f);
         fadeInAnimator.addUpdateListener(animation -> {
@@ -80,7 +78,7 @@ public class ModalRichMediaWindowUtils {
         ValueAnimator animator = ValueAnimator.ofInt(0, screenWidth);
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
-            window.update(-animatedValue, window.getTopInset() + window.getBottomInset(), -1 ,-1);
+            window.update(-animatedValue, window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
@@ -89,31 +87,33 @@ public class ModalRichMediaWindowUtils {
         ValueAnimator animator = ValueAnimator.ofInt(0, screenWidth);
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
-            window.update(animatedValue, window.getTopInset() + window.getBottomInset(), -1 ,-1);
+            window.update(animatedValue, window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
 
-    public static ValueAnimator dismissWindowToTopAnimation(ModalRichMediaWindow window, int screenHeight, ModalRichmediaConfig config) {
-        ValueAnimator animator = ValueAnimator.ofInt(getStatusBarInset(), - screenHeight);
+    public static ValueAnimator dismissWindowToTopAnimation(
+            ModalRichMediaWindow window, int screenHeight, ModalRichmediaConfig config) {
+        ValueAnimator animator = ValueAnimator.ofInt(getStatusBarInset(), -screenHeight);
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
             if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
-                animatedValue = -animatedValue; //for bottom coordinates are inverted
+                animatedValue = -animatedValue; // for bottom coordinates are inverted
             }
-            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1 ,-1);
+            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
 
-    public static ValueAnimator dismissWindowToBottomAnimation(ModalRichMediaWindow window, int screenHeight, ModalRichmediaConfig config) {
+    public static ValueAnimator dismissWindowToBottomAnimation(
+            ModalRichMediaWindow window, int screenHeight, ModalRichmediaConfig config) {
         ValueAnimator animator = ValueAnimator.ofInt(getStatusBarInset(), screenHeight);
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
             if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
-                animatedValue = -animatedValue; //for bottom coordinates are inverted
+                animatedValue = -animatedValue; // for bottom coordinates are inverted
             }
-            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1 ,-1);
+            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
@@ -122,7 +122,7 @@ public class ModalRichMediaWindowUtils {
         ValueAnimator animator = ValueAnimator.ofInt(-screenWidth, 0);
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
-            window.update(animatedValue, window.getBottomInset() + window.getTopInset(), -1 ,-1);
+            window.update(animatedValue, window.getBottomInset() + window.getTopInset(), -1, -1);
         });
         return animator;
     }
@@ -131,31 +131,33 @@ public class ModalRichMediaWindowUtils {
         ValueAnimator animator = ValueAnimator.ofInt(screenWidth, 0);
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
-            window.update(animatedValue, window.getBottomInset() + window.getTopInset(), -1 ,-1);
+            window.update(animatedValue, window.getBottomInset() + window.getTopInset(), -1, -1);
         });
         return animator;
     }
 
-    public static ValueAnimator presentWindowFromTopAnimation(ModalRichMediaWindow window, int screenHeight, ModalRichmediaConfig config) {
+    public static ValueAnimator presentWindowFromTopAnimation(
+            ModalRichMediaWindow window, int screenHeight, ModalRichmediaConfig config) {
         ValueAnimator animator = ValueAnimator.ofInt(-screenHeight, getStatusBarInset());
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
             if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
-                animatedValue = -animatedValue; //for bottom coordinates are inverted
+                animatedValue = -animatedValue; // for bottom coordinates are inverted
             }
-            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1 ,-1);
+            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
 
-    public static ValueAnimator presentWindowFromBottomAnimation(ModalRichMediaWindow window, int screenHeight, ModalRichmediaConfig config) {
+    public static ValueAnimator presentWindowFromBottomAnimation(
+            ModalRichMediaWindow window, int screenHeight, ModalRichmediaConfig config) {
         ValueAnimator animator = ValueAnimator.ofInt(screenHeight, getStatusBarInset());
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
             if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
-                animatedValue = -animatedValue; //for bottom coordinates are inverted
+                animatedValue = -animatedValue; // for bottom coordinates are inverted
             }
-            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1 ,-1);
+            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
@@ -170,7 +172,8 @@ public class ModalRichMediaWindowUtils {
         return fadeInAnimator;
     }
 
-    public static ValueAnimator getDismissValueAnimatorForWindow(ModalRichMediaWindow window, ModalRichmediaConfig config) {
+    public static ValueAnimator getDismissValueAnimatorForWindow(
+            ModalRichMediaWindow window, ModalRichmediaConfig config) {
         ModalRichMediaDismissAnimationType type = config.getDismissAnimationType();
         ValueAnimator animator;
         switch (type) {
@@ -197,7 +200,8 @@ public class ModalRichMediaWindowUtils {
         return animator;
     }
 
-    public static ValueAnimator getPresentValueAnimatorForWindow(ModalRichMediaWindow window, ModalRichmediaConfig config) {
+    public static ValueAnimator getPresentValueAnimatorForWindow(
+            ModalRichMediaWindow window, ModalRichmediaConfig config) {
         ModalRichMediaPresentAnimationType type = config.getPresentAnimationType();
         ValueAnimator animator;
         switch (type) {
@@ -280,7 +284,7 @@ public class ModalRichMediaWindowUtils {
         return gravity;
     }
 
-    //Swiping related methods
+    // Swiping related methods
     public static boolean isTouchInsidePopupWindow(ModalRichMediaWindow window, MotionEvent event) {
         float x = event.getRawX();
         float y = event.getRawY();
@@ -294,11 +298,11 @@ public class ModalRichMediaWindowUtils {
         int height = window.getContentView().getHeight();
 
         // Check if the touch event is within the bounds of the PopupWindow
-        return x >= location[0] && x <= (location[0] + width) &&
-                y >= location[1] && y <= (location[1] + height);
+        return x >= location[0] && x <= (location[0] + width) && y >= location[1] && y <= (location[1] + height);
     }
 
-    public static boolean dismissOnSwipeThreshold(ModalRichMediaWindow window, float deltaX, float deltaY, ModalRichmediaConfig config) {
+    public static boolean dismissOnSwipeThreshold(
+            ModalRichMediaWindow window, float deltaX, float deltaY, ModalRichmediaConfig config) {
         // Get the dimensions of the screen
         float screenWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
         float screenHeight = Resources.getSystem().getDisplayMetrics().heightPixels;
@@ -317,10 +321,12 @@ public class ModalRichMediaWindowUtils {
         // Check horizontal swipe (left or right)
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
             Set<ModalRichMediaSwipeGesture> gestures = config.getSwipeGestures();
-            if (gestures.contains(ModalRichMediaSwipeGesture.LEFT) && (windowLocation[0] + windowWidth * SWIPE_THRESHOLD_FACTOR) < 0) {
+            if (gestures.contains(ModalRichMediaSwipeGesture.LEFT)
+                    && (windowLocation[0] + windowWidth * SWIPE_THRESHOLD_FACTOR) < 0) {
                 isDismiss = true;
             }
-            if (gestures.contains(ModalRichMediaSwipeGesture.RIGHT) && (windowLocation[0] + windowWidth * SWIPE_THRESHOLD_FACTOR) > screenWidth) {
+            if (gestures.contains(ModalRichMediaSwipeGesture.RIGHT)
+                    && (windowLocation[0] + windowWidth * SWIPE_THRESHOLD_FACTOR) > screenWidth) {
                 isDismiss = true;
             }
         }
@@ -328,10 +334,13 @@ public class ModalRichMediaWindowUtils {
         // Check vertical swipe (up or down)
         if (Math.abs(deltaY) > Math.abs(deltaX)) {
             Set<ModalRichMediaSwipeGesture> gestures = config.getSwipeGestures();
-            if (gestures.contains(ModalRichMediaSwipeGesture.UP) && (windowLocation[1] + windowHeight * SWIPE_THRESHOLD_FACTOR) < 0) {
+            if (gestures.contains(ModalRichMediaSwipeGesture.UP)
+                    && (windowLocation[1] + windowHeight * SWIPE_THRESHOLD_FACTOR) < 0) {
                 isDismiss = true;
             }
-            if (gestures.contains(ModalRichMediaSwipeGesture.DOWN) && (windowLocation[1] + windowHeight * SWIPE_THRESHOLD_FACTOR) > screenHeight + getSystemWindowInsetTop() + getSystemWindowInsetBottom()) {
+            if (gestures.contains(ModalRichMediaSwipeGesture.DOWN)
+                    && (windowLocation[1] + windowHeight * SWIPE_THRESHOLD_FACTOR)
+                            > screenHeight + getSystemWindowInsetTop() + getSystemWindowInsetBottom()) {
                 isDismiss = true;
             }
         }
@@ -346,15 +355,17 @@ public class ModalRichMediaWindowUtils {
     }
 
     public static void movePopupOnDragEvent(ModalRichMediaWindow window, int dx, int dy, ModalRichmediaConfig config) {
-        //if window has Gravity.BOTTOM, window's "anchor point" is the bottom of the screen,
+        // if window has Gravity.BOTTOM, window's "anchor point" is the bottom of the screen,
         // so positive values move it upwards, and we need to invert the value
         if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
             dy = -dy;
         }
         Set<ModalRichMediaSwipeGesture> gestures = config.getSwipeGestures();
         if (!gestures.isEmpty()) {
-            boolean verticalAllowed = gestures.contains(ModalRichMediaSwipeGesture.UP) || gestures.contains(ModalRichMediaSwipeGesture.DOWN);
-            boolean horizontalAllowed = gestures.contains(ModalRichMediaSwipeGesture.LEFT) || gestures.contains(ModalRichMediaSwipeGesture.RIGHT);
+            boolean verticalAllowed = gestures.contains(ModalRichMediaSwipeGesture.UP)
+                    || gestures.contains(ModalRichMediaSwipeGesture.DOWN);
+            boolean horizontalAllowed = gestures.contains(ModalRichMediaSwipeGesture.LEFT)
+                    || gestures.contains(ModalRichMediaSwipeGesture.RIGHT);
             dx = horizontalAllowed ? dx : 0;
             dy = verticalAllowed ? dy : 0;
 
@@ -400,7 +411,7 @@ public class ModalRichMediaWindowUtils {
         if (insets == null) {
             return 0;
         }
-        return insets.getSystemWindowInsetTop();
+        return WindowInsetsCompat.toWindowInsetsCompat(insets).getInsets(WindowInsetsCompat.Type.statusBars()).top;
     }
 
     /**
@@ -416,7 +427,9 @@ public class ModalRichMediaWindowUtils {
         if (insets == null) {
             return 0;
         }
-        return insets.getSystemWindowInsetBottom();
+        return WindowInsetsCompat.toWindowInsetsCompat(insets)
+                .getInsets(WindowInsetsCompat.Type.navigationBars())
+                .bottom;
     }
 
     /**
@@ -434,11 +447,14 @@ public class ModalRichMediaWindowUtils {
         if (insets == null) {
             return 0;
         }
-        int insetBottom = insets.getSystemWindowInsetBottom();
+        int insetBottom = WindowInsetsCompat.toWindowInsetsCompat(insets)
+                .getInsets(WindowInsetsCompat.Type.navigationBars())
+                .bottom;
 
         // For Android 15+ (API 35+), check edge-to-edge layout config
-        if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-            config != null && Boolean.TRUE.equals(config.shouldRespectEdgeToEdgeLayout())) {
+        if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+                && config != null
+                && Boolean.TRUE.equals(config.shouldRespectEdgeToEdgeLayout())) {
             return 0; // respect edge-to-edge = extend to very bottom
         }
 

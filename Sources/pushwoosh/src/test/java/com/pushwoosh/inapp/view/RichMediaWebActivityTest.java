@@ -1,11 +1,19 @@
 package com.pushwoosh.inapp.view;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.Animation;
 
+import androidx.core.os.BundleCompat;
+
 import com.pushwoosh.PushwooshPlatform;
+import com.pushwoosh.inapp.model.HtmlData;
 import com.pushwoosh.inapp.network.model.InAppLayout;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.richmedia.RichMediaStyle;
@@ -27,11 +35,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
 public class RichMediaWebActivityTest {
@@ -40,8 +43,10 @@ public class RichMediaWebActivityTest {
 
     @Mock
     private ResourceWebView resourceWebView;
+
     @Captor
     private ArgumentCaptor<Animation.AnimationListener> listenerCaptor;
+
     @Mock
     Animation animation;
 
@@ -60,10 +65,10 @@ public class RichMediaWebActivityTest {
         Intent intent = new Intent();
         Resource resource = new Resource("code1", "url1", "hash1", 0, InAppLayout.FULLSCREEN, null, true, 1);
         Intent intentWithContent = WebActivity.applyIntentParams(intent, resource, "123", 0);
-        richMediaWebActivity = Robolectric
-                .buildActivity(RichMediaWebActivity.class, intentWithContent)
+        richMediaWebActivity = Robolectric.buildActivity(RichMediaWebActivity.class, intentWithContent)
                 .create(intentWithContent.getExtras())
-                .create().get();
+                .create()
+                .get();
     }
 
     @After
@@ -118,7 +123,7 @@ public class RichMediaWebActivityTest {
     }
 
     @Test
-    public void onSaveInstanceStateShouldSaveAnimationSate(){
+    public void onSaveInstanceStateShouldSaveAnimationSate() {
         Bundle bundle = new Bundle();
         WhiteboxHelper.setInternalState(richMediaWebActivity, "isAnimated", true);
         WhiteboxHelper.setInternalState(richMediaWebActivity, "isAnimatedClose", true);
@@ -127,5 +132,33 @@ public class RichMediaWebActivityTest {
 
         Assert.assertNotEquals(true, "IS_ANIMATED");
         Assert.assertNotEquals(true, "IS_CLOSED");
+    }
+
+    @Test
+    public void restoresResourceFromIntent() {
+        Resource expected = new Resource("code1", "url1", "hash1", 0, InAppLayout.FULLSCREEN, null, true, 1);
+        Assert.assertEquals(expected, richMediaWebActivity.resource);
+    }
+
+    @Test
+    public void bundleCompatRoundTripsResource() {
+        Resource original = new Resource("code1", "url1", "hash1", 0, InAppLayout.FULLSCREEN, null, true, 1);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(WebActivity.EXTRA_INAPP, original);
+
+        Resource restored = BundleCompat.getSerializable(bundle, WebActivity.EXTRA_INAPP, Resource.class);
+
+        Assert.assertEquals(original, restored);
+    }
+
+    @Test
+    public void bundleCompatRoundTripsHtmlData() {
+        HtmlData original = new HtmlData("code", "url", "<html></html>");
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("htmlData", original);
+
+        HtmlData restored = BundleCompat.getSerializable(bundle, "htmlData", HtmlData.class);
+
+        Assert.assertEquals(original, restored);
     }
 }

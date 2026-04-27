@@ -6,8 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.Navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.AppBarConfiguration.Builder
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import com.pushwoosh.calls.PushwooshCallSettings
 import com.pushwoosh.demoapp.databinding.ActivityMainBinding
@@ -30,30 +28,21 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding!!.root)
 
-        setSupportActionBar(binding!!.toolbar)
-
         ViewCompat.setOnApplyWindowInsetsListener(binding!!.container) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 
-            binding!!
-                .navView
-                .setPadding(
-                    binding!!.navView.paddingLeft,
-                    binding!!.navView.paddingTop,
-                    binding!!.navView.paddingRight,
-                    systemBars.bottom)
+            // Top inset for fragment area; BottomNavigationView handles its own bottom inset
+            // internally via Material's NavigationBarView listener.
+            binding!!.contentContainer.setPadding(
+                binding!!.contentContainer.paddingLeft,
+                systemBars.top,
+                binding!!.contentContainer.paddingRight,
+                binding!!.contentContainer.paddingBottom)
+
             insets
         }
 
-        val appBarConfiguration: AppBarConfiguration =
-            Builder(R.id.navigation_home, R.id.navigation_notifications, R.id.navigation_inbox)
-                .build()
-
         val navController = findNavController(this, R.id.nav_host_fragment_activity_main)
-
-        androidx.navigation.ui.NavigationUI.setupActionBarWithNavController(
-            this, navController, appBarConfiguration)
-
         setupWithNavController(binding!!.navView, navController)
 
         setupPushwooshSdk()
@@ -68,7 +57,7 @@ class MainActivity : AppCompatActivity() {
                 .setDismissAnimationType(ModalRichMediaDismissAnimationType.SLIDE_DOWN)
                 .setSwipeGestures(setOf(ModalRichMediaSwipeGesture.NONE))
                 .setWindowWidth(ModalRichMediaWindowWidth.FULL_SCREEN)
-                .setStatusBarCovered(false)
+                .setStatusBarCovered(true)
                 .setAnimationDuration(300))
 
         // Configure Inbox style
@@ -93,8 +82,4 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(this, R.id.nav_host_fragment_activity_main)
-        return navController.navigateUp() || super.onSupportNavigateUp()
-    }
 }

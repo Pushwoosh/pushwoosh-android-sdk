@@ -76,6 +76,7 @@ class AndroidManifestConfig implements Config {
     private boolean shouldShowFullscreenRichMedia = false;
     private boolean reverseProxyAllowed = false;
     private int idleTimeoutSeconds = 0;
+    private int exitIntentTimeoutSeconds = 0;
 
     @IdRes
     private int notificationIcon = 0;
@@ -171,6 +172,7 @@ class AndroidManifestConfig implements Config {
         }
 
         idleTimeoutSeconds = applicationInfo.metaData.getInt("com.pushwoosh.idle_timeout_seconds", 0);
+        exitIntentTimeoutSeconds = applicationInfo.metaData.getInt("com.pushwoosh.exit_intent_timeout_seconds", 0);
 
         boolean isCollectingDeviceDataAllowed =
                 applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_data", true);
@@ -180,6 +182,7 @@ class AndroidManifestConfig implements Config {
             isCollectingDeviceModelAllowed = false;
             isCollectingLifecycleEventsAllowed = false;
             idleTimeoutSeconds = 0;
+            exitIntentTimeoutSeconds = 0;
         } else {
             isCollectingDeviceOsVersionAllowed =
                     applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_device_os_version", true);
@@ -191,6 +194,7 @@ class AndroidManifestConfig implements Config {
                     applicationInfo.metaData.getBoolean("com.pushwoosh.allow_collecting_events", true);
             if (!isCollectingLifecycleEventsAllowed) {
                 idleTimeoutSeconds = 0;
+                exitIntentTimeoutSeconds = 0;
             }
         }
     }
@@ -371,5 +375,10 @@ class AndroidManifestConfig implements Config {
     @Override
     public int getIdleTimeoutSeconds() {
         return idleTimeoutSeconds;
+    }
+
+    @Override
+    public int getExitIntentTimeoutSeconds() {
+        return exitIntentTimeoutSeconds;
     }
 }

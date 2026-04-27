@@ -26,11 +26,20 @@
 
 package com.pushwoosh.firebase.internal.registrar;
 
+import static com.pushwoosh.internal.platform.AndroidPlatformModule.NULL_CONTEXT_MESSAGE;
+
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.work.Data;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+
 import com.pushwoosh.PushwooshWorkManagerHelper;
 import com.pushwoosh.firebase.internal.checker.FirebaseChecker;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -39,141 +48,129 @@ import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.tags.TagsBundle;
 
-import androidx.work.Data;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
-
-import static com.pushwoosh.internal.platform.AndroidPlatformModule.NULL_CONTEXT_MESSAGE;
-
 import java.util.concurrent.TimeUnit;
 
 public class FcmRegistrar implements PushRegistrar {
 
-	private Impl impl;
+    private Impl impl;
 
-	@Override
-	public void init() {
-		new FirebaseChecker().check();
-		impl = new Impl();
-	}
+    @Override
+    public void init() {
+        new FirebaseChecker().check();
+        impl = new Impl();
+    }
 
-	@Override
-	public void checkDevice(String appId) throws Exception {
-		impl.checkDevice(appId);
-	}
+    @Override
+    public void checkDevice(String appId) throws Exception {
+        impl.checkDevice(appId);
+    }
 
-	@Override
-	public void registerPW(TagsBundle tags) {
-		impl.registerPW(tags);
-	}
+    @Override
+    public void registerPW(TagsBundle tags) {
+        impl.registerPW(tags);
+    }
 
-	@Override
-	public void unregisterPW() {
-		impl.unregisterPW();
-	}
+    @Override
+    public void unregisterPW() {
+        impl.unregisterPW();
+    }
 
-	private static class Impl {
-		private static final String TAG = "PushRegistrarFCM";
+    private static class Impl {
+        private static final String TAG = "PushRegistrarFCM";
 
-		/**
-		 * Permission necessary to receive GCM intents.
-		 */
-		private static final String PERMISSION_FCM_INTENTS =
-				"com.google.android.c2dm.permission.RECEIVE";
+        /**
+         * Permission necessary to receive GCM intents.
+         */
+        private static final String PERMISSION_FCM_INTENTS = "com.google.android.c2dm.permission.RECEIVE";
 
-		@Nullable
-		private final Context context;
+        @Nullable private final Context context;
 
-		private Impl() {
-			context = AndroidPlatformModule.getApplicationContext();
-		}
+        private Impl() {
+            context = AndroidPlatformModule.getApplicationContext();
+        }
 
-		void checkDevice(final String appId) throws Exception {
-			GeneralUtils.checkNotNullOrEmpty(appId, "mAppId");
+        void checkDevice(final String appId) throws Exception {
+            GeneralUtils.checkNotNullOrEmpty(appId, "mAppId");
 
-			// Make sure the manifest was properly set - comment out this line
-			// while developing the app, then uncomment it when it's ready.
-			if(context == null){
-				PWLog.error(NULL_CONTEXT_MESSAGE);
-				return;
-			}
+            // Make sure the manifest was properly set - comment out this line
+            // while developing the app, then uncomment it when it's ready.
+            if (context == null) {
+                PWLog.error(NULL_CONTEXT_MESSAGE);
+                return;
+            }
 
-			checkManifest(context);
-		}
+            checkManifest(context);
+        }
 
-		void registerPW(TagsBundle tags) {
-			String tagsJson = null;
-			if (tags != null) {
-				tagsJson = tags.toJson().toString();
-			}
+        void registerPW(TagsBundle tags) {
+            String tagsJson = null;
+            if (tags != null) {
+                tagsJson = tags.toJson().toString();
+            }
 
-			// PeriodicWorkRequest does not guarantee immediate execution, so first we register with
-			// OneTimeUniqueWork and then
-			Data inputData = new Data.Builder()
-					.putBoolean(FcmRegistrarWorker.DATA_REGISTER, true)
-					.putString(FcmRegistrarWorker.DATA_TAGS, tagsJson)
-					.build();
-			OneTimeWorkRequest immediateRequest = new OneTimeWorkRequest.Builder(FcmRegistrarWorker.class)
-					.setInputData(inputData)
-					.setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
-					.build();
-			PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(immediateRequest, FcmRegistrarWorker.TAG, ExistingWorkPolicy.REPLACE);
+            // PeriodicWorkRequest does not guarantee immediate execution, so first we register with
+            // OneTimeUniqueWork and then
+            Data inputData = new Data.Builder()
+                    .putBoolean(FcmRegistrarWorker.DATA_REGISTER, true)
+                    .putString(FcmRegistrarWorker.DATA_TAGS, tagsJson)
+                    .build();
+            OneTimeWorkRequest immediateRequest = new OneTimeWorkRequest.Builder(FcmRegistrarWorker.class)
+                    .setInputData(inputData)
+                    .setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
+                    .build();
+            PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                    immediateRequest, FcmRegistrarWorker.TAG, ExistingWorkPolicy.REPLACE);
 
-			// Periodic work (PeriodicWorkRequest) - runs every 2 weeks after an initial delay
-			PeriodicWorkRequest periodicRequest = new PeriodicWorkRequest.Builder(
-					FcmRegistrarWorker.class,
-					14, TimeUnit.DAYS
-			)
-					.setInputData(inputData)
-					.setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
-					.setInitialDelay(14, TimeUnit.DAYS)
-					.build();
+            // Periodic work (PeriodicWorkRequest) - runs every 2 weeks after an initial delay
+            PeriodicWorkRequest periodicRequest = new PeriodicWorkRequest.Builder(
+                            FcmRegistrarWorker.class, 14, TimeUnit.DAYS)
+                    .setInputData(inputData)
+                    .setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
+                    .setInitialDelay(14, TimeUnit.DAYS)
+                    .build();
 
-			// Schedule periodic work, keeping the first scheduled execution intact
-			WorkManager.getInstance().enqueueUniquePeriodicWork(FcmRegistrarWorker.PERIODIC_WORK_NAME,ExistingPeriodicWorkPolicy.KEEP, periodicRequest);
-		}
+            // Schedule periodic work, keeping the first scheduled execution intact
+            PushwooshWorkManagerHelper.enqueuePeriodicUniqueWork(
+                    periodicRequest, FcmRegistrarWorker.PERIODIC_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP);
+        }
 
-		void unregisterPW() {
-			PushwooshWorkManagerHelper.cancelPeriodicUniqueWork(FcmRegistrarWorker.TAG);
-			Data inputData = new Data.Builder()
-					.putBoolean(FcmRegistrarWorker.DATA_UNREGISTER, true)
-					.build();
-			OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(FcmRegistrarWorker.class)
-					.setInputData(inputData)
-					.setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
-					.build();
-			PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(request, FcmRegistrarWorker.TAG, ExistingWorkPolicy.REPLACE);
-		}
+        void unregisterPW() {
+            PushwooshWorkManagerHelper.cancelPeriodicUniqueWork(FcmRegistrarWorker.TAG);
+            Data inputData = new Data.Builder()
+                    .putBoolean(FcmRegistrarWorker.DATA_UNREGISTER, true)
+                    .build();
+            OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(FcmRegistrarWorker.class)
+                    .setInputData(inputData)
+                    .setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
+                    .build();
+            PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                    request, FcmRegistrarWorker.TAG, ExistingWorkPolicy.REPLACE);
+        }
 
-		/**
-		 * Checks that the application manifest is properly configured.
-		 * <p/>
-		 * A proper configuration means:
-		 * <ol>
-		 * {@value FcmRegistrar.Impl#PERMISSION_FCM_INTENTS} permission.
-		 * </ol>
-		 * <p/>
-		 * This method should be used during development time to verify that the
-		 * manifest is properly set up, but it doesn't need to be called once the
-		 * application is deployed to the users' devices.
-		 *
-		 * @param context application context.
-		 * @throws IllegalStateException if any of the conditions above is not met.
-		 */
-		@SuppressWarnings("WrongConstant")
-		static void checkManifest(@NonNull Context context) {
-			PackageManager packageManager = context.getPackageManager();
-			// check permission
-			try {
-				packageManager.getPermissionInfo(PERMISSION_FCM_INTENTS,
-						PackageManager.GET_PERMISSIONS);
-			} catch (NameNotFoundException e) {
-				throw new IllegalStateException(
-						"Application does not define permission " + PERMISSION_FCM_INTENTS);
-			}
-		}
-	}
+        /**
+         * Checks that the application manifest is properly configured.
+         * <p/>
+         * A proper configuration means:
+         * <ol>
+         * {@value FcmRegistrar.Impl#PERMISSION_FCM_INTENTS} permission.
+         * </ol>
+         * <p/>
+         * This method should be used during development time to verify that the
+         * manifest is properly set up, but it doesn't need to be called once the
+         * application is deployed to the users' devices.
+         *
+         * @param context application context.
+         * @throws IllegalStateException if any of the conditions above is not met.
+         */
+        @SuppressWarnings("WrongConstant")
+        static void checkManifest(@NonNull Context context) {
+            PackageManager packageManager = context.getPackageManager();
+            // check permission
+            try {
+                packageManager.getPermissionInfo(PERMISSION_FCM_INTENTS, PackageManager.GET_PERMISSIONS);
+            } catch (NameNotFoundException e) {
+                throw new IllegalStateException("Application does not define permission " + PERMISSION_FCM_INTENTS);
+            }
+        }
+    }
 }

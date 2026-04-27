@@ -2,25 +2,28 @@ package com.pushwoosh;
 
 import android.content.Context;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
-
-import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
-import com.pushwoosh.repository.RepositoryModule;
-
-import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-public class HandleMessageWorker extends Worker {
+import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
+import com.pushwoosh.internal.work.BasePushwooshWorker;
+import com.pushwoosh.repository.RepositoryModule;
+
+public class HandleMessageWorker extends BasePushwooshWorker {
     public static final String TAG = "HandleMessageWorker";
     public static final String DATA_PUSH_BUNDLE_ID = "data_push_bundle_id";
 
-    public HandleMessageWorker(@NonNull Context context,
-                               @NonNull WorkerParameters workerParams) {
+    public HandleMessageWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
+    protected String getLogTag() {
+        return TAG;
+    }
+
+    @NonNull @Override
     public Result doWork() {
         long id = getInputData().getLong(DATA_PUSH_BUNDLE_ID, -1);
         if (id == -1) {

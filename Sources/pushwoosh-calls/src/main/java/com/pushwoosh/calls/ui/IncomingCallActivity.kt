@@ -9,7 +9,10 @@ import android.os.Bundle
 import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.pushwoosh.calls.PushwooshCallReceiver
 import com.pushwoosh.calls.R
 import com.pushwoosh.calls.util.Constants
@@ -21,26 +24,32 @@ class IncomingCallActivity : AppCompatActivity() {
         private const val TAG = "IncomingCallActivity"
     }
 
-    private val closeReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            PWLog.noise(TAG, "Received broadcast to close activity")
-            finish()
-
+    private val closeReceiver =
+        object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                PWLog.noise(TAG, "Received broadcast to close activity")
+                finish()
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val payload = intent.extras
 
         window.addFlags(
             WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
-                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
-                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-        )
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         setContentView(R.layout.activity_incoming_call)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.root)) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
 
         registerCloseReceiver()
 
@@ -52,9 +61,10 @@ class IncomingCallActivity : AppCompatActivity() {
         callerNameView.text = callerName
 
         acceptButton.setOnClickListener {
-            val acceptIntent = Intent(applicationContext, PushwooshCallReceiver::class.java).apply {
-                action = "ACTION_ACCEPT_CALL"
-            }
+            val acceptIntent =
+                Intent(applicationContext, PushwooshCallReceiver::class.java).apply {
+                    action = "ACTION_ACCEPT_CALL"
+                }
             if (payload != null) {
                 acceptIntent.putExtras(payload)
             }
@@ -63,9 +73,10 @@ class IncomingCallActivity : AppCompatActivity() {
         }
 
         rejectButton.setOnClickListener {
-            val rejectIntent = Intent(applicationContext, PushwooshCallReceiver::class.java).apply {
-                action = "ACTION_REJECT_CALL"
-            }
+            val rejectIntent =
+                Intent(applicationContext, PushwooshCallReceiver::class.java).apply {
+                    action = "ACTION_REJECT_CALL"
+                }
             if (payload != null) {
                 rejectIntent.putExtras(payload)
             }
@@ -79,10 +90,10 @@ class IncomingCallActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(closeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
-            @Suppress("UnspecifiedRegisterReceiverFlag")
-            registerReceiver(closeReceiver, filter)
+            @Suppress("UnspecifiedRegisterReceiverFlag") registerReceiver(closeReceiver, filter)
         }
-        PWLog.debug(TAG, "Registered closeReceiver for action: ${Constants.ACTION_FINISH_CALL_ACTIVITY}")
+        PWLog.debug(
+            TAG, "Registered closeReceiver for action: ${Constants.ACTION_FINISH_CALL_ACTIVITY}")
     }
 
     override fun onDestroy() {

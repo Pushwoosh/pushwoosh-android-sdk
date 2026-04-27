@@ -7,12 +7,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.android.material.materialswitch.MaterialSwitch;
-import com.google.android.material.snackbar.Snackbar;
-
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.demoapp.R;
@@ -47,8 +46,7 @@ public class HomeFragment extends Fragment {
     private LiveUpdateDemo liveUpdateDemo;
     private boolean autoProgressEnabled = false;
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
@@ -90,16 +88,15 @@ public class HomeFragment extends Fragment {
          */
         setTags.setOnClickListener(v -> {
             String key = Objects.requireNonNull(textInput1.getText()).toString().trim();
-            String value = Objects.requireNonNull(textInput2.getText()).toString().trim();
+            String value =
+                    Objects.requireNonNull(textInput2.getText()).toString().trim();
 
             if (key.isEmpty() || value.isEmpty()) {
                 showSnackbar("Key and Value are required");
                 return;
             }
 
-            TagsBundle tag = new TagsBundle.Builder()
-                    .putString(key, value)
-                    .build();
+            TagsBundle tag = new TagsBundle.Builder().putString(key, value).build();
             Pushwoosh.getInstance().setTags(tag, result -> {
                 if (result.isSuccess()) {
                     showSnackbar("Tag set: " + key + " = " + value);
@@ -116,7 +113,9 @@ public class HomeFragment extends Fragment {
          * This enables unified user profiles and consistent targeting regardless of which device the user is on.
          */
         registerUser.setOnClickListener(v -> {
-            String user = Objects.requireNonNull(registerUserTextField.getText()).toString().trim();
+            String user = Objects.requireNonNull(registerUserTextField.getText())
+                    .toString()
+                    .trim();
 
             if (user.isEmpty()) {
                 showSnackbar("User ID is required");
@@ -140,7 +139,9 @@ public class HomeFragment extends Fragment {
          * Optionally pass attributes to provide additional context for targeting.
          */
         postEvent.setOnClickListener(v -> {
-            String eventName = Objects.requireNonNull(postEventTextField.getText()).toString().trim();
+            String eventName = Objects.requireNonNull(postEventTextField.getText())
+                    .toString()
+                    .trim();
 
             if (eventName.isEmpty()) {
                 showSnackbar("Event name is required");
@@ -148,7 +149,10 @@ public class HomeFragment extends Fragment {
             }
 
             TagsBundle eventAttributes = attributeState
-                    ? new TagsBundle.Builder().putInt("price", 99).putString("currency", "USD").build()
+                    ? new TagsBundle.Builder()
+                            .putInt("price", 99)
+                            .putString("currency", "USD")
+                            .build()
                     : null;
 
             InAppManager.getInstance().postEvent(eventName, eventAttributes, result -> {

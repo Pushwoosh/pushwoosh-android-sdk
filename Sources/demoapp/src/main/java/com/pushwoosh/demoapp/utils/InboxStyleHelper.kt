@@ -90,7 +90,7 @@ class InboxStyleHelper {
         }
 
         private fun setupTexts() {
-            // Toolbar title
+            // Toolbar title (used in standalone InboxActivity — embedded mode hides toolbar via lifecycle)
             PushwooshInboxStyle.barTitle = "Inbox"
 
             // Text sizes (in SP)
@@ -108,7 +108,7 @@ class InboxStyleHelper {
         }
 
         private fun setupFonts() {
-            PushwooshInboxStyle.setTitleFont(Typeface.DEFAULT_BOLD)
+            PushwooshInboxStyle.setTitleFont(Typeface.SERIF)
             PushwooshInboxStyle.setDescriptionFont(Typeface.DEFAULT)
             PushwooshInboxStyle.setDateFont(Typeface.DEFAULT)
         }

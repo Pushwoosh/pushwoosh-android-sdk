@@ -32,12 +32,15 @@ import android.content.Intent;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 
 import androidx.annotation.Nullable;
 
@@ -69,6 +72,8 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
     private boolean onBackPressedEnable;
     final Handler handler = new Handler();
     private boolean isAnimatedClose;
+
+    @Nullable private OnBackInvokedCallback backInvokedCallback;
 
     /**
      * Creates intent for fullscreen In-App Activity.
@@ -126,6 +131,12 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
             mode = state.getInt(EXTRA_MODE, mode);
         }
         startTimerEnableBackButton();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            backInvokedCallback = this::handleBack;
+            getOnBackInvokedDispatcher()
+                    .registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, backInvokedCallback);
+        }
     }
 
     private void startTimerEnableBackButton() {
@@ -280,6 +291,11 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
 
     @Override
     protected void onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && backInvokedCallback != null) {
+            getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backInvokedCallback);
+            backInvokedCallback = null;
+        }
+        handler.removeCallbacksAndMessages(null);
         super.onDestroy();
         sendClose();
     }
@@ -346,6 +362,10 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
 
     @Override
     public void onBackPressed() {
+        handleBack();
+    }
+
+    private void handleBack() {
         if (onBackPressedEnable) {
             close();
         }

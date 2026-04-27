@@ -36,7 +36,9 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".PushwooshCallReceiver" />
+        <receiver
+            android:name=".PushwooshCallReceiver"
+            android:exported="false" />
 
         <activity android:name=".ui.PhoneNumbersPermissionActivity"
             android:exported="false"

@@ -65,7 +65,9 @@
 			android:name="com.pushwoosh.internal.utils.NotificationPermissionActivity"
 			android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
-		<receiver android:name="com.pushwoosh.notification.LocalNotificationReceiver" />
+		<receiver
+			android:name="com.pushwoosh.notification.LocalNotificationReceiver"
+			android:exported="false" />
 
         <!-- uses applicationId -->
 		<provider

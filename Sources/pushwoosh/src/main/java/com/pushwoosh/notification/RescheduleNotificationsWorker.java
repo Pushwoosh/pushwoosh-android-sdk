@@ -4,20 +4,25 @@ import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.TimeProvider;
+import com.pushwoosh.internal.work.BasePushwooshWorker;
 import com.pushwoosh.repository.LocalNotificationStorage;
 import com.pushwoosh.repository.RepositoryModule;
 
-public class RescheduleNotificationsWorker extends Worker {
+public class RescheduleNotificationsWorker extends BasePushwooshWorker {
     public static final String TAG = "RescheduleNotificationsWorker";
 
     public RescheduleNotificationsWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
+    }
+
+    @NonNull @Override
+    protected String getLogTag() {
+        return TAG;
     }
 
     private static long getCurrentTime() {
@@ -29,8 +34,7 @@ public class RescheduleNotificationsWorker extends Worker {
         }
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
     public Result doWork() {
         long currentTime = getCurrentTime();
         LocalNotificationStorage storage = RepositoryModule.getLocalNotificationStorage();

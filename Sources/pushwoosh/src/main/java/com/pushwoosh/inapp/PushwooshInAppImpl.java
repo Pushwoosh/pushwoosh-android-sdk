@@ -136,7 +136,9 @@ public class PushwooshInAppImpl {
         });
     }
 
-    private static final String[] INTERNAL_EVENTS = {"PW_ApplicationOpen", "PW_ScreenOpen", "PW_ApplicationMinimized"};
+    private static final String[] INTERNAL_EVENTS = {
+        "PW_ApplicationOpen", "PW_ScreenOpen", "PW_ApplicationMinimized", "PW_ApplicationExit"
+    };
 
     private boolean isInternalEvent(String event) {
         for (String internalEvent : INTERNAL_EVENTS) {

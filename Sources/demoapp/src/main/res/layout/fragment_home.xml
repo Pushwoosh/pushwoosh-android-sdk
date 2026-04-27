@@ -13,48 +13,42 @@
         android:paddingTop="8dp"
         android:paddingBottom="24dp">
 
-        <!-- Welcome Card - accent on primaryContainer -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- Editorial header -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="?attr/colorPrimaryContainer">
+            android:orientation="vertical"
+            android:paddingHorizontal="4dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="20dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:text="Pushwoosh · SDK"
+                android:textAllCaps="true"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:letterSpacing="0.12"
+                android:fontFamily="sans-serif-medium" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Pushwoosh Demo"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                    android:textColor="?attr/colorOnPrimaryContainer"
-                    android:fontFamily="sans-serif-medium" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Demo"
+                android:textAppearance="?attr/textAppearanceDisplayMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:fontFamily="serif" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Test SDK features and integrations"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnPrimaryContainer"
-                    android:alpha="0.8" />
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
         <!-- Tags Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="20dp"
+            app:cardCornerRadius="28dp"
             app:cardElevation="0dp"
             app:cardBackgroundColor="?attr/colorSurfaceContainer"
             app:strokeWidth="0dp">
@@ -63,15 +57,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tags"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"
-                    android:layout_marginBottom="12dp" />
+                    android:text="Segmentation"
+                    android:textAllCaps="true"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:letterSpacing="0.12"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="14dp"
+                    android:text="Set a tag"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:fontFamily="serif" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -125,7 +131,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="20dp"
+            app:cardCornerRadius="28dp"
             app:cardElevation="0dp"
             app:cardBackgroundColor="?attr/colorSurfaceContainer"
             app:strokeWidth="0dp">
@@ -134,15 +140,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="User"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"
-                    android:layout_marginBottom="12dp" />
+                    android:text="Identity"
+                    android:textAllCaps="true"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:letterSpacing="0.12"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="14dp"
+                    android:text="Register user"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:fontFamily="serif" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
@@ -172,7 +190,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="20dp"
+            app:cardCornerRadius="28dp"
             app:cardElevation="0dp"
             app:cardBackgroundColor="?attr/colorSurfaceContainer"
             app:strokeWidth="0dp">
@@ -181,15 +199,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Events"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"
-                    android:layout_marginBottom="12dp" />
+                    android:text="Behavior"
+                    android:textAllCaps="true"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:letterSpacing="0.12"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="14dp"
+                    android:text="Post an event"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:fontFamily="serif" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
@@ -228,7 +258,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="20dp"
+            app:cardCornerRadius="28dp"
             app:cardElevation="0dp"
             app:cardBackgroundColor="?attr/colorSurfaceContainer"
             app:strokeWidth="0dp">
@@ -237,15 +267,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Device Info"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"
-                    android:layout_marginBottom="12dp" />
+                    android:text="Device"
+                    android:textAllCaps="true"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:letterSpacing="0.12"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="14dp"
+                    android:text="Identifiers"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:fontFamily="serif" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button4"
@@ -289,28 +331,29 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Live Update Card -->
+        <!-- Live Update Hero Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="20dp"
+            app:cardCornerRadius="28dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainer"
+            app:cardBackgroundColor="?attr/colorPrimary"
             app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="20dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Live Update"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"
-                    android:layout_marginBottom="8dp" />
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textColor="?attr/colorOnPrimary"
+                    android:fontFamily="serif"
+                    android:layout_marginBottom="6dp" />
 
                 <TextView
                     android:id="@+id/liveUpdateStatus"
@@ -318,8 +361,9 @@
                     android:layout_height="wrap_content"
                     android:text="Status: Not started"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:layout_marginBottom="12dp" />
+                    android:textColor="?attr/colorOnPrimary"
+                    android:alpha="0.8"
+                    android:layout_marginBottom="14dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -329,6 +373,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLiveUpdateStart"
+                        style="@style/Widget.Demoapp.Button.Tonal"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -337,6 +382,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLiveUpdateUpdate"
+                        style="@style/Widget.Demoapp.Button.Tonal"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -353,21 +399,23 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLiveUpdateFinish"
+                        style="@style/Widget.Demoapp.Button.Tonal"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
-                        android:text="Finish"
-                        style="@style/Widget.Demoapp.Button.Tonal" />
+                        android:text="Finish" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLiveUpdateCancel"
+                        style="@style/Widget.Demoapp.Button.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
                         android:text="Cancel"
-                        style="@style/Widget.Demoapp.Button.Outlined" />
+                        android:textColor="?attr/colorOnPrimary"
+                        app:strokeColor="?attr/colorOnPrimary" />
 
                 </LinearLayout>
 
@@ -376,7 +424,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Auto Progress (3s interval)"
-                    android:textColor="?attr/colorOnSurface"
+                    android:textColor="?attr/colorOnPrimary"
                     android:paddingVertical="4dp" />
 
             </LinearLayout>

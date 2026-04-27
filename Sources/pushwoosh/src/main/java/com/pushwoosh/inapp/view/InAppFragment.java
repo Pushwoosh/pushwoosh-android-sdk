@@ -35,6 +35,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.os.BundleCompat;
 
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.exception.ResourceParseException;
@@ -85,7 +86,7 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
             return;
         }
 
-        Resource inApp = (Resource) getArguments().getSerializable(KEY_INAPP);
+        Resource inApp = BundleCompat.getSerializable(getArguments(), KEY_INAPP, Resource.class);
         if (savedInstanceState == null) {
             downloadHtmlData(inApp);
             return;
@@ -93,8 +94,9 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
 
         int stateInt = savedInstanceState.getInt(KEY_STATE);
         state = Status.values()[stateInt];
-        htmlData = (HtmlData) savedInstanceState.getSerializable(KEY_HTML_DATA);
-        resourceParseException = (ResourceParseException) savedInstanceState.getSerializable(KEY_ERROR);
+        htmlData = BundleCompat.getSerializable(savedInstanceState, KEY_HTML_DATA, HtmlData.class);
+        resourceParseException =
+                BundleCompat.getSerializable(savedInstanceState, KEY_ERROR, ResourceParseException.class);
 
         if (state != SUCCESS && state != ERROR) {
             downloadHtmlData(inApp);
@@ -193,7 +195,7 @@ public class InAppFragment extends Fragment implements DownloadHtmlTask.Download
                     return;
                 }
 
-                Resource inApp = (Resource) getArguments().getSerializable(KEY_INAPP);
+                Resource inApp = BundleCompat.getSerializable(getArguments(), KEY_INAPP, Resource.class);
                 downloadHtmlData(inApp);
                 break;
         }

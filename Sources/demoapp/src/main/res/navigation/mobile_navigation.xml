@@ -19,7 +19,7 @@
 
     <fragment
         android:id="@+id/navigation_inbox"
-        android:name="com.pushwoosh.inbox.ui.presentation.view.fragment.InboxFragment"
+        android:name="com.pushwoosh.demoapp.ui.inbox.InboxWrapperFragment"
         android:label="@string/title_inbox"
-        tools:layout="@layout/pw_fragment_inbox" />
+        tools:layout="@layout/fragment_inbox_wrapper" />
 </navigation>

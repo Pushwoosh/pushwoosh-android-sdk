@@ -26,6 +26,7 @@ public class PushwooshDefaultEvents {
     static final String SCREEN_OPENED_EVENT = "PW_ScreenOpen";
     static final String APPLICATION_CLOSED_EVENT = "PW_ApplicationMinimized";
     static final String USER_IDLE_EVENT = "PW_UserIdle";
+    static final String APPLICATION_EXIT_EVENT = "PW_ApplicationExit";
 
     /**
      * Initializes event tracking by registering activity lifecycle callbacks
@@ -74,13 +75,24 @@ public class PushwooshDefaultEvents {
         return attributes.build();
     }
 
-    static TagsBundle buildIdleAttributes(@Nullable String activityName, int idleSeconds, long sessionDurationSeconds) {
+    static TagsBundle buildIdleAttributes(@Nullable String screenName, long sessionDurationSeconds, int idleSeconds) {
         TagsBundle.Builder attributes = buildBaseAttributes();
-        if (activityName != null) {
-            attributes.putString("screen_name", activityName);
+        if (screenName != null) {
+            attributes.putString("screen_name", screenName);
         }
         attributes.putInt("idle_seconds", idleSeconds);
         attributes.putLong("session_duration", sessionDurationSeconds);
+        return attributes.build();
+    }
+
+    static TagsBundle buildExitIntentAttributes(
+            @Nullable String screenName, long sessionDurationSeconds, int exitIntentTimeoutSeconds) {
+        TagsBundle.Builder attributes = buildBaseAttributes();
+        if (screenName != null) {
+            attributes.putString("screen_name", screenName);
+        }
+        attributes.putLong("session_duration", sessionDurationSeconds);
+        attributes.putInt("exit_intent_seconds", exitIntentTimeoutSeconds);
         return attributes.build();
     }
 
@@ -98,9 +110,21 @@ public class PushwooshDefaultEvents {
                             PushwooshPlatform.getInstance().getConfig().getIdleTimeoutSeconds();
                     PushwooshAppLifecycleCallbacks.IdleEventCallback idleEventCallback = null;
                     if (idleTimeout > 0) {
-                        idleEventCallback = (actName, idleSec, sessionDur) -> {
+                        idleEventCallback = (screenName, sessionDur, idleSec) -> {
                             SdkStateProvider.getInstance().executeOrQueue(() -> {
-                                postEvent(USER_IDLE_EVENT, buildIdleAttributes(actName, idleSec, sessionDur));
+                                postEvent(USER_IDLE_EVENT, buildIdleAttributes(screenName, sessionDur, idleSec));
+                            });
+                        };
+                    }
+                    int exitIntentTimeout =
+                            PushwooshPlatform.getInstance().getConfig().getExitIntentTimeoutSeconds();
+                    ExitIntentDetector.ExitIntentCallback exitIntentCallback = null;
+                    if (exitIntentTimeout > 0) {
+                        exitIntentCallback = (screenName, sessionDur, timeoutSec) -> {
+                            SdkStateProvider.getInstance().executeOrQueue(() -> {
+                                postEvent(
+                                        APPLICATION_EXIT_EVENT,
+                                        buildExitIntentAttributes(screenName, sessionDur, timeoutSec));
                             });
                         };
                     }
@@ -127,7 +151,9 @@ public class PushwooshDefaultEvents {
                                 });
                             },
                             idleTimeout,
-                            idleEventCallback);
+                            idleEventCallback,
+                            exitIntentTimeout,
+                            exitIntentCallback);
                     app.registerActivityLifecycleCallbacks(activityLifecycleCallbacks);
                 }
             }
