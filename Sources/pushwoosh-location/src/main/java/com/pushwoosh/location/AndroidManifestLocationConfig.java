@@ -3,6 +3,7 @@ package com.pushwoosh.location;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.utils.PWLog;
@@ -15,7 +16,7 @@ public class AndroidManifestLocationConfig {
     private String channelNameForegroundServiceNotification = null;
 
     public AndroidManifestLocationConfig(Context context) {
-        if(context == null){
+        if (context == null) {
             return;
         }
         ApplicationInfo applicationInfo = getApplicationInfo(context);
@@ -25,21 +26,26 @@ public class AndroidManifestLocationConfig {
         }
 
         isStartForegroundService = applicationInfo.metaData.getBoolean("com.pushwoosh.start_foreground_service", false);
-        textForegroundServiceNotification = applicationInfo.metaData.getString("com.pushwoosh.foreground_service_notification_text", "Work in progress");
-        channelNameForegroundServiceNotification = applicationInfo.metaData.getString("com.pushwoosh.foreground_service_notification_channel_name", "Foreground service");
+        textForegroundServiceNotification = applicationInfo
+                .metaData
+                .getString("com.pushwoosh.foreground_service_notification_text", "Work in progress")
+                .trim();
+        channelNameForegroundServiceNotification = applicationInfo
+                .metaData
+                .getString("com.pushwoosh.foreground_service_notification_channel_name", "Foreground service")
+                .trim();
     }
 
-    @Nullable
-    private ApplicationInfo getApplicationInfo(Context context) {
+    @Nullable private ApplicationInfo getApplicationInfo(Context context) {
         ApplicationInfo applicationInfo = null;
         try {
-            applicationInfo  = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+            applicationInfo = context.getPackageManager()
+                    .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
         } catch (Exception e) {
             PWLog.exception(e);
         }
         return applicationInfo;
     }
-
 
     public boolean isStartForegroundService() {
         return isStartForegroundService;
@@ -48,7 +54,6 @@ public class AndroidManifestLocationConfig {
     public String getTextForegroundServiceNotification() {
         return textForegroundServiceNotification;
     }
-
 
     public String getChannelNameForegroundServiceNotification() {
         return channelNameForegroundServiceNotification;

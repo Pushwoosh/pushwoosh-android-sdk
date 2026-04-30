@@ -1,7 +1,15 @@
 package com.pushwoosh.repository;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import android.app.Application;
 import android.os.Bundle;
+
+import com.pushwoosh.repository.util.PushBundleDatabaseEntry;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -12,11 +20,6 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
@@ -66,9 +69,11 @@ public class PushBundleStorageTest {
         pushBundle.putString("custom root param", "root param value");
         pushBundle.putLong("google.sent_time", 1573565995876L);
         pushBundle.putDouble("double.test", Double.MAX_VALUE);
-        pushBundle.putLongArray("long_array.test", new long[]{1573565995876L, 1573565995876L, 1573565995876L});
-        pushBundle.putDoubleArray("double_array.test", new double[]{Double.MAX_VALUE, Double.MAX_EXPONENT, Double.MIN_VALUE, Double.MIN_NORMAL, Double.MIN_EXPONENT});
-        pushBundle.putByteArray("byte_array.test", new byte[]{Byte.MAX_VALUE, Byte.MIN_VALUE});
+        pushBundle.putLongArray("long_array.test", new long[] {1573565995876L, 1573565995876L, 1573565995876L});
+        pushBundle.putDoubleArray("double_array.test", new double[] {
+            Double.MAX_VALUE, Double.MAX_EXPONENT, Double.MIN_VALUE, Double.MIN_NORMAL, Double.MIN_EXPONENT
+        });
+        pushBundle.putByteArray("byte_array.test", new byte[] {Byte.MAX_VALUE, Byte.MIN_VALUE});
         return pushBundle;
     }
 
@@ -130,9 +135,12 @@ public class PushBundleStorageTest {
         assertNotNull(pushBundle.get("double_array.test"));
         assertNotNull(pushBundle.get("byte_array.test"));
         assertNotNull(pushBundle.get("long_array.test"));
-        assertEquals(pushBundle.get("double_array.test"), Arrays.toString((double[]) getTestBundle().get("double_array.test"))); // arrays doesn't convert back from string
-        assertEquals(pushBundle.get("byte_array.test"), Arrays.toString((byte[]) getTestBundle().get("byte_array.test"))); // arrays doesn't convert back from string
-        assertEquals(pushBundle.get("long_array.test"), Arrays.toString((long[]) getTestBundle().get("long_array.test"))); // arrays doesn't convert back from string
+        assertEquals(pushBundle.get("double_array.test"), Arrays.toString((double[])
+                getTestBundle().get("double_array.test"))); // arrays doesn't convert back from string
+        assertEquals(pushBundle.get("byte_array.test"), Arrays.toString((byte[])
+                getTestBundle().get("byte_array.test"))); // arrays doesn't convert back from string
+        assertEquals(pushBundle.get("long_array.test"), Arrays.toString((long[])
+                getTestBundle().get("long_array.test"))); // arrays doesn't convert back from string
     }
 
     @Test
@@ -186,5 +194,130 @@ public class PushBundleStorageTest {
         storage.removeGroupPushBundles();
         bundles = storage.getGroupPushBundles();
         assertEquals(0, bundles.size());
+    }
+
+    private Bundle bundleWithTag(String tag, String header) {
+        Bundle b = getTestBundle();
+        if (tag == null) {
+            b.remove("pw_msg_tag");
+        } else {
+            b.putString("pw_msg_tag", tag);
+        }
+        b.putString("header", header);
+        return b;
+    }
+
+    @Test
+    public void putGroupPushBundle_sameTagSameNotifId_replacesPreviousRow() throws Exception {
+        storage.putGroupPushBundle(bundleWithTag("tag-A", "first"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag("tag-A", "second"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag("tag-A", "third"), 0, "g");
+
+        List<Bundle> rows = storage.getGroupPushBundles();
+        assertEquals(1, rows.size());
+        assertEquals("third", rows.get(0).getString("header"));
+        assertEquals("tag-A", rows.get(0).getString("pw_msg_tag"));
+    }
+
+    @Test
+    public void putGroupPushBundle_differentTags_keepsBothRows() throws Exception {
+        storage.putGroupPushBundle(bundleWithTag("tag-A", "first"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag("tag-B", "second"), 0, "g");
+
+        List<Bundle> rows = storage.getGroupPushBundles();
+        assertEquals(2, rows.size());
+    }
+
+    @Test
+    public void putGroupPushBundle_nullTags_keepsAllRows() throws Exception {
+        storage.putGroupPushBundle(bundleWithTag(null, "first"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag(null, "second"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag(null, "third"), 0, "g");
+
+        List<Bundle> rows = storage.getGroupPushBundles();
+        assertEquals(3, rows.size());
+        for (Bundle row : rows) {
+            assertNull(row.getString("pw_msg_tag"));
+        }
+    }
+
+    @Test
+    public void getLastPushBundleEntryForGroup_returnsLatestAfterReplace() throws Exception {
+        long firstRowId = storage.putGroupPushBundle(bundleWithTag("tag-A", "first"), 0, "g");
+        long secondRowId = storage.putGroupPushBundle(bundleWithTag("tag-A", "second"), 0, "g");
+
+        assertNotEquals(firstRowId, secondRowId);
+
+        PushBundleDatabaseEntry entry = storage.getLastPushBundleEntryForGroup("g");
+        assertEquals(secondRowId, entry.getRowId());
+        assertEquals("second", entry.getPushBundle().getString("header"));
+    }
+
+    @Test
+    public void putGroupPushBundle_sameTagDifferentGroups_keepsBothRows() throws Exception {
+        storage.putGroupPushBundle(bundleWithTag("tag-A", "first"), 0, "group-1");
+        storage.putGroupPushBundle(bundleWithTag("tag-A", "second"), 0, "group-2");
+
+        List<Bundle> rows = storage.getGroupPushBundles();
+        assertEquals(2, rows.size());
+    }
+
+    @Test
+    public void putGroupPushBundle_emptyStringTag_dedupsLikeAnyOtherValue() throws Exception {
+        // Empty string is NOT NULL in SQLite — UNIQUE INDEX should treat "" == "".
+        Bundle b1 = bundleWithTag("", "first");
+        Bundle b2 = bundleWithTag("", "second");
+        storage.putGroupPushBundle(b1, 0, "g");
+        storage.putGroupPushBundle(b2, 0, "g");
+
+        List<Bundle> rows = storage.getGroupPushBundles();
+        assertEquals(1, rows.size());
+        assertEquals("second", rows.get(0).getString("header"));
+    }
+
+    @Test
+    public void putGroupPushBundle_bundleWithoutTagKey_treatedAsNull() throws Exception {
+        // Bundle that does not contain "pw_msg_tag" at all — getString returns null →
+        // each row stays distinct (NULL distinct semantics in UNIQUE INDEX).
+        Bundle b1 = getTestBundle();
+        b1.remove("pw_msg_tag");
+        b1.putString("header", "first");
+        Bundle b2 = getTestBundle();
+        b2.remove("pw_msg_tag");
+        b2.putString("header", "second");
+
+        storage.putGroupPushBundle(b1, 0, "g");
+        storage.putGroupPushBundle(b2, 0, "g");
+
+        List<Bundle> rows = storage.getGroupPushBundles();
+        assertEquals(2, rows.size());
+    }
+
+    @Test
+    public void putGroupPushBundle_replaceUpdatesPayload() throws Exception {
+        // After REPLACE the row content (push_bundle_json) reflects the latest push,
+        // not the original — getLastPushBundleEntryForGroup returns the merged payload.
+        storage.putGroupPushBundle(bundleWithTag("tag-X", "first"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag("tag-X", "second"), 0, "g");
+        long lastRowId = storage.putGroupPushBundle(bundleWithTag("tag-X", "third"), 0, "g");
+
+        PushBundleDatabaseEntry entry = storage.getLastPushBundleEntryForGroup("g");
+        assertEquals(lastRowId, entry.getRowId());
+        assertEquals("third", entry.getPushBundle().getString("header"));
+    }
+
+    @Test
+    public void putGroupPushBundle_mixedTaggedAndUntagged_keepsExpectedRows() throws Exception {
+        // Realistic scenario: 3 same-tag pushes + 2 untagged pushes + 1 different-tag push
+        // → 1 (deduped) + 2 (distinct nulls) + 1 = 4 rows.
+        storage.putGroupPushBundle(bundleWithTag("tag-S", "S1"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag("tag-S", "S2"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag("tag-S", "S3"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag(null, "U1"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag(null, "U2"), 0, "g");
+        storage.putGroupPushBundle(bundleWithTag("tag-D", "D1"), 0, "g");
+
+        List<Bundle> rows = storage.getGroupPushBundles();
+        assertEquals(4, rows.size());
     }
 }

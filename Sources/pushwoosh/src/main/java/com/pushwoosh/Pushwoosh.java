@@ -284,9 +284,15 @@ public class Pushwoosh {
     public void setAppId(@NonNull String appId) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setAppId()");
         try {
-            if (ensureInitialized()) {
-                notificationManager.setAppId(appId);
+            if (!ensureInitialized()) {
+                return;
             }
+            String trimmed = appId.trim();
+            if (TextUtils.isEmpty(trimmed)) {
+                PWLog.warn("Pushwoosh", "setAppId() ignored: empty or whitespace-only value");
+                return;
+            }
+            notificationManager.setAppId(trimmed);
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set application code", e);
         }
@@ -2145,7 +2151,12 @@ public class Pushwoosh {
             if (!ensureInitialized()) {
                 return;
             }
-            registrationPrefs.setApiToken(token);
+            String trimmed = token != null ? token.trim() : null;
+            if (TextUtils.isEmpty(trimmed)) {
+                PWLog.warn("Pushwoosh", "setApiToken() ignored: empty or whitespace-only value");
+                return;
+            }
+            registrationPrefs.setApiToken(trimmed);
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set api token", e);
         }
@@ -2193,7 +2204,9 @@ public class Pushwoosh {
         try {
             PushwooshPlatform platform = PushwooshPlatform.getInstance();
             if (platform != null && !platform.getConfig().isReverseProxyAllowed()) {
-                PWLog.warn("Pushwoosh", "setReverseProxy() ignored. Set com.pushwoosh.allow_reverse_proxy to true in AndroidManifest.xml");
+                PWLog.warn(
+                        "Pushwoosh",
+                        "setReverseProxy() ignored. Set com.pushwoosh.allow_reverse_proxy to true in AndroidManifest.xml");
                 return;
             }
             if (TextUtils.isEmpty(url)) {

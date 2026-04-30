@@ -9,6 +9,7 @@ import android.os.Bundle;
 
 import com.pushwoosh.internal.utils.JsonUtils;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.notification.PushBundleDataProvider;
 import com.pushwoosh.repository.util.PushBundleDatabaseEntry;
 
 import java.util.ArrayList;
@@ -17,10 +18,11 @@ import java.util.List;
 public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundleStorage {
     private static final String TAG = PushBundleStorageImpl.class.getSimpleName();
     private static final String DB_NAME = "pushBundleDb.db";
-    private static final int VERSION = 5;
+    private static final int VERSION = 6;
 
     private static final String TABLE_PUSH_BUNDLES = "pushBundles";
     private static final String TABLE_GROUP_PUSH_BUNDLES = "groupPushBundles";
+    private static final String INDEX_GROUP_NOTIF_TAG = "idx_group_notif_tag";
 
     private final Object mutex = new Object();
 
@@ -29,6 +31,7 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
         static final String PUSH_BUNDLE_JSON = "push_bundle_json";
         static final String NOTIFICATION_ID = "notification_id";
         static final String GROUP_ID = "group_id";
+        static final String MSG_TAG = "msg_tag";
     }
 
     public PushBundleStorageImpl(Context context) {
@@ -67,8 +70,15 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
                 + getPushBundlesColumns()
                 + ", " + getGroupIdColumn()
                 + ", " + getNotificationIdColumn()
+                + ", " + Column.MSG_TAG + " TEXT"
                 + ");";
         db.execSQL(createTable);
+        // UNIQUE INDEX enables atomic dedup via CONFLICT_REPLACE for tagged pushes
+        // (collapse_key parity with iOS apns_collapse_id). NULL msg_tag is treated as
+        // distinct in SQLite UNIQUE indexes, so untagged pushes keep separate rows.
+        db.execSQL("create unique index " + INDEX_GROUP_NOTIF_TAG + " on "
+                + TABLE_GROUP_PUSH_BUNDLES + "("
+                + Column.GROUP_ID + ", " + Column.NOTIFICATION_ID + ", " + Column.MSG_TAG + ");");
     }
 
     private String getPushBundlesColumns() {
@@ -140,7 +150,7 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
                 String selection = Column.ROW_ID + " = ?";
-                String[] selectionArgs = { Long.toString(id) };
+                String[] selectionArgs = {Long.toString(id)};
                 try (Cursor cursor = db.query(tableName, null, selection, selectionArgs, null, null, null)) {
                     if (cursor.moveToFirst()) {
                         return getBundle(cursor);
@@ -179,10 +189,12 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
             try (SQLiteDatabase db = getWritableDatabase()) {
                 String[] columns = {Column.NOTIFICATION_ID, Column.PUSH_BUNDLE_JSON, Column.GROUP_ID, Column.ROW_ID};
                 String selection = Column.GROUP_ID + " = ?";
-                String[] selectionArgs = { groupId };
-                try (Cursor cursor = db.query(TABLE_GROUP_PUSH_BUNDLES, columns, selection , selectionArgs,null,null,null)) {
+                String[] selectionArgs = {groupId};
+                try (Cursor cursor =
+                        db.query(TABLE_GROUP_PUSH_BUNDLES, columns, selection, selectionArgs, null, null, null)) {
                     if (cursor.moveToLast()) {
-                        return new PushBundleDatabaseEntry(cursor.getInt(cursor.getColumnIndex(Column.NOTIFICATION_ID)),
+                        return new PushBundleDatabaseEntry(
+                                cursor.getInt(cursor.getColumnIndex(Column.NOTIFICATION_ID)),
                                 cursor.getLong(cursor.getColumnIndex(Column.ROW_ID)),
                                 getBundle(cursor));
                     } else {
@@ -229,6 +241,7 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
         cv.put(Column.PUSH_BUNDLE_JSON, JsonUtils.bundleToJson(pushBundle).toString());
         cv.put(Column.NOTIFICATION_ID, id);
         cv.put(Column.GROUP_ID, groupId);
+        cv.put(Column.MSG_TAG, PushBundleDataProvider.getMessageTag(pushBundle));
         return cv;
     }
 

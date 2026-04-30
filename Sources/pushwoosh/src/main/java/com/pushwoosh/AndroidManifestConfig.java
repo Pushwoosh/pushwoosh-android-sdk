@@ -132,6 +132,7 @@ class AndroidManifestConfig implements Config {
 
         String notificationIconPath = applicationInfo.metaData.getString("com.pushwoosh.notification_icon");
         if (notificationIconPath != null) {
+            notificationIconPath = notificationIconPath.trim();
             // AndroidManifest.xml contains full path of notification icon e.g
             // "res/drawable-xxhdpi-v11/notification_small_icon.png"
             // Need to extract resource name from path first
@@ -209,11 +210,14 @@ class AndroidManifestConfig implements Config {
                 PWLog.warn("'" + deprecatedKey + "' is deprecated, consider using '" + key + "'");
             }
         }
-        return result;
+        return result != null ? result.trim() : null;
     }
 
     private Class<?> getClass(Bundle metadata, String key) {
         String className = metadata.getString(key);
+        if (className != null) {
+            className = className.trim();
+        }
         if (className != null && className.startsWith(".")) {
             className = AndroidPlatformModule.getAppInfoProvider().getPackageName() + className;
         }

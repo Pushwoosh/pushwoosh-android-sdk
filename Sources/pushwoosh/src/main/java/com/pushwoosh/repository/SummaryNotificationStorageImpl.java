@@ -28,6 +28,7 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
     }
 
     private final Object mutex = new Object();
+
     public SummaryNotificationStorageImpl(@Nullable Context context) {
         super(context, DB_NAME, null, VERSION);
     }
@@ -54,7 +55,8 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
                 try {
                     db.beginTransaction();
                     try {
-                        long rowId = db.insertWithOnConflict(TABLE_NOTIFICATION_IDS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+                        long rowId = db.insertWithOnConflict(
+                                TABLE_NOTIFICATION_IDS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
                         if (rowId == -1) {
                             PWLog.warn(TAG, "Notification IDs pair was not stored.");
                             throw new Exception();
@@ -81,7 +83,8 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
                 try {
                     db.beginTransaction();
                     try {
-                        int result = db.delete(TABLE_NOTIFICATION_IDS, Column.GROUP_ID + "=" + groupId, null);
+                        int result =
+                                db.delete(TABLE_NOTIFICATION_IDS, Column.GROUP_ID + " = ?", new String[] {groupId});
                         if (result <= 0) {
                             PWLog.noise(TAG, "failed to remove notification ids pair for id: " + groupId);
                         }
@@ -119,7 +122,7 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
                 return;
             }
             if (ids != null) {
-                for (Pair<String, Integer> pair: ids) {
+                for (Pair<String, Integer> pair : ids) {
                     put(pair.first, pair.second);
                 }
             }
@@ -135,13 +138,15 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
                     try {
                         String selection = Column.GROUP_ID + " = ?";
                         String[] selectionArgs = {groupId};
-                        try (Cursor cursor = db.query(TABLE_NOTIFICATION_IDS, null, selection, selectionArgs, null, null, null)) {
+                        try (Cursor cursor =
+                                db.query(TABLE_NOTIFICATION_IDS, null, selection, selectionArgs, null, null, null)) {
                             if (cursor.moveToFirst()) {
                                 db.setTransactionSuccessful();
                                 return getStatusBarId(cursor);
                             } else {
                                 PWLog.noise(TAG, "Can't get StatusBarNotification with group id: " + groupId);
-                                throw new GroupIdNotFoundException("Can't get StatusBarNotification with group id: " + groupId);
+                                throw new GroupIdNotFoundException(
+                                        "Can't get StatusBarNotification with group id: " + groupId);
                             }
                         }
                     } finally {
@@ -153,7 +158,7 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
             } catch (GroupIdNotFoundException e) {
                 throw e;
             } catch (Exception e) {
-                PWLog.error(TAG,"Can't get StatusBarNotification with group id: " + groupId, e);
+                PWLog.error(TAG, "Can't get StatusBarNotification with group id: " + groupId, e);
                 throw new GroupIdNotFoundException("Can't get StatusBarNotification with group id: " + groupId);
             }
         }
@@ -168,13 +173,15 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
                     try {
                         String selection = Column.NOTIFICATION_ID + " = ?";
                         String[] selectionArgs = {Integer.toString(notificationId)};
-                        try (Cursor cursor = db.query(TABLE_NOTIFICATION_IDS, null, selection, selectionArgs, null, null, null)) {
+                        try (Cursor cursor =
+                                db.query(TABLE_NOTIFICATION_IDS, null, selection, selectionArgs, null, null, null)) {
                             if (cursor.moveToFirst()) {
                                 db.setTransactionSuccessful();
                                 return getGroupId(cursor);
                             } else {
                                 PWLog.error("Can't get group with notification id: " + notificationId);
-                                throw new NotificationIdNotFoundException("Can't get group with notification id: " + notificationId);
+                                throw new NotificationIdNotFoundException(
+                                        "Can't get group with notification id: " + notificationId);
                             }
                         }
                     } finally {

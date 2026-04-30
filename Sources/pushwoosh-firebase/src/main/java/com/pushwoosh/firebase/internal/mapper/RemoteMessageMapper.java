@@ -26,26 +26,35 @@
 
 package com.pushwoosh.firebase.internal.mapper;
 
-import java.util.Map;
-
 import android.os.Bundle;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.Map;
+
 public class RemoteMessageMapper {
 
-	@NonNull
-	public static Bundle mapToBundle(RemoteMessage remoteMessage) {
-		Map<String, String> data = remoteMessage.getData();
-		Bundle bundle = new Bundle();
-		if (data == null) {
-			return bundle;
-		}
-		for (Map.Entry<String, String> entry : data.entrySet()) {
-			bundle.putString(entry.getKey(), entry.getValue());
-		}
+    private static final String KEY_PW_MSG_TAG = "pw_msg_tag";
 
-		return bundle;
-	}
+    @NonNull public static Bundle mapToBundle(@NonNull RemoteMessage remoteMessage) {
+        Map<String, String> data = remoteMessage.getData();
+        Bundle bundle = new Bundle();
+        if (data != null) {
+            for (Map.Entry<String, String> entry : data.entrySet()) {
+                bundle.putString(entry.getKey(), entry.getValue());
+            }
+        }
+
+        // Use FCM collapse_key as notification tag so a new push with the same key
+        // replaces the previous one in the shade (parity with iOS apns_collapse_id).
+        // Don't overwrite an explicit pw_msg_tag set via custom data.
+        String collapseKey = remoteMessage.getCollapseKey();
+        if (!TextUtils.isEmpty(collapseKey) && TextUtils.isEmpty(bundle.getString(KEY_PW_MSG_TAG))) {
+            bundle.putString(KEY_PW_MSG_TAG, collapseKey);
+        }
+        return bundle;
+    }
 }

@@ -58,15 +58,14 @@ public class RemoteMessageMapperTest {
 
     @Test
     public void mapToBundle() throws Exception {
-        try (
-                MockedStatic<FirebaseApp> firebaseAppMockedStatic = Mockito.mockStatic(FirebaseApp.class);
-                MockedStatic<FirebaseMessaging> firebaseMessagingMockedStatic = Mockito.mockStatic(FirebaseMessaging.class);
-                MockedStatic<Tasks> tasksMockedStatic = Mockito.mockStatic(Tasks.class)
-                ){
+        try (MockedStatic<FirebaseApp> firebaseAppMockedStatic = Mockito.mockStatic(FirebaseApp.class);
+                MockedStatic<FirebaseMessaging> firebaseMessagingMockedStatic =
+                        Mockito.mockStatic(FirebaseMessaging.class);
+                MockedStatic<Tasks> tasksMockedStatic = Mockito.mockStatic(Tasks.class)) {
             FirebaseMessaging instanceMock = Mockito.mock(FirebaseMessaging.class);
             firebaseMessagingMockedStatic.when(FirebaseMessaging::getInstance).thenReturn(instanceMock);
             Mockito.when(instanceMock.getToken()).thenReturn(tokenStringTask);
-            tasksMockedStatic.when(()->Tasks.await(tokenStringTask)).thenReturn("token123");
+            tasksMockedStatic.when(() -> Tasks.await(tokenStringTask)).thenReturn("token123");
 
             Map<String, String> valueMap = new HashMap<>();
             valueMap.put("key1", "value1");
@@ -84,7 +83,52 @@ public class RemoteMessageMapperTest {
             Assert.assertEquals("value2", bundle.getString("key2"));
             Assert.assertEquals("value3", bundle.getString("key3"));
         }
-
     }
 
+    @Test
+    public void mapToBundle_collapseKeyPresent_setsPwMsgTag() {
+        RemoteMessage remoteMessage = Mockito.mock(RemoteMessage.class);
+        Mockito.when(remoteMessage.getData()).thenReturn(new HashMap<>());
+        Mockito.when(remoteMessage.getCollapseKey()).thenReturn("my-collapse-key");
+
+        Bundle bundle = RemoteMessageMapper.mapToBundle(remoteMessage);
+
+        Assert.assertEquals("my-collapse-key", bundle.getString("pw_msg_tag"));
+    }
+
+    @Test
+    public void mapToBundle_collapseKeyAndExplicitTag_keepsExplicit() {
+        Map<String, String> data = new HashMap<>();
+        data.put("pw_msg_tag", "explicit-tag");
+
+        RemoteMessage remoteMessage = Mockito.mock(RemoteMessage.class);
+        Mockito.when(remoteMessage.getData()).thenReturn(data);
+        Mockito.when(remoteMessage.getCollapseKey()).thenReturn("collapse-key");
+
+        Bundle bundle = RemoteMessageMapper.mapToBundle(remoteMessage);
+
+        Assert.assertEquals("explicit-tag", bundle.getString("pw_msg_tag"));
+    }
+
+    @Test
+    public void mapToBundle_collapseKeyNull_doesNotSetTag() {
+        RemoteMessage remoteMessage = Mockito.mock(RemoteMessage.class);
+        Mockito.when(remoteMessage.getData()).thenReturn(new HashMap<>());
+        Mockito.when(remoteMessage.getCollapseKey()).thenReturn(null);
+
+        Bundle bundle = RemoteMessageMapper.mapToBundle(remoteMessage);
+
+        Assert.assertNull(bundle.getString("pw_msg_tag"));
+    }
+
+    @Test
+    public void mapToBundle_collapseKeyEmpty_doesNotSetTag() {
+        RemoteMessage remoteMessage = Mockito.mock(RemoteMessage.class);
+        Mockito.when(remoteMessage.getData()).thenReturn(new HashMap<>());
+        Mockito.when(remoteMessage.getCollapseKey()).thenReturn("");
+
+        Bundle bundle = RemoteMessageMapper.mapToBundle(remoteMessage);
+
+        Assert.assertNull(bundle.getString("pw_msg_tag"));
+    }
 }
