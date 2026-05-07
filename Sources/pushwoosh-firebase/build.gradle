@@ -45,6 +45,7 @@ android {
         versionName global_versionName
         minSdkVersion global_minSdkVersion
         targetSdkVersion global_targetVersion
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     buildTypes {

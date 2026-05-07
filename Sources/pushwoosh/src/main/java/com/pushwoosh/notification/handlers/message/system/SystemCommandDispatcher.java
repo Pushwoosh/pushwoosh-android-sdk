@@ -207,34 +207,13 @@ class SystemCommandDispatcher implements MessageSystemHandler {
                 return false;
             }
 
-            if (!isValidUrl(value)) {
-                PWLog.error(HANDLER_TAG, "Invalid URL: " + value);
-                return false;
-            }
-
             com.pushwoosh.internal.network.RequestManager requestManager =
                     com.pushwoosh.internal.network.NetworkModule.getRequestManager();
             if (requestManager == null) {
                 PWLog.error(HANDLER_TAG, "RequestManager is not initialized");
                 return false;
             }
-
-            String normalizedUrl = value.endsWith("/") ? value : value + "/";
-            requestManager.updateBaseUrl(normalizedUrl);
-            PWLog.info(HANDLER_TAG, "Base URL updated to: " + normalizedUrl);
-            return true;
-        }
-
-        private boolean isValidUrl(String url) {
-            if (!url.startsWith("https://") && !url.startsWith("http://")) {
-                return false;
-            }
-            try {
-                new java.net.URL(url);
-                return true;
-            } catch (java.net.MalformedURLException e) {
-                return false;
-            }
+            return requestManager.updateBaseUrl(value);
         }
     }
 }

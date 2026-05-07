@@ -37,46 +37,45 @@ import java.util.Map;
  * Interface which associated with communication with pushwoosh service
  */
 public interface RequestManager {
-	/**
-	 * @see #sendRequest(PushRequest, String, Callback)
-	 */
-	<Response> void sendRequest(PushRequest<Response> request);
+    /**
+     * @see #sendRequest(PushRequest, String, Callback)
+     */
+    <Response> void sendRequest(PushRequest<Response> request);
 
-	/**
-	 * @see #sendRequest(PushRequest, String, Callback)
-	 */
-	<Response> void sendRequest(PushRequest<Response> request, Callback<Response, NetworkException> callback);
+    /**
+     * @see #sendRequest(PushRequest, String, Callback)
+     */
+    <Response> void sendRequest(PushRequest<Response> request, Callback<Response, NetworkException> callback);
 
-	/**
-	 * Send request async with {@param request} to {@param baseUrl}. Result will be sending to {@param callback}
-	 * @param request - request which should be sending
-	 * @param baseUrl - url of service
-	 * @param callback - result callback
-	 * @param <Response> - response class associated with request
-	 */
-	<Response> void sendRequest(PushRequest<Response> request, String baseUrl, Callback<Response, NetworkException> callback);
+    /**
+     * Send request async with {@param request} to {@param baseUrl}. Result will be sending to {@param callback}
+     * @param request - request which should be sending
+     * @param baseUrl - url of service
+     * @param callback - result callback
+     * @param <Response> - response class associated with request
+     */
+    <Response> void sendRequest(
+            PushRequest<Response> request, String baseUrl, Callback<Response, NetworkException> callback);
 
-	/**
-	 * Send request sync with {@param request}
-	 * @param request - request which should be sending
-	 * @param <Response> - response class associated with request
-	 * @return - {@link com.pushwoosh.function.Result} of this request
-	 */
-	@NonNull
-	<Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request);
+    /**
+     * Send request sync with {@param request}
+     * @param request - request which should be sending
+     * @param <Response> - response class associated with request
+     * @return - {@link com.pushwoosh.function.Result} of this request
+     */
+    @NonNull <Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request);
 
-	/**
-	 * change default base url
-	 * @param baseUrl - new base url
-	 */
-	void updateBaseUrl(String baseUrl);
+    /**
+     * change default base url
+     * @param baseUrl - new base url
+     */
+    boolean updateBaseUrl(String baseUrl);
 
-	/**
-	 * Set or disable reverse proxy URL with optional custom HTTP headers.
-	 * Pass null as url to disable reverse proxy and restore default server URL.
-	 * @param url - reverse proxy url, or null to disable
-	 * @param headers - optional map of custom HTTP headers (may be null)
-	 */
-	void setReverseProxyUrl(String url, Map<String, String> headers);
-
+    /**
+     * Set or disable reverse proxy URL with optional custom HTTP headers.
+     * Pass null as url to disable reverse proxy and restore default server URL.
+     * @param url - reverse proxy url, or null to disable
+     * @param headers - optional map of custom HTTP headers (may be null)
+     */
+    void setReverseProxyUrl(String url, Map<String, String> headers);
 }

@@ -7,6 +7,8 @@
 // MIT Licensed
 package com.pushwoosh.internal.network;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -25,10 +27,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Implementation of {@link com.pushwoosh.internal.network.RequestManager}
@@ -42,19 +44,21 @@ class PushwooshRequestManager implements RequestManager {
 
     private final RegistrationPrefs registrationPrefs;
     private final ServerCommunicationManager serverCommunicationManager;
-    private volatile String baseRequestUrl;
-    private volatile String reverseProxyUrl;
+
+    @Nullable private volatile String baseRequestUrl;
+
+    @Nullable private volatile String reverseProxyUrl;
+
     private volatile Map<String, String> customHeaders = new HashMap<>();
     private final boolean reverseProxyRequired;
 
     PushwooshRequestManager(
-            RegistrationPrefs registrationPrefs, ServerCommunicationManager serverCommunicationManager,
+            RegistrationPrefs registrationPrefs,
+            ServerCommunicationManager serverCommunicationManager,
             boolean reverseProxyRequired) {
         this.registrationPrefs = registrationPrefs;
         this.serverCommunicationManager = serverCommunicationManager;
         this.reverseProxyRequired = reverseProxyRequired;
-
-        baseRequestUrl = registrationPrefs.baseUrl().get();
     }
 
     private boolean isRemoveAllDataDevice() {
@@ -104,8 +108,13 @@ class PushwooshRequestManager implements RequestManager {
     }
 
     @Override
-    public void updateBaseUrl(final String baseUrl) {
-        saveBaseUrl(baseUrl);
+    public boolean updateBaseUrl(final String baseUrl) {
+        String normalized = registrationPrefs.updateBaseUrl(baseUrl);
+        if (normalized != null) {
+            baseRequestUrl = normalized;
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -122,6 +131,10 @@ class PushwooshRequestManager implements RequestManager {
         if (reverseProxyRequired && reverseProxyUrl == null) {
             PWLog.error(TAG, "Reverse proxy is required but not configured. Request blocked.");
             return Result.fromException(new NetworkException("Reverse proxy is required but not configured"));
+        }
+        if (reverseProxyUrl == null && TextUtils.isEmpty(baseUrl)) {
+            PWLog.warn(TAG, "Base URL is not configured yet. Request blocked: " + request.getMethod());
+            return Result.fromException(new NetworkException("Base URL is not configured"));
         }
         if (isRemoveAllDataDevice()) {
             return Result.fromException(new NetworkException(DEVICE_REMOVED_MSG));
@@ -142,9 +155,9 @@ class PushwooshRequestManager implements RequestManager {
 
                 JSONObject response = result.getResponse();
                 // honor base url change
-                if (response.has("base_url") && baseUrl.equals(baseRequestUrl) && reverseProxyUrl == null) {
+                if (response.has("base_url") && Objects.equals(baseUrl, baseRequestUrl) && reverseProxyUrl == null) {
                     String newBaseUrl = response.optString("base_url");
-                    saveBaseUrl(newBaseUrl);
+                    updateBaseUrl(newBaseUrl);
                 }
 
                 JSONObject responseData = response.optJSONObject("response");
@@ -167,12 +180,6 @@ class PushwooshRequestManager implements RequestManager {
         }
 
         return Result.fromException(new ConnectionException(exception.getMessage(), statusCode, pushwooshStatusCode));
-    }
-
-    private void saveBaseUrl(String url) {
-        PWLog.info(TAG, String.format("Set base url: %s", url));
-        baseRequestUrl = url;
-        registrationPrefs.baseUrl().set(url);
     }
 
     private String getApiToken() {
@@ -210,19 +217,12 @@ class PushwooshRequestManager implements RequestManager {
             PWLog.debug(
                     TAG,
                     "\n"
-                            + "| Pushwoosh request:\n"
+                            + "| Pushwoosh request: " + methodName + "\n"
                             + "| - URL: " + url.toString() + "\n"
                             + "| - Payload: " + requestJson.toString() + "\n"
                             + "| - Response: " + networkResult.getResponse().toString() + "\n");
 
             return networkResult;
-        } catch (MalformedURLException e) {
-            // Reset base URL only for malformed URL (invalid format like "httz://...")
-            if (baseUrl.equals(baseRequestUrl)) {
-                PWLog.warn(TAG, "Malformed URL detected, resetting to default: " + e.getMessage());
-                baseRequestUrl = registrationPrefs.getDefaultBaseUrl();
-            }
-            throw e;
         } catch (Exception e) {
             PWLog.error(TAG, "Request failed: " + e.getMessage(), e);
             throw e;

@@ -63,9 +63,9 @@ public class PushwooshNotificationManager {
     private final RegistrationPrefs registrationPrefs;
     private PushRegistrar pushRegistrar;
     private PushMessage launchNotification;
-    private Config config;
-    private AtomicBoolean pushesRescheduled = new AtomicBoolean(false);
-    private AtomicBoolean appIdReadyEventSent = new AtomicBoolean(false);
+    private final Config config;
+    private final AtomicBoolean pushesRescheduled = new AtomicBoolean(false);
+    private final AtomicBoolean appIdReadyEventSent = new AtomicBoolean(false);
     private static final long EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 14;
 
     public PushwooshNotificationManager(PushRegistrar pushRegistrar, Config config) {
@@ -102,34 +102,34 @@ public class PushwooshNotificationManager {
         }
 
         String oldAppId = registrationPrefs.applicationId().get();
-        boolean needUpdateUrl = false;
+        boolean isAppIdChange = !TextUtils.isEmpty(oldAppId) && !Objects.equals(oldAppId, appId);
 
-        if (!Objects.equals(oldAppId, appId)) {
+        if (isAppIdChange) {
             appIdReadyEventSent.set(false);
             if (registrationPrefs.registeredOnServer().get()) {
                 DeviceRegistrar.unregisterWithServer(
                         registrationPrefs.pushToken().get(),
                         registrationPrefs.baseUrl().get());
             }
-
             BackgroundExecutor.executeOnPool(
                     () -> RepositoryModule.getRequestStorage().clear());
             registrationPrefs.removeAppId();
-            needUpdateUrl = true;
             registrationPrefs
                     .forceRegister()
                     .set(registrationPrefs.isRegisteredForPush().get());
-            registrationPrefs.setAppId(appId);
-            EventBus.sendEvent(new AppIdChangedEvent(appId, oldAppId));
         }
 
         registrationPrefs.setAppId(appId);
-        if (needUpdateUrl) {
-            RequestManager requestManager = NetworkModule.getRequestManager();
-            if (requestManager != null) {
-                requestManager.updateBaseUrl(registrationPrefs.baseUrl().get());
-            }
+
+        RequestManager requestManager = NetworkModule.getRequestManager();
+        if (requestManager != null) {
+            requestManager.updateBaseUrl(registrationPrefs.baseUrl().get());
         }
+
+        if (isAppIdChange) {
+            EventBus.sendEvent(new AppIdChangedEvent(appId, oldAppId));
+        }
+
         if (!appIdReadyEventSent.get()) {
             EventBus.sendEvent(new ApplicationIdReadyEvent());
             appIdReadyEventSent.set(true);

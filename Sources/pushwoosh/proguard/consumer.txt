@@ -1,0 +1,22 @@
+# Consumer ProGuard rules for the Pushwoosh core SDK.
+# Packaged into the AAR (proguard.txt) and applied automatically by R8 in
+# any consumer application that depends on this AAR.
+#
+# Each rule is annotated with a code reference: <file>:<line> <description>.
+# When the referenced point in code moves or disappears, the corresponding
+# rule must be re-validated.
+
+# AndroidManifestConfig.java:119  meta-data com.pushwoosh.notification_service_extension
+-keep public class * extends com.pushwoosh.notification.NotificationServiceExtension { *; }
+
+# AndroidManifestConfig.java:120  meta-data com.pushwoosh.notification_factory
+-keep public class * extends com.pushwoosh.notification.NotificationFactory { *; }
+
+# AndroidManifestConfig.java:121  meta-data com.pushwoosh.summary_notification_factory
+-keep public class * extends com.pushwoosh.notification.SummaryNotificationFactory { *; }
+
+# AndroidManifestConfig.java:151-156  meta-data keys com.pushwoosh.plugin.*
+-keep class * implements com.pushwoosh.internal.Plugin { *; }
+
+# AndroidManifestConfig.java:166-170  meta-data com.pushwoosh.internal.plugin_provider
+-keep class * implements com.pushwoosh.internal.PluginProvider { *; }

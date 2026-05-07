@@ -96,6 +96,10 @@ class AndroidManifestConfig implements Config {
         }
 
         appId = getString(applicationInfo.metaData, "com.pushwoosh.appid", "PW_APPID");
+        if (appId != null && appId.contains(".")) {
+            throw new IllegalStateException(
+                    "Application id format with '.' is deprecated. Please contact Pushwoosh support.");
+        }
         apiToken = getString(applicationInfo.metaData, "com.pushwoosh.apitoken", "PW_API_TOKEN");
 
         String trustedPackagesString = getString(applicationInfo.metaData, "com.pushwoosh.trusted_package_names", null);
@@ -241,7 +245,7 @@ class AndroidManifestConfig implements Config {
 
     @Override
     public String getAppId() {
-        return appId;
+        return TextUtils.isEmpty(appId) ? null : appId;
     }
 
     @Override

@@ -292,6 +292,13 @@ public class Pushwoosh {
                 PWLog.warn("Pushwoosh", "setAppId() ignored: empty or whitespace-only value");
                 return;
             }
+            if (trimmed.contains(".")) {
+                PWLog.error(
+                        "Pushwoosh",
+                        "setAppId() ignored: application id format with '.' is deprecated. "
+                                + "Please contact Pushwoosh support.");
+                return;
+            }
             notificationManager.setAppId(trimmed);
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set application code", e);

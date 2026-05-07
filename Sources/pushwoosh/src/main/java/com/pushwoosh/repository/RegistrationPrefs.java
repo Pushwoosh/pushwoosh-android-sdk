@@ -29,6 +29,7 @@ package com.pushwoosh.repository;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -42,12 +43,13 @@ import com.pushwoosh.internal.preference.PreferenceStringValue;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Locale;
 
 public class RegistrationPrefs implements RegistrationPrefsInterface {
     private static final String TAG = "RegistrationPrefs";
 
-    private static final String OLD_BASE_API_URL = "https://cp.pushwoosh.com/json/1.3/";
     private static final String BASE_API_URL_FORMAT = "https://%s.api.pushwoosh.com/json/1.3/";
 
     private static final String PREFERENCE = "com.pushwoosh.registration";
@@ -100,8 +102,9 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         SharedPreferences preferences = AndroidPlatformModule.getPrefsProvider().providePrefs(PREFERENCE);
 
         applicationId = new PreferenceStringValue(preferences, PROPERTY_APPLICATION_ID, "");
-        if (applicationId.get().isEmpty() && config.getAppId() != null) {
-            applicationId.set(config.getAppId());
+        String configAppId = config.getAppId();
+        if (applicationId.get().isEmpty() && !TextUtils.isEmpty(configAppId)) {
+            applicationId.set(configAppId);
         }
 
         pushToken = new PreferenceStringValue(preferences, PROPERTY_PUSH_TOKEN, "");
@@ -135,9 +138,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         communicationEnable = new PreferenceBooleanValue(preferences, COMMUNICATION_ENABLE, true);
         removeAllDeviceData = new PreferenceBooleanValue(preferences, REMOVE_ALL_DEVICE_DATA, false);
 
-        // Not before applicationId setting!
+        // baseUrl is computed only via setAppId(...) — not in constructor.
         baseUrl = new PreferenceStringValue(preferences, PROPERTY_BASE_URL, "");
-        baseUrl.set(computeBaseUrl(baseUrl.get()));
 
         hwid = new PreferenceStringValue(preferences, HWID, "");
         apiToken = new PreferenceStringValue(preferences, API_TOKEN, config.getApiToken());
@@ -191,6 +193,16 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         return logLevel;
     }
 
+    /**
+     * Returns the {@link PreferenceStringValue} for {@code pw_base_url}.
+     *
+     * <p><b>Reads</b> are safe.
+     *
+     * <p><b>Writes</b> via {@link PreferenceStringValue#set(String)} bypass URL normalization
+     * (trim, basic URL parsing, trailing slash) and de-duplication. Use
+     * {@link #updateBaseUrl(String)} for any base URL update from server response, push command,
+     * or other source so all writers go through the single normalization point.
+     */
     public PreferenceStringValue baseUrl() {
         return baseUrl;
     }
@@ -208,32 +220,74 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         return language;
     }
 
-    private String computeBaseUrl(String preferenceUrl) {
-        String baseUrl = preferenceUrl;
-        if (TextUtils.isEmpty(baseUrl) || baseUrl.startsWith("http://")) {
-            baseUrl = getDefaultBaseUrl();
+    @NonNull public String getDefaultBaseUrl(@NonNull String appId) {
+        String url = config.getRequestUrl();
+        if (TextUtils.isEmpty(url)) {
+            url = String.format(BASE_API_URL_FORMAT, appId);
         }
-
-        if (!baseUrl.endsWith("/")) {
-            baseUrl += "/";
+        if (!url.endsWith("/")) {
+            url += "/";
         }
-
-        return baseUrl;
+        return url;
     }
 
-    public String getDefaultBaseUrl() {
-        String url = config.getRequestUrl();
+    /**
+     * Single entry point for updating the persisted {@code pw_base_url}.
+     *
+     * <p>The raw URL is trimmed, parsed via {@link URL} for basic validity, and forced to end
+     * with {@code /} so request URL composition (base + method) stays correct. If the normalized
+     * URL equals the currently persisted value, no write is performed (de-duplication).
+     *
+     * @param rawUrl raw URL from any source (server response, push command, default URL builder)
+     * @return the normalized URL on accept, or {@code null} if the input was empty or malformed
+     */
+    @Nullable public String updateBaseUrl(@Nullable String rawUrl) {
+        String normalized = normalizeBaseUrl(rawUrl);
+        if (normalized == null) {
+            return null;
+        }
+        if (TextUtils.equals(baseUrl.get(), normalized)) {
+            return normalized;
+        }
+        PWLog.info(TAG, String.format("Update base URL: %s", normalized));
+        baseUrl.set(normalized);
+        return normalized;
+    }
 
-        if (TextUtils.isEmpty(url)) {
-            String appid = applicationId.get();
-            if (!TextUtils.equals(appid, "") && !appid.contains(".")) {
-                url = String.format(BASE_API_URL_FORMAT, appid);
-            } else {
-                url = OLD_BASE_API_URL;
+    @Nullable private static String normalizeBaseUrl(@Nullable String rawUrl) {
+        if (TextUtils.isEmpty(rawUrl)) {
+            PWLog.warn(TAG, "Reject base URL: empty value");
+            return null;
+        }
+        String trimmed = rawUrl.trim();
+        if (TextUtils.isEmpty(trimmed)) {
+            PWLog.warn(TAG, "Reject base URL: whitespace-only value");
+            return null;
+        }
+        if (containsWhitespace(trimmed)) {
+            PWLog.warn(TAG, "Reject base URL: contains whitespace: " + rawUrl);
+            return null;
+        }
+        if (!trimmed.startsWith("https://") && !trimmed.startsWith("http://")) {
+            PWLog.warn(TAG, "Reject base URL: scheme must be http(s)://: " + rawUrl);
+            return null;
+        }
+        try {
+            new URL(trimmed);
+        } catch (MalformedURLException e) {
+            PWLog.warn(TAG, "Reject base URL: malformed URL: " + rawUrl);
+            return null;
+        }
+        return trimmed.endsWith("/") ? trimmed : trimmed + "/";
+    }
+
+    private static boolean containsWhitespace(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isWhitespace(s.charAt(i))) {
+                return true;
             }
         }
-
-        return url;
+        return false;
     }
 
     public void removeAppId() {
@@ -244,14 +298,21 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     }
 
     public void setAppId(final String appId) {
+        if (TextUtils.isEmpty(appId)) {
+            throw new IllegalArgumentException("Application id is empty");
+        }
         String oldAppId = applicationId().get();
         applicationId().set(appId);
 
-        // Only reset baseUrl if appId actually changed or baseUrl is empty
-        // This preserves custom baseUrl set via set_base_url command
         String currentBaseUrl = baseUrl().get();
         if (!TextUtils.equals(oldAppId, appId) || TextUtils.isEmpty(currentBaseUrl)) {
-            baseUrl().set(getDefaultBaseUrl());
+            String defaultUrl = getDefaultBaseUrl(appId);
+            if (updateBaseUrl(defaultUrl) == null) {
+                PWLog.error(
+                        TAG,
+                        "Default base URL rejected: " + defaultUrl
+                                + ". Check com.pushwoosh.base_url in AndroidManifest.xml.");
+            }
         }
     }
 

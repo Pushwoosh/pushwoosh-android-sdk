@@ -112,10 +112,10 @@ public class RequestManagerMock implements RequestManager {
     }
 
     @Override
-    public void updateBaseUrl(final String baseUrl) {
-        com.pushwoosh.repository.RepositoryModule.getRegistrationPreferences()
-                .baseUrl()
-                .set(baseUrl);
+    public boolean updateBaseUrl(final String baseUrl) {
+        return com.pushwoosh.repository.RepositoryModule.getRegistrationPreferences()
+                        .updateBaseUrl(baseUrl)
+                != null;
     }
 
     @Override

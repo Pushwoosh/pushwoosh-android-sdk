@@ -127,7 +127,7 @@ public class HandleMessageTest {
     // Tests preHandleMessage method sets baseUrl
     @Test
     public void setBaseUrlTest() throws Exception {
-        String testBaseUrl = "https://cp.pushwoosh.com/json/1.3/";
+        String testBaseUrl = "https://test.api.pushwoosh.com/json/1.3/";
 
         // Steps:
         Bundle testBundle = new Bundle();
@@ -142,6 +142,38 @@ public class HandleMessageTest {
         assertThat(registrationPrefs.baseUrl().get(), is(equalTo(testBaseUrl)));
         verify(NotificationServiceMock.callbackMock(), timeout(100).times(0)).onMessageReceived(any());
         verify(NotificationFactoryMock.callbackMock(), timeout(100).times(0)).onGenerateNotification(any());
+    }
+
+    // set_base_url push command without trailing slash must be normalized via the unified entry.
+    @Test
+    public void setBaseUrlTest_withoutTrailingSlash_isNormalized() throws Exception {
+        String pushedUrl = "https://test.api.pushwoosh.com/json/1.3";
+
+        Bundle testBundle = new Bundle();
+        testBundle.putString("pw_system_push", "1");
+        testBundle.putString("pw_command", "set_base_url");
+        testBundle.putString("value", pushedUrl);
+
+        notificationService.handleMessage(testBundle);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertThat(registrationPrefs.baseUrl().get(), is(equalTo(pushedUrl + "/")));
+    }
+
+    // set_base_url push command with non-http(s) scheme must be rejected by the unified entry.
+    @Test
+    public void setBaseUrlTest_nonHttpScheme_isRejected() throws Exception {
+        String previousBaseUrl = registrationPrefs.baseUrl().get();
+
+        Bundle testBundle = new Bundle();
+        testBundle.putString("pw_system_push", "1");
+        testBundle.putString("pw_command", "set_base_url");
+        testBundle.putString("value", "file:///data/data/com.example/");
+
+        notificationService.handleMessage(testBundle);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertThat(registrationPrefs.baseUrl().get(), is(equalTo(previousBaseUrl)));
     }
 
     // Tests preHandleMessage with multiple commands (pw_commands array)

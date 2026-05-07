@@ -1,6 +1,8 @@
 package com.pushwoosh;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -112,5 +114,45 @@ public class AndroidManifestConfigTest {
         String url = String.format(BASE_API_URL_FORMAT, config.getAppId());
 
         assertEquals("https://XXXXX-XXXXX.api.pushwoosh.com/json/1.3/", url);
+    }
+
+    @Test
+    public void emptyAppIdReturnsNull() {
+        Bundle metaData = new Bundle();
+        metaData.putString("com.pushwoosh.appid", "");
+
+        AndroidManifestConfig config = configWithMetaData(metaData);
+
+        assertNull(config.getAppId());
+    }
+
+    @Test
+    public void whitespaceOnlyAppIdReturnsNull() {
+        Bundle metaData = new Bundle();
+        metaData.putString("com.pushwoosh.appid", "   \t\n  ");
+
+        AndroidManifestConfig config = configWithMetaData(metaData);
+
+        assertNull(config.getAppId());
+    }
+
+    @Test
+    public void missingAppIdReturnsNull() {
+        Bundle metaData = new Bundle();
+
+        AndroidManifestConfig config = configWithMetaData(metaData);
+
+        assertNull(config.getAppId());
+    }
+
+    @Test
+    public void appIdWithDotIsRejected() {
+        Bundle metaData = new Bundle();
+        metaData.putString("com.pushwoosh.appid", "invalid.appid");
+        ApplicationInfo applicationInfo = new ApplicationInfo();
+        applicationInfo.metaData = metaData;
+        when(appInfoProvider.getApplicationInfo()).thenReturn(applicationInfo);
+
+        assertThrows(IllegalStateException.class, AndroidManifestConfig::new);
     }
 }

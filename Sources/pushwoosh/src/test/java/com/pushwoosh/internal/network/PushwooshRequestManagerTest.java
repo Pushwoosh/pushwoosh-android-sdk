@@ -26,10 +26,17 @@
 
 package com.pushwoosh.internal.network;
 
-import android.text.TextUtils;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import androidx.annotation.NonNull;
-import com.pushwoosh.BuildConfig;
+
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -61,352 +68,436 @@ import org.robolectric.shadows.ShadowLooper;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import okhttp3.HttpUrl;
-import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 @org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 @LooperMode(LooperMode.Mode.LEGACY)
 public class PushwooshRequestManagerTest {
 
-	public static final int TIMEOUT_TEST = 10000;
-	private RegistrationPrefs registrationPrefs;
-	private MockWebServer server;
-	private String requestUrl;
-
-	// class under test
-	private PushwooshRequestManager requestManager;
-	private PushRegistrar pushRegistrarMock;
-
-	private static class TestRequest extends PushRequest<String> {
-		private final String param;
-		private final String result;
-		private JSONObject response;
-
-		public TestRequest(String param, String result) {
-			this.param = param;
-			this.result = result;
-		}
-
-		public JSONObject getResponse() {
-			return response;
-		}
-
-		@Override
-		public String getMethod() {
-			return "testMethod";
-		}
-
-		@NonNull
-		@Override
-		protected String getHwid() throws InterruptedException {
-			return "test_hwid";
-		}
-
-		@Override
-		protected void buildParams(JSONObject params) throws JSONException {
-			params.put("param", this.param);
-		}
-
-		@Override
-		public String parseResponse(@NonNull JSONObject response) throws JSONException {
-			this.response = response;
-			return result;
-		}
-	}
-
-	private static class TestBadParamsRequest extends PushRequest<Void> {
-
-		@Override
-		public String getMethod() {
-			return "testBadParams";
-		}
-
-		@Override
-		protected void buildParams(JSONObject params) throws JSONException {
-			throw new JSONException("test invalid params");
-		}
-
-		@NonNull
-		@Override
-		protected String getHwid() throws InterruptedException {
-			return "test_hwid";
-		}
-	}
-
-	private static class TestBadResponseRequest extends PushRequest<Void> {
-
-		@Override
-		public String getMethod() {
-			return "testBadResponse";
-		}
-
-		@Override
-		public Void parseResponse(@NonNull JSONObject response) throws JSONException {
-			throw new JSONException("test invalid response");
-		}
-
-		@NonNull
-		@Override
-		protected String getHwid() throws InterruptedException {
-			return "test_hwid";
-		}
-	}
-
-	@Before
-	public void setUp() throws Exception {
-		ShadowLog.stream = System.out;
-
-		server = new MockWebServer();
-		server.start();
-		HttpUrl baseUrl = server.url("/");
-		requestUrl = baseUrl.url().toString();
-
-		Config configMock = MockConfig.createMock();
-		when(configMock.getRequestUrl()).thenReturn(requestUrl);
-
-		AndroidPlatformModule.init(RuntimeEnvironment.application, true);
-
-		registrationPrefs = RepositoryTestManager.createRegistrationPrefs(configMock, mock(DeviceRegistrar.class));
-		RepositoryModule.setRegistrationPreferences(registrationPrefs);
-
-		ServerCommunicationManager serverCommunicationManager = mock(ServerCommunicationManager.class);
-		Mockito.when(serverCommunicationManager.isServerCommunicationAllowed()).thenReturn(true);
-		requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager, false);
-
-		pushRegistrarMock = mock(PushRegistrar.class);
-
-		new DeviceSpecificProvider.Builder()
-				.setDeviceSpecific(new TestDeviceSpecific(pushRegistrarMock))
-				.build(true);
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		server.shutdown();
-		RepositoryTestManager.destroyRegistrationPrefs(registrationPrefs);
-		RepositoryModule.setRegistrationPreferences(null);
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendRequestSync() throws Exception {
-		TestRequest testRequest = new TestRequest("testParam", "testResult");
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
-		Result<String, NetworkException> result = requestManager.sendRequestSync(testRequest);
-
-		assertThat(result.isSuccess(), is(true));
-		assertThat(result.getData(), is(equalTo("testResult")));
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testMethod")));
-
-		JSONObject requestParams = new JSONObject(request.getBody().readUtf8()).getJSONObject("request");
-		assertThat(requestParams.getString("param"), is(equalTo("testParam")));
-		assertThat(requestParams.getString("application"), is(equalTo(MockConfig.APP_ID)));
-		assertThat(requestParams.has("v"), is(true));
-		assertThat(requestParams.has("hwid"), is(true));
-		assertThat(requestParams.has("device_type"), is(true));
-
-		JSONObject testResponse = testRequest.getResponse();
-		JSONAssert.assertEquals(new JSONObject("{\"result\" : \"test output\"}"), testResponse, true);
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendRequestSyncBlockedByRemoveAllDevice() throws Exception {
-		TestRequest testRequest = new TestRequest("testParam", "testResult");
-		registrationPrefs.removeAllDeviceData().set(true);
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
-		Result<String, NetworkException> result = requestManager.sendRequestSync(testRequest);
-
-		assertThat(result.isSuccess(), is(false));
-		NetworkException exception = result.getException();
-		assertThat(exception.getMessage(), is("Device data was removed from Pushwoosh and all interactions were stopped"));
-		Assert.assertEquals(0, server.getRequestCount());
-	}
-
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void baseUrlSwitch() throws Exception {
-		String body = String.format("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200, \"base_url\" : \"%s\"}", requestUrl + "newUrl/");
-		server.enqueue(new MockResponse().setBody(body));
-		Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
-
-		assertThat(result.isSuccess(), is(true));
-		assertThat(result.getData(), is(equalTo("testResult")));
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testMethod")));
-
-//		assertThat(registrationPrefs.baseUrl().get(), is(equalTo(requestUrl + "/newUrl/")));
-
-		assertEquals(requestUrl + "newUrl/", registrationPrefs.baseUrl().get());
-
-		server.enqueue(new MockResponse().setBody(body));
-		requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
-		request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/newUrl/testMethod")));
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void badStatusCode() throws Exception {
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}").setResponseCode(503));
-		Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
-
-		assertThat(result.isSuccess(), is(false));
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testMethod")));
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void badPushwooshStatusCode() throws Exception {
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 201}"));
-		Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
-
-		assertThat(result.isSuccess(), is(false));
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testMethod")));
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void noPushwooshStatusCode() throws Exception {
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}}"));
-		Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
-
-		assertThat(result.isSuccess(), is(false));
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testMethod")));
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void badJsonResponse() throws Exception {
-		server.enqueue(new MockResponse().setBody("[]"));
-		Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
-
-		assertThat(result.isSuccess(), is(false));
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testMethod")));
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void noResponseKey() throws Exception {
-		TestRequest testRequest = new TestRequest("testParam", "testResult");
-		server.enqueue(new MockResponse().setBody("{\"status_code\" : 200}"));
-		Result<String, NetworkException> result = requestManager.sendRequestSync(testRequest);
-
-		assertThat(result.isSuccess(), is(true));
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testMethod")));
-		JSONAssert.assertEquals(new JSONObject(), testRequest.getResponse(), true);
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendBadParamsRequestSync() throws Exception {
-		TestBadParamsRequest testRequest = new TestBadParamsRequest();
-		server.enqueue(new MockResponse().setBody("{\"status_code\" : 200, \"response\" : null}"));
-		Result<Void, NetworkException> result = requestManager.sendRequestSync(testRequest);
-
-		assertThat(result.isSuccess(), is(false));
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendBadResponseRequestSync() throws Exception {
-		TestBadResponseRequest testRequest = new TestBadResponseRequest();
-		server.enqueue(new MockResponse().setBody("{\"status_code\" : 200, \"response\" : null}"));
-		Result<Void, NetworkException> result = requestManager.sendRequestSync(testRequest);
-
-		assertThat(result.isSuccess(), is(false));
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testBadResponse")));
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendRequestBlockedByRemoveAllDevice() throws Exception {
-		registrationPrefs.removeAllDeviceData().set(true);
-		TestRequest testRequest = new TestRequest("testParam", "testResult");
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
-		Callback<String, NetworkException> callback = CallbackWrapper.spy();
-		ArgumentCaptor<Result<String, NetworkException>> callbackCaptor = ArgumentCaptor.forClass(Result.class);
-
-		requestManager.sendRequest(testRequest, callback);
-		Thread.sleep(100); // wait for background executor
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		verify(callback).process(callbackCaptor.capture());
-		Result<String, NetworkException> result = callbackCaptor.getValue();
-		assertThat(result.isSuccess(), is(false));
-		NetworkException exception = result.getException();
-		assertThat(exception.getMessage(), is("Device data was removed from Pushwoosh and all interactions were stopped"));
-		assertThat(server.getRequestCount(), is(0));
-	}
-
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendRequestWithoutCallbackBlockedByRemoveAllDevice() throws Exception {
-		registrationPrefs.removeAllDeviceData().set(true);
-		TestRequest testRequest = new TestRequest("testParam", "testResult");
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
-
-		requestManager.sendRequest(testRequest);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		assertThat(server.getRequestCount(), is(0));
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendBadRequestWithoutCallback() throws Exception {
-		TestBadResponseRequest testRequest = new TestBadResponseRequest();
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
-
-		requestManager.sendRequest(testRequest);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		RecordedRequest request = server.takeRequest();
-		assertThat(request.getPath(), is(equalTo("/testBadResponse")));
-	}
-
-	@Test(timeout = TIMEOUT_TEST)
-	public void sendRequestWithCallback_callbackIsInvoked() throws Exception {
-		TestRequest testRequest = new TestRequest("testParam", "testResult");
-		server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
-		Callback<String, NetworkException> callback = CallbackWrapper.spy();
-		ArgumentCaptor<Result<String, NetworkException>> callbackCaptor = ArgumentCaptor.forClass(Result.class);
-
-		requestManager.sendRequest(testRequest, callback);
-
-		// Wait for background executor to complete and post callback to main thread
-		server.takeRequest();  // blocks until server receives request
-		Thread.sleep(100);     // small delay for callback to be posted to main looper
-
-		// Process main thread tasks (callback invocation)
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		verify(callback).process(callbackCaptor.capture());
-		Result<String, NetworkException> result = callbackCaptor.getValue();
-		assertThat(result.isSuccess(), is(true));
-		assertThat(result.getData(), is(equalTo("testResult")));
-	}
+    public static final int TIMEOUT_TEST = 10000;
+    private RegistrationPrefs registrationPrefs;
+    private MockWebServer server;
+    private String requestUrl;
+
+    // class under test
+    private PushwooshRequestManager requestManager;
+    private PushRegistrar pushRegistrarMock;
+
+    private static class TestRequest extends PushRequest<String> {
+        private final String param;
+        private final String result;
+        private JSONObject response;
+
+        public TestRequest(String param, String result) {
+            this.param = param;
+            this.result = result;
+        }
+
+        public JSONObject getResponse() {
+            return response;
+        }
+
+        @Override
+        public String getMethod() {
+            return "testMethod";
+        }
+
+        @NonNull @Override
+        protected String getHwid() throws InterruptedException {
+            return "test_hwid";
+        }
+
+        @Override
+        protected void buildParams(JSONObject params) throws JSONException {
+            params.put("param", this.param);
+        }
+
+        @Override
+        public String parseResponse(@NonNull JSONObject response) throws JSONException {
+            this.response = response;
+            return result;
+        }
+    }
+
+    private static class TestBadParamsRequest extends PushRequest<Void> {
+
+        @Override
+        public String getMethod() {
+            return "testBadParams";
+        }
+
+        @Override
+        protected void buildParams(JSONObject params) throws JSONException {
+            throw new JSONException("test invalid params");
+        }
+
+        @NonNull @Override
+        protected String getHwid() throws InterruptedException {
+            return "test_hwid";
+        }
+    }
+
+    private static class TestBadResponseRequest extends PushRequest<Void> {
+
+        @Override
+        public String getMethod() {
+            return "testBadResponse";
+        }
+
+        @Override
+        public Void parseResponse(@NonNull JSONObject response) throws JSONException {
+            throw new JSONException("test invalid response");
+        }
+
+        @NonNull @Override
+        protected String getHwid() throws InterruptedException {
+            return "test_hwid";
+        }
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        ShadowLog.stream = System.out;
+
+        server = new MockWebServer();
+        server.start();
+        HttpUrl baseUrl = server.url("/");
+        requestUrl = baseUrl.url().toString();
+
+        Config configMock = MockConfig.createMock();
+        when(configMock.getRequestUrl()).thenReturn(requestUrl);
+
+        AndroidPlatformModule.init(RuntimeEnvironment.application, true);
+
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(configMock, mock(DeviceRegistrar.class));
+        RepositoryModule.setRegistrationPreferences(registrationPrefs);
+
+        ServerCommunicationManager serverCommunicationManager = mock(ServerCommunicationManager.class);
+        Mockito.when(serverCommunicationManager.isServerCommunicationAllowed()).thenReturn(true);
+        requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager, false);
+        // baseRequestUrl is no longer snapshotted in the constructor; existing tests need an
+        // explicit prime to point at the mock server.
+        requestManager.updateBaseUrl(requestUrl);
+
+        pushRegistrarMock = mock(PushRegistrar.class);
+
+        new DeviceSpecificProvider.Builder()
+                .setDeviceSpecific(new TestDeviceSpecific(pushRegistrarMock))
+                .build(true);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        server.shutdown();
+        RepositoryTestManager.destroyRegistrationPrefs(registrationPrefs);
+        RepositoryModule.setRegistrationPreferences(null);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestSync() throws Exception {
+        TestRequest testRequest = new TestRequest("testParam", "testResult");
+        server.enqueue(
+                new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
+        Result<String, NetworkException> result = requestManager.sendRequestSync(testRequest);
+
+        assertThat(result.isSuccess(), is(true));
+        assertThat(result.getData(), is(equalTo("testResult")));
+
+        RecordedRequest request = server.takeRequest();
+        assertThat(request.getPath(), is(equalTo("/testMethod")));
+
+        JSONObject requestParams = new JSONObject(request.getBody().readUtf8()).getJSONObject("request");
+        assertThat(requestParams.getString("param"), is(equalTo("testParam")));
+        assertThat(requestParams.getString("application"), is(equalTo(MockConfig.APP_ID)));
+        assertThat(requestParams.has("v"), is(true));
+        assertThat(requestParams.has("hwid"), is(true));
+        assertThat(requestParams.has("device_type"), is(true));
+
+        JSONObject testResponse = testRequest.getResponse();
+        JSONAssert.assertEquals(new JSONObject("{\"result\" : \"test output\"}"), testResponse, true);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestSyncBlockedByRemoveAllDevice() throws Exception {
+        TestRequest testRequest = new TestRequest("testParam", "testResult");
+        registrationPrefs.removeAllDeviceData().set(true);
+        server.enqueue(
+                new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
+        Result<String, NetworkException> result = requestManager.sendRequestSync(testRequest);
+
+        assertThat(result.isSuccess(), is(false));
+        NetworkException exception = result.getException();
+        assertThat(
+                exception.getMessage(), is("Device data was removed from Pushwoosh and all interactions were stopped"));
+        Assert.assertEquals(0, server.getRequestCount());
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void baseUrlSwitch() throws Exception {
+        String body = String.format(
+                "{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200, \"base_url\" : \"%s\"}",
+                requestUrl + "newUrl/");
+        server.enqueue(new MockResponse().setBody(body));
+        Result<String, NetworkException> result =
+                requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+
+        assertThat(result.isSuccess(), is(true));
+        assertThat(result.getData(), is(equalTo("testResult")));
+
+        RecordedRequest request = server.takeRequest();
+        assertThat(request.getPath(), is(equalTo("/testMethod")));
+
+        //		assertThat(registrationPrefs.baseUrl().get(), is(equalTo(requestUrl + "/newUrl/")));
+
+        assertEquals(requestUrl + "newUrl/", registrationPrefs.baseUrl().get());
+
+        server.enqueue(new MockResponse().setBody(body));
+        requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+        request = server.takeRequest();
+        assertThat(request.getPath(), is(equalTo("/newUrl/testMethod")));
+    }
+
+    // Server-pushed base_url without trailing slash must be normalized so that subsequent
+    // request URL composition (base + method) produces a syntactically correct URL.
+    @Test(timeout = TIMEOUT_TEST)
+    public void baseUrlSwitch_serverUrlWithoutTrailingSlash_isNormalized() throws Exception {
+        String body = String.format(
+                "{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200, \"base_url\" : \"%s\"}",
+                requestUrl + "newUrl");
+        server.enqueue(new MockResponse().setBody(body));
+        requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+        server.takeRequest();
+
+        assertEquals(requestUrl + "newUrl/", registrationPrefs.baseUrl().get());
+
+        server.enqueue(new MockResponse().setBody(body));
+        requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+        RecordedRequest second = server.takeRequest();
+        assertThat(second.getPath(), is(equalTo("/newUrl/testMethod")));
+    }
+
+    // Server-pushed malformed base_url is rejected; in-memory and persisted state stay intact.
+    @Test(timeout = TIMEOUT_TEST)
+    public void baseUrlSwitch_serverMalformedUrl_isIgnored() throws Exception {
+        String body =
+                "{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200, \"base_url\" : \"not-a-url\"}";
+        server.enqueue(new MockResponse().setBody(body));
+        requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+        server.takeRequest();
+
+        // baseUrl in prefs is whatever updateBaseUrl(requestUrl) put there during setUp.
+        assertEquals(requestUrl, registrationPrefs.baseUrl().get());
+
+        server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"x\"}, \"status_code\" : 200}"));
+        requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+        RecordedRequest second = server.takeRequest();
+        assertThat(second.getPath(), is(equalTo("/testMethod")));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void badStatusCode() throws Exception {
+        server.enqueue(new MockResponse()
+                .setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}")
+                .setResponseCode(503));
+        Result<String, NetworkException> result =
+                requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+
+        assertThat(result.isSuccess(), is(false));
+
+        RecordedRequest request = server.takeRequest();
+        assertThat(request.getPath(), is(equalTo("/testMethod")));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void badPushwooshStatusCode() throws Exception {
+        server.enqueue(
+                new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 201}"));
+        Result<String, NetworkException> result =
+                requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+
+        assertThat(result.isSuccess(), is(false));
+
+        RecordedRequest request = server.takeRequest();
+        assertThat(request.getPath(), is(equalTo("/testMethod")));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void noPushwooshStatusCode() throws Exception {
+        server.enqueue(new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}}"));
+        Result<String, NetworkException> result =
+                requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+
+        assertThat(result.isSuccess(), is(false));
+
+        RecordedRequest request = server.takeRequest();
+        assertThat(request.getPath(), is(equalTo("/testMethod")));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void badJsonResponse() throws Exception {
+        server.enqueue(new MockResponse().setBody("[]"));
+        Result<String, NetworkException> result =
+                requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+
+        assertThat(result.isSuccess(), is(false));
+
+        RecordedRequest request = server.takeRequest();
+        assertThat(request.getPath(), is(equalTo("/testMethod")));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void noResponseKey() throws Exception {
+        TestRequest testRequest = new TestRequest("testParam", "testResult");
+        server.enqueue(new MockResponse().setBody("{\"status_code\" : 200}"));
+        Result<String, NetworkException> result = requestManager.sendRequestSync(testRequest);
+
+        assertThat(result.isSuccess(), is(true));
+
+        RecordedRequest request = server.takeRequest();
+        assertThat(request.getPath(), is(equalTo("/testMethod")));
+        JSONAssert.assertEquals(new JSONObject(), testRequest.getResponse(), true);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendBadParamsRequestSync() throws Exception {
+        TestBadParamsRequest testRequest = new TestBadParamsRequest();
+        server.enqueue(new MockResponse().setBody("{\"status_code\" : 200, \"response\" : null}"));
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(testRequest);
+
+        assertThat(result.isSuccess(), is(false));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendBadResponseRequestSync() throws Exception {
+        TestBadResponseRequest testRequest = new TestBadResponseRequest();
+        server.enqueue(new MockResponse().setBody("{\"status_code\" : 200, \"response\" : null}"));
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(testRequest);
+
+        assertThat(result.isSuccess(), is(false));
+
+        RecordedRequest request = server.takeRequest();
+        assertThat(request.getPath(), is(equalTo("/testBadResponse")));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestBlockedByRemoveAllDevice() throws Exception {
+        registrationPrefs.removeAllDeviceData().set(true);
+        TestRequest testRequest = new TestRequest("testParam", "testResult");
+        server.enqueue(
+                new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
+        Callback<String, NetworkException> callback = CallbackWrapper.spy();
+        ArgumentCaptor<Result<String, NetworkException>> callbackCaptor = ArgumentCaptor.forClass(Result.class);
+
+        requestManager.sendRequest(testRequest, callback);
+        Thread.sleep(100); // wait for background executor
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        verify(callback).process(callbackCaptor.capture());
+        Result<String, NetworkException> result = callbackCaptor.getValue();
+        assertThat(result.isSuccess(), is(false));
+        NetworkException exception = result.getException();
+        assertThat(
+                exception.getMessage(), is("Device data was removed from Pushwoosh and all interactions were stopped"));
+        assertThat(server.getRequestCount(), is(0));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestWithoutCallbackBlockedByRemoveAllDevice() throws Exception {
+        registrationPrefs.removeAllDeviceData().set(true);
+        TestRequest testRequest = new TestRequest("testParam", "testResult");
+        server.enqueue(
+                new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
+
+        requestManager.sendRequest(testRequest);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertThat(server.getRequestCount(), is(0));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendBadRequestWithoutCallback() throws Exception {
+        TestBadResponseRequest testRequest = new TestBadResponseRequest();
+        server.enqueue(
+                new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
+
+        requestManager.sendRequest(testRequest);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        RecordedRequest request = server.takeRequest();
+        assertThat(request.getPath(), is(equalTo("/testBadResponse")));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestSync_nullBaseUrl_noReverseProxy_returnsBlocked() throws Exception {
+        // Construct a fresh manager — baseRequestUrl is null, no reverse proxy.
+        ServerCommunicationManager serverCommunicationManager = mock(ServerCommunicationManager.class);
+        Mockito.when(serverCommunicationManager.isServerCommunicationAllowed()).thenReturn(true);
+        PushwooshRequestManager bare =
+                new PushwooshRequestManager(registrationPrefs, serverCommunicationManager, false);
+
+        Result<String, NetworkException> result = bare.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getException().getMessage(), is(equalTo("Base URL is not configured")));
+        assertThat(server.getRequestCount(), is(0));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestSync_nullBaseUrl_withReverseProxy_proceeds() throws Exception {
+        ServerCommunicationManager serverCommunicationManager = mock(ServerCommunicationManager.class);
+        Mockito.when(serverCommunicationManager.isServerCommunicationAllowed()).thenReturn(true);
+        PushwooshRequestManager bare =
+                new PushwooshRequestManager(registrationPrefs, serverCommunicationManager, false);
+        bare.setReverseProxyUrl(requestUrl, null);
+
+        server.enqueue(
+                new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
+        Result<String, NetworkException> result = bare.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(true));
+        assertThat(server.getRequestCount(), is(1));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestSync_afterUpdateBaseUrl_usesUpdatedUrl() throws Exception {
+        ServerCommunicationManager serverCommunicationManager = mock(ServerCommunicationManager.class);
+        Mockito.when(serverCommunicationManager.isServerCommunicationAllowed()).thenReturn(true);
+        PushwooshRequestManager bare =
+                new PushwooshRequestManager(registrationPrefs, serverCommunicationManager, false);
+        bare.updateBaseUrl(requestUrl);
+
+        server.enqueue(
+                new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
+        Result<String, NetworkException> result = bare.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(true));
+        RecordedRequest received = server.takeRequest();
+        assertThat(received.getPath(), is(equalTo("/testMethod")));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestWithCallback_callbackIsInvoked() throws Exception {
+        TestRequest testRequest = new TestRequest("testParam", "testResult");
+        server.enqueue(
+                new MockResponse().setBody("{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}"));
+        Callback<String, NetworkException> callback = CallbackWrapper.spy();
+        ArgumentCaptor<Result<String, NetworkException>> callbackCaptor = ArgumentCaptor.forClass(Result.class);
+
+        requestManager.sendRequest(testRequest, callback);
+
+        // Wait for background executor to complete and post callback to main thread
+        server.takeRequest(); // blocks until server receives request
+        Thread.sleep(100); // small delay for callback to be posted to main looper
+
+        // Process main thread tasks (callback invocation)
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        verify(callback).process(callbackCaptor.capture());
+        Result<String, NetworkException> result = callbackCaptor.getValue();
+        assertThat(result.isSuccess(), is(true));
+        assertThat(result.getData(), is(equalTo("testResult")));
+    }
 }
