@@ -311,7 +311,7 @@ public class PushwooshJSInterface {
                 }
             });
         } catch (Exception e) {
-            PWLog.error("failed to send /richMediaAction request:", e.getMessage());
+            PWLog.error(TAG, "failed to send /richMediaAction request", e);
             invokeCallback(errorCb, e.getLocalizedMessage());
         }
     }
@@ -428,7 +428,9 @@ public class PushwooshJSInterface {
         boolean registered = false;
         try {
             registered = PushwooshPlatform.getInstance().getRegistrationPrefs().isRegisteredForPush().get();
-        } catch (Exception ignore) {}
+        } catch (Exception e) {
+            PWLog.warn(TAG, "isRegisteredForPushNotifications JS bridge failed", e);
+        }
         invokeCallback(callback, registered ? "true" : "false");
     }
 

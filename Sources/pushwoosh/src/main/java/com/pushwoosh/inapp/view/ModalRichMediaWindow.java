@@ -300,7 +300,7 @@ public class ModalRichMediaWindow extends PopupWindow
                 EventBus.sendEvent(new InAppViewEvent(resource));
 
             } catch (Exception e) {
-                PWLog.error(TAG, "Failed to show modal rich media: " + e);
+                PWLog.error(TAG, "Failed to show modal rich media", e);
             }
         }
     }

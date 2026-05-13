@@ -51,6 +51,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private static final String TAG = "RegistrationPrefs";
 
     private static final String BASE_API_URL_FORMAT = "https://%s.api.pushwoosh.com/json/1.3/";
+    private static final String DEFAULT_TRACKING_URL = "https://tracking.svc-nue.pushwoosh.com/api/v2/device-api/";
 
     private static final String PREFERENCE = "com.pushwoosh.registration";
 
@@ -71,6 +72,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private static final String PROPERTY_LANGUAGE = "pw_language";
     private static final String PROPERTY_DENIED_NOTIFICATIONS = "pw_user_denied_notification_permission";
 
+    private static final String PROPERTY_ADVERTISING_ID = "pw_advertising_id";
     private static final String COMMUNICATION_ENABLE = "pw_communication_enable";
     private static final String REMOVE_ALL_DEVICE_DATA = "pw_remove_all_device_data";
     private static final String HWID = "pw_hwid";
@@ -89,6 +91,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private final PreferenceStringValue hwid;
     private final PreferenceStringValue apiToken;
     private final PreferenceStringValue language;
+    private final PreferenceStringValue advertisingId;
     private final Config config;
     private final DeviceRegistrar deviceRegistrar;
     private PreferenceBooleanValue registeredForPush;
@@ -142,6 +145,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         baseUrl = new PreferenceStringValue(preferences, PROPERTY_BASE_URL, "");
 
         hwid = new PreferenceStringValue(preferences, HWID, "");
+        advertisingId = new PreferenceStringValue(preferences, PROPERTY_ADVERTISING_ID, "");
         apiToken = new PreferenceStringValue(preferences, API_TOKEN, config.getApiToken());
         String defaultLocale = "en";
         language = new PreferenceStringValue(
@@ -183,6 +187,10 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
     public PreferenceStringValue userId() {
         return userId;
+    }
+
+    public PreferenceStringValue advertisingId() {
+        return advertisingId;
     }
 
     public PreferenceStringValue deviceId() {
@@ -256,26 +264,26 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
     @Nullable private static String normalizeBaseUrl(@Nullable String rawUrl) {
         if (TextUtils.isEmpty(rawUrl)) {
-            PWLog.warn(TAG, "Reject base URL: empty value");
+            PWLog.warn(TAG, "Reject URL: empty value");
             return null;
         }
         String trimmed = rawUrl.trim();
         if (TextUtils.isEmpty(trimmed)) {
-            PWLog.warn(TAG, "Reject base URL: whitespace-only value");
+            PWLog.warn(TAG, "Reject URL: whitespace-only value");
             return null;
         }
         if (containsWhitespace(trimmed)) {
-            PWLog.warn(TAG, "Reject base URL: contains whitespace: " + rawUrl);
+            PWLog.warn(TAG, "Reject URL: contains whitespace: " + rawUrl);
             return null;
         }
         if (!trimmed.startsWith("https://") && !trimmed.startsWith("http://")) {
-            PWLog.warn(TAG, "Reject base URL: scheme must be http(s)://: " + rawUrl);
+            PWLog.warn(TAG, "Reject URL: scheme must be http(s)://: " + rawUrl);
             return null;
         }
         try {
             new URL(trimmed);
         } catch (MalformedURLException e) {
-            PWLog.warn(TAG, "Reject base URL: malformed URL: " + rawUrl);
+            PWLog.warn(TAG, "Reject URL: malformed URL: " + rawUrl);
             return null;
         }
         return trimmed.endsWith("/") ? trimmed : trimmed + "/";
@@ -288,6 +296,11 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
             }
         }
         return false;
+    }
+
+    public String getTrackingUrl() {
+        String normalized = normalizeBaseUrl(config.getTrackingUrl());
+        return normalized != null ? normalized : DEFAULT_TRACKING_URL;
     }
 
     public void removeAppId() {

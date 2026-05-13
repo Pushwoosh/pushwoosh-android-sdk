@@ -37,6 +37,8 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
  */
 
 public class AppVersionProvider {
+	private static final String TAG = "AppVersionProvider";
+
 	public int getCurrentVersion() {
 		Context context = AndroidPlatformModule.getApplicationContext();
 		int version = 0;
@@ -46,7 +48,7 @@ public class AppVersionProvider {
 			version = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			PWLog.error(TAG, "Failed to read current package version", e);
 		}
 		return version;
 	}
@@ -64,7 +66,7 @@ public class AppVersionProvider {
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			PWLog.error(TAG, "Failed to read LastLaunchVersion from prefs", e);
 		}
 		return null;
 	}
@@ -74,7 +76,7 @@ public class AppVersionProvider {
 			getPrefs().edit().putInt("LastLaunchVersion", getCurrentVersion()).apply();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			PWLog.error(TAG, "Failed to write LastLaunchVersion to prefs", e);
 		}
 	}
 

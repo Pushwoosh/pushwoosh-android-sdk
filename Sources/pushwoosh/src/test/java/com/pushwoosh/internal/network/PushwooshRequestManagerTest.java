@@ -27,8 +27,12 @@
 package com.pushwoosh.internal.network;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -66,6 +70,9 @@ import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
@@ -119,6 +126,37 @@ public class PushwooshRequestManagerTest {
         public String parseResponse(@NonNull JSONObject response) throws JSONException {
             this.response = response;
             return result;
+        }
+    }
+
+    private static class FlatPayloadTestRequest extends PushRequest<Void> {
+        private final String value;
+
+        FlatPayloadTestRequest(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String getMethod() {
+            return "flatMethod";
+        }
+
+        @Override
+        public boolean shouldWrapRequest() {
+            return false;
+        }
+
+        @NonNull @Override
+        protected String getHwid() throws InterruptedException {
+            return "test_hwid";
+        }
+
+        @Override
+        protected JSONObject getParams() throws JSONException, InterruptedException {
+            JSONObject params = new JSONObject();
+            params.put("hwid", getHwid());
+            params.put("custom", value);
+            return params;
         }
     }
 
@@ -499,5 +537,313 @@ public class PushwooshRequestManagerTest {
         Result<String, NetworkException> result = callbackCaptor.getValue();
         assertThat(result.isSuccess(), is(true));
         assertThat(result.getData(), is(equalTo("testResult")));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void reverseProxy_active_requestGoesToProxyUrl() throws Exception {
+        MockWebServer proxyServer = new MockWebServer();
+        proxyServer.start();
+        try {
+            String proxyUrl = proxyServer.url("/").toString();
+            requestManager.setReverseProxyUrl(proxyUrl, null);
+            proxyServer.enqueue(
+                    new MockResponse().setBody("{\"response\" : {\"result\" : \"x\"}, \"status_code\" : 200}"));
+
+            Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("p", "r"));
+
+            assertThat(result.isSuccess(), is(true));
+            assertThat(server.getRequestCount(), is(0));
+            assertThat(proxyServer.getRequestCount(), is(1));
+            RecordedRequest rec = proxyServer.takeRequest();
+            assertThat(rec.getPath(), is(equalTo("/testMethod")));
+        } finally {
+            proxyServer.shutdown();
+        }
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void reverseProxy_active_customHeadersApplied() throws Exception {
+        MockWebServer proxyServer = new MockWebServer();
+        proxyServer.start();
+        try {
+            String proxyUrl = proxyServer.url("/").toString();
+            Map<String, String> headers = new HashMap<>();
+            headers.put("X-Custom-Auth", "abc123");
+            headers.put("X-Tenant", "tenant-42");
+            requestManager.setReverseProxyUrl(proxyUrl, headers);
+            proxyServer.enqueue(
+                    new MockResponse().setBody("{\"response\" : {\"result\" : \"x\"}, \"status_code\" : 200}"));
+
+            requestManager.sendRequestSync(new TestRequest("p", "r"));
+
+            RecordedRequest rec = proxyServer.takeRequest();
+            assertThat(rec.getHeader("X-Custom-Auth"), is("abc123"));
+            assertThat(rec.getHeader("X-Tenant"), is("tenant-42"));
+            assertThat(rec.getHeader("Authorization"), startsWith("Token "));
+            assertThat(rec.getHeader("Content-Type"), containsString("application/json"));
+        } finally {
+            proxyServer.shutdown();
+        }
+    }
+
+    // Reverse proxy active: server-pushed base_url must NOT cause rotation, even though
+    // the equals(baseUrl, baseRequestUrl) part of the rotation invariant is satisfied.
+    @Test(timeout = TIMEOUT_TEST)
+    public void reverseProxy_active_rotationSuppressed_evenWithBaseUrlInResponse() throws Exception {
+        MockWebServer proxyServer = new MockWebServer();
+        proxyServer.start();
+        try {
+            String proxyUrl = proxyServer.url("/").toString();
+            requestManager.setReverseProxyUrl(proxyUrl, null);
+            String body = "{\"status_code\":200,\"response\":{},\"base_url\":\"" + requestUrl + "rotated/\"}";
+            proxyServer.enqueue(new MockResponse().setBody(body));
+            String before = registrationPrefs.baseUrl().get();
+
+            requestManager.sendRequestSync(new TestRequest("p", "r"));
+
+            assertEquals(before, registrationPrefs.baseUrl().get());
+        } finally {
+            proxyServer.shutdown();
+        }
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void reverseProxy_required_butNotConfigured_blocks() throws Exception {
+        ServerCommunicationManager scm = mock(ServerCommunicationManager.class);
+        when(scm.isServerCommunicationAllowed()).thenReturn(true);
+        PushwooshRequestManager strict = new PushwooshRequestManager(registrationPrefs, scm, true);
+        strict.updateBaseUrl(requestUrl);
+
+        Result<String, NetworkException> result = strict.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getException().getMessage(), is("Reverse proxy is required but not configured"));
+        assertThat(server.getRequestCount(), is(0));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void callerProvidedBaseUrl_differsFromCurrent_rotationSkipped() throws Exception {
+        String otherUrl = server.url("/other/").toString();
+        String body = "{\"status_code\":200,\"response\":{},\"base_url\":\"" + requestUrl + "rotated/\"}";
+        server.enqueue(new MockResponse().setBody(body));
+        String before = registrationPrefs.baseUrl().get();
+
+        Callback<String, NetworkException> callback = CallbackWrapper.spy();
+        ArgumentCaptor<Result<String, NetworkException>> captor = ArgumentCaptor.forClass(Result.class);
+        requestManager.sendRequest(new TestRequest("p", "r"), otherUrl, callback);
+        server.takeRequest();
+        Thread.sleep(100);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        verify(callback).process(captor.capture());
+
+        // Caller's baseUrl != sticky baseRequestUrl -> equals is false -> rotation skipped
+        assertEquals(before, registrationPrefs.baseUrl().get());
+    }
+
+    // Captures brittle equals-based rotation contract: caller passing the exact same URL
+    // as baseRequestUrl satisfies equals=true and rotation kicks in. The planned `Endpoint`
+    // refactor must keep this behavior identical.
+    @Test(timeout = TIMEOUT_TEST)
+    public void callerProvidedBaseUrl_sameAsCurrent_rotationApplies() throws Exception {
+        String body = "{\"status_code\":200,\"response\":{},\"base_url\":\"" + requestUrl + "rotated/\"}";
+        server.enqueue(new MockResponse().setBody(body));
+
+        Callback<String, NetworkException> callback = CallbackWrapper.spy();
+        ArgumentCaptor<Result<String, NetworkException>> captor = ArgumentCaptor.forClass(Result.class);
+        requestManager.sendRequest(new TestRequest("p", "r"), requestUrl, callback);
+        server.takeRequest();
+        Thread.sleep(100);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        verify(callback).process(captor.capture());
+
+        assertEquals(requestUrl + "rotated/", registrationPrefs.baseUrl().get());
+    }
+
+    // HTTP 4xx with empty body: Manager synthesizes envelope and overloads pushwooshStatus
+    // with the HTTP-level statusCode. Both codes equal the HTTP value.
+    @Test(timeout = TIMEOUT_TEST)
+    public void error_4xx_emptyBody_returnsConnectionExceptionWithCodes() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(404));
+
+        Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(false));
+        NetworkException ex = result.getException();
+        assertThat(ex, instanceOf(ConnectionException.class));
+        ConnectionException ce = (ConnectionException) ex;
+        assertThat(ce.getStatusCode(), is(404));
+        assertThat(ce.getPushwooshStatusCode(), is(404));
+        assertThat(ex.getMessage(), containsString("\"status_code\":404"));
+    }
+
+    // HTTP 5xx with empty body: same synthetic envelope as 4xx — both codes = HTTP value.
+    @Test(timeout = TIMEOUT_TEST)
+    public void error_5xx_emptyBody_returnsConnectionExceptionWithCodes() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(503));
+
+        Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(false));
+        NetworkException ex = result.getException();
+        assertThat(ex, instanceOf(ConnectionException.class));
+        ConnectionException ce = (ConnectionException) ex;
+        assertThat(ce.getStatusCode(), is(503));
+        assertThat(ce.getPushwooshStatusCode(), is(503));
+        assertThat(ex.getMessage(), containsString("\"status_code\":503"));
+    }
+
+    // HTTP 4xx with a parseable JSON envelope in body: body overrides the synthetic envelope.
+    // pushwooshStatusCode is taken from the body's status_code field, not the HTTP status.
+    @Test(timeout = TIMEOUT_TEST)
+    public void error_4xx_withParseableBody_bodyOverridesSynthetic() throws Exception {
+        server.enqueue(
+                new MockResponse().setResponseCode(404).setBody("{\"status_code\":210,\"status_message\":\"Quota\"}"));
+
+        Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(false));
+        NetworkException ex = result.getException();
+        assertThat(ex, instanceOf(ConnectionException.class));
+        ConnectionException ce = (ConnectionException) ex;
+        assertThat(ce.getStatusCode(), is(404));
+        assertThat(ce.getPushwooshStatusCode(), is(210));
+        assertThat(ex.getMessage(), containsString("\"status_code\":210"));
+        assertThat(ex.getMessage(), containsString("\"status_message\":\"Quota\""));
+    }
+
+    // HTTP 4xx with a parseable JSON body that lacks status_code: body still overrides the synthetic
+    // envelope for the message, but pushwooshStatusCode stays = HTTP status (synthetic survives the
+    // swallowed JSONException from envelope.getInt("status_code")).
+    @Test(timeout = TIMEOUT_TEST)
+    public void error_4xx_withParseableBodyNoStatusCode_messageFromBodyCodesFromSynthetic() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(404).setBody("{\"detail\":\"not found\"}"));
+
+        Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(false));
+        NetworkException ex = result.getException();
+        assertThat(ex, instanceOf(ConnectionException.class));
+        ConnectionException ce = (ConnectionException) ex;
+        assertThat(ce.getStatusCode(), is(404));
+        assertThat(ce.getPushwooshStatusCode(), is(404));
+        assertThat(ex.getMessage(), containsString("\"detail\":\"not found\""));
+    }
+
+    // JSONException from request.parseResponse() gets narrowed to ConnectionException
+    // on the fail-path. Codes reflect the (successful) HTTP/Pushwoosh response.
+    @Test(timeout = TIMEOUT_TEST)
+    public void parseResponse_throwsJsonException_resultIsConnectionException() throws Exception {
+        TestBadResponseRequest req = new TestBadResponseRequest();
+        server.enqueue(new MockResponse().setBody("{\"status_code\":200,\"response\":{}}"));
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(req);
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getException(), instanceOf(ConnectionException.class));
+        ConnectionException ce = (ConnectionException) result.getException();
+        assertThat(ce.getStatusCode(), is(200));
+        assertThat(ce.getPushwooshStatusCode(), is(200));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void serverCommunicationStopped_returnsBlocked() throws Exception {
+        ServerCommunicationManager scm = mock(ServerCommunicationManager.class);
+        when(scm.isServerCommunicationAllowed()).thenReturn(false);
+        PushwooshRequestManager m = new PushwooshRequestManager(registrationPrefs, scm, false);
+        m.updateBaseUrl(requestUrl);
+
+        Result<String, NetworkException> result = m.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(
+                result.getException().getMessage(),
+                is("Server communication stopped. Call Pushwoosh.startServerCommunication() to resume"));
+        assertThat(server.getRequestCount(), is(0));
+    }
+
+    // IOException on connect (closed port) is narrowed to ConnectionException with codes = 0.
+    // Critical contract before extract HttpTransport.
+    @Test(timeout = TIMEOUT_TEST)
+    public void connectFails_returnsConnectionException() throws Exception {
+        MockWebServer dead = new MockWebServer();
+        dead.start();
+        String deadUrl = dead.url("/").toString();
+        dead.shutdown(); // port closed — connect will fail
+
+        ServerCommunicationManager scm = mock(ServerCommunicationManager.class);
+        when(scm.isServerCommunicationAllowed()).thenReturn(true);
+        PushwooshRequestManager m = new PushwooshRequestManager(registrationPrefs, scm, false);
+        m.updateBaseUrl(deadUrl);
+
+        Result<String, NetworkException> result = m.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getException(), instanceOf(ConnectionException.class));
+        ConnectionException ce = (ConnectionException) result.getException();
+        assertThat(ce.getStatusCode(), is(0));
+        assertThat(ce.getPushwooshStatusCode(), is(0));
+    }
+
+    // HTTP 200 + empty body: Content-Length is 0 → Manager skips body parsing →
+    // pushwooshStatus stays at 0 → fail-path with statusCode=200, pushwooshStatusCode=0.
+    // Snapshots the `getContentLength() != 0` boundary at line 251 of PushwooshRequestManager.
+    @Test(timeout = TIMEOUT_TEST)
+    public void httpOk_contentLengthZero_returnsFailWithPushwooshStatusZero() throws Exception {
+        server.enqueue(new MockResponse()); // default: HTTP 200, empty body, Content-Length: 0
+
+        Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("p", "r"));
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getException(), instanceOf(ConnectionException.class));
+        ConnectionException ce = (ConnectionException) result.getException();
+        assertThat(ce.getStatusCode(), is(200));
+        assertThat(ce.getPushwooshStatusCode(), is(0));
+    }
+
+    // Envelope contract: default shouldWrapRequest()=true wraps payload in {"request": ...}.
+    @Test(timeout = TIMEOUT_TEST)
+    public void shouldWrapRequest_true_payloadWrappedInRequestKey() throws Exception {
+        server.enqueue(new MockResponse().setBody("{\"status_code\":200,\"response\":{}}"));
+
+        requestManager.sendRequestSync(new TestRequest("testParam", "testResult"));
+
+        RecordedRequest rec = server.takeRequest();
+        JSONObject body = new JSONObject(rec.getBody().readUtf8());
+        assertThat(body.has("request"), is(true));
+        JSONObject inner = body.getJSONObject("request");
+        assertThat(inner.getString("param"), is(equalTo("testParam")));
+        assertThat(inner.has("hwid"), is(true));
+    }
+
+    // Envelope contract: shouldWrapRequest()=false sends a flat payload — no "request" wrapper.
+    // This is the contract for the tracking endpoint (setMADID).
+    @Test(timeout = TIMEOUT_TEST)
+    public void shouldWrapRequest_false_payloadIsFlat() throws Exception {
+        server.enqueue(new MockResponse().setBody("{\"status_code\":200,\"response\":{}}"));
+
+        requestManager.sendRequestSync(new FlatPayloadTestRequest("v1"));
+
+        RecordedRequest rec = server.takeRequest();
+        JSONObject body = new JSONObject(rec.getBody().readUtf8());
+        assertThat(body.has("request"), is(false));
+        assertThat(body.getString("custom"), is(equalTo("v1")));
+        assertThat(body.getString("hwid"), is(equalTo("test_hwid")));
+    }
+
+    // Wire format in non-proxy mode: Authorization, Content-Type, Content-Length.
+    // Existing sendRequestSync test verifies request body shape; this one asserts
+    // headers and that Content-Length matches the actual request body size.
+    @Test(timeout = TIMEOUT_TEST)
+    public void wireFormat_normalMode_authHeadersAndContentLength() throws Exception {
+        server.enqueue(new MockResponse().setBody("{\"status_code\":200,\"response\":{}}"));
+
+        requestManager.sendRequestSync(new TestRequest("p", "r"));
+
+        RecordedRequest rec = server.takeRequest();
+        assertThat(rec.getHeader("Authorization"), startsWith("Token "));
+        assertThat(rec.getHeader("Content-Type"), containsString("application/json"));
+        String contentLength = rec.getHeader("Content-Length");
+        assertThat(contentLength, is(notNullValue()));
+        assertEquals((long) Integer.parseInt(contentLength), rec.getBodySize());
     }
 }

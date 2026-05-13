@@ -90,7 +90,7 @@ public class MigrationScheme {
 
 			scheme.put(key, value);
 		} catch (Exception e) {
-			PWLog.noise(TAG, "Failed providing data with key: " + key);
+			PWLog.noise(TAG, "Failed providing data with key: " + key, e);
 		}
 	}
 
@@ -125,8 +125,8 @@ public class MigrationScheme {
 
 		final SharedPreferences.Editor edit = sharedPreferences.edit();
 		for (Map.Entry<String, Object> entry : scheme.entrySet()) {
+			final String key = entry.getKey();
 			try {
-				final String key = entry.getKey();
 				final Object value = entry.getValue();
 				if (value instanceof Boolean) {
 					edit.putBoolean(key, (Boolean) value);
@@ -140,7 +140,7 @@ public class MigrationScheme {
 					PWLog.noise(TAG, "Unknown format for key: " + key);
 				}
 			} catch (Exception e) {
-				PWLog.noise(TAG, "Failed put value to editor");
+				PWLog.noise(TAG, "Failed put value to editor for key: " + key, e);
 			}
 		}
 		edit.apply();

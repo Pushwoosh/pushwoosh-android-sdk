@@ -17,7 +17,11 @@ public abstract class PushRequest<S> {
 
     public abstract String getMethod();
 
-    JSONObject getParams() throws JSONException, InterruptedException {
+    public boolean shouldWrapRequest() {
+        return true;
+    }
+
+    protected JSONObject getParams() throws JSONException, InterruptedException {
         final JSONObject baseParams = new JSONObject();
 
         baseParams.put("application", getApplicationId());
@@ -25,7 +29,7 @@ public abstract class PushRequest<S> {
         baseParams.put("hwid", hwid);
         baseParams.put("v", GeneralUtils.SDK_VERSION);
 
-        //check for Amazon (Kindle) or Google device
+        // check for Amazon (Kindle) or Google device
         baseParams.put("device_type", DeviceSpecificProvider.getInstance().deviceType());
 
         String currentUserId = getUserId();
@@ -38,8 +42,7 @@ public abstract class PushRequest<S> {
         return baseParams;
     }
 
-    @NonNull
-    protected String getHwid() throws InterruptedException {
+    @NonNull protected String getHwid() throws InterruptedException {
         return PushwooshPlatform.getInstance().pushwooshRepository().getHwid();
     }
 
@@ -66,8 +69,7 @@ public abstract class PushRequest<S> {
      * @param response - JSONObject response
      * @return Response model which connected with this request.
      */
-    @Nullable
-    public S parseResponse(@NonNull JSONObject response) throws JSONException {
+    @Nullable public S parseResponse(@NonNull JSONObject response) throws JSONException {
         return null;
     }
 }

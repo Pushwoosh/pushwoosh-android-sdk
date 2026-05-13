@@ -400,7 +400,7 @@ public class TagsBundle {
 			try {
 				tags.put(key, value);
 			} catch (Exception e) {
-				PWLog.error("Failed to put String tag in TagsBundle:" + e);
+				PWLog.error("Failed to put String tag in TagsBundle", e);
 			}
 			return this;
 		}

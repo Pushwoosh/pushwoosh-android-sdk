@@ -21,6 +21,7 @@ buildscript {
         classpath libs.google.services
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
         classpath "com.diffplug.spotless:spotless-plugin-gradle:$spotless_version"
+        classpath 'com.adarshr:gradle-test-logger-plugin:4.0.0'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -40,7 +41,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 36
     ext.global_targetVersion = 36
-    ext.global_versionName = "6.7.67"
+    ext.global_versionName = "6.8.0"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"
@@ -87,6 +88,30 @@ subprojects {
         // Store visibility enum reference for use in applied scripts (Dokka 2.0 VisibilityModifier)
         ext.dokkaVisibilityPublic = org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Public
         ext.dokkaVisibilityProtected = org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Protected
+    }
+}
+
+// ============================================
+// Test Logger Configuration
+// ============================================
+// Applied to all modules with Test tasks. Default output is silent on success
+// and verbose on failure. Adjust per-run via -Pverbose=true to also print passed
+// tests (useful when you suspect a hung test and want to see progress).
+
+subprojects {
+    apply plugin: 'com.adarshr.test-logger'
+
+    testlogger {
+        theme 'plain'
+        showPassed project.hasProperty('verbose')
+        showSkipped false
+        showFailed true
+        showSummary true
+        showStandardStreams false
+        showExceptions true
+        showCauses true
+        showStackTraces true
+        slowThreshold 2000
     }
 }
 

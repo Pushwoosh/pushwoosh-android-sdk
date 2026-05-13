@@ -13,14 +13,11 @@ import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.network.RequestStorage;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
-import com.pushwoosh.internal.platform.app.AppInfoProvider;
-import com.pushwoosh.internal.platform.prefs.PrefsProvider;
 import com.pushwoosh.internal.platform.utils.DeviceUtils;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.utils.AppVersionProvider;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.internal.utils.TimeProvider;
 import com.pushwoosh.internal.utils.UUIDFactory;
 import com.pushwoosh.notification.NotificationServiceExtension;
 import com.pushwoosh.notification.PushMessageFactory;
@@ -36,15 +33,16 @@ import com.pushwoosh.richmedia.RichMediaFactory;
 import com.pushwoosh.richmedia.RichMediaStyle;
 import com.pushwoosh.richmedia.animation.RichMediaAnimationSlideBottom;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class PushwooshPlatform {
-    private static boolean notified = false;
+    private static final AtomicBoolean notified = new AtomicBoolean(false);
     private com.pushwoosh.internal.utils.UUIDFactory UUIDFactory;
     private PushMessageFactory pushMessageFactory;
 
     public static void notifyNotInitialized() {
-        if (!notified) {
+        if (notified.compareAndSet(false, true)) {
             PWLog.warn(TAG, "Pushwoosh library not initialized. All method calls will be ignored");
-            notified = true;
         }
     }
 
@@ -67,7 +65,7 @@ public class PushwooshPlatform {
     private Activity topActivity;
     private PushwooshDefaultEvents pushwooshDefaultEvents;
     private PushRegistrarHelper pushRegistrarHelper;
-    
+
     public PushMessageFactory getPushMessageFactory() {
         return pushMessageFactory;
     }
@@ -107,13 +105,15 @@ public class PushwooshPlatform {
         pushwooshInApp = new PushwooshInAppImpl(new PushwooshInAppServiceImpl(), serverCommunicationManager);
         pushMessageFactory = new PushMessageFactory();
 
-        appVersionProvider = new AppVersionProvider(AndroidPlatformModule.getPrefsProvider().providePrefs("PWAppVersion"));
+        appVersionProvider =
+                new AppVersionProvider(AndroidPlatformModule.getPrefsProvider().providePrefs("PWAppVersion"));
 
         RequestManager requestManager = NetworkModule.getRequestManager();
         SendTagsProcessor sendTagsProcessor = new SendTagsProcessor();
         NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
         RequestStorage requestStorage = RepositoryModule.getRequestStorage();
-        pushwooshRepository = new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage);
+        pushwooshRepository = new PushwooshRepository(
+                requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage);
 
         richMediaStyle = new RichMediaStyle(0, new RichMediaAnimationSlideBottom());
         richMediaController = new RichMediaController(
@@ -162,7 +162,6 @@ public class PushwooshPlatform {
         return richMediaController;
     }
 
-
     public UUIDFactory getUUIDFactory() {
         return UUIDFactory;
     }
@@ -192,6 +191,7 @@ public class PushwooshPlatform {
     public void onApplicationCreated() {
         pushwooshStartWorker.onApplicationCreated();
     }
+
     AppVersionProvider getAppVersionProvider() {
         return appVersionProvider;
     }

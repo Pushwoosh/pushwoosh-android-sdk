@@ -29,6 +29,7 @@ package com.pushwoosh.internal.utils;
 import androidx.annotation.ColorInt;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.Plugin;
 import com.pushwoosh.internal.PluginProvider;
@@ -53,6 +54,11 @@ public interface Config {
      * @return Overrides the Pushwoosh server base url.
      */
     String getRequestUrl();
+
+    /**
+     * @return Overrides the tracking base url for advertising ID requests.
+     */
+    @Nullable String getTrackingUrl();
 
     /**
      * @return Custom NotificationServiceExtension.

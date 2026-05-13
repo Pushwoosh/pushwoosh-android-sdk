@@ -138,8 +138,8 @@ public class GeneralUtils {
 					files.add(name);
 				}
 			}
-		} catch (Exception ignore) {
-			//stil nothing
+		} catch (Exception e) {
+			PWLog.noise("Failed to enumerate raw resources for sound files", e);
 		}
 
 		//iterate the files from file:///android_asset/www/res (for Phonegap)
@@ -163,7 +163,7 @@ public class GeneralUtils {
 		} catch (IOException e) {
 			PWLog.exception(e);
 		} catch (Exception e) {
-			//stil nothing
+			PWLog.noise("Failed to enumerate www/res sound files", e);
 		}
 
 		return files;

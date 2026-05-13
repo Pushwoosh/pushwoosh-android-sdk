@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.work.WorkerParameters;
 
 import com.pushwoosh.internal.utils.NotificationRegistrarHelper;
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.work.BasePushwooshWorker;
 import com.pushwoosh.repository.RepositoryModule;
 
@@ -34,6 +35,7 @@ public class HandleMessageWorker extends BasePushwooshWorker {
         try {
             pushBundle = RepositoryModule.getPushBundleStorage().getPushBundle(id);
         } catch (Throwable e) {
+            PWLog.error(TAG, "Failed to read push bundle id=" + id, e);
             return onFailure();
         }
         if (pushBundle == null) {

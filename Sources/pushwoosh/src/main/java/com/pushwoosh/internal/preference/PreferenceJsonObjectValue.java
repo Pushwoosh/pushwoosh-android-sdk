@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PreferenceJsonObjectValue implements PreferenceValue {
+	private static final String TAG = "PreferenceJsonObjectValue";
+
 	@Nullable
 	private final SharedPreferences preferences;
 	private final String key;
@@ -102,7 +104,7 @@ public class PreferenceJsonObjectValue implements PreferenceValue {
 			String[] namesArray = namesList.toArray(new String[0]);
 			return new JSONObject(original, namesArray);
 		} catch (JSONException e) {
-			e.printStackTrace();
+			PWLog.error(TAG, "Failed to copy JSON object for key: " + key, e);
 			return null;
 		}
 	}

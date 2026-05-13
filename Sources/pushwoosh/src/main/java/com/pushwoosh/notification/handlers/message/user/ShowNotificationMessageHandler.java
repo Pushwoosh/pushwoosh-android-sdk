@@ -152,7 +152,7 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 			contentIntent.putExtra(EXTRA_NOTIFICATION_ROW_ID, notificationId);
 			deleteIntent = getDeleteIntent(notificationId, summaryNotificationId, data);
 		} catch (Exception e) {
-			// ignore
+			PWLog.error(TAG, "Failed to register group push bundle for tag=" + tag, e);
 		}
 
 		notification.contentIntent = PendingIntent.getActivity(context, messageId, contentIntent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));

@@ -93,7 +93,7 @@ public class CrashReport {
             baos.close();
             trace.put("raw", baos.toString("UTF-8"));
         } catch (Exception e) {
-            PWLog.warn(TAG, e.getMessage());
+            PWLog.warn(TAG, "Failed to capture raw stack trace", e);
         }
         trace.put("frames", frames);
         trace.put("exception", getExceptionJson(throwable));

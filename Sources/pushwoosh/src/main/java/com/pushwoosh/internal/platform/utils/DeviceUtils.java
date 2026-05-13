@@ -49,6 +49,7 @@ import androidx.annotation.Nullable;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.PushwooshSharedDataProvider;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
@@ -58,6 +59,8 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 public class DeviceUtils {
+
+    private static final String TAG = "DeviceUtils";
     private static final int GET_UUID_TASK_TIMEOUT = 10000;
 
     private static DeviceUUID DEVICE_RANDOM_UUID = new DeviceRandomUUID();
@@ -291,7 +294,7 @@ public class DeviceUtils {
                 tryGetSharedUuidTask.execute();
             }
             catch (Exception e) {
-                e.printStackTrace();
+                PWLog.error(TAG, "Failed to query shared UUID provider", e);
                 uuidCallback.onGetSharedUuid(null);
             }
         }
@@ -353,7 +356,7 @@ public class DeviceUtils {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                PWLog.error(TAG, "Failed to get UUID from foreign instance", e);
             }
             return result;
         }

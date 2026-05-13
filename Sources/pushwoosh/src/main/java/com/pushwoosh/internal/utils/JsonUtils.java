@@ -20,6 +20,8 @@ import java.util.Set;
 
 @SuppressWarnings("WeakerAccess")
 public final class JsonUtils {
+    private static final String TAG = "JsonUtils";
+
     @NonNull
     public static Map<String, Object> jsonToMap(@Nullable JSONObject jsonObject, boolean convertSubobjectToString) throws JSONException {
         Map<String, Object> map = new HashMap<>();
@@ -279,7 +281,7 @@ public final class JsonUtils {
             Map<String, Object> map = jsonToMap(jsonObject, convertSubobjectsToString);
             return mapToBundle(map);
         } catch (JSONException ex) {
-            ex.printStackTrace();
+            PWLog.error(TAG, "Failed to convert json string to bundle", ex);
         }
         return new Bundle();
     }

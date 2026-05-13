@@ -96,7 +96,7 @@ public class ResourceMapper {
 
         } catch (Exception e) {
             // Not error. Early inapps do not contain pushwoosh.json
-            PWLog.warn(TAG, "Failed to process html: " + e.getMessage());
+            PWLog.warn(TAG, "Failed to process html", e);
         }
 
         return content;

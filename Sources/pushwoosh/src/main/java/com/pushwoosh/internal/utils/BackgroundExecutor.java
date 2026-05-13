@@ -3,6 +3,8 @@ package com.pushwoosh.internal.utils;
 import android.os.Handler;
 import android.os.Looper;
 
+import androidx.annotation.NonNull;
+
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -29,7 +31,7 @@ public final class BackgroundExecutor {
      * Execute task on dedicated network thread.
      * HTTP requests run sequentially to avoid race conditions.
      */
-    public static void network(Runnable task) {
+    public static void network(@NonNull Runnable task) {
         NETWORK.execute(wrapWithErrorHandling(task));
     }
 
@@ -37,7 +39,7 @@ public final class BackgroundExecutor {
      * Execute task on serial executor.
      * Tasks run sequentially in FIFO order.
      */
-    public static void execute(Runnable task) {
+    public static void execute(@NonNull Runnable task) {
         SERIAL.execute(wrapWithErrorHandling(task));
     }
 
@@ -45,7 +47,7 @@ public final class BackgroundExecutor {
      * Execute task on parallel executor.
      * Tasks run concurrently on cached thread pool.
      */
-    public static void executeOnPool(Runnable task) {
+    public static void executeOnPool(@NonNull Runnable task) {
         PARALLEL.execute(wrapWithErrorHandling(task));
     }
 
@@ -53,11 +55,11 @@ public final class BackgroundExecutor {
      * Post task to main thread.
      * Use for callbacks that may update UI.
      */
-    public static void main(Runnable task) {
-        MainHandlerHolder.INSTANCE.post(task);
+    public static void main(@NonNull Runnable task) {
+        MainHandlerHolder.INSTANCE.post(wrapWithErrorHandling(task));
     }
 
-    private static Runnable wrapWithErrorHandling(Runnable task) {
+    private static Runnable wrapWithErrorHandling(@NonNull Runnable task) {
         return () -> {
             try {
                 task.run();

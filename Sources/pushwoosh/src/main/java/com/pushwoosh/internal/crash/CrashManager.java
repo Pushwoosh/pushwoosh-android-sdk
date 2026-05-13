@@ -93,7 +93,7 @@ class CrashManager {
                 migrateCrashAnalytics();
                 sendCrashes();
             } catch (Exception e) {
-                PWLog.debug("Exception occurred while executing CrashManager:\n" + e.getMessage());
+                PWLog.debug("Exception occurred while executing CrashManager", e);
             }
         } else {
             PWLog.debug("No stacktraces were found.");
@@ -127,8 +127,8 @@ class CrashManager {
                     confirmedFilenames = Arrays.asList(
                             preferences.getString(CONFIRMED_FILENAMES_KEY, "").split("\\|"));
                 }
-            } catch (Exception ignored) {
-                // ignore
+            } catch (Exception e) {
+                PWLog.warn("Failed to read confirmed crash filenames", e);
             }
 
             if (confirmedFilenames != null) {
@@ -209,7 +209,7 @@ class CrashManager {
                         + urlConnection.getResponseMessage());
             }
         } catch (Exception e) {
-            PWLog.debug("Exception occurred while submitting crash report to the server " + e.getMessage());
+            PWLog.debug("Exception occurred while submitting crash report to the server", e);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -288,8 +288,8 @@ class CrashManager {
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putString(CONFIRMED_FILENAMES_KEY, TextUtils.join(",", stackTraces));
                 editor.apply();
-            } catch (Exception ignored) {
-                // ignored
+            } catch (Exception e) {
+                PWLog.warn("Failed to save confirmed crash filenames", e);
             }
         }
     }
@@ -339,7 +339,7 @@ class CrashManager {
                     PWLog.debug("CrashManager version did not change.");
                 }
             } catch (Exception e) {
-                PWLog.debug("Exception occurred while doing MigrateCrashAnalyticsTask:\n" + e.getMessage());
+                PWLog.debug("Exception occurred while doing MigrateCrashAnalyticsTask", e);
             }
         }
     }
@@ -366,7 +366,7 @@ class CrashManager {
                 PWLog.debug("No new crashreports were found.");
             }
         } catch (Exception e) {
-            PWLog.debug("Exception occurred while sending crash reports:\n" + e.getMessage());
+            PWLog.debug("Exception occurred while sending crash reports", e);
         }
     }
 

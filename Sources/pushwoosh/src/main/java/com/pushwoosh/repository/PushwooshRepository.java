@@ -67,11 +67,12 @@ public class PushwooshRepository {
     private String currentRichMediaCode;
     private String currentInAppCode;
 
-    public PushwooshRepository(RequestManager requestManager,
-                               SendTagsProcessor sendTagsProcessor,
-                               RegistrationPrefs registrationPrefs,
-                               NotificationPrefs notificationPrefs,
-                               RequestStorage requestStorage) {
+    public PushwooshRepository(
+            RequestManager requestManager,
+            SendTagsProcessor sendTagsProcessor,
+            RegistrationPrefs registrationPrefs,
+            NotificationPrefs notificationPrefs,
+            RequestStorage requestStorage) {
         this.requestManager = requestManager;
         this.sendTagsProcessor = sendTagsProcessor;
         this.registrationPrefs = registrationPrefs;
@@ -126,6 +127,19 @@ public class PushwooshRepository {
         sendTagsProcessor.sendTags(jsonTags, listener);
     }
 
+    public void sendAdvertisingId(@Nullable String advertisingId, @Nullable Callback<Void, NetworkException> callback) {
+        if (requestManager == null) {
+            PWLog.error(TAG, "Request manager is null, can't send advertising ID");
+            if (callback != null) {
+                callback.process(Result.fromException(new NetworkException("Request manager is null")));
+            }
+            return;
+        }
+        SetAdvertisingIdRequest request = new SetAdvertisingIdRequest(advertisingId);
+        String trackingUrl = registrationPrefs.getTrackingUrl();
+        requestManager.sendRequest(request, trackingUrl, callback);
+    }
+
     public void sendEmailTags(@NonNull TagsBundle tags, String email, Callback<Void, PushwooshException> listener) {
         JSONObject jsonTags = tags.toJson();
 
@@ -160,7 +174,10 @@ public class PushwooshRepository {
                         TagsBundle tags = Tags.fromJson(josnTags);
                         callback.process(Result.fromData(tags));
                     } else {
-                        callback.process(Result.fromException(new GetTagsException(result.getException() == null ? "" : result.getException().getMessage())));
+                        callback.process(Result.fromException(new GetTagsException(
+                                result.getException() == null
+                                        ? ""
+                                        : result.getException().getMessage())));
                     }
                 }
             }
@@ -213,8 +230,10 @@ public class PushwooshRepository {
     @Deprecated
     public void sendPushOpened(String hash, String metadata) {
         PWLog.info(TAG, "Sending PushStatRequest, hash: " + hash);
-        if (hash != null && TextUtils.equals(hash, notificationPrefs.lastNotificationHash().get())) {
-            PWLog.warn(TAG,"Push stat for (" + hash + ") already sent");
+        if (hash != null
+                && TextUtils.equals(
+                        hash, notificationPrefs.lastNotificationHash().get())) {
+            PWLog.warn(TAG, "Push stat for (" + hash + ") already sent");
             return;
         }
 
@@ -222,7 +241,7 @@ public class PushwooshRepository {
 
         PushStatRequest request = new PushStatRequest(hash, metadata);
         if (requestManager == null) {
-            PWLog.error(TAG,"Request manager is null");
+            PWLog.error(TAG, "Request manager is null");
             return;
         }
         requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
@@ -249,7 +268,7 @@ public class PushwooshRepository {
      */
     @Deprecated
     public void sendPushDelivered(String hash, String metaData) {
-        PWLog.info(TAG,"Sending MessageDeliveredRequest, hash: " + hash);
+        PWLog.info(TAG, "Sending MessageDeliveredRequest, hash: " + hash);
         MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData);
         if (requestManager == null) {
             PWLog.error(TAG, "Request manager is null");
@@ -261,14 +280,16 @@ public class PushwooshRepository {
     public Result<Void, NetworkException> sendPushOpenedSync(String hash, String metadata) {
         PWLog.info(TAG, "Sending PushStatRequest sync, hash: " + hash);
 
-        if (hash != null && TextUtils.equals(hash, notificationPrefs.lastNotificationHash().get())) {
-            PWLog.warn(TAG,"Push stat for (" + hash + ") already sent");
+        if (hash != null
+                && TextUtils.equals(
+                        hash, notificationPrefs.lastNotificationHash().get())) {
+            PWLog.warn(TAG, "Push stat for (" + hash + ") already sent");
             return Result.fromData(null); // Already sent - success
         }
 
         PushStatRequest request = new PushStatRequest(hash, metadata);
         if (requestManager == null) {
-            PWLog.error(TAG,"Request manager is null");
+            PWLog.error(TAG, "Request manager is null");
             return Result.fromException(new NetworkException("Request manager is null"));
         }
 
@@ -288,7 +309,7 @@ public class PushwooshRepository {
     }
 
     public Result<Void, NetworkException> sendPushDeliveredSync(String hash, String metaData) {
-        PWLog.info(TAG,"Sending MessageDeliveredRequest sync, hash: " + hash);
+        PWLog.info(TAG, "Sending MessageDeliveredRequest sync, hash: " + hash);
 
         MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData);
         if (requestManager == null) {
@@ -346,6 +367,7 @@ public class PushwooshRepository {
 
     public void removeAllDeviceData() {
         notificationPrefs.tags().set(null);
+        registrationPrefs.advertisingId().set("");
         registrationPrefs.removeAllDeviceData().set(true);
     }
 
@@ -357,7 +379,7 @@ public class PushwooshRepository {
         registrationPrefs.communicationEnable().set(enable);
     }
 
-    public boolean isCommunicationEnabled(){
+    public boolean isCommunicationEnabled() {
         return registrationPrefs.communicationEnable().get();
     }
 

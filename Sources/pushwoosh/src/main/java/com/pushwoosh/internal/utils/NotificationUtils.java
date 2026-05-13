@@ -197,8 +197,7 @@ public class NotificationUtils {
                 return Uri.fromFile(file);
             }
         } catch (Throwable t) {
-            PWLog.error("Asset", "File not found: assets/" + path);
-            PWLog.exception(t);
+            PWLog.error("Asset", "File not found: assets/" + path, t);
         }
 
         return Uri.EMPTY;

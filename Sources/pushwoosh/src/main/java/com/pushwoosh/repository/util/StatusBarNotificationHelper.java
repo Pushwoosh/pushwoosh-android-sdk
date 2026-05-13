@@ -59,7 +59,7 @@ public class StatusBarNotificationHelper {
                 notifications = nm.getActiveNotifications();
                 return notifications;
             } catch (Exception e) {
-                PWLog.error(TAG, "Failed to get list of active notifications");
+                PWLog.error(TAG, "Failed to get list of active notifications", e);
                 return new StatusBarNotification[]{};
             }
         } return new StatusBarNotification[]{};

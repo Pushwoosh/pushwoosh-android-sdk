@@ -33,6 +33,7 @@ import android.text.TextUtils;
 import androidx.annotation.ColorInt;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.pushwoosh.internal.NativePluginProvider;
@@ -57,6 +58,7 @@ class AndroidManifestConfig implements Config {
     private String apiToken = null;
     private String logLevel = null;
     private String requestUrl = null;
+    private String trackingUrl = null;
     private String richMediaType = null;
     private String[] trustedPackageNames = {};
     private Class<?> notificationService;
@@ -114,6 +116,7 @@ class AndroidManifestConfig implements Config {
 
         logLevel = getString(applicationInfo.metaData, "com.pushwoosh.log_level", "PW_LOG_LEVEL");
         requestUrl = getString(applicationInfo.metaData, "com.pushwoosh.base_url", "PushwooshUrl");
+        trackingUrl = getString(applicationInfo.metaData, "com.pushwoosh.tracking_url", null);
         richMediaType = getString(applicationInfo.metaData, "com.pushwoosh.rich_media_type", "RichMediaType");
 
         notificationService = getClass(applicationInfo.metaData, "com.pushwoosh.notification_service_extension");
@@ -157,8 +160,8 @@ class AndroidManifestConfig implements Config {
                     if (pluginClass != null) {
                         plugins.add(pluginClass.newInstance());
                     }
-                } catch (Exception ignore) {
-
+                } catch (Exception e) {
+                    PWLog.warn(TAG, "Failed to load plugin " + key, e);
                 }
             }
         }
@@ -169,7 +172,8 @@ class AndroidManifestConfig implements Config {
             if (pluginProviderClass != null) {
                 pluginProvider = pluginProviderClass.newInstance();
             }
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            PWLog.warn(TAG, "Failed to load plugin provider", e);
         }
 
         if (pluginProvider == null) {
@@ -256,6 +260,11 @@ class AndroidManifestConfig implements Config {
     @Override
     public String getRequestUrl() {
         return requestUrl;
+    }
+
+    @Override
+    @Nullable public String getTrackingUrl() {
+        return trackingUrl;
     }
 
     @Override

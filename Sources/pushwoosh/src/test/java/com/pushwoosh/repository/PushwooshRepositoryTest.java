@@ -26,7 +26,6 @@
 
 package com.pushwoosh.repository;
 
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,6 +35,7 @@ import com.pushwoosh.internal.network.RequestStorage;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.preference.PreferenceBooleanValue;
 import com.pushwoosh.internal.preference.PreferenceJsonObjectValue;
+import com.pushwoosh.internal.preference.PreferenceStringValue;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -62,6 +62,7 @@ public class PushwooshRepositoryTest {
         registrationPrefs = Mockito.mock(RegistrationPrefs.class);
         when(registrationPrefs.communicationEnable()).thenReturn(mock(PreferenceBooleanValue.class));
         when(registrationPrefs.removeAllDeviceData()).thenReturn(mock(PreferenceBooleanValue.class));
+        when(registrationPrefs.advertisingId()).thenReturn(mock(PreferenceStringValue.class));
 
         notificationPrefs = Mockito.mock(NotificationPrefs.class);
 
@@ -72,18 +73,14 @@ public class PushwooshRepositoryTest {
         ServerCommunicationManager serverCommunicationManager = mock(ServerCommunicationManager.class);
         when(serverCommunicationManager.isServerCommunicationAllowed()).thenReturn(true);
         pushwooshRepository = new PushwooshRepository(
-                requestManager,
-                sendTagsProcessor,
-                registrationPrefs,
-                notificationPrefs,
-                requestStorage);
+                requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage);
     }
-
 
     @Test
     public void testRemoveTag() throws Exception {
         pushwooshRepository.removeAllDeviceData();
         verify(notificationPrefs.tags()).set(null);
+        verify(registrationPrefs.advertisingId()).set("");
         verify(registrationPrefs.removeAllDeviceData()).set(true);
     }
 
@@ -98,5 +95,4 @@ public class PushwooshRepositoryTest {
         pushwooshRepository.communicationEnabled(true);
         verify(registrationPrefs.communicationEnable()).set(true);
     }
-
 }

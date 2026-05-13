@@ -48,7 +48,7 @@ public class FcmRegistrarWorker extends BasePushwooshWorker {
             NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(error);
         } catch (Exception e) {
             error = e.getMessage();
-            PWLog.error(TAG, "FCM registration error:" + error);
+            PWLog.error(TAG, "FCM registration error", e);
         }
     }
 

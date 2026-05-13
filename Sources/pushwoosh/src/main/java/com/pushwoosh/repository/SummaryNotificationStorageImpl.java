@@ -96,7 +96,7 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
                     db.close();
                 }
             } catch (Exception e) {
-                PWLog.error(TAG, "Failed to remove notification ids pair :" + e.getMessage());
+                PWLog.error(TAG, "Failed to remove notification ids pair", e);
             }
         }
         return cancelId;
@@ -118,7 +118,7 @@ public class SummaryNotificationStorageImpl extends SQLiteOpenHelper implements 
                     db.close();
                 }
             } catch (Exception e) {
-                PWLog.error(TAG, "Failed to update notification storage: " + e.getMessage());
+                PWLog.error(TAG, "Failed to update notification storage", e);
                 return;
             }
             if (ids != null) {

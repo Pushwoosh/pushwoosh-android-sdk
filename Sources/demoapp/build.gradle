@@ -21,6 +21,8 @@ android {
         versionName "1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "PUSHWOOSH_SDK_VERSION", "\"${libs.versions.pushwooshFirebase.get()}\""
     }
 
     buildTypes {
@@ -29,7 +31,7 @@ android {
             if (isLocalBuild) {
                 debuggable true
             }
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -39,6 +41,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
     kotlinOptions {
         jvmTarget = '1.8'
@@ -87,7 +90,7 @@ dependencies {
     def pwVersion = libs.versions.pushwooshFirebase.get()
     pushwooshModules.each { module ->
         if (isLocalBuild) {
-            api project(":$module")
+            debugApi project(":$module")
         } else {
             implementation "com.pushwoosh:$module:$pwVersion"
         }

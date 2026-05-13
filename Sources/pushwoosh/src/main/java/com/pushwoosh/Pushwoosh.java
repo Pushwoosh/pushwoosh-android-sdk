@@ -153,6 +153,8 @@ public class Pushwoosh {
     private Subscription<RegistrationSuccessEvent> subscriberRegister;
     private volatile boolean isInitialized = false;
 
+    private static final String ZERO_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000";
+
     private Pushwoosh() {
         PushwooshPlatform pushwooshPlatform = PushwooshPlatform.getInstance();
         if (pushwooshPlatform == null) {
@@ -2166,6 +2168,56 @@ public class Pushwoosh {
             registrationPrefs.setApiToken(trimmed);
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set api token", e);
+        }
+    }
+
+    /**
+     * Sets the advertising identifier (GAID) for the current device.
+     * <p>
+     * The SDK does not collect GAID automatically. The app developer is responsible for
+     * obtaining the advertising ID, requesting user consent, and passing it to the SDK.
+     * <p>
+     * The identifier is sent to the Pushwoosh tracking endpoint. Passing {@code null} or a zero UUID
+     * ({@code "00000000-0000-0000-0000-000000000000"}) clears the identifier on the backend.
+     * <p>
+     * Duplicate values are suppressed — only changes trigger a network request.
+     *
+     * @param advertisingId the advertising identifier, or {@code null} to clear
+     */
+    public void setAdvertisingId(@Nullable String advertisingId) {
+        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setAdvertisingId()");
+        try {
+            if (!ensureInitialized()) {
+                return;
+            }
+            if (!ensureAllowedCommunication()) {
+                return;
+            }
+
+            final String value;
+            if (ZERO_ADVERTISING_ID.equalsIgnoreCase(advertisingId) || TextUtils.isEmpty(advertisingId)) {
+                value = null;
+            } else {
+                value = advertisingId;
+            }
+
+            String previousValue = registrationPrefs.advertisingId().get();
+            if (value == null && TextUtils.isEmpty(previousValue)) {
+                return;
+            }
+            if (value != null && value.equals(previousValue)) {
+                return;
+            }
+
+            SdkStateProvider.getInstance().executeOrQueue(() -> {
+                pushwooshRepository.sendAdvertisingId(value, result -> {
+                    if (result.isSuccess()) {
+                        registrationPrefs.advertisingId().set(value != null ? value : "");
+                    }
+                });
+            });
+        } catch (Exception e) {
+            PWLog.error("Pushwoosh", "can't set advertising id", e);
         }
     }
 

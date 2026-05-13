@@ -99,7 +99,7 @@ public class HuaweiUtils {
             PWLog.error(TAG, LIBRARY_NOT_INTEGRATED_ERROR);
             return false;
         } catch (Throwable t) {
-            PWLog.error(TAG, "Error checking HMS availability: " + t.getMessage());
+            PWLog.error(TAG, "Error checking HMS availability", t);
             return false;
         }
     }
@@ -150,7 +150,7 @@ public class HuaweiUtils {
             PWLog.debug(TAG, "Play Services not integrated: " + className);
             return false;
         } catch (Throwable t) {
-            PWLog.debug(TAG, "Error checking Play Services availability: " + t.getMessage());
+            PWLog.debug(TAG, "Error checking Play Services availability", t);
             return false;
         }
     }

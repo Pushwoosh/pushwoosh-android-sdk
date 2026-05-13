@@ -85,7 +85,7 @@ public class FileUtils {
                 }
             }
         } catch (Exception e) {
-            // ignore
+            PWLog.error(TAG, "Failed to download " + linkUrl, e);
         }
         return null;
     }

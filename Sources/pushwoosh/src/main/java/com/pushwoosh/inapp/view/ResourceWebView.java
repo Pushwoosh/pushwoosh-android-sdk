@@ -312,8 +312,7 @@ public class ResourceWebView extends FrameLayout {
                 WebView.setDataDirectorySuffix(Application.getProcessName());
             }
         } catch (Throwable throwable) {
-            PWLog.error("Error occurred when tried to set Webview data dirrectory suffix: " +
-                    throwable.getMessage());
+            PWLog.error("Error occurred when tried to set Webview data directory suffix", throwable);
         }
     }
 }

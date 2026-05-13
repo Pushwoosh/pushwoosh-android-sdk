@@ -62,7 +62,7 @@ public class RetriableRequestCallback<Response> implements Callback<Response, Ne
                 }
             }, delay, TimeUnit.SECONDS);
         } catch (Exception e) {
-            PWLog.error("Failed to retry request " + request.getMethod() + ": " + e.getMessage());
+            PWLog.error("Failed to retry request " + request.getMethod(), e);
             callback.process(Result.fromException( new NetworkException(e.getMessage())));
         }
     }

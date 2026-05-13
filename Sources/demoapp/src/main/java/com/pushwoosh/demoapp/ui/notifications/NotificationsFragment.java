@@ -40,7 +40,7 @@ public class NotificationsFragment extends Fragment {
         binding = FragmentNotificationsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        binding.aboutSdkVersion.setText(com.pushwoosh.BuildConfig.VERSION_NAME);
+        binding.aboutSdkVersion.setText(BuildConfig.PUSHWOOSH_SDK_VERSION);
         binding.aboutBuildType.setText(BuildConfig.BUILD_TYPE);
 
         MaterialSwitch registerForRemoteNotification = binding.switch1;

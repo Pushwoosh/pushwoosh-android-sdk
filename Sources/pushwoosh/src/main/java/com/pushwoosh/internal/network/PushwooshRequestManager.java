@@ -21,13 +21,7 @@ import com.pushwoosh.repository.RegistrationPrefs;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -51,6 +45,8 @@ class PushwooshRequestManager implements RequestManager {
 
     private volatile Map<String, String> customHeaders = new HashMap<>();
     private final boolean reverseProxyRequired;
+
+    private final HttpTransport httpTransport = new HttpTransport();
 
     PushwooshRequestManager(
             RegistrationPrefs registrationPrefs,
@@ -76,7 +72,7 @@ class PushwooshRequestManager implements RequestManager {
         try {
             callback.process(result);
         } catch (Exception e) {
-            PWLog.error(TAG, "Error processing callback: " + e.getMessage());
+            PWLog.error(TAG, "Error processing callback", e);
         }
     }
 
@@ -132,7 +128,8 @@ class PushwooshRequestManager implements RequestManager {
             PWLog.error(TAG, "Reverse proxy is required but not configured. Request blocked.");
             return Result.fromException(new NetworkException("Reverse proxy is required but not configured"));
         }
-        if (reverseProxyUrl == null && TextUtils.isEmpty(baseUrl)) {
+        Endpoint endpoint = resolveEndpoint(baseUrl);
+        if (endpoint == null) {
             PWLog.warn(TAG, "Base URL is not configured yet. Request blocked: " + request.getMethod());
             return Result.fromException(new NetworkException("Base URL is not configured"));
         }
@@ -147,27 +144,45 @@ class PushwooshRequestManager implements RequestManager {
         int statusCode = 0, pushwooshStatusCode = 0;
         try {
             JSONObject data = request.getParams();
-            NetworkResult result = makeRequest(baseUrl, data, request.getMethod());
+            JSONObject payload = request.shouldWrapRequest() ? new JSONObject().put("request", data) : data;
+            HttpResponse httpResponse = httpTransport.makeRequest(
+                    endpoint.url, payload, request.getMethod(), endpoint.headers, getApiToken());
 
-            statusCode = result.getStatus();
-            pushwooshStatusCode = result.getPushwooshStatus();
-            if (NetworkResult.STATUS_OK == statusCode && NetworkResult.STATUS_OK == pushwooshStatusCode) {
+            statusCode = httpResponse.statusCode;
+            JSONObject envelope = new JSONObject();
+            if (isErrorResponseCode(statusCode)) {
+                try {
+                    envelope.put("status_code", statusCode);
+                    envelope.put("status_message", httpResponse.statusMessage);
+                } catch (JSONException e) {
+                    PWLog.error(TAG, e.getMessage());
+                }
+                pushwooshStatusCode = statusCode;
+            }
+            if (!httpResponse.body.isEmpty()) {
+                try {
+                    envelope = new JSONObject(httpResponse.body);
+                    pushwooshStatusCode = envelope.getInt("status_code");
+                } catch (Exception e) {
+                    PWLog.error(TAG, "Failed to parse response envelope", e);
+                }
+            }
 
-                JSONObject response = result.getResponse();
+            if (200 == statusCode && 200 == pushwooshStatusCode) {
                 // honor base url change
-                if (response.has("base_url") && Objects.equals(baseUrl, baseRequestUrl) && reverseProxyUrl == null) {
-                    String newBaseUrl = response.optString("base_url");
+                if (envelope.has("base_url") && endpoint.rotatable) {
+                    String newBaseUrl = envelope.optString("base_url");
                     updateBaseUrl(newBaseUrl);
                 }
 
-                JSONObject responseData = response.optJSONObject("response");
+                JSONObject responseData = envelope.optJSONObject("response");
                 if (responseData == null) {
                     responseData = new JSONObject();
                 }
 
                 return Result.fromData(request.parseResponse(responseData));
             } else {
-                exception = new NetworkException(result.getResponse().toString());
+                exception = new NetworkException(envelope.toString());
             }
         } catch (Exception ex) {
             exception = ex;
@@ -186,118 +201,32 @@ class PushwooshRequestManager implements RequestManager {
         return "Token " + registrationPrefs.apiToken().get();
     }
 
-    private NetworkResult makeRequest(final String baseUrl, JSONObject data, String methodName) throws Exception {
-        try {
-            String effectiveUrl = reverseProxyUrl != null ? reverseProxyUrl : baseUrl;
-            URL url = new URL(effectiveUrl + methodName);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-            connection.setRequestMethod("POST");
-            if (reverseProxyUrl != null) {
-                for (Map.Entry<String, String> header : customHeaders.entrySet()) {
-                    connection.setRequestProperty(header.getKey(), header.getValue());
-                }
-            }
-            connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-            connection.setRequestProperty("Authorization", getApiToken());
-            connection.setDoOutput(true);
-
-            JSONObject requestJson = new JSONObject();
-            requestJson.put("request", data);
-
-            connection.setRequestProperty(
-                    "Content-Length", String.valueOf(requestJson.toString().getBytes().length));
-            connection.setUseCaches(false);
-            try (OutputStream connectionOutput = connection.getOutputStream()) {
-                connectionOutput.write(requestJson.toString().getBytes());
-                connectionOutput.flush();
-            }
-
-            NetworkResult networkResult = getNetworkResultFromConnection(connection);
-            PWLog.debug(
-                    TAG,
-                    "\n"
-                            + "| Pushwoosh request: " + methodName + "\n"
-                            + "| - URL: " + url.toString() + "\n"
-                            + "| - Payload: " + requestJson.toString() + "\n"
-                            + "| - Response: " + networkResult.getResponse().toString() + "\n");
-
-            return networkResult;
-        } catch (Exception e) {
-            PWLog.error(TAG, "Request failed: " + e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    private NetworkResult getNetworkResultFromConnection(HttpURLConnection connection) throws IOException {
-        InputStream inputStream;
-        JSONObject responseJson = new JSONObject();
-        int status = connection.getResponseCode();
-        int pushwooshStatus = 0;
-        if (isErrorResponseCode(connection.getResponseCode())) {
-            inputStream = new BufferedInputStream(connection.getErrorStream());
-            pushwooshStatus = status;
-            try {
-                responseJson.put("status_code", pushwooshStatus);
-                responseJson.put("status_message", connection.getResponseMessage());
-            } catch (JSONException e) {
-                PWLog.error(TAG, e.getMessage());
-            }
-        } else {
-            inputStream = new BufferedInputStream(connection.getInputStream());
-        }
-
-        try {
-            if (connection.getContentLength() != 0) {
-                try (ByteArrayOutputStream dataCache = new ByteArrayOutputStream()) {
-
-                    // Fully read data
-                    byte[] buff = new byte[1024];
-                    int len;
-                    while ((len = inputStream.read(buff)) >= 0) {
-                        dataCache.write(buff, 0, len);
-                    }
-
-                    responseJson = new JSONObject(dataCache.toString().trim());
-                    pushwooshStatus = responseJson.getInt("status_code");
-                } catch (Exception e) {
-                    PWLog.error(TAG, e.getMessage());
-                }
-            }
-        } finally {
-            inputStream.close();
-        }
-        return new NetworkResult(status, pushwooshStatus, responseJson);
-    }
-
-    private boolean isErrorResponseCode(int code) {
+    private static boolean isErrorResponseCode(int code) {
         return code >= 400 && code < 600;
     }
 
-    static class NetworkResult {
-        static final int STATUS_OK = 200;
-        static final int STATUS_NOT_FOUND = 404;
-
-        private final int pushwooshStatus;
-        private final int status;
-        private final JSONObject response;
-
-        NetworkResult(int networkCode, int pushwooshCode, JSONObject data) {
-            status = networkCode;
-            pushwooshStatus = pushwooshCode;
-            response = data;
+    @Nullable private Endpoint resolveEndpoint(@Nullable String callerBaseUrl) {
+        String proxy = reverseProxyUrl;
+        Map<String, String> headers = customHeaders;
+        if (proxy != null) {
+            return new Endpoint(proxy, headers, false);
         }
-
-        int getStatus() {
-            return status;
+        if (TextUtils.isEmpty(callerBaseUrl)) {
+            return null;
         }
+        boolean rotatable = Objects.equals(callerBaseUrl, baseRequestUrl);
+        return new Endpoint(callerBaseUrl, Collections.emptyMap(), rotatable);
+    }
 
-        int getPushwooshStatus() {
-            return pushwooshStatus;
-        }
+    private static final class Endpoint {
+        final String url;
+        final Map<String, String> headers;
+        final boolean rotatable;
 
-        JSONObject getResponse() {
-            return response;
+        Endpoint(String url, Map<String, String> headers, boolean rotatable) {
+            this.url = url;
+            this.headers = headers;
+            this.rotatable = rotatable;
         }
     }
 }

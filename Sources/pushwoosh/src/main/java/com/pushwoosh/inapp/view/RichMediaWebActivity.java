@@ -117,6 +117,7 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
             super.onCreate(state);
         } catch (Throwable t) {
             // fix for "java.lang.IllegalStateException: Could not find active fragment with index -1"
+            PWLog.warn(TAG, "super.onCreate threw, finishing activity", t);
             finish();
         }
 

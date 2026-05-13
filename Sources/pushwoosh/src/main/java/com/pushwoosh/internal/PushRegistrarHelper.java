@@ -152,8 +152,7 @@ public class PushRegistrarHelper {
                 return true;
             }
         } catch (Throwable e) {
-            PWLog.error(TAG, "Unexpected error occurred calling 'initRegistrarClass' method");
-            PWLog.error(TAG, e.getMessage());
+            PWLog.error(TAG, "Unexpected error occurred calling 'initRegistrarClass' method", e);
         }
         return false;
     }

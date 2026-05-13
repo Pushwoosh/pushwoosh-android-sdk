@@ -8,94 +8,83 @@
 
 package com.pushwoosh.internal.event;
 
-import android.os.Handler;
-import android.os.Looper;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
+import com.pushwoosh.internal.utils.PWLog;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class EventBus {
+    private static final String TAG = "EventBus";
 
-    private static final Map<Class<? extends Event>, List<EventListener<?>>> SUBSCRIBERS_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<? extends Event>, List<EventListener<?>>> SUBSCRIBERS_MAP =
+            new ConcurrentHashMap<>();
 
     public static <T extends Event> boolean sendEvent(@NonNull T event) {
-        Handler mainHandler = new Handler(Looper.getMainLooper());
-        return sendEventInternal(event, mainHandler);
-    }
-
-    private static <T extends Event> boolean sendEventInternal(@NonNull T event, Handler handler) {
-        Class<? extends Event> eventClass = event.getClass();
-
-        if (!SUBSCRIBERS_MAP.containsKey(eventClass)) {
+        List<EventListener<?>> subscribers = SUBSCRIBERS_MAP.get(event.getClass());
+        if (subscribers == null || subscribers.isEmpty()) {
             return false;
         }
 
-        List<EventListener<?>> subscribers = SUBSCRIBERS_MAP.get(eventClass);
-
-        if (subscribers == null) {
-            return false;
-        }
-
-		handler.post(() -> notifyEventListeners(event, subscribers));
-
+        BackgroundExecutor.main(() -> notifyEventListeners(event, subscribers));
         return true;
     }
 
-	@MainThread
-	private static <T extends Event> void notifyEventListeners(final @NonNull T event, final List<EventListener<?>> eventListeners) {
-		List<EventListener<?>> copy;
-		synchronized (eventListeners) {
-			copy = new ArrayList<>(eventListeners);
-		}
-
-		for (EventListener<?> eventAction : copy) {
-			//noinspection unchecked
-			EventListener<T> typedEventAction = (EventListener<T>) eventAction;
-			typedEventAction.onReceive(event);
+    @MainThread
+    private static <T extends Event> void notifyEventListeners(
+            final @NonNull T event, final List<EventListener<?>> subscribers) {
+        for (EventListener<?> eventAction : subscribers) {
+            try {
+                //noinspection unchecked
+                EventListener<T> typedEventAction = (EventListener<T>) eventAction;
+                typedEventAction.onReceive(event);
+            } catch (Throwable t) {
+                PWLog.error(TAG, "Listener for " + event.getClass().getSimpleName() + " threw", t);
+            }
         }
     }
 
-    public static <T extends Event> Subscription<T> subscribe(Class<T> event, EventListener<T> listener) {
-        if (listener == null) {
-            return null;
-        }
+    @NonNull public static <T extends Event> Subscription<T> subscribe(
+            @NonNull Class<T> event, @NonNull EventListener<T> listener) {
+        Objects.requireNonNull(event, "event must not be null");
+        Objects.requireNonNull(listener, "listener must not be null");
         List<EventListener<?>> subscribers = SUBSCRIBERS_MAP.get(event);
         if (subscribers == null) {
-            subscribers = new LinkedList<>();
-            SUBSCRIBERS_MAP.put(event, subscribers);
+            List<EventListener<?>> created = new CopyOnWriteArrayList<>();
+            List<EventListener<?>> existing = SUBSCRIBERS_MAP.putIfAbsent(event, created);
+            subscribers = existing != null ? existing : created;
         }
-
-		synchronized (subscribers) {
-			subscribers.add(listener);
-		}
-
+        subscribers.add(listener);
         return new Subscription<>(event, listener);
     }
 
-    public static <T extends Event> void unsubscribe(Class<T> eventClass, EventListener<T> eventAction) {
-        if (!SUBSCRIBERS_MAP.containsKey(eventClass)) {
+    public static <T extends Event> void unsubscribe(
+            @NonNull Class<T> eventClass, @NonNull EventListener<T> eventAction) {
+        List<EventListener<?>> eventActions = SUBSCRIBERS_MAP.get(eventClass);
+        if (eventActions == null) {
             return;
         }
+        eventActions.remove(eventAction);
+    }
 
-		List<EventListener<?>> eventActions = SUBSCRIBERS_MAP.get(eventClass);
-		if (eventActions == null) {
-			return;
-		}
-		synchronized (eventActions) {
-			eventActions.remove(eventAction);
-		}
-	}
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    public static Map<Class<? extends Event>, List<EventListener<?>>> getSubscribersMap() {
+        return SUBSCRIBERS_MAP;
+    }
 
-    public static Map<Class<? extends Event>, List<EventListener<?>>> getSubscribersMap() { return SUBSCRIBERS_MAP; }
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
     public static void clearSubscribersMap() {
         SUBSCRIBERS_MAP.clear();
     }
 
-    private EventBus() {/*do nothing*/}
-
+    private EventBus() {
+        /*do nothing*/
+    }
 }

@@ -12,7 +12,9 @@ import com.pushwoosh.internal.checker.CheckerProvider;
 import com.pushwoosh.internal.utils.security.CallingPackageChecker;
 
 public class PushwooshInitProvider extends ContentProvider {
-	
+
+	private static final String TAG = "PushwooshInitProvider";
+
 	public PushwooshInitProvider() {
 	}
 
@@ -24,7 +26,7 @@ public class PushwooshInitProvider extends ContentProvider {
 			PushwooshInitializer.init(getContext());
 			return true;
 		} catch (Exception e) {
-			Log.e("PushwooshInitProvider", "can't initialize pushwoosh sdk", e);
+			Log.e(TAG, "can't initialize pushwoosh sdk", e);
 			return false;
 		}
     }
