@@ -53,6 +53,7 @@ import org.robolectric.annotation.LooperMode;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -153,6 +154,46 @@ public class RichMediaControllerTest {
         verify(richMediaPresentingDelegate, never()).onClose(any());
         verify(richMediaPresentingDelegate, never()).onPresent(any());
         verify(richMediaPresentingDelegate, never()).onError(any(), any(PushwooshException.class));
+    }
+
+    // Verifies that when delegate.shouldPresent returns true, the wrapper is forwarded to the strategy factory.
+    @Test
+    public void delegateApprovesShowTest() {
+        when(richMediaPresentingDelegate.shouldPresent(any())).thenReturn(true);
+
+        richMediaController.setDelegate(richMediaPresentingDelegate);
+        richMediaController.showResourceWrapper(resourceWrapper);
+
+        verify(richMediaPresentingDelegate).shouldPresent(any());
+        verify(resourceViewStrategyFactory).showResource(resourceWrapper);
+    }
+
+    // Verifies that exceptions from delegate.shouldPresent are swallowed and the resource is not displayed.
+    @Test
+    public void delegateThrowsDuringShouldPresentTest() {
+        when(richMediaPresentingDelegate.shouldPresent(any())).thenThrow(new RuntimeException("boom"));
+
+        richMediaController.setDelegate(richMediaPresentingDelegate);
+        richMediaController.showResourceWrapper(resourceWrapper);
+
+        verify(richMediaPresentingDelegate).shouldPresent(any());
+        verify(resourceViewStrategyFactory, never()).showResource(any());
+    }
+
+    // Verifies that events for remote-URL resources (empty code) skip the delegate.
+    @Test
+    public void remoteUrlEventSkipsDelegateTest() {
+        Resource remoteResource = mock(Resource.class);
+        when(remoteResource.getCode()).thenReturn("");
+
+        richMediaController.setDelegate(richMediaPresentingDelegate);
+        EventBus.sendEvent(new RichMediaPresentEvent(remoteResource));
+        EventBus.sendEvent(new RichMediaErrorEvent(remoteResource, TEST_EXCEPTION));
+        EventBus.sendEvent(new RichMediaCloseEvent(remoteResource));
+
+        verify(richMediaPresentingDelegate, never()).onPresent(any());
+        verify(richMediaPresentingDelegate, never()).onClose(any());
+        verify(richMediaPresentingDelegate, never()).onError(any(), any());
     }
 
     @Test

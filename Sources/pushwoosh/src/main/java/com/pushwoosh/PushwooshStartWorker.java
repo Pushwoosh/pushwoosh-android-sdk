@@ -2,6 +2,8 @@ package com.pushwoosh;
 
 import android.text.TextUtils;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.pushwoosh.appevents.PushwooshDefaultEvents;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.internal.Plugin;
@@ -393,7 +395,8 @@ public class PushwooshStartWorker {
      * @param value the original API token
      * @return obfuscated token string, or original value if too short or null
      */
-    private String prettyApiToken(String value) {
+    @VisibleForTesting
+    String prettyApiToken(String value) {
         if (value != null && value.length() > 6) {
             return value.substring(0, 4) + "......" + value.substring(value.length() - 6);
         }

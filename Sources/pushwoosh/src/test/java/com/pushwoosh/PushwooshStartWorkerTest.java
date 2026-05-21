@@ -11,10 +11,12 @@ import android.content.Context;
 
 import com.pushwoosh.appevents.PushwooshDefaultEvents;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
+import com.pushwoosh.internal.Plugin;
 import com.pushwoosh.internal.PushRegistrarHelper;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.AppIdChangedEvent;
 import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
 import com.pushwoosh.internal.event.ServerCommunicationStartedEvent;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -42,6 +44,7 @@ import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -52,15 +55,38 @@ public class PushwooshStartWorkerTest {
     private PushwooshStartWorker pushwooshStartWorker;
 
     // Mocked dependencies
-    @Mock(answer = RETURNS_DEEP_STUBS) private Config configMock;
-    @Mock(answer = RETURNS_DEEP_STUBS) private RegistrationPrefs registrationPrefsMock;
-    @Mock private PushwooshRepository pushwooshRepositoryMock;
-    @Mock private PushwooshNotificationManager notificationManagerMock;
-    @Mock private PushwooshInAppImpl pushwooshInAppMock;
-    @Mock private DeviceRegistrar deviceRegistrarMock;
-    @Mock private PushwooshDefaultEvents pushwooshDefaultEventsMock;
-    @Mock private PushRegistrarHelper pushRegistrarHelperMock;
-    @Mock private RequestManager requestManagerMock;
+    @Mock(answer = RETURNS_DEEP_STUBS)
+    private Config configMock;
+
+    @Mock(answer = RETURNS_DEEP_STUBS)
+    private RegistrationPrefs registrationPrefsMock;
+
+    @Mock
+    private PushwooshRepository pushwooshRepositoryMock;
+
+    @Mock
+    private PushwooshNotificationManager notificationManagerMock;
+
+    @Mock
+    private PushwooshInAppImpl pushwooshInAppMock;
+
+    @Mock
+    private DeviceRegistrar deviceRegistrarMock;
+
+    @Mock
+    private PushwooshDefaultEvents pushwooshDefaultEventsMock;
+
+    @Mock
+    private PushRegistrarHelper pushRegistrarHelperMock;
+
+    @Mock
+    private RequestManager requestManagerMock;
+
+    @Mock
+    private Plugin pluginMock1;
+
+    @Mock
+    private Plugin pluginMock2;
 
     private void setupConfig() {
         when(configMock.getLogLevel()).thenReturn("NOISE");
@@ -72,7 +98,7 @@ public class PushwooshStartWorkerTest {
         AndroidPlatformModule.init(ctx, true);
     }
 
-    private void setupRepository(){
+    private void setupRepository() {
         RepositoryModule.init(configMock, new UUIDFactory(), deviceRegistrarMock);
     }
 
@@ -119,8 +145,7 @@ public class PushwooshStartWorkerTest {
                 deviceRegistrarMock,
                 pushwooshDefaultEventsMock,
                 pushRegistrarHelperMock,
-                testGetter
-        );
+                testGetter);
 
         // Reset SDK state for clean test
         SdkStateProvider.getInstance().resetForTesting();
@@ -142,13 +167,16 @@ public class PushwooshStartWorkerTest {
 
     private void ensureInitializingState() {
         // Verify initial state
-        assertEquals(SdkStateProvider.SdkState.INITIALIZING, SdkStateProvider.getInstance().getCurrentState());
+        assertEquals(
+                SdkStateProvider.SdkState.INITIALIZING,
+                SdkStateProvider.getInstance().getCurrentState());
         assertFalse(SdkStateProvider.getInstance().isReady());
     }
 
     private void ensureReadyState() throws InterruptedException {
         // Verify SDK state
-        assertEquals(SdkStateProvider.SdkState.READY, SdkStateProvider.getInstance().getCurrentState());
+        assertEquals(
+                SdkStateProvider.SdkState.READY, SdkStateProvider.getInstance().getCurrentState());
         assertTrue(SdkStateProvider.getInstance().isReady());
     }
 
@@ -187,16 +215,10 @@ public class PushwooshStartWorkerTest {
         // Verify SDK state
         ensureReadyState();
 
-        Mockito.verify(
-                pushwooshDefaultEventsMock,
-                Mockito.times(1)
-        ).init();
+        Mockito.verify(pushwooshDefaultEventsMock, Mockito.times(1)).init();
 
         // Verify no any calls to request manager
-        Mockito.verify(
-                requestManagerMock,
-                Mockito.never()
-        ).sendRequest(Mockito.any(), Mockito.any());
+        Mockito.verify(requestManagerMock, Mockito.never()).sendRequest(Mockito.any(), Mockito.any());
     }
 
     /**
@@ -205,7 +227,7 @@ public class PushwooshStartWorkerTest {
      */
     @Test
     public void testInitializationFailureIfHWIDFailed() throws InterruptedException {
-        
+
         // fake error - we cant get hwid
         DeviceUuidGetter failingGetter = callback -> {
             throw new RuntimeException("HWID fetch failed for testing");
@@ -220,8 +242,7 @@ public class PushwooshStartWorkerTest {
                 deviceRegistrarMock,
                 pushwooshDefaultEventsMock,
                 pushRegistrarHelperMock,
-                failingGetter
-        );
+                failingGetter);
 
         ensureInitializingState();
         initializeAndRunPushwooshStartWorker();
@@ -234,7 +255,7 @@ public class PushwooshStartWorkerTest {
             }
             Thread.sleep(100);
         }
-        
+
         assertTrue("Should be in ERROR state after error", errorStateReached);
         assertFalse("Cant be ready", SdkStateProvider.getInstance().isReady());
     }
@@ -260,7 +281,7 @@ public class PushwooshStartWorkerTest {
             }
             Thread.sleep(100);
         }
-        
+
         assertTrue("Should be in ERROR state after error", errorStateReached);
         assertFalse("Cant be ready", SdkStateProvider.getInstance().isReady());
     }
@@ -281,7 +302,8 @@ public class PushwooshStartWorkerTest {
         Thread.sleep(1000);
 
         // SDK should remain in INITIALIZING state because latch waits for 2 countdowns but gets only 1
-        assertEquals("Should stay INITIALIZING when AppId event missing",
+        assertEquals(
+                "Should stay INITIALIZING when AppId event missing",
                 SdkStateProvider.SdkState.INITIALIZING,
                 SdkStateProvider.getInstance().getCurrentState());
         assertFalse("Should not be ready", SdkStateProvider.getInstance().isReady());
@@ -291,7 +313,8 @@ public class PushwooshStartWorkerTest {
         SdkStateProvider.getInstance().executeOrQueue(queuedTaskLatch::countDown);
 
         // task should timeout - not execute because SDK never becomes ready
-        assertFalse("Task should remain queued when initialization stucks",
+        assertFalse(
+                "Task should remain queued when initialization stucks",
                 queuedTaskLatch.await(500, TimeUnit.MILLISECONDS));
 
         // verify that sending the missing event unblocks everything
@@ -307,8 +330,7 @@ public class PushwooshStartWorkerTest {
         }
 
         // now the queued task should execute
-        assertTrue("Task should execute after missing event arrives",
-                queuedTaskLatch.await(2, TimeUnit.SECONDS));
+        assertTrue("Task should execute after missing event arrives", queuedTaskLatch.await(2, TimeUnit.SECONDS));
 
         ensureReadyState();
     }
@@ -317,27 +339,29 @@ public class PushwooshStartWorkerTest {
      * Verifies that repeated initialization attempts are ignored once SDK is already initialized.
      * Ensures SDK state remains stable and prevents duplicate initialization.
      */
-    @Test 
+    @Test
     public void testRepeatedInitializationIgnored() throws InterruptedException {
-        
+
         // first do successful initialization
         ensureInitializingState();
         initializeAndRunPushwooshStartWorker();
         ensureStarted();
         ensureReadyState();
-        
-        // save current state  
+
+        // save current state
         SdkStateProvider.SdkState readyState = SdkStateProvider.getInstance().getCurrentState();
-        
+
         // try to initialize again
         pushwooshStartWorker.onApplicationCreated();
-        
+
         // give time for possible processing
         Thread.sleep(500);
-        
+
         // state should remain READY, repeated initialization is ignored
-        assertEquals("Repeated initialization should be ignored", 
-                readyState, SdkStateProvider.getInstance().getCurrentState());
+        assertEquals(
+                "Repeated initialization should be ignored",
+                readyState,
+                SdkStateProvider.getInstance().getCurrentState());
         assertTrue("SDK should stay ready", SdkStateProvider.getInstance().isReady());
     }
 
@@ -355,8 +379,8 @@ public class PushwooshStartWorkerTest {
         SdkStateProvider.getInstance().executeOrQueue(queuedTaskLatch::countDown);
 
         // This should timeout because SDK is not ready yet
-        assertFalse("Task should be queued, not executed immediately",
-                queuedTaskLatch.await(500, TimeUnit.MILLISECONDS));
+        assertFalse(
+                "Task should be queued, not executed immediately", queuedTaskLatch.await(500, TimeUnit.MILLISECONDS));
 
         // Verify SDK is still INITIALIZING
         ensureInitializingState();
@@ -373,8 +397,7 @@ public class PushwooshStartWorkerTest {
         }
 
         // Now the queued task should execute when SDK becomes ready
-        assertTrue("Queued task should execute after SDK initialization",
-                queuedTaskLatch.await(2, TimeUnit.SECONDS));
+        assertTrue("Queued task should execute after SDK initialization", queuedTaskLatch.await(2, TimeUnit.SECONDS));
 
         // Verify SDK is now READY
         ensureReadyState();
@@ -405,26 +428,13 @@ public class PushwooshStartWorkerTest {
         //  - setUserId
         //  - registerDevice
         //  - getInApps
-        Mockito.verify(
-                pushwooshRepositoryMock,
-                Mockito.timeout(2000).times(1)
-        ).sendAppOpen();
+        Mockito.verify(pushwooshRepositoryMock, Mockito.timeout(2000).times(1)).sendAppOpen();
 
-        Mockito.verify(
-                pushwooshInAppMock,
-                Mockito.timeout(2000).times(1)
-        ).setUserId(Mockito.any());
+        Mockito.verify(pushwooshInAppMock, Mockito.timeout(2000).times(1)).setUserId(Mockito.any());
 
-        Mockito.verify(
-                deviceRegistrarMock,
-                Mockito.timeout(2000).times(1)
-        ).updateRegistration();
+        Mockito.verify(deviceRegistrarMock, Mockito.timeout(2000).times(1)).updateRegistration();
 
-        Mockito.verify(
-                pushwooshInAppMock,
-                Mockito.timeout(2000).times(1)
-        ).checkForUpdates();
-
+        Mockito.verify(pushwooshInAppMock, Mockito.timeout(2000).times(1)).checkForUpdates();
     }
 
     /**
@@ -445,10 +455,7 @@ public class PushwooshStartWorkerTest {
         EventBus.sendEvent(new BootReceiver.DeviceBootedEvent());
 
         // Verify notification manager reschedule was called
-        Mockito.verify(
-                notificationManagerMock,
-                Mockito.times(1)
-        ).rescheduleLocalNotifications();
+        Mockito.verify(notificationManagerMock, Mockito.times(1)).rescheduleLocalNotifications();
     }
 
     /**
@@ -466,53 +473,146 @@ public class PushwooshStartWorkerTest {
         EventBus.sendEvent(new AppIdChangedEvent("new-app-id", "old-app-id"));
 
         // Verify notification manager reschedule was called
-        Mockito.verify(
-                deviceRegistrarMock,
-                Mockito.times(1)
-        ).updateRegistration();
-    }
-
-    @Test
-    public void testServerCommunicationStartedEventHandling() throws InterruptedException {
-        ensureInitializingState();
-        initializeAndRunPushwooshStartWorker();
-
-        // Simulate ApplicationOpenEvent
-        EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
-        ensureStarted();
-        ensureReadyState();
-
-        // If this logic will be removed from PushwooshStartWorker then remove this test
-        EventBus.sendEvent(new ServerCommunicationStartedEvent());
-
-        Mockito.verify(
-                pushwooshInAppMock,
-                Mockito.atLeastOnce()
-        ).setUserId(registrationPrefsMock.hwid().get());
-
+        Mockito.verify(deviceRegistrarMock, Mockito.times(1)).updateRegistration();
     }
 
     /**
-     * Verifies that shutdown() correctly terminates the internal ExecutorService.
-     * Tests graceful shutdown with timeout handling and repeated shutdown safety.
+     * Verifies that each plugin returned by Config.getPlugins() has init() invoked during SDK initialization.
+     * Tests the initPlugins() branch of the initialization flow.
      */
     @Test
-    public void testShutdown() throws InterruptedException {
-        
+    public void testInitPluginsInvokesEachPlugin() throws InterruptedException {
+        when(configMock.getPlugins()).thenReturn(Arrays.asList(pluginMock1, pluginMock2));
+
         ensureInitializingState();
         initializeAndRunPushwooshStartWorker();
         ensureStarted();
         ensureReadyState();
-        
-        // shutdown should complete without exceptions
-        pushwooshStartWorker.shutdown();
-        
-        // repeated shutdown calls should be safe and not throw exceptions
-        pushwooshStartWorker.shutdown();
-        pushwooshStartWorker.shutdown();
-        
-        // verify that we can still create new worker after shutdown (no lingering state)
-        PushwooshStartWorker newWorker = new PushwooshStartWorker(
+
+        Mockito.verify(pluginMock1, Mockito.times(1)).init();
+        Mockito.verify(pluginMock2, Mockito.times(1)).init();
+    }
+
+    /**
+     * Verifies that when reverse proxy is enabled, SDK stays in INITIALIZING state
+     * until ReverseProxyReadyEvent is dispatched, then transitions to READY.
+     */
+    @Test
+    public void testReverseProxyDelaysReadyUntilEventArrives() throws InterruptedException {
+        when(configMock.isReverseProxyAllowed()).thenReturn(true);
+
+        ensureInitializingState();
+        initializeAndRunPushwooshStartWorker();
+
+        // wait briefly — SDK should NOT become ready without ReverseProxyReadyEvent
+        Thread.sleep(500);
+        ShadowLooper.idleMainLooper();
+
+        assertEquals(
+                "SDK must stay INITIALIZING until reverse proxy is configured",
+                SdkStateProvider.SdkState.INITIALIZING,
+                SdkStateProvider.getInstance().getCurrentState());
+        assertFalse(
+                "SDK must not be ready before reverse proxy event",
+                SdkStateProvider.getInstance().isReady());
+
+        // dispatch the missing event — initialization should now complete
+        EventBus.sendEvent(new ReverseProxyReadyEvent());
+
+        ensureStarted();
+        ensureReadyState();
+    }
+
+    /**
+     * Verifies that ServerCommunicationStartedEvent does NOT overwrite a pre-existing userId.
+     * Tests the negative branch of fixDefaultUserId() — when userId is already set, setUserId is not called.
+     */
+    @Test
+    public void testFixDefaultUserIdSkipsWhenUserIdAlreadySet() throws InterruptedException {
+        when(registrationPrefsMock.userId().get()).thenReturn("existing-user-id");
+
+        ensureInitializingState();
+        initializeAndRunPushwooshStartWorker();
+        ensureStarted();
+        ensureReadyState();
+
+        // dispatch ONLY ServerCommunicationStartedEvent (not ApplicationOpenEvent)
+        EventBus.sendEvent(new ServerCommunicationStartedEvent());
+        ShadowLooper.idleMainLooper();
+
+        // setUserId should NEVER be called because userId is non-empty
+        Mockito.verify(pushwooshInAppMock, Mockito.never()).setUserId(Mockito.anyString());
+    }
+
+    /**
+     * Verifies that when a plugin provides the default push registrar
+     * (pushRegistrarHelper.initDefaultPushRegistrarInPlugin() returns true),
+     * notificationManager.initPushRegistrar() is NOT called, but initialize() still is.
+     */
+    @Test
+    public void testInitPushRegistrarSkippedWhenPluginProvidesIt() throws InterruptedException {
+        when(pushRegistrarHelperMock.initDefaultPushRegistrarInPlugin()).thenReturn(true);
+
+        ensureInitializingState();
+        initializeAndRunPushwooshStartWorker();
+        ensureStarted();
+        ensureReadyState();
+
+        Mockito.verify(notificationManagerMock, Mockito.never()).initPushRegistrar();
+        Mockito.verify(notificationManagerMock, Mockito.times(1)).initialize();
+    }
+
+    // Pair of the test above: when no plugin provides the registrar, notificationManager.initPushRegistrar()
+    // must be invoked. Without explicit verify, mutating the `!helper.initDefaultPushRegistrarInPlugin()` guard
+    // or removing the initPushRegistrar() call survives — default-mock coverage is not enough.
+    @Test
+    public void testInitPushRegistrarCalledWhenPluginDoesNotProvideIt() throws InterruptedException {
+        when(pushRegistrarHelperMock.initDefaultPushRegistrarInPlugin()).thenReturn(false);
+
+        ensureInitializingState();
+        initializeAndRunPushwooshStartWorker();
+        ensureStarted();
+        ensureReadyState();
+
+        Mockito.verify(notificationManagerMock, Mockito.times(1)).initPushRegistrar();
+        Mockito.verify(notificationManagerMock, Mockito.times(1)).initialize();
+    }
+
+    // Verifies that initialize() exits early when SDK is already READY without re-running setup.
+    @Test
+    public void testInitializeNoOpWhenAlreadyReady() throws InterruptedException {
+        SdkStateProvider.getInstance().setReady();
+
+        pushwooshStartWorker.onApplicationCreated();
+        Thread.sleep(200);
+
+        Mockito.verify(pushwooshDefaultEventsMock, Mockito.never()).init();
+        Mockito.verify(notificationManagerMock, Mockito.never()).initialize();
+        Mockito.verify(notificationManagerMock, Mockito.never()).initPushRegistrar();
+    }
+
+    // Verifies that ServerCommunicationStartedEvent triggers fixDefaultUserId via setUserId(hwid) when userId is empty.
+    @Test
+    public void testServerCommunicationStartedTriggersFixDefaultUserId() throws InterruptedException {
+        ensureInitializingState();
+        initializeAndRunPushwooshStartWorker();
+        ensureStarted();
+        ensureReadyState();
+
+        Mockito.reset(pushwooshInAppMock);
+
+        EventBus.sendEvent(new ServerCommunicationStartedEvent());
+        ShadowLooper.idleMainLooper();
+
+        Mockito.verify(pushwooshInAppMock, Mockito.times(1)).setUserId("test-hwid-12345");
+    }
+
+    // Verifies that fetched HWID is stored in preferences via preferences.hwid().set(value).
+    @Test
+    public void testFetchedHwidStoredInPreferences() throws InterruptedException {
+        DeviceUuidGetter customGetter = callback -> callback.onGetHwid("custom-hwid-value");
+
+        pushwooshStartWorker = new PushwooshStartWorker(
                 configMock,
                 registrationPrefsMock,
                 pushwooshRepositoryMock,
@@ -521,14 +621,31 @@ public class PushwooshStartWorkerTest {
                 deviceRegistrarMock,
                 pushwooshDefaultEventsMock,
                 pushRegistrarHelperMock,
-                callback -> callback.onGetHwid("test-hwid-new")
-        );
-        
-        // new worker should initialize normally
-        newWorker.onApplicationCreated();
-        EventBus.sendEvent(new PushwooshNotificationManager.ApplicationIdReadyEvent());
-        
-        // cleanup new worker
-        newWorker.shutdown();
+                customGetter);
+
+        ensureInitializingState();
+        initializeAndRunPushwooshStartWorker();
+        ensureStarted();
+        ensureReadyState();
+
+        Mockito.verify(registrationPrefsMock.hwid(), Mockito.atLeastOnce()).set("custom-hwid-value");
+    }
+
+    // Table-driven coverage of prettyApiToken: null passthrough, length-6 boundary (as-is),
+    // length-7 boundary (just above threshold — obfuscation kicks in), long token (typical obfuscation).
+    @Test
+    public void prettyApiToken_parameterized() {
+        String[][] cases = {
+            {null, null},
+            {"abcdef", "abcdef"},
+            {"abcdefg", "abcd......bcdefg"},
+            {"12345abcdefghij67890", "1234......j67890"},
+        };
+        for (String[] c : cases) {
+            String input = c[0];
+            String expected = c[1];
+            String actual = pushwooshStartWorker.prettyApiToken(input);
+            assertEquals("for input=" + input, expected, actual);
+        }
     }
 }

@@ -27,8 +27,12 @@
 package com.pushwoosh.repository;
 
 import static com.pushwoosh.repository.DeviceRegistrar.areNotificationsEnabled;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import android.text.TextUtils;
 
@@ -62,6 +66,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.util.Date;
 
@@ -250,5 +255,112 @@ public class DeviceRegistrarTest {
         deviceRegistrar.updateRegistration();
 
         checkFeilReg();
+    }
+
+    // Verifies that registerWithServerWithRetries sends a registerDevice request via RequestManager.
+    @Test
+    public void registerWithServerWithRetriesSendsRequest() {
+        DeviceRegistrar.registerWithServerWithRetries(
+                TEST_ID, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {});
+
+        verify(requestManager).sendRequest(pushRequestArgumentCaptor.capture(), callbackArgumentCaptor.capture());
+        Assert.assertEquals("registerDevice", pushRequestArgumentCaptor.getValue().getMethod());
+    }
+
+    // Verifies that registerWithServer publishes a RegistrationErrorEvent when RequestManager is null.
+    @Test
+    public void registerWithServerNullRequestManagerSendsErrorEvent() {
+        NetworkModule.setRequestManager(null);
+
+        final String[] received = new String[1];
+        Subscription<RegistrationErrorEvent> sub = EventBus.subscribe(
+                RegistrationErrorEvent.class, event -> received[0] = event.getData());
+
+        DeviceRegistrar.registerWithServer(
+                TEST_ID, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {});
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        Assert.assertEquals("Request manager is null", received[0]);
+        verifyNoInteractions(requestManager);
+        sub.unsubscribe();
+    }
+
+    // Verifies that unregisterWithServer publishes a DeregistrationErrorEvent when RequestManager is null.
+    @Test
+    public void unregisterWithServerNullRequestManagerSendsErrorEvent() {
+        registrationPrefs.registeredOnServer().set(true);
+        NetworkModule.setRequestManager(null);
+
+        final String[] received = new String[1];
+        Subscription<DeregistrationErrorEvent> sub = EventBus.subscribe(
+                DeregistrationErrorEvent.class, event -> received[0] = event.getData());
+
+        DeviceRegistrar.unregisterWithServer(TEST_ID, URL);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        Assert.assertEquals("Request manager is null", received[0]);
+        Assert.assertFalse(registrationPrefs.registeredOnServer().get());
+        sub.unsubscribe();
+    }
+
+    // Verifies that single-arg unregisterWithServer delegates to two-arg with null baseUrl.
+    @Test
+    public void unregisterWithServerSingleArgUsesNullBaseUrl() {
+        DeviceRegistrar.unregisterWithServer(TEST_ID);
+
+        verify(requestManager).sendRequest(any(PushRequest.class), isNull(String.class), any(Callback.class));
+    }
+
+    // Verifies that unregisterWithServer error with empty message falls back to default error description.
+    @Test
+    public void unregisterWithServerEmptyErrorMessageUsesDefault() {
+        registrationPrefs.registeredOnServer().set(true);
+
+        final String[] received = new String[1];
+        Subscription<DeregistrationErrorEvent> sub = EventBus.subscribe(
+                DeregistrationErrorEvent.class, event -> received[0] = event.getData());
+
+        DeviceRegistrar.unregisterWithServer(TEST_ID, URL);
+
+        verify(requestManager).sendRequest(pushRequestArgumentCaptor.capture(), eq(URL), callbackArgumentCaptor.capture());
+        callbackArgumentCaptor.getValue().process(Result.fromException(new NetworkException("")));
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        Assert.assertEquals("Pushwoosh unregistration error", received[0]);
+        sub.unsubscribe();
+    }
+
+    // Verifies that updateRegistration skips request when pushToken is empty.
+    @Test
+    public void updateRegistrationEmptyTokenSkipsRequest() {
+        registrationPrefs.pushToken().set("");
+        registrationPrefs.forceRegister().set(false);
+
+        deviceRegistrar.updateRegistration();
+
+        verify(requestManager, never()).sendRequest(any(PushRequest.class), any(Callback.class));
+    }
+
+    // Verifies that updateRegistration skips request when last registration is within the cooldown window.
+    @Test
+    public void updateRegistrationWithinCooldownSkipsRequest() {
+        registrationPrefs.pushToken().set(TEST_ID);
+        registrationPrefs.forceRegister().set(false);
+        registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 60_000L);
+
+        deviceRegistrar.updateRegistration();
+
+        verify(requestManager, never()).sendRequest(any(PushRequest.class), any(Callback.class));
+    }
+
+    // Verifies that updateRegistration consumes the forceRegister flag (resets it to false after read).
+    @Test
+    public void updateRegistrationConsumesForceRegisterFlag() {
+        registrationPrefs.pushToken().set(TEST_ID);
+        registrationPrefs.forceRegister().set(true);
+
+        deviceRegistrar.updateRegistration();
+
+        Assert.assertFalse(registrationPrefs.forceRegister().get());
     }
 }

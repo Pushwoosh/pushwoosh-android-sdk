@@ -97,20 +97,20 @@
     <h1 class="cover"><span>get</span><wbr><span><span>Long</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-long.html"><span class="token function">getLong</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">defaultValue<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div><p class="paragraph">Retrieves a long tag value by name, with a fallback default value. </p><p class="paragraph"> Returns the long value associated with the given key. If the tag doesn't exist or cannot be converted to a long, returns the provided default value. This method is commonly used for timestamps and large numeric IDs. </p><p class="paragraph">Example (Subscription Management):</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	TagsBundle tags = getUserTags();
-	
-	long userId = tags.getLong("user_id", 0L);
-	long registeredAt = tags.getLong("registered_at", 0L);
-	long subscriptionEnd = tags.getLong("subscription_end", 0L);
-	
-	// Check if subscription is expiring soon
-	long now = System.currentTimeMillis();
-	long daysUntilExpiry = (subscriptionEnd - now) / (24 * 60 * 60 * 1000);
-	
-	if (daysUntilExpiry &lt;= 7 &amp;&amp; daysUntilExpiry &gt; 0) {
-	    showRenewalReminder();
-	}
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">tag value as long, or defaultValue if tag is not found or not a number</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name (e.g., "user_id", "registered_at", "subscription_end")</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>default</span><wbr><span><span>Value</span></span></u></div></span></div><div><div class="title"><p class="paragraph">value to return if tag doesn't exist or cannot be converted to long</p></div></div></div></div></div></div></div>
+TagsBundle tags = getUserTags();
+
+long userId = tags.getLong("user_id", 0L);
+long registeredAt = tags.getLong("registered_at", 0L);
+long subscriptionEnd = tags.getLong("subscription_end", 0L);
+
+// Check if subscription is expiring soon
+long now = System.currentTimeMillis();
+long daysUntilExpiry = (subscriptionEnd - now) / (24 * 60 * 60 * 1000);
+
+if (daysUntilExpiry &lt;= 7 &amp;&amp; daysUntilExpiry &gt; 0) {
+    showRenewalReminder();
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">tag value as long, or defaultValue if tag is not found or not a number</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name (e.g., "user_id", "registered_at", "subscription_end")</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>default</span><wbr><span><span>Value</span></span></u></div></span></div><div><div class="title"><p class="paragraph">value to return if tag doesn't exist or cannot be converted to long</p></div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

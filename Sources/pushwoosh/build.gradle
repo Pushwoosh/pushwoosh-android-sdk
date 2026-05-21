@@ -32,6 +32,7 @@ android {
         }
         debug {
             minifyEnabled false
+            testCoverageEnabled true
         }
     }
     compileOptions {
@@ -42,6 +43,12 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
+            all {
+                jacoco {
+                    includeNoLocationClasses = true
+                    excludes = ['jdk.internal.*']
+                }
+            }
         }
     }
 
@@ -90,3 +97,99 @@ apply from: '../scripts/dokka-config.gradle'
 
 // Custom Javadoc generation for Maven publication
 apply from: '../scripts/buildSdk/javadoc.gradle'
+
+// ============================================
+// Pitest (mutation testing) - experimental
+// ============================================
+// info.solidsoft.pitest plugin registers its task only inside
+// `plugins.withType(JavaPlugin)`, and JavaPlugin is incompatible with AGP.
+// Workaround: create the PitestTask directly (it extends JavaExec) and wire the
+// CLI classpath through a dedicated configuration. We never touch the plugin's
+// auto-config, so AGP stays clean.
+
+import info.solidsoft.gradle.pitest.PitestTask
+
+configurations {
+    pitestRuntime
+}
+
+dependencies {
+    pitestRuntime 'org.pitest:pitest-command-line:1.15.0'
+    pitestRuntime 'org.pitest:pitest:1.15.0'
+    pitestRuntime 'org.pitest:pitest-entry:1.15.0'
+}
+
+afterEvaluate {
+    def debugVariant = android.libraryVariants.find { it.name == 'debug' }
+    if (debugVariant == null) {
+        logger.warn("pitest: debug variant not found, skipping configuration")
+        return
+    }
+
+    def mainCompileTask = debugVariant.javaCompileProvider.get()
+    def mainClassesDir = mainCompileTask.destinationDirectory
+
+    def testCompileTask = tasks.named('compileDebugUnitTestJavaWithJavac').get()
+    def testClassesDir = testCompileTask.destinationDirectory
+
+    def unitTestTask = tasks.named('testDebugUnitTest').get()
+
+    tasks.register('pitest', PitestTask) {
+        group = 'verification'
+        description = 'Run pitest mutation testing on pushwoosh module (experimental)'
+
+        dependsOn mainCompileTask
+        dependsOn testCompileTask
+
+        launchClasspath.from(configurations.pitestRuntime)
+
+        reportDir.set(file("$buildDir/reports/pitest"))
+
+        // Allow narrowing via -PpitestTargets=... and -PpitestTests=... for smoke runs.
+        def targetsProp = project.findProperty('pitestTargets') ?: 'com.pushwoosh.*'
+        def testsProp = project.findProperty('pitestTests') ?: 'com.pushwoosh.*'
+        targetClasses.set(targetsProp.toString().split(',').toList())
+        targetTests.set(testsProp.toString().split(',').toList())
+
+        excludedClasses.set([
+                '**.R',
+                '**.R$*',
+                '**.BuildConfig',
+                '**.Manifest*',
+                '**.*Test',
+                '**.*Test$*',
+                '**.*Tests',
+                '**.testutil.*',
+                'org.robolectric.*'
+        ])
+
+        threads.set(2)
+        outputFormats.set(['HTML', 'XML'])
+        timeoutConstInMillis.set(45000)
+        timeoutFactor.set(new BigDecimal('2.5'))
+        mutators.set(['DEFAULTS'])
+        useClasspathJar.set(true)
+        timestampedReports.set(false)
+        verbosity.set('DEFAULT')
+
+        // PitestTask always reads these — provide explicit values even if unused.
+        useAdditionalClasspathFile.set(false)
+        additionalClasspathFile.set(file("$buildDir/tmp/pitest/additionalClasspath.txt"))
+        // Incremental analysis: first run is full, subsequent runs only re-test changed code.
+        enableDefaultIncrementalAnalysis.set(true)
+        defaultFileForHistoryData.set(file("$buildDir/tmp/pitest/history.bin"))
+
+        mainProcessJvmArgs.set(['-Xmx4g'])
+
+        // Main code to mutate
+        mutableCodePaths.from(mainClassesDir)
+
+        // Source dirs for line numbers in the report
+        sourceDirs.from(android.sourceSets.main.java.srcDirs)
+
+        // Full unit test runtime classpath + compiled test classes + main classes
+        additionalClasspath.from(unitTestTask.classpath)
+        additionalClasspath.from(testClassesDir)
+        additionalClasspath.from(mainClassesDir)
+    }
+}

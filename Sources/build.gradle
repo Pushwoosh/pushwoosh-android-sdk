@@ -22,6 +22,7 @@ buildscript {
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
         classpath "com.diffplug.spotless:spotless-plugin-gradle:$spotless_version"
         classpath 'com.adarshr:gradle-test-logger-plugin:4.0.0'
+        classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.15.0'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -41,7 +42,7 @@ subprojects {
     ext.global_minSdkVersion = 23
     ext.global_compileSdkVersion = 36
     ext.global_targetVersion = 36
-    ext.global_versionName = "6.8.0"
+    ext.global_versionName = "6.8.1"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"

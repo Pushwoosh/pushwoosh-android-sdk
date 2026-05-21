@@ -178,9 +178,102 @@ public class DbLocalNotificationHelperTest extends BaseLocalNotificationTest {
         Assert.assertEquals(2, nextId3);
     }
 
+    // Verifies that getLocalNotification returns null when the requestId is not present in the scheduled table.
     @Test
-    public void getDbLocalNotificationShownWithNullTagTest(){
-        DbLocalNotification dbLocalNotificationResult = dbLocalNotificationHelper.getDbLocalNotificationShown(24,null);
+    public void getLocalNotificationReturnsNullWhenIdMissing() {
+        DbLocalNotification result = dbLocalNotificationHelper.getLocalNotification("999");
 
+        Assert.assertNull(result);
+    }
+
+    // Verifies that getDbLocalNotificationShown(requestId) returns null when the requestId is not present in the shown table.
+    @Test
+    public void getDbLocalNotificationShownReturnsNullWhenIdMissing() {
+        addNotifivationShown();
+
+        DbLocalNotification result = dbLocalNotificationHelper.getDbLocalNotificationShown("999");
+
+        Assert.assertNull(result);
+    }
+
+    // Verifies that getDbLocalNotificationShown by (notificationId, tag) returns null when no row matches.
+    @Test
+    public void getDbLocalNotificationShownByTagReturnsNullWhenNoMatch() {
+        addNotifivationShown();
+
+        DbLocalNotification result = dbLocalNotificationHelper.getDbLocalNotificationShown(99, "missing-tag");
+
+        Assert.assertNull(result);
+    }
+
+    // Verifies that putDbLocalNotification with an existing requestId updates the row instead of inserting a duplicate.
+    @Test
+    public void putDbLocalNotificationUpdatesExistingRowOnSameRequestId() {
+        dbLocalNotificationHelper.putDbLocalNotification(dbLocalNotification1);
+
+        Bundle updatedBundle = new Bundle();
+        updatedBundle.putString("test", "updatedValue");
+        DbLocalNotification updated = new DbLocalNotification(11, 99, "updated", 500L, updatedBundle);
+        dbLocalNotificationHelper.putDbLocalNotification(updated);
+
+        Set<Integer> ids = dbLocalNotificationHelper.getAllRequestIds();
+        Assert.assertEquals(1, ids.size());
+        Assert.assertTrue(ids.contains(11));
+
+        DbLocalNotification stored = dbLocalNotificationHelper.getLocalNotification("11");
+        Assert.assertEquals(99, stored.getNotificationId());
+        Assert.assertEquals("updated", stored.getNotificationTag());
+        Assert.assertEquals(500L, stored.getTriggerAtMillis());
+        Assert.assertEquals("updatedValue", stored.getBundle().getString("test"));
+    }
+
+    // Verifies that scheduled and shown tables are isolated — writes to one do not appear in the other.
+    @Test
+    public void scheduledAndShownTablesAreIsolated() {
+        dbLocalNotificationHelper.putDbLocalNotification(dbLocalNotification1);
+        dbLocalNotificationHelper.addDbLocalNotificationShown(dbLocalNotification2);
+
+        Set<Integer> scheduledIds = dbLocalNotificationHelper.getAllRequestIds();
+        Assert.assertEquals(1, scheduledIds.size());
+        Assert.assertTrue(scheduledIds.contains(11));
+        Assert.assertFalse(scheduledIds.contains(12));
+
+        List<DbLocalNotification> shown = new ArrayList<>();
+        dbLocalNotificationHelper.enumerateDbLocalNotificationShownList(shown::add);
+        Assert.assertEquals(1, shown.size());
+        Assert.assertEquals(12, shown.get(0).getRequestId());
+    }
+
+    // Verifies that the bundle survives the JSON serialization round-trip via putDbLocalNotification/getLocalNotification.
+    @Test
+    public void putDbLocalNotificationPreservesBundleAcrossRoundTrip() {
+        dbLocalNotificationHelper.putDbLocalNotification(dbLocalNotification1);
+
+        DbLocalNotification stored = dbLocalNotificationHelper.getLocalNotification("11");
+
+        Assert.assertEquals("test1", stored.getBundle().getString("test"));
+    }
+
+    // Verifies that shown-table cap is inclusive: 10 entries retained without eviction, 11th triggers exactly one removal of the smallest id.
+    @Test
+    public void shownTableCapIsInclusiveAtTen() {
+        for (int i = 0; i < 10; i++) {
+            DbLocalNotification n = new DbLocalNotification(i, i, "tag" + i, i, new Bundle());
+            dbLocalNotificationHelper.addDbLocalNotificationShown(n);
+        }
+        List<DbLocalNotification> after10 = new ArrayList<>();
+        dbLocalNotificationHelper.enumerateDbLocalNotificationShownList(after10::add);
+        Assert.assertEquals(10, after10.size());
+        Assert.assertEquals(0, after10.get(0).getRequestId());
+        Assert.assertEquals(9, after10.get(after10.size() - 1).getRequestId());
+
+        DbLocalNotification eleventh = new DbLocalNotification(10, 10, "tag10", 10L, new Bundle());
+        dbLocalNotificationHelper.addDbLocalNotificationShown(eleventh);
+
+        List<DbLocalNotification> after11 = new ArrayList<>();
+        dbLocalNotificationHelper.enumerateDbLocalNotificationShownList(after11::add);
+        Assert.assertEquals(10, after11.size());
+        Assert.assertEquals(1, after11.get(0).getRequestId());
+        Assert.assertEquals(10, after11.get(after11.size() - 1).getRequestId());
     }
 }

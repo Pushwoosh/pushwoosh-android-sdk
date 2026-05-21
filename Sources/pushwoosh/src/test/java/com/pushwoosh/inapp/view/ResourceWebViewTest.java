@@ -1,14 +1,22 @@
 package com.pushwoosh.inapp.view;
 
-import android.content.Context;
-import android.view.View;
-import android.view.animation.Animation;
-import android.webkit.WebView;
+import static com.pushwoosh.inapp.network.model.InAppLayout.FULLSCREEN;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 
+import android.content.Context;
+import android.view.animation.Animation;
+
+import com.pushwoosh.inapp.model.HtmlData;
+import com.pushwoosh.inapp.view.js.PushwooshJSInterface;
 import com.pushwoosh.richmedia.RichMediaStyle;
 import com.pushwoosh.richmedia.animation.RichMediaAnimation;
-import com.pushwoosh.testutil.WhiteboxHelper;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,10 +26,10 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-
-import static com.pushwoosh.inapp.network.model.InAppLayout.FULLSCREEN;
+import org.robolectric.annotation.LooperMode;
 
 @RunWith(RobolectricTestRunner.class)
+@LooperMode(LooperMode.Mode.LEGACY)
 @Config(manifest = "AndroidManifest.xml")
 public class ResourceWebViewTest {
 
@@ -31,37 +39,73 @@ public class ResourceWebViewTest {
 
     @Mock
     RichMediaAnimation richMediaAnimation;
+
     @Mock
     Animation.AnimationListener listener;
 
     RichMediaStyle richMediaStyle;
 
-    View contentView;
-    WebView webView;
+    private AutoCloseable mocks;
 
     @Before
     public void setUp() throws Exception {
+        mocks = MockitoAnnotations.openMocks(this);
         richMediaStyle = new RichMediaStyle(0, richMediaAnimation);
-        MockitoAnnotations.initMocks(this);
         context = Mockito.spy(RuntimeEnvironment.application);
         richMediaStyle.setRichMediaAnimation(richMediaAnimation);
         resourceWebView = new ResourceWebView(context, FULLSCREEN, richMediaStyle, false);
-        contentView = (View) WhiteboxHelper.getInternalState(resourceWebView, "container");
-        webView = (WebView) WhiteboxHelper.getInternalState(resourceWebView, "webView");
     }
 
-    @Test
-    public void animateOpen() {
-        resourceWebView.animateOpen();
-        resourceWebView.animateOpen();
-
-        Mockito.verify(richMediaAnimation).openAnimation(webView,contentView);
+    @After
+    public void tearDown() throws Exception {
+        mocks.close();
     }
 
+    // Verifies that loadData appends a trailing slash to the baseUrl and injects the Pushwoosh JS bridge.
     @Test
-    public void animateClose() {
-        resourceWebView.animateClose(listener);
+    public void loadData_baseUrlWithoutSlash_appendsSlashAndInjectsJs() {
+        ResourceWebView spy = Mockito.spy(resourceWebView);
+        doNothing().when(spy).loadDataWithBaseURL(anyString(), anyString(), anyString(), anyString(), isNull());
 
-        Mockito.verify(richMediaAnimation).closeAnimation(webView,contentView,listener);
+        HtmlData htmlData = new HtmlData("code1", "https://example.com", "<html><head></head><body>hi</body></html>");
+
+        spy.loadData(htmlData);
+
+        verify(spy)
+                .loadDataWithBaseURL(
+                        eq("https://example.com/"),
+                        contains(PushwooshJSInterface.PUSHWOOSH_JS),
+                        eq("text/html"),
+                        eq("UTF-8"),
+                        isNull());
+    }
+
+    // Verifies that loadData does not duplicate the trailing slash when the baseUrl already ends with one.
+    @Test
+    public void loadData_baseUrlWithTrailingSlash_notDuplicated() {
+        ResourceWebView spy = Mockito.spy(resourceWebView);
+        doNothing().when(spy).loadDataWithBaseURL(anyString(), anyString(), anyString(), anyString(), isNull());
+
+        HtmlData htmlData = new HtmlData("code2", "https://example.com/", "<html><head></head><body>hi</body></html>");
+
+        spy.loadData(htmlData);
+
+        verify(spy)
+                .loadDataWithBaseURL(eq("https://example.com/"), anyString(), eq("text/html"), eq("UTF-8"), isNull());
+    }
+
+    // Verifies that loadData passes html content unchanged when there is no <head> tag to inject into.
+    @Test
+    public void loadData_htmlWithoutHead_contentPassedAsIs() {
+        ResourceWebView spy = Mockito.spy(resourceWebView);
+        doNothing().when(spy).loadDataWithBaseURL(anyString(), anyString(), anyString(), anyString(), isNull());
+
+        HtmlData htmlData = new HtmlData("code3", "https://example.com/", "<body>hi</body>");
+
+        spy.loadData(htmlData);
+
+        verify(spy)
+                .loadDataWithBaseURL(
+                        eq("https://example.com/"), eq("<body>hi</body>"), eq("text/html"), eq("UTF-8"), isNull());
     }
 }

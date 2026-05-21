@@ -45,7 +45,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -135,5 +138,63 @@ public class LocalNotificationStorageTest extends BaseLocalNotificationTest {
 
         verify(dbLocalNotificationHelper).removeDbLocalNotificationShown(eq(1));
     }
-    
+
+    // Verifies that getLocalNotificationShown returns the stored record and removes it on lookup hit (read-once).
+    @Test
+    public void getLocalNotificationShown_recordExists_returnsRecordAndRemoves() {
+        DbLocalNotification stored = new DbLocalNotification(42, 1, "tag", 1L, new Bundle());
+        when(dbLocalNotificationHelper.getDbLocalNotificationShown("42")).thenReturn(stored);
+
+        DbLocalNotification result = localNotificationStorage.getLocalNotificationShown(42);
+
+        Assert.assertSame(stored, result);
+        verify(dbLocalNotificationHelper).removeDbLocalNotificationShown(42);
+    }
+
+    // Verifies that getLocalNotificationShown returns null and does NOT remove when record is missing.
+    @Test
+    public void getLocalNotificationShown_recordMissing_returnsNullAndSkipsRemove() {
+        when(dbLocalNotificationHelper.getDbLocalNotificationShown(anyString())).thenReturn(null);
+
+        DbLocalNotification result = localNotificationStorage.getLocalNotificationShown(42);
+
+        Assert.assertNull(result);
+        verify(dbLocalNotificationHelper, never()).removeDbLocalNotificationShown(anyInt());
+    }
+
+    // Verifies that removeLocalNotificationShown uses requestId from the stored record, not the input notificationId.
+    @Test
+    public void removeLocalNotificationShown_usesRequestIdFromStoredRecord() {
+        DbLocalNotification stored = new DbLocalNotification(7, 99, "t", 1L, new Bundle());
+        when(dbLocalNotificationHelper.getDbLocalNotificationShown(99, "t")).thenReturn(stored);
+
+        localNotificationStorage.removeLocalNotificationShown(99, "t");
+
+        verify(dbLocalNotificationHelper).removeDbLocalNotificationShown(7);
+        verify(dbLocalNotificationHelper, never()).removeDbLocalNotificationShown(99);
+    }
+
+    // Verifies that removeLocalNotificationShown does NOT call remove when the record is not found.
+    @Test
+    public void removeLocalNotificationShown_recordMissing_skipsRemove() {
+        when(dbLocalNotificationHelper.getDbLocalNotificationShown(anyInt(), anyString())).thenReturn(null);
+
+        localNotificationStorage.removeLocalNotificationShown(99, "t");
+
+        verify(dbLocalNotificationHelper, never()).removeDbLocalNotificationShown(anyInt());
+    }
+
+    // Verifies that addLocalNotificationShown assembles a DbLocalNotification with the three id/tag fields and forwards it to the helper.
+    @Test
+    public void addLocalNotificationShown_assemblesRecordAndForwardsToHelper() {
+        localNotificationStorage.addLocalNotificationShown(5, 6, "tagX");
+
+        ArgumentCaptor<DbLocalNotification> captor = ArgumentCaptor.forClass(DbLocalNotification.class);
+        verify(dbLocalNotificationHelper).addDbLocalNotificationShown(captor.capture());
+        DbLocalNotification captured = captor.getValue();
+        Assert.assertEquals(5, captured.getRequestId());
+        Assert.assertEquals(6, captured.getNotificationId());
+        Assert.assertEquals("tagX", captured.getNotificationTag());
+    }
+
 }

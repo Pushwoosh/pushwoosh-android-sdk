@@ -11,6 +11,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
@@ -27,7 +28,13 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Implementation of {@link com.pushwoosh.internal.network.RequestManager}
+ * Executes Pushwoosh backend requests over HTTP.
+ * <p>
+ * Wraps a {@link PushRequest} into a JSON envelope, dispatches it via {@link HttpTransport},
+ * parses the response and returns a {@link Result} of typed data or {@link NetworkException}.
+ * Gates outgoing traffic on: reverse proxy availability, base URL presence,
+ * "remove all device data" state, and the {@link ServerCommunicationManager} switch.
+ * Async calls run on the network executor; callbacks are delivered on the main thread.
  */
 class PushwooshRequestManager implements RequestManager {
     private static final String TAG = "RequestManager";
@@ -57,15 +64,6 @@ class PushwooshRequestManager implements RequestManager {
         this.reverseProxyRequired = reverseProxyRequired;
     }
 
-    private boolean isRemoveAllDataDevice() {
-        boolean removeAllDeviceData = registrationPrefs.removeAllDeviceData().get();
-
-        if (removeAllDeviceData) {
-            PWLog.noise(TAG, "remove all data device is true, it is block request to server");
-        }
-        return removeAllDeviceData;
-    }
-
     private <Response> void safeProcessCallback(
             Callback<Response, NetworkException> callback, Result<Response, NetworkException> result) {
         if (callback == null) return;
@@ -86,6 +84,13 @@ class PushwooshRequestManager implements RequestManager {
         sendRequest(request, null, callback);
     }
 
+    /**
+     * Sends the request asynchronously on the network executor.
+     * <p>
+     * The callback (when provided) is delivered on the main thread.
+     *
+     * @param baseUrl optional override; if {@code null}, the currently registered base URL is used
+     */
     @Override
     public <Response> void sendRequest(
             final PushRequest<Response> request,
@@ -99,10 +104,21 @@ class PushwooshRequestManager implements RequestManager {
         });
     }
 
+    /**
+     * Synchronous variant of {@link #sendRequest}; must be called from a background thread.
+     */
     @NonNull public <Response> Result<Response, NetworkException> sendRequestSync(PushRequest<Response> request) {
         return sendRequestSync(request, baseRequestUrl);
     }
 
+    /**
+     * Persists and applies a new backend base URL.
+     * <p>
+     * The value is normalized by {@link RegistrationPrefs#updateBaseUrl} before being stored;
+     * blank or invalid values are rejected.
+     *
+     * @return {@code true} if the URL was accepted and stored
+     */
     @Override
     public boolean updateBaseUrl(final String baseUrl) {
         String normalized = registrationPrefs.updateBaseUrl(baseUrl);
@@ -113,98 +129,162 @@ class PushwooshRequestManager implements RequestManager {
         return false;
     }
 
+    /**
+     * Configures a reverse proxy URL and the custom headers attached to each request.
+     * <p>
+     * When set, all outgoing requests are routed through this URL, overriding any
+     * caller-supplied base URL. Pass {@code null} headers to clear them.
+     */
     @Override
     public void setReverseProxyUrl(String url, Map<String, String> headers) {
         reverseProxyUrl = url;
         customHeaders = headers != null ? new HashMap<>(headers) : new HashMap<>();
     }
 
+    /**
+     * Runs pre-flight gating and dispatches to {@link #executeRequest} on success.
+     * <p>
+     * Blocks the request when:
+     * <ul>
+     *   <li>reverse proxy is required but not configured</li>
+     *   <li>no base URL is available</li>
+     *   <li>device data has been wiped ({@code removeAllDeviceData})</li>
+     *   <li>server communication is paused via {@link ServerCommunicationManager}</li>
+     * </ul>
+     */
     @NonNull private <Response> Result<Response, NetworkException> sendRequestSync(
             PushRequest<Response> request, String baseUrl) {
         if (baseUrl == null) {
             baseUrl = baseRequestUrl;
         }
         if (reverseProxyRequired && reverseProxyUrl == null) {
-            PWLog.error(TAG, "Reverse proxy is required but not configured. Request blocked.");
+            PWLog.error(TAG, "Reverse proxy is required but not configured. Request blocked: " + request.getMethod());
             return Result.fromException(new NetworkException("Reverse proxy is required but not configured"));
         }
         Endpoint endpoint = resolveEndpoint(baseUrl);
         if (endpoint == null) {
-            PWLog.warn(TAG, "Base URL is not configured yet. Request blocked: " + request.getMethod());
+            PWLog.error(TAG, "Base URL is not configured. Request blocked: " + request.getMethod());
             return Result.fromException(new NetworkException("Base URL is not configured"));
         }
-        if (isRemoveAllDataDevice()) {
+        if (registrationPrefs.removeAllDeviceData().get()) {
+            PWLog.warn(TAG, DEVICE_REMOVED_MSG + ". Request blocked: " + request.getMethod());
             return Result.fromException(new NetworkException(DEVICE_REMOVED_MSG));
         }
         if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
+            PWLog.warn(TAG, COMMUNICATION_STOPPED_MSG + ". Request blocked: " + request.getMethod());
             return Result.fromException(new NetworkException(COMMUNICATION_STOPPED_MSG));
         }
 
+        return executeRequest(request, endpoint);
+    }
+
+    /**
+     * Performs the HTTP exchange and maps the response to a {@link Result}.
+     * <p>
+     * A success requires both transport status 200 and Pushwoosh envelope {@code status_code} 200;
+     * anything else (including thrown exceptions) is wrapped into a {@link ConnectionException}.
+     * On success, the server-provided {@code base_url} is applied via {@link #applyBaseUrlRotation}
+     * when the endpoint is rotatable.
+     */
+    @NonNull private <Response> Result<Response, NetworkException> executeRequest(
+            PushRequest<Response> request, Endpoint endpoint) {
         Exception exception;
         int statusCode = 0, pushwooshStatusCode = 0;
         try {
-            JSONObject data = request.getParams();
-            JSONObject payload = request.shouldWrapRequest() ? new JSONObject().put("request", data) : data;
             HttpResponse httpResponse = httpTransport.makeRequest(
-                    endpoint.url, payload, request.getMethod(), endpoint.headers, getApiToken());
+                    endpoint.url, buildPayload(request), request.getMethod(), endpoint.headers, getApiToken());
 
             statusCode = httpResponse.statusCode;
-            JSONObject envelope = new JSONObject();
-            if (isErrorResponseCode(statusCode)) {
-                try {
-                    envelope.put("status_code", statusCode);
-                    envelope.put("status_message", httpResponse.statusMessage);
-                } catch (JSONException e) {
-                    PWLog.error(TAG, e.getMessage());
-                }
-                pushwooshStatusCode = statusCode;
-            }
-            if (!httpResponse.body.isEmpty()) {
-                try {
-                    envelope = new JSONObject(httpResponse.body);
-                    pushwooshStatusCode = envelope.getInt("status_code");
-                } catch (Exception e) {
-                    PWLog.error(TAG, "Failed to parse response envelope", e);
-                }
-            }
+
+            ParsedEnvelope parsed = parseEnvelope(httpResponse);
+            JSONObject envelope = parsed.envelope;
+            pushwooshStatusCode = parsed.pushwooshStatusCode;
 
             if (200 == statusCode && 200 == pushwooshStatusCode) {
-                // honor base url change
-                if (envelope.has("base_url") && endpoint.rotatable) {
-                    String newBaseUrl = envelope.optString("base_url");
-                    updateBaseUrl(newBaseUrl);
-                }
-
-                JSONObject responseData = envelope.optJSONObject("response");
-                if (responseData == null) {
-                    responseData = new JSONObject();
-                }
-
-                return Result.fromData(request.parseResponse(responseData));
-            } else {
-                exception = new NetworkException(envelope.toString());
+                applyBaseUrlRotation(envelope, endpoint);
+                return Result.fromData(request.parseResponse(extractResponseBody(envelope)));
             }
+            exception = new NetworkException(envelope.toString());
         } catch (Exception ex) {
             exception = ex;
         }
-        PWLog.error(TAG, exception.getClass().getCanonicalName());
-        if (exception instanceof ConnectionException) {
-            PWLog.error(TAG, "ERROR: " + "connection error.");
-        } else {
-            PWLog.error(TAG, "ERROR: " + exception.getMessage(), exception);
-        }
-
+        PWLog.error(TAG, "Request failed: " + exception.getMessage(), exception);
         return Result.fromException(new ConnectionException(exception.getMessage(), statusCode, pushwooshStatusCode));
+    }
+
+    /**
+     * Extracts the Pushwoosh envelope from an HTTP response.
+     * <p>
+     * If the body is missing or unparseable, a synthetic envelope is populated with the
+     * transport-level status code and message instead.
+     */
+    @NonNull private static ParsedEnvelope parseEnvelope(HttpResponse httpResponse) {
+        JSONObject envelope = new JSONObject();
+        int pushwooshStatusCode = 0;
+        if (isErrorResponseCode(httpResponse.statusCode)) {
+            try {
+                envelope.put("status_code", httpResponse.statusCode);
+                envelope.put("status_message", httpResponse.statusMessage);
+            } catch (JSONException e) {
+                PWLog.error(TAG, e.getMessage());
+            }
+            pushwooshStatusCode = httpResponse.statusCode;
+        }
+        if (!httpResponse.body.isEmpty()) {
+            try {
+                envelope = new JSONObject(httpResponse.body);
+                pushwooshStatusCode = envelope.getInt("status_code");
+            } catch (Exception e) {
+                PWLog.error(TAG, "Failed to parse response envelope", e);
+            }
+        }
+        return new ParsedEnvelope(envelope, pushwooshStatusCode);
+    }
+
+    /**
+     * Applies the {@code base_url} from the envelope when the endpoint is marked rotatable.
+     * <p>
+     * Follows server-side load-balancing hints. Only the canonical registered URL is rotatable —
+     * reverse proxy and caller-supplied URLs are pinned.
+     */
+    private void applyBaseUrlRotation(JSONObject envelope, Endpoint endpoint) {
+        if (envelope.has("base_url") && endpoint.rotatable) {
+            updateBaseUrl(envelope.optString("base_url"));
+        }
+    }
+
+    /**
+     * Builds the JSON body to send.
+     * <p>
+     * When {@link PushRequest#shouldWrapRequest()} is {@code true} the params are wrapped
+     * as {@code {"request": ...}}; otherwise the raw params are returned as-is.
+     */
+    @NonNull private static JSONObject buildPayload(PushRequest<?> request) throws JSONException, InterruptedException {
+        JSONObject data = request.getParams();
+        return request.shouldWrapRequest() ? new JSONObject().put("request", data) : data;
+    }
+
+    @NonNull private static JSONObject extractResponseBody(JSONObject envelope) {
+        JSONObject responseData = envelope.optJSONObject("response");
+        return responseData != null ? responseData : new JSONObject();
     }
 
     private String getApiToken() {
         return "Token " + registrationPrefs.apiToken().get();
     }
 
-    private static boolean isErrorResponseCode(int code) {
+    @VisibleForTesting
+    static boolean isErrorResponseCode(int code) {
         return code >= 400 && code < 600;
     }
 
+    /**
+     * Picks the effective endpoint for the request.
+     * <p>
+     * Reverse proxy takes precedence; otherwise the caller-supplied base URL is used.
+     * Returns {@code null} when nothing is configured. The endpoint is marked rotatable
+     * only when its URL matches the currently registered {@code baseRequestUrl}.
+     */
     @Nullable private Endpoint resolveEndpoint(@Nullable String callerBaseUrl) {
         String proxy = reverseProxyUrl;
         Map<String, String> headers = customHeaders;
@@ -227,6 +307,16 @@ class PushwooshRequestManager implements RequestManager {
             this.url = url;
             this.headers = headers;
             this.rotatable = rotatable;
+        }
+    }
+
+    private static final class ParsedEnvelope {
+        final JSONObject envelope;
+        final int pushwooshStatusCode;
+
+        ParsedEnvelope(JSONObject envelope, int pushwooshStatusCode) {
+            this.envelope = envelope;
+            this.pushwooshStatusCode = pushwooshStatusCode;
         }
     }
 }

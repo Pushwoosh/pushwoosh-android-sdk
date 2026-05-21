@@ -77,7 +77,7 @@ public class DeepLinkActivity extends TranslucentActivity {
 		PWLog.noise(TAG, "createTestDevice()");
 
 		//todo: move to PushwooshRepository
-		CreateTestDeviceRequest request = new CreateTestDeviceRequest(DeviceUtils.getDeviceName(), "Imported from the app");
+		CreateTestDeviceRequest request = new CreateTestDeviceRequest(DeviceUtils.getDeviceName(), "Imported from the app", false);
 		RequestManager requestManager = NetworkModule.getRequestManager();
 		if (requestManager == null) {
 			Toast.makeText(context, "Test device registration has failed. RequestManager is null", Toast.LENGTH_LONG).show();

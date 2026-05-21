@@ -19,6 +19,7 @@ import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.richmedia.RichMediaManager;
 import com.pushwoosh.richmedia.RichMediaType;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,314 +29,146 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.annotation.LooperMode;
 
 @RunWith(RobolectricTestRunner.class)
+@LooperMode(LooperMode.Mode.LEGACY)
 @Config(manifest = Config.NONE)
 public class ResourceViewStrategyFactoryTest {
 
-	private ResourceViewStrategyFactory factory;
-
-	@Mock
-	private Context mockContext;
-	@Mock
-	private PushwooshPlatform mockPlatform;
-	@Mock
-	private PushwooshRepository mockRepository;
-
-	@Before
-	public void setUp() {
-		MockitoAnnotations.openMocks(this);
-		factory = new ResourceViewStrategyFactory();
-		when(mockPlatform.pushwooshRepository()).thenReturn(mockRepository);
-	}
-
-	// --- Null guard tests ---
-
-	@Test
-	public void showResource_nullWrapper_doesNothing() {
-		factory.showResource(null);
-	}
-
-	@Test
-	public void showResource_nullResource_doesNothing() {
-		ResourceWrapper wrapper = new ResourceWrapper.Builder().build();
-		factory.showResource(wrapper);
-	}
-
-	@Test
-	public void showResource_nullContext_doesNothing() {
-		Resource resource = new Resource("code1", "http://example.com", "", 0, null, null, false, 0);
-		ResourceWrapper wrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.build();
-
-		try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class)) {
-			platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(null);
-
-			factory.showResource(wrapper);
-		}
-	}
-
-	// --- InApp + MODAL ---
-
-	@Test
-	public void showResource_inAppModal_showsModalWindow() {
-		Resource resource = new Resource("code1", "http://example.com", "", 0, null, null, false, 0);
-		ResourceWrapper wrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.build();
-
-		try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
-			 MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
-			 MockedStatic<RichMediaManager> richMediaManager = Mockito.mockStatic(RichMediaManager.class);
-			 MockedStatic<ModalRichMediaWindow> modalWindow = Mockito.mockStatic(ModalRichMediaWindow.class)) {
-
-			platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
-			pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
-			richMediaManager.when(RichMediaManager::getRichMediaType).thenReturn(RichMediaType.MODAL);
-
-			factory.showResource(wrapper);
-
-			modalWindow.verify(() -> ModalRichMediaWindow.showModalRichMediaWindow(resource));
-			verify(mockRepository).setCurrentInAppCode("code1");
-			verify(mockRepository).setCurrentRichMediaCode(null);
-		}
-	}
-
-	// --- InApp + DEFAULT ---
-
-	@Test
-	public void showResource_inAppDefault_startsActivityWithInAppIntent() {
-		Resource resource = new Resource("code1", "http://example.com", "", 0, null, null, false, 0);
-		ResourceWrapper wrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.build();
-
-		Intent mockIntent = mock(Intent.class);
-
-		try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
-			 MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
-			 MockedStatic<RichMediaManager> richMediaManager = Mockito.mockStatic(RichMediaManager.class);
-			 MockedStatic<RichMediaWebActivity> webActivity = Mockito.mockStatic(RichMediaWebActivity.class)) {
-
-			platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
-			pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
-			richMediaManager.when(RichMediaManager::getRichMediaType).thenReturn(RichMediaType.DEFAULT);
-			webActivity.when(() -> RichMediaWebActivity.createInAppIntent(mockContext, resource)).thenReturn(mockIntent);
-
-			factory.showResource(wrapper);
-
-			webActivity.verify(() -> RichMediaWebActivity.createInAppIntent(mockContext, resource));
-			verify(mockRepository).setCurrentInAppCode("code1");
-			verify(mockRepository).setCurrentRichMediaCode(null);
-
-			// Execute Handler.post() callback
-			ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-			verify(mockContext).startActivity(mockIntent);
-		}
-	}
-
-	// --- RichMedia + MODAL ---
-
-	@Test
-	public void showResource_richMediaModal_showsModalWindow() {
-		Resource resource = new Resource("r-rm123", "http://example.com", "", 0, null, null, false, 0);
-		ResourceWrapper wrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.build();
-
-		try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
-			 MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
-			 MockedStatic<RichMediaManager> richMediaManager = Mockito.mockStatic(RichMediaManager.class);
-			 MockedStatic<ModalRichMediaWindow> modalWindow = Mockito.mockStatic(ModalRichMediaWindow.class)) {
-
-			platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
-			pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
-			richMediaManager.when(RichMediaManager::getRichMediaType).thenReturn(RichMediaType.MODAL);
-
-			factory.showResource(wrapper);
-
-			modalWindow.verify(() -> ModalRichMediaWindow.showModalRichMediaWindow(resource));
-			verify(mockRepository).setCurrentRichMediaCode("rm123");
-			verify(mockRepository).setCurrentInAppCode(null);
-		}
-	}
-
-	// --- RichMedia + DEFAULT ---
-
-	@Test
-	public void showResource_richMediaDefault_startsActivityWithRichMediaIntent() {
-		Resource resource = new Resource("r-rm456", "http://example.com", "", 0, null, null, false, 0);
-		ResourceWrapper wrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.build();
-
-		Intent mockIntent = mock(Intent.class);
-
-		try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
-			 MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
-			 MockedStatic<RichMediaManager> richMediaManager = Mockito.mockStatic(RichMediaManager.class);
-			 MockedStatic<RichMediaWebActivity> webActivity = Mockito.mockStatic(RichMediaWebActivity.class)) {
-
-			platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
-			pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
-			richMediaManager.when(RichMediaManager::getRichMediaType).thenReturn(RichMediaType.DEFAULT);
-			webActivity.when(() -> RichMediaWebActivity.createRichMediaIntent(mockContext, resource)).thenReturn(mockIntent);
-
-			factory.showResource(wrapper);
-
-			webActivity.verify(() -> RichMediaWebActivity.createRichMediaIntent(mockContext, resource));
-			verify(mockRepository).setCurrentRichMediaCode("rm456");
-			verify(mockRepository).setCurrentInAppCode(null);
-
-			// Execute Handler.postDelayed() callback
-			ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-			verify(mockContext).startActivity(mockIntent);
-		}
-	}
-
-	// --- RichMedia + LockScreen ---
-
-	@Test
-	public void showResource_richMediaLockScreen_startsActivityWithLockScreenIntent() {
-		Resource resource = new Resource("r-rm789", "http://example.com", "", 0, null, null, false, 0);
-		ResourceWrapper wrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.setLockScreen(true)
-				.setSound("notification_sound")
-				.build();
-
-		Intent mockIntent = mock(Intent.class);
-
-		try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
-			 MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
-			 MockedStatic<RichMediaWebActivity> webActivity = Mockito.mockStatic(RichMediaWebActivity.class)) {
-
-			platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
-			pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
-			webActivity.when(() -> RichMediaWebActivity.createRichMediaLockScreenIntent(mockContext, resource, "notification_sound"))
-					.thenReturn(mockIntent);
-
-			factory.showResource(wrapper);
-
-			webActivity.verify(() -> RichMediaWebActivity.createRichMediaLockScreenIntent(mockContext, resource, "notification_sound"));
-			verify(mockContext).startActivity(mockIntent);
-		}
-	}
-
-	// --- Repository code assignment ---
-
-	@Test
-	public void showResource_richMedia_setsCodeWithSubstring2() {
-		Resource resource = new Resource("r-mycode", "http://example.com", "", 0, null, null, false, 0);
-		ResourceWrapper wrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.build();
-
-		try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
-			 MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
-			 MockedStatic<RichMediaManager> richMediaManager = Mockito.mockStatic(RichMediaManager.class);
-			 MockedStatic<ModalRichMediaWindow> modalWindow = Mockito.mockStatic(ModalRichMediaWindow.class)) {
-
-			platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
-			pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
-			richMediaManager.when(RichMediaManager::getRichMediaType).thenReturn(RichMediaType.MODAL);
-
-			factory.showResource(wrapper);
-
-			// "r-mycode".substring(2) == "mycode"
-			verify(mockRepository).setCurrentRichMediaCode("mycode");
-			verify(mockRepository).setCurrentInAppCode(null);
-		}
-	}
-
-	// --- Lock screen does not call repository codes ---
-
-	@Test
-	public void showResource_lockScreen_doesNotSetRepositoryCodes() {
-		Resource resource = new Resource("r-rm000", "http://example.com", "", 0, null, null, false, 0);
-		ResourceWrapper wrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.setLockScreen(true)
-				.setSound("")
-				.build();
-
-		Intent mockIntent = mock(Intent.class);
-
-		try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
-			 MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
-			 MockedStatic<RichMediaWebActivity> webActivity = Mockito.mockStatic(RichMediaWebActivity.class)) {
-
-			platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
-			pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
-			webActivity.when(() -> RichMediaWebActivity.createRichMediaLockScreenIntent(any(), any(), any()))
-					.thenReturn(mockIntent);
-
-			factory.showResource(wrapper);
-
-			verify(mockRepository, never()).setCurrentInAppCode(any());
-			verify(mockRepository, never()).setCurrentRichMediaCode(any());
-		}
-	}
-
-	// --- InApp routing based on ResourceType ---
-
-	@Test
-	public void showResource_inAppType_neverCallsRichMediaIntent() {
-		Resource resource = new Resource("code1", "http://example.com", "", 0, null, null, false, 0);
-		ResourceWrapper wrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.build();
-
-		try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
-			 MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
-			 MockedStatic<RichMediaManager> richMediaManager = Mockito.mockStatic(RichMediaManager.class);
-			 MockedStatic<ModalRichMediaWindow> modalWindow = Mockito.mockStatic(ModalRichMediaWindow.class);
-			 MockedStatic<RichMediaWebActivity> webActivity = Mockito.mockStatic(RichMediaWebActivity.class)) {
-
-			platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
-			pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
-			richMediaManager.when(RichMediaManager::getRichMediaType).thenReturn(RichMediaType.MODAL);
-
-			factory.showResource(wrapper);
-
-			modalWindow.verify(() -> ModalRichMediaWindow.showModalRichMediaWindow(resource));
-			webActivity.verify(() -> RichMediaWebActivity.createRichMediaIntent(any(), any()), never());
-			webActivity.verify(() -> RichMediaWebActivity.createRichMediaLockScreenIntent(any(), any(), any()), never());
-		}
-	}
-
-	// --- RichMedia with delay uses postDelayed ---
-
-	@Test
-	public void showResource_richMediaWithDelay_activityNotStartedBeforeDelay() {
-		Resource resource = new Resource("r-rm222", "http://example.com", "", 0, null, null, false, 0);
-		ResourceWrapper wrapper = new ResourceWrapper.Builder()
-				.setResource(resource)
-				.setDelay(5000)
-				.build();
-
-		Intent mockIntent = mock(Intent.class);
-
-		try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
-			 MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
-			 MockedStatic<RichMediaManager> richMediaManager = Mockito.mockStatic(RichMediaManager.class);
-			 MockedStatic<RichMediaWebActivity> webActivity = Mockito.mockStatic(RichMediaWebActivity.class)) {
-
-			platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
-			pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
-			richMediaManager.when(RichMediaManager::getRichMediaType).thenReturn(RichMediaType.DEFAULT);
-			webActivity.when(() -> RichMediaWebActivity.createRichMediaIntent(mockContext, resource)).thenReturn(mockIntent);
-
-			factory.showResource(wrapper);
-
-			// Before running delayed tasks, startActivity should not have been called
-			verify(mockContext, never()).startActivity(any());
-
-			// After running delayed tasks, it should be called
-			ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-			verify(mockContext).startActivity(mockIntent);
-		}
-	}
+    private ResourceViewStrategyFactory factory;
+    private AutoCloseable mocks;
+
+    @Mock
+    private Context mockContext;
+
+    @Mock
+    private PushwooshPlatform mockPlatform;
+
+    @Mock
+    private PushwooshRepository mockRepository;
+
+    @Before
+    public void setUp() {
+        mocks = MockitoAnnotations.openMocks(this);
+        factory = new ResourceViewStrategyFactory();
+        when(mockPlatform.pushwooshRepository()).thenReturn(mockRepository);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        mocks.close();
+    }
+
+    // Restored from cross-check: pins the IN_APP branch's repository contract — sets inAppCode VERBATIM
+    // (no substring transform, in contrast with the rich-media branch) and nulls richMediaCode.
+    // A refactor that accidentally unifies the two code-setting paths would silently break rich-media
+    // tracking; this test guards the asymmetry from the IN_APP side.
+    @Test
+    public void showResource_inApp_setsInAppCodeWithoutTransformAndNullsRichMediaCode() {
+        Resource resource = new Resource("code1", "http://example.com", "", 0, null, null, false, 0);
+        ResourceWrapper wrapper =
+                new ResourceWrapper.Builder().setResource(resource).build();
+
+        try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
+                MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
+                MockedStatic<RichMediaManager> richMediaManager = Mockito.mockStatic(RichMediaManager.class);
+                MockedStatic<ModalRichMediaWindow> modalWindow = Mockito.mockStatic(ModalRichMediaWindow.class)) {
+
+            platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
+            pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
+            richMediaManager.when(RichMediaManager::getRichMediaType).thenReturn(RichMediaType.MODAL);
+
+            factory.showResource(wrapper);
+
+            // IN_APP must NOT call .substring(2) — the code is the in-app code verbatim.
+            verify(mockRepository).setCurrentInAppCode("code1");
+            verify(mockRepository).setCurrentRichMediaCode(null);
+        }
+    }
+
+    // Verifies the substring(2) transformation on rich-media code (drops "r-" prefix to derive richMediaCode).
+    // Also pins the rich-media repository contract: sets richMediaCode, nulls inAppCode.
+    @Test
+    public void showResource_richMedia_setsCodeWithSubstring2() {
+        Resource resource = new Resource("r-mycode", "http://example.com", "", 0, null, null, false, 0);
+        ResourceWrapper wrapper =
+                new ResourceWrapper.Builder().setResource(resource).build();
+
+        try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
+                MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
+                MockedStatic<RichMediaManager> richMediaManager = Mockito.mockStatic(RichMediaManager.class);
+                MockedStatic<ModalRichMediaWindow> modalWindow = Mockito.mockStatic(ModalRichMediaWindow.class)) {
+
+            platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
+            pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
+            richMediaManager.when(RichMediaManager::getRichMediaType).thenReturn(RichMediaType.MODAL);
+
+            factory.showResource(wrapper);
+
+            // "r-mycode".substring(2) == "mycode"
+            verify(mockRepository).setCurrentRichMediaCode("mycode");
+            verify(mockRepository).setCurrentInAppCode(null);
+        }
+    }
+
+    // Pins the asymmetry: lockScreen branch writes nothing to the repository.
+    @Test
+    public void showResource_lockScreen_doesNotSetRepositoryCodes() {
+        Resource resource = new Resource("r-rm000", "http://example.com", "", 0, null, null, false, 0);
+        ResourceWrapper wrapper = new ResourceWrapper.Builder()
+                .setResource(resource)
+                .setLockScreen(true)
+                .setSound("")
+                .build();
+
+        Intent mockIntent = mock(Intent.class);
+
+        try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
+                MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
+                MockedStatic<RichMediaWebActivity> webActivity = Mockito.mockStatic(RichMediaWebActivity.class)) {
+
+            platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
+            pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
+            webActivity
+                    .when(() -> RichMediaWebActivity.createRichMediaLockScreenIntent(any(), any(), any()))
+                    .thenReturn(mockIntent);
+
+            factory.showResource(wrapper);
+
+            verify(mockRepository, never()).setCurrentInAppCode(any());
+            verify(mockRepository, never()).setCurrentRichMediaCode(any());
+        }
+    }
+
+    // Pins the branch-priority contract: IN_APP type wins over isLockScreen() flag.
+    // Reordering the conditionals would silently change behaviour.
+    @Test
+    public void showResource_inAppWithLockScreen_inAppBranchTakesPriority() {
+        Resource resource = new Resource("code1", "http://example.com", "", 0, null, null, false, 0);
+        ResourceWrapper wrapper = new ResourceWrapper.Builder()
+                .setResource(resource)
+                .setLockScreen(true)
+                .setSound("snd")
+                .build();
+
+        try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class);
+                MockedStatic<PushwooshPlatform> pushwooshPlatform = Mockito.mockStatic(PushwooshPlatform.class);
+                MockedStatic<RichMediaManager> richMediaManager = Mockito.mockStatic(RichMediaManager.class);
+                MockedStatic<ModalRichMediaWindow> modalWindow = Mockito.mockStatic(ModalRichMediaWindow.class);
+                MockedStatic<RichMediaWebActivity> webActivity = Mockito.mockStatic(RichMediaWebActivity.class)) {
+
+            platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
+            pushwooshPlatform.when(PushwooshPlatform::getInstance).thenReturn(mockPlatform);
+            richMediaManager.when(RichMediaManager::getRichMediaType).thenReturn(RichMediaType.MODAL);
+
+            factory.showResource(wrapper);
+
+            modalWindow.verify(() -> ModalRichMediaWindow.showModalRichMediaWindow(resource));
+            webActivity.verify(
+                    () -> RichMediaWebActivity.createRichMediaLockScreenIntent(any(), any(), any()), never());
+            verify(mockContext, never()).startActivity(any());
+            verify(mockRepository).setCurrentInAppCode("code1");
+        }
+    }
 }

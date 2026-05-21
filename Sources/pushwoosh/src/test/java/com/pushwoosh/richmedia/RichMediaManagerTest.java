@@ -3,6 +3,7 @@ package com.pushwoosh.richmedia;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,6 +55,8 @@ public class RichMediaManagerTest {
     private PreferenceBooleanValue mockRespectEdgeToEdgePref;
     @Mock
     private PreferenceIntValue mockAnimationDurationPref;
+    @Mock
+    private PreferenceIntValue mockRichMediaTypePref;
 
     @Before
     public void setUp() {
@@ -393,6 +396,74 @@ public class RichMediaManagerTest {
             assertEquals("should have same number of gestures", 2, retrievedGestures.size());
             assertTrue("should contain DOWN gesture", retrievedGestures.contains(ModalRichMediaSwipeGesture.DOWN));
             assertTrue("should contain RIGHT gesture", retrievedGestures.contains(ModalRichMediaSwipeGesture.RIGHT));
+        }
+    }
+
+    // Verifies that setRichMediaType persists the supplied enum's ordinal to NotificationPrefs.
+    @Test
+    public void testSetRichMediaType_ValidType_PersistsOrdinal() {
+        try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
+            repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
+            when(mockPrefs.richMediaType()).thenReturn(mockRichMediaTypePref);
+
+            RichMediaManager.setRichMediaType(RichMediaType.MODAL);
+
+            verify(mockRichMediaTypePref).set(RichMediaType.MODAL.ordinal());
+        }
+    }
+
+    // Verifies that setRichMediaType(null) is a no-op and does not touch the prefs.
+    @Test
+    public void testSetRichMediaType_NullType_DoesNotTouchPrefs() {
+        try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
+            repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
+
+            RichMediaManager.setRichMediaType(null);
+
+            verify(mockPrefs, never()).richMediaType();
+        }
+    }
+
+    // Verifies that getRichMediaType returns MODAL when the stored ordinal corresponds to MODAL.
+    @Test
+    public void testGetRichMediaType_ValidOrdinalForModal_ReturnsModal() {
+        try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
+            repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
+            when(mockPrefs.richMediaType()).thenReturn(mockRichMediaTypePref);
+            when(mockRichMediaTypePref.get()).thenReturn(RichMediaType.MODAL.ordinal());
+
+            RichMediaType result = RichMediaManager.getRichMediaType();
+
+            assertEquals(RichMediaType.MODAL, result);
+        }
+    }
+
+
+    // Verifies that getRichMediaType falls back to DEFAULT when the stored ordinal exceeds the enum range.
+    @Test
+    public void testGetRichMediaType_OrdinalOutOfRange_FallsBackToDefault() {
+        try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
+            repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
+            when(mockPrefs.richMediaType()).thenReturn(mockRichMediaTypePref);
+            when(mockRichMediaTypePref.get()).thenReturn(99);
+
+            RichMediaType result = RichMediaManager.getRichMediaType();
+
+            assertEquals(RichMediaType.DEFAULT, result);
+        }
+    }
+
+    // Verifies that getRichMediaType falls back to DEFAULT when the stored ordinal is negative.
+    @Test
+    public void testGetRichMediaType_NegativeOrdinal_FallsBackToDefault() {
+        try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
+            repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
+            when(mockPrefs.richMediaType()).thenReturn(mockRichMediaTypePref);
+            when(mockRichMediaTypePref.get()).thenReturn(-1);
+
+            RichMediaType result = RichMediaManager.getRichMediaType();
+
+            assertEquals(RichMediaType.DEFAULT, result);
         }
     }
 

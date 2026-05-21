@@ -34,6 +34,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -845,5 +847,51 @@ public class PushwooshRequestManagerTest {
         String contentLength = rec.getHeader("Content-Length");
         assertThat(contentLength, is(notNullValue()));
         assertEquals((long) Integer.parseInt(contentLength), rec.getBodySize());
+    }
+
+    // Verifies that HTTP status 399 (just below the error range) is not classified as an error.
+    @Test(timeout = TIMEOUT_TEST)
+    public void testIsErrorResponseCode_399_returnsFalse() {
+        assertFalse(PushwooshRequestManager.isErrorResponseCode(399));
+    }
+
+    // Verifies that HTTP status 400 (lower error boundary) is classified as an error.
+    @Test(timeout = TIMEOUT_TEST)
+    public void testIsErrorResponseCode_400_returnsTrue() {
+        assertTrue(PushwooshRequestManager.isErrorResponseCode(400));
+    }
+
+    // Verifies that HTTP status 599 (upper error boundary, inclusive) is classified as an error.
+    @Test(timeout = TIMEOUT_TEST)
+    public void testIsErrorResponseCode_599_returnsTrue() {
+        assertTrue(PushwooshRequestManager.isErrorResponseCode(599));
+    }
+
+    // Verifies that HTTP status 600 (just above the error range) is not classified as an error.
+    @Test(timeout = TIMEOUT_TEST)
+    public void testIsErrorResponseCode_600_returnsFalse() {
+        assertFalse(PushwooshRequestManager.isErrorResponseCode(600));
+    }
+
+    // Verifies that updateBaseUrl returns true when RegistrationPrefs accepts and normalizes the URL.
+    @Test(timeout = TIMEOUT_TEST)
+    public void testUpdateBaseUrl_returnsTrue_whenNormalizedNonNull() {
+        RegistrationPrefs prefsMock = mock(RegistrationPrefs.class);
+        when(prefsMock.updateBaseUrl("https://valid")).thenReturn("https://valid");
+        ServerCommunicationManager scm = mock(ServerCommunicationManager.class);
+        PushwooshRequestManager manager = new PushwooshRequestManager(prefsMock, scm, false);
+
+        assertTrue(manager.updateBaseUrl("https://valid"));
+    }
+
+    // Verifies that updateBaseUrl returns false when RegistrationPrefs rejects the URL (returns null).
+    @Test(timeout = TIMEOUT_TEST)
+    public void testUpdateBaseUrl_returnsFalse_whenNormalizedNull() {
+        RegistrationPrefs prefsMock = mock(RegistrationPrefs.class);
+        when(prefsMock.updateBaseUrl("bad")).thenReturn(null);
+        ServerCommunicationManager scm = mock(ServerCommunicationManager.class);
+        PushwooshRequestManager manager = new PushwooshRequestManager(prefsMock, scm, false);
+
+        assertFalse(manager.updateBaseUrl("bad"));
     }
 }

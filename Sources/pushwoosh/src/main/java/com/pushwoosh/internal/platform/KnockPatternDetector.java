@@ -16,10 +16,6 @@ import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
 /**
  * Detects a "knock pattern" — rapid foreground transitions — and registers the device
  * as a test device. When the app is brought to foreground {@link #REQUIRED_KNOCKS} times
@@ -31,6 +27,7 @@ public class KnockPatternDetector {
 
     static final int REQUIRED_KNOCKS = 6;
     static final long WINDOW_MS = 30_000;
+    static final long COOLDOWN_MS = 60L * 60L * 1000L;
     private static final int MAX_DESCRIPTION_LENGTH = 64;
 
     interface Clock {
@@ -80,6 +77,16 @@ public class KnockPatternDetector {
     }
 
     private void performKnockAction() {
+        RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
+        if (prefs != null) {
+            long now = clock.now();
+            long last = prefs.lastKnockPatternTime().get();
+            if (last != 0 && now - last < COOLDOWN_MS) {
+                PWLog.debug(TAG, "Knock pattern action skipped (cooldown)");
+                return;
+            }
+            prefs.lastKnockPatternTime().set(now);
+        }
         enableNoiseLogging();
         SdkStateProvider.getInstance().executeOrQueue(() -> {
             String hwid = RepositoryModule.getRegistrationPreferences().hwid().get();
@@ -128,7 +135,7 @@ public class KnockPatternDetector {
         String name = (prefs != null && prefs.isCollectingDeviceModelAllowed().get())
                 ? DeviceUtils.getDeviceName()
                 : "Android Device";
-        CreateTestDeviceRequest request = new CreateTestDeviceRequest(name, buildDescription());
+        CreateTestDeviceRequest request = new CreateTestDeviceRequest(name, buildDescription(), true);
         RequestManager requestManager = NetworkModule.getRequestManager();
         if (requestManager == null) {
             PWLog.warn(TAG, "RequestManager is null");
@@ -142,25 +149,11 @@ public class KnockPatternDetector {
     }
 
     private String buildDescription() {
-        StringBuilder sb = new StringBuilder();
-
         AppInfoProvider appInfo = AndroidPlatformModule.getAppInfoProvider();
-        if (appInfo != null && appInfo.getPackageName() != null) {
-            sb.append(appInfo.getPackageName());
+        if (appInfo == null || appInfo.getPackageName() == null) {
+            return "";
         }
-
-        appendSeparator(sb);
-        sb.append(new SimpleDateFormat("dd.MM.yy HH:mm", Locale.US).format(new Date()));
-
-        if (sb.length() > MAX_DESCRIPTION_LENGTH) {
-            return sb.substring(0, MAX_DESCRIPTION_LENGTH);
-        }
-        return sb.toString();
-    }
-
-    private void appendSeparator(StringBuilder sb) {
-        if (sb.length() > 0) {
-            sb.append(" | ");
-        }
+        String pkg = appInfo.getPackageName();
+        return pkg.length() > MAX_DESCRIPTION_LENGTH ? pkg.substring(0, MAX_DESCRIPTION_LENGTH) : pkg;
     }
 }

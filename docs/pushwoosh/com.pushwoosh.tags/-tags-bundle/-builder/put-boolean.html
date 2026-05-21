@@ -97,22 +97,22 @@
     <h1 class="cover"><span>put</span><wbr><span><span>Boolean</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="put-boolean.html"><span class="token function">putBoolean</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">TagsBundle.Builder</a></div><p class="paragraph">Adds a tag with a boolean value. </p><p class="paragraph"> Use for binary flags, subscription states, feature toggles, or any yes/no attribute. Boolean tags are ideal for segmenting users based on true/false conditions. </p><p class="paragraph">Example (Subscription Service):</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-		new TagsBundle.Builder()
-		    // Subscription status
-		    .putBoolean("premium_member", true)
-		    .putBoolean("trial_active", false)
-		    .putBoolean("auto_renew_enabled", true)
-		
-		    // Communication preferences
-		    .putBoolean("email_notifications", true)
-		    .putBoolean("push_notifications", true)
-		    .putBoolean("sms_notifications", false)
-		
-		    // Feature flags
-		    .putBoolean("beta_features_enabled", true)
-		    .putBoolean("gdpr_consent", true)
-		    .build();
-		</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">this Builder instance for method chaining</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name (e.g., "premium_member", "email_subscribed", "onboarding_completed")</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>value</span></span></u></div></span></div><div><div class="title"><p class="paragraph">boolean value (true or false)</p></div></div></div></div></div></div></div>
+new TagsBundle.Builder()
+    // Subscription status
+    .putBoolean("premium_member", true)
+    .putBoolean("trial_active", false)
+    .putBoolean("auto_renew_enabled", true)
+
+    // Communication preferences
+    .putBoolean("email_notifications", true)
+    .putBoolean("push_notifications", true)
+    .putBoolean("sms_notifications", false)
+
+    // Feature flags
+    .putBoolean("beta_features_enabled", true)
+    .putBoolean("gdpr_consent", true)
+    .build();
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">this Builder instance for method chaining</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>key</span></span></u></div></span></div><div><div class="title"><p class="paragraph">tag name (e.g., "premium_member", "email_subscribed", "onboarding_completed")</p></div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>value</span></span></u></div></span></div><div><div class="title"><p class="paragraph">boolean value (true or false)</p></div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

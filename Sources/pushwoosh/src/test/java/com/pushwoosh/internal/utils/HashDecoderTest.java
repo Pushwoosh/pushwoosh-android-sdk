@@ -1,76 +1,84 @@
 package com.pushwoosh.internal.utils;
 
-import org.junit.Assert;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import org.junit.Test;
 
 public class HashDecoderTest {
 
-    // Helper class to hold CSV data
-    public static class CsvRow {
-        String encoded;
-        String expectedMessageCode;
+    @Test
+    public void parseMessageHash_tooFewSections_returnsDefaultTriple() {
+        String[] threeParts = HashDecoder.parseMessageHash("_abc_def");
+        String[] singlePart = HashDecoder.parseMessageHash("nodelimiters");
+        String[] emptyInput = HashDecoder.parseMessageHash("");
 
-        CsvRow(String encoded, String expectedMessageCode) {
-            this.encoded = encoded;
-            this.expectedMessageCode = expectedMessageCode;
-        }
-    }
-
-    // Helper method to load CSV data
-    public List<CsvRow> loadCsvData() throws Exception {
-        InputStream is = getClass().getClassLoader().getResourceAsStream("message-hash.csv");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        List<CsvRow> csvData = new ArrayList<>();
-
-        String line;
-        reader.readLine(); // Skip header line
-        while ((line = reader.readLine()) != null) {
-            String[] columns = line.split(",");
-            String encoded = columns[0];
-            String expectedMessageCode = columns[2]; // Index of MessageCode column
-            csvData.add(new CsvRow(encoded, expectedMessageCode));
-        }
-        reader.close();
-        return csvData;
+        assertArrayEquals(new String[] {"0", "", "0"}, threeParts);
+        assertArrayEquals(new String[] {"0", "", "0"}, singlePart);
+        assertArrayEquals(new String[] {"0", "", "0"}, emptyInput);
     }
 
     @Test
-    public void testHashDecoderWithCsvData() throws Exception {
-        List<CsvRow> csvData = loadCsvData();
-        int matchCounter = 0;  // Counter for successful matches
-        List<String> mismatches = new ArrayList<>();  // List to store mismatch information
+    public void parseMessageHash_wellFormedHash_decodesAllThreeParts() {
+        // "_1_2_a": campaignID="1"->1, messageID="2"->2, messageCode="a" (single part, returned as-is)
+        String[] result = HashDecoder.parseMessageHash("_1_2_a");
 
-        for (CsvRow row : csvData) {
-            String[] result = HashDecoder.parseMessageHash(row.encoded);
-            String actualMessageCode = result[1];  // Index of MessageCode from parseMessageHash
+        assertEquals("2", result[0]);
+        assertEquals("a", result[1]);
+        assertEquals("1", result[2]);
+    }
 
-            if (actualMessageCode.equals(row.expectedMessageCode)) {
-                matchCounter++;  // Increment counter for each match
-            } else {
-                mismatches.add("Mismatch for hash: " + row.encoded +
-                        " Expected: " + row.expectedMessageCode +
-                        " Got: " + actualMessageCode);
-                assertEquals("_e_1o_1us-36Xv14-88VofI", row.encoded);
-            }
+    @Test
+    public void decodeMessageCode_noDash_returnsInputAsIs() {
+        String result = HashDecoder.decodeMessageCode("abc");
+
+        assertEquals("abc", result);
+    }
+
+    @Test
+    public void decodeMessageCode_multipleSections_decodesToHexWithPadding() {
+        // "1-1": each section decodes to 1 -> hex "1"; first padded to 4 chars, others to 8.
+        String result = HashDecoder.decodeMessageCode("1-1");
+
+        assertEquals("0001-00000001", result);
+    }
+
+    @Test
+    public void decodeMessageCode_sectionsAlreadyAtLeastMinimumLength_doesNotPad() {
+        // "zzz" -> 136745 -> hex "21629" (5 chars >= 4, no padding for first part).
+        // "zzzzz" -> 525649985 -> hex "1F54C841" (8 chars >= 8, no padding for other parts).
+        String result = HashDecoder.decodeMessageCode("zzz-zzzzz");
+
+        assertEquals("21629-1F54C841", result);
+    }
+
+    @Test
+    public void alphabetDecode_nullOrEmpty_returnsZero() {
+        assertEquals(0L, HashDecoder.alphabetDecode(null));
+        assertEquals(0L, HashDecoder.alphabetDecode(""));
+    }
+
+    @Test
+    public void alphabetDecode_singleCharacter_returnsAlphabetIndex() {
+        String[][] cases = {
+            {"0", "0"},
+            {"9", "9"},
+            {"a", "10"},
+            {"z", "35"},
+            {"A", "36"},
+            {"Z", "61"},
+        };
+
+        for (String[] pair : cases) {
+            String input = pair[0];
+            long expected = Long.parseLong(pair[1]);
+            assertEquals("alphabetDecode(\"" + input + "\")", expected, HashDecoder.alphabetDecode(input));
         }
+    }
 
-        // Log the number of successful matches
-        System.out.println("Total matches: " + matchCounter + " out of " + csvData.size());
-
-        // If there are mismatches, print them and fail the test
-        if (!mismatches.isEmpty()) {
-            System.out.println("Found mismatches:");
-            for (String mismatch : mismatches) {
-                System.out.println(mismatch);
-            }
-            assertEquals(mismatches.size(), 1);
-        }
+    @Test
+    public void alphabetDecode_multipleCharacters_returnsBase62Value() {
+        assertEquals(62L, HashDecoder.alphabetDecode("10"));
+        assertEquals(123L, HashDecoder.alphabetDecode("1Z"));
     }
 }

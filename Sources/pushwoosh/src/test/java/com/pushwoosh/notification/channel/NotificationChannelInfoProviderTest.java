@@ -26,13 +26,17 @@
 
 package com.pushwoosh.notification.channel;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
+import android.app.NotificationManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.pushwoosh.notification.PushMessage;
 import com.pushwoosh.testutil.PlatformTestManager;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +44,8 @@ import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static org.junit.Assert.*;
+import java.util.Arrays;
+import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
@@ -61,10 +66,10 @@ public class NotificationChannelInfoProviderTest {
     @Test
     public void channelId() {
         String result = NotificationChannelInfoProvider.channelId("pushwoosh_channelName");
-        Assert.assertEquals("pushwoosh_channelName", result);
+        assertEquals("pushwoosh_channelName", result);
 
         String result2 = NotificationChannelInfoProvider.channelId("chagnnel name 2");
-        Assert.assertEquals("pushwoosh_chagnnel_name_2", result2);
+        assertEquals("pushwoosh_chagnnel_name_2", result2);
     }
 
     @Test
@@ -75,12 +80,95 @@ public class NotificationChannelInfoProviderTest {
 
         platformTestManager.getNotificationPrefs().channelName().set("old name channel");
         String result = NotificationChannelInfoProvider.getChannelName(pushMessage);
-        Assert.assertEquals("old name channel", result);
+        assertEquals("old name channel", result);
 
         bundle.putString("pw_channel", "channel name");
         String result2 = NotificationChannelInfoProvider.getChannelName(pushMessage);
-        Assert.assertEquals("channel name", result2);
+        assertEquals("channel name", result2);
+    }
 
+    // Verifies that channelId re-applies prefix when input already starts with prefix but contains whitespace.
+    @Test
+    public void channelId_prefixedNameWithSpace_reappliesPrefixAndNormalizes() {
+        String result = NotificationChannelInfoProvider.channelId("pushwoosh_my channel");
+        assertEquals("pushwoosh_pushwoosh_my_channel", result);
+    }
 
+    // Verifies that channelId table-driven normalization (uppercase, multi-whitespace, trim).
+    @Test
+    public void channelId_normalizationCases_returnExpectedIds() {
+        List<String[]> cases = Arrays.asList(
+                new String[] {"MyChannel", "pushwoosh_mychannel"},
+                new String[] {"my   channel", "pushwoosh_my_channel"},
+                new String[] {"  channel  ", "pushwoosh_channel"});
+
+        for (String[] row : cases) {
+            String input = row[0];
+            String expected = row[1];
+            assertEquals("input=" + input, expected, NotificationChannelInfoProvider.channelId(input));
+        }
+    }
+
+    // Verifies that priority 0 maps to IMPORTANCE_DEFAULT on API >= N.
+    @Test
+    public void getChannelImportance_priorityZero_returnsImportanceDefault() {
+        PushMessage pushMessage = Mockito.mock(PushMessage.class);
+        Mockito.when(pushMessage.getPriority()).thenReturn(0);
+
+        int result = NotificationChannelInfoProvider.getChannelImportance(pushMessage);
+
+        assertEquals(NotificationManager.IMPORTANCE_DEFAULT, result);
+    }
+
+    // Verifies that positive priorities 1 and 2 map to IMPORTANCE_HIGH on API >= N.
+    @Test
+    public void getChannelImportance_positivePriorities_returnImportanceHigh() {
+        for (int priority : new int[] {1, 2}) {
+            PushMessage pushMessage = Mockito.mock(PushMessage.class);
+            Mockito.when(pushMessage.getPriority()).thenReturn(priority);
+
+            int result = NotificationChannelInfoProvider.getChannelImportance(pushMessage);
+
+            assertEquals("priority=" + priority, NotificationManager.IMPORTANCE_HIGH, result);
+        }
+    }
+
+    // Verifies that negative priorities -1 and -2 map to IMPORTANCE_LOW on API >= N.
+    @Test
+    public void getChannelImportance_negativePriorities_returnImportanceLow() {
+        for (int priority : new int[] {-1, -2}) {
+            PushMessage pushMessage = Mockito.mock(PushMessage.class);
+            Mockito.when(pushMessage.getPriority()).thenReturn(priority);
+
+            int result = NotificationChannelInfoProvider.getChannelImportance(pushMessage);
+
+            assertEquals("priority=" + priority, NotificationManager.IMPORTANCE_LOW, result);
+        }
+    }
+
+    // Verifies that priorities outside [-2..2] fall through to IMPORTANCE_UNSPECIFIED.
+    @Test
+    public void getChannelImportance_outOfRangePriorities_returnImportanceUnspecified() {
+        for (int priority : new int[] {5, -3}) {
+            PushMessage pushMessage = Mockito.mock(PushMessage.class);
+            Mockito.when(pushMessage.getPriority()).thenReturn(priority);
+
+            int result = NotificationChannelInfoProvider.getChannelImportance(pushMessage);
+
+            assertEquals("priority=" + priority, NotificationManager.IMPORTANCE_UNSPECIFIED, result);
+        }
+    }
+
+    // Verifies that on pre-N (API < 24) the raw priority is returned instead of importance mapping.
+    @Test
+    @Config(sdk = Build.VERSION_CODES.M)
+    public void getChannelImportance_preN_returnsRawPriority() {
+        PushMessage pushMessage = Mockito.mock(PushMessage.class);
+        Mockito.when(pushMessage.getPriority()).thenReturn(2);
+
+        int result = NotificationChannelInfoProvider.getChannelImportance(pushMessage);
+
+        assertEquals(2, result);
+        assertNotEquals(NotificationManager.IMPORTANCE_HIGH, result);
     }
 }

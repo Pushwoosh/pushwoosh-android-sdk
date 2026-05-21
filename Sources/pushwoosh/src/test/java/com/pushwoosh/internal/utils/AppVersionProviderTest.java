@@ -26,6 +26,8 @@
 
 package com.pushwoosh.internal.utils;
 
+import android.content.SharedPreferences;
+
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.testutil.PlatformTestManager;
 
@@ -40,14 +42,20 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
 public class AppVersionProviderTest {
+    private static final String PREFS_NAME = "PWAppVersion_tests";
+    private static final String KEY_LAST_LAUNCH_VERSION = "LastLaunchVersion";
+
     private PlatformTestManager platformTestManager;
     private AppVersionProvider appVersionProvider;
+    private SharedPreferences prefs;
 
     @Before
     public void setUp() throws Exception {
         platformTestManager = new PlatformTestManager();
         platformTestManager.setUp();
-        appVersionProvider = new AppVersionProvider(AndroidPlatformModule.getPrefsProvider().providePrefs("PWAppVersion_tests"));
+        prefs = AndroidPlatformModule.getPrefsProvider().providePrefs(PREFS_NAME);
+        prefs.edit().clear().commit();
+        appVersionProvider = new AppVersionProvider(prefs);
     }
 
     @After
@@ -67,4 +75,58 @@ public class AppVersionProviderTest {
         Assert.assertTrue(appVersionProvider.isFirstLaunch());
     }
 
+    @Test
+    public void getFirstLaunchAfterUpdateAndDropValueIsFalseOnFirstLaunch() {
+        Assert.assertFalse(appVersionProvider.getFirstLaunchAfterUpdateAndDropValue());
+        Assert.assertFalse(appVersionProvider.getFirstLaunchAfterUpdateAndDropValue());
+    }
+
+    @Test
+    public void getFirstLaunchAfterUpdateAndDropValueIsTrueWhenVersionChanged() {
+        prefs.edit().putInt(KEY_LAST_LAUNCH_VERSION, 99).commit();
+        AppVersionProvider provider = new AppVersionProvider(prefs);
+
+        Assert.assertTrue(provider.getFirstLaunchAfterUpdateAndDropValue());
+        Assert.assertFalse(provider.getFirstLaunchAfterUpdateAndDropValue());
+
+        SharedPreferences siblingPrefs =
+                AndroidPlatformModule.getPrefsProvider().providePrefs(PREFS_NAME);
+        siblingPrefs.edit().putInt(KEY_LAST_LAUNCH_VERSION, 99).commit();
+        AppVersionProvider sibling = new AppVersionProvider(siblingPrefs);
+        Assert.assertFalse(sibling.getFirstLaunchAndDropValue());
+    }
+
+    @Test
+    public void bothFlagsAreFalseWhenLaunchedOnSameVersion() {
+        int currentVersion = appVersionProvider.getCurrentVersion();
+        prefs.edit().putInt(KEY_LAST_LAUNCH_VERSION, currentVersion).commit();
+        AppVersionProvider provider = new AppVersionProvider(prefs);
+
+        Assert.assertFalse(provider.getFirstLaunchAndDropValue());
+        Assert.assertFalse(provider.getFirstLaunchAfterUpdateAndDropValue());
+    }
+
+    @Test
+    public void handleLaunchPersistsCurrentVersionToPrefs() {
+        Assert.assertFalse(prefs.contains(KEY_LAST_LAUNCH_VERSION));
+
+        appVersionProvider.isFirstLaunch();
+
+        Assert.assertTrue(prefs.contains(KEY_LAST_LAUNCH_VERSION));
+        Assert.assertEquals(appVersionProvider.getCurrentVersion(), prefs.getInt(KEY_LAST_LAUNCH_VERSION, -1));
+    }
+
+    @Test
+    public void handleLaunchIsIdempotent() {
+        appVersionProvider.handleLaunch();
+
+        // mutate prefs after first handleLaunch — a second handleLaunch() must not
+        // re-read prefs nor recompute flags (handleLaunch guard returns early).
+        prefs.edit().putInt(KEY_LAST_LAUNCH_VERSION, 12345).commit();
+        appVersionProvider.handleLaunch();
+
+        Assert.assertTrue(appVersionProvider.getFirstLaunchAndDropValue());
+        Assert.assertFalse(appVersionProvider.getFirstLaunchAndDropValue());
+        Assert.assertFalse(appVersionProvider.getFirstLaunchAfterUpdateAndDropValue());
+    }
 }

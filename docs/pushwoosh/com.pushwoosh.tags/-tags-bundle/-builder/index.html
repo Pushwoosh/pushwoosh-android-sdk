@@ -96,29 +96,29 @@
   <div class="cover ">
     <h1 class="cover"><span><span>Builder</span></span></h1>
     <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">Builder</a></div><p class="paragraph">Builder for constructing <a href="../index.html">TagsBundle</a> instances using the Builder pattern. </p><p class="paragraph"> The Builder allows efficient, fluent construction of tag collections through method chaining. All tag additions are stored client-side until <a href="build.html">build</a> is called to create an immutable TagsBundle. The actual synchronization with Pushwoosh servers happens when you call <a href="../../../../pushwoosh/com.pushwoosh/-pushwoosh/send-tags.html">sendTags</a>. </p><p class="paragraph">Thread Safety: This builder uses <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html">ConcurrentHashMap</a> internally, making it safe to add tags from multiple threads during construction. </p><p class="paragraph">Batching Best Practice: When setting multiple tags, always use a single Builder instance and one <a href="../../../../pushwoosh/com.pushwoosh/-pushwoosh/send-tags.html">sendTags</a> call instead of multiple individual tag operations. This reduces network requests and improves performance. </p><p class="paragraph">Usage Example (Fitness App):</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	TagsBundle userProfile = new TagsBundle.Builder()
-	    // Demographics
-	    .putInt("age", 28)
-	    .putString("gender", "female")
-	    .putString("fitness_level", "intermediate")
-	
-	    // Activity tracking
-	    .putInt("workouts_completed", 45)
-	    .putDate("last_workout", new Date())
-	    .putList("favorite_activities", Arrays.asList("yoga", "running", "cycling"))
-	
-	    // Subscription status
-	    .putBoolean("premium_member", true)
-	    .putLong("subscription_end", System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000)
-	
-	    // Preferences
-	    .putBoolean("push_workouts", true)
-	    .putBoolean("push_achievements", true)
-	    .build();
-	
-	// Send all tags in one request
-	Pushwoosh.getInstance().sendTags(userProfile);
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../index.html"><span>Tags</span><wbr><span><span>Bundle</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../-tags/index.html"><span><span>Tags</span></span></a></div></span></div><div></div></div></div></div></div></div>
+TagsBundle userProfile = new TagsBundle.Builder()
+    // Demographics
+    .putInt("age", 28)
+    .putString("gender", "female")
+    .putString("fitness_level", "intermediate")
+
+    // Activity tracking
+    .putInt("workouts_completed", 45)
+    .putDate("last_workout", new Date())
+    .putList("favorite_activities", Arrays.asList("yoga", "running", "cycling"))
+
+    // Subscription status
+    .putBoolean("premium_member", true)
+    .putLong("subscription_end", System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000)
+
+    // Preferences
+    .putBoolean("push_workouts", true)
+    .putBoolean("push_achievements", true)
+    .build();
+
+// Send all tags in one request
+Pushwoosh.getInstance().sendTags(userProfile);
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../index.html"><span>Tags</span><wbr><span><span>Bundle</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../-tags/index.html"><span><span>Tags</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>

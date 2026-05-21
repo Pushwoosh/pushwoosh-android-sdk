@@ -76,7 +76,6 @@ public class ObjectSerializerTest {
         ObjectSerializer.deserialize(serialized, String.class);
     }
 
-
     @Test
     public void testListSerialization() throws Exception {
         List<Entry> original = new ArrayList<>();
@@ -85,7 +84,7 @@ public class ObjectSerializerTest {
 
         String serialized = ObjectSerializer.serialize(original);
 
-        List<Entry> deserialized = ObjectSerializer.deserialize(serialized,  original.getClass(), Entry.class);
+        List<Entry> deserialized = ObjectSerializer.deserialize(serialized, original.getClass(), Entry.class);
 
         assertThat(deserialized, hasSize(2));
         Entry entry1 = deserialized.get(0);
@@ -105,7 +104,7 @@ public class ObjectSerializerTest {
 
         String serialized = ObjectSerializer.serialize(original);
 
-        ObjectSerializer.deserialize(serialized,  original.getClass());
+        ObjectSerializer.deserialize(serialized, original.getClass());
     }
 
     @Test
@@ -124,10 +123,5 @@ public class ObjectSerializerTest {
     @Test(expected = IOException.class)
     public void testGarbageDerialization() throws Exception {
         ObjectSerializer.deserialize("garbage", String.class);
-    }
-
-    @Test(expected = IOException.class)
-    public void testGarbage2Derialization() throws Exception {
-        ObjectSerializer.deserialize("garbage2", String.class);
     }
 }

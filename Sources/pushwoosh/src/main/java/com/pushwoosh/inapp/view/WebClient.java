@@ -196,6 +196,10 @@ public class WebClient extends WebViewClient implements JsCallback {
         // launching default launcher category activity
         try {
             Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+            if (intent == null) {
+                PWLog.warn("No launcher activity declared in manifest, skipping default launch.");
+                return;
+            }
             intent.addCategory("android.intent.category.LAUNCHER");
             intent.setFlags(
                     Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

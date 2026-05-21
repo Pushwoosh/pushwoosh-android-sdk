@@ -30,8 +30,11 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import com.pushwoosh.internal.event.Event;
 import com.pushwoosh.internal.event.EventBus;
@@ -40,20 +43,27 @@ import com.pushwoosh.internal.utils.PWLog;
 import java.util.Date;
 
 public class ApplicationOpenDetector {
+    private static final String TAG = "ApplicationOpenDetector";
+
+    // Debounce window for closing transitions. Copied from AndroidX ProcessLifecycleOwner.TIMEOUT_MS:
+    // long enough to ride out Activity recreate on rotation/configChange even on slow devices.
+    @VisibleForTesting
+    static final long TIMEOUT_MS = 700;
+
     private Date firstLaunchDate;
 
     public static class ApplicationOpenEvent implements Event {
-        public ApplicationOpenEvent() {/*do nothing*/}
+        public ApplicationOpenEvent() {
+            /*do nothing*/
+        }
     }
 
-    public static class ApplicationMovedToForegroundEvent implements Event {
-    }
+    public static class ApplicationMovedToForegroundEvent implements Event {}
 
-    public static class ApplicationMovedToBackgroundEvent implements Event {
-    }
+    public static class ApplicationMovedToBackgroundEvent implements Event {}
 
     private final Application context;
-
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     ApplicationOpenDetector(final Context context) {
         this.context = (Application) context.getApplicationContext();
@@ -63,11 +73,28 @@ public class ApplicationOpenDetector {
         if (isFirstLaunch) {
             EventBus.sendEvent(new ApplicationOpenEvent());
             firstLaunchDate = new Date();
-            PWLog.debug("ApplicationOpenDetector", "First launch, ApplicationOpenEvent fired");
+            PWLog.debug(TAG, "First launch, ApplicationOpenEvent fired");
         }
         context.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             private int activityCreatedDestroyedCount;
             private int activityStartedStoppedCount;
+            private boolean inForeground;
+            private boolean inOpened;
+
+            private final Runnable goBackgroundRunnable = () -> {
+                if (activityStartedStoppedCount == 0 && inForeground) {
+                    inForeground = false;
+                    EventBus.sendEvent(new ApplicationMovedToBackgroundEvent());
+                    PWLog.debug(TAG, "ApplicationMovedToBackgroundEvent fired");
+                }
+            };
+
+            private final Runnable resetOpenedRunnable = () -> {
+                if (activityCreatedDestroyedCount == 0 && inOpened) {
+                    inOpened = false;
+                    PWLog.debug(TAG, "inOpened reset after debounce");
+                }
+            };
 
             @Override
             public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
@@ -78,12 +105,20 @@ public class ApplicationOpenDetector {
                     long timePassedFromFirstLaunch = new Date().getTime() - firstLaunchDate.getTime();
                     if (timePassedFromFirstLaunch >= appOpenEventTimeoutOnFirstLaunch) {
                         EventBus.sendEvent(new ApplicationOpenEvent());
-                        PWLog.debug("ApplicationOpenDetector", "ApplicationOpenEvent fired");
+                        PWLog.debug(TAG, "ApplicationOpenEvent fired");
                     }
                     firstLaunchDate = null;
+                    // Open was already sent (either in onApplicationCreated for isFirstLaunch,
+                    // or just above for the >=60s path). Mark opened so rotation/return debounce works.
+                    inOpened = true;
                 } else if (activityCreatedDestroyedCount == 0) {
-                    EventBus.sendEvent(new ApplicationOpenEvent());
-                    PWLog.debug("ApplicationOpenDetector", "ApplicationOpenEvent fired");
+                    if (!inOpened) {
+                        inOpened = true;
+                        EventBus.sendEvent(new ApplicationOpenEvent());
+                        PWLog.debug(TAG, "ApplicationOpenEvent fired");
+                    } else {
+                        handler.removeCallbacks(resetOpenedRunnable);
+                    }
                 }
                 activityCreatedDestroyedCount++;
             }
@@ -91,7 +126,13 @@ public class ApplicationOpenDetector {
             @Override
             public void onActivityStarted(@NonNull Activity activity) {
                 if (activityStartedStoppedCount == 0) {
-                    EventBus.sendEvent(new ApplicationMovedToForegroundEvent());
+                    if (!inForeground) {
+                        inForeground = true;
+                        EventBus.sendEvent(new ApplicationMovedToForegroundEvent());
+                        PWLog.debug(TAG, "ApplicationMovedToForegroundEvent fired");
+                    } else {
+                        handler.removeCallbacks(goBackgroundRunnable);
+                    }
                 }
                 activityStartedStoppedCount++;
             }
@@ -110,7 +151,7 @@ public class ApplicationOpenDetector {
             public void onActivityStopped(@NonNull Activity activity) {
                 activityStartedStoppedCount--;
                 if (activityStartedStoppedCount == 0) {
-                    EventBus.sendEvent(new ApplicationMovedToBackgroundEvent());
+                    handler.postDelayed(goBackgroundRunnable, TIMEOUT_MS);
                 }
             }
 
@@ -122,6 +163,9 @@ public class ApplicationOpenDetector {
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
                 activityCreatedDestroyedCount--;
+                if (activityCreatedDestroyedCount == 0) {
+                    handler.postDelayed(resetOpenedRunnable, TIMEOUT_MS);
+                }
             }
         });
     }
