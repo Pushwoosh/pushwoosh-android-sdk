@@ -1,0 +1,6 @@
+# Pin obfuscated classes under the module package — see pushwoosh-liveupdates.
+# Each SDK module ships as an independently minified AAR; without this R8 flattens
+# these classes to the bare root package (a, b, ...) and collides with another
+# root-flattening module at demoapp merge time (checkReleaseDuplicateClasses:
+# "Duplicate class a.a").
+-repackageclasses 'com.pushwoosh.calls'

@@ -12,14 +12,12 @@ import static org.mockito.Mockito.verify;
 import com.pushwoosh.internal.event.AppIdChangedEvent;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
-import com.pushwoosh.internal.network.RequestStorage;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.notification.PushwooshNotificationManager;
 import com.pushwoosh.notification.PushwooshNotificationManager.ApplicationIdReadyEvent;
 import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.RegistrationPrefs;
-import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.testutil.EventListenerWrapper;
 import com.pushwoosh.testutil.PlatformTestManager;
 
@@ -134,25 +132,6 @@ public class PushwooshSettingsTest {
         try (MockedStatic<DeviceRegistrar> mocked = Mockito.mockStatic(DeviceRegistrar.class)) {
             platformTestManager.getNotificationManager().setAppId("XXXXX-XXXXX");
             mocked.verify(() -> DeviceRegistrar.unregisterWithServer(anyString(), anyString()), never());
-        }
-    }
-
-    @Test
-    public void setAppId_firstTimeAfterEmptyManifest_doesNotClearRequestStorage() throws Exception {
-        Config config = MockConfig.createMock(null);
-        platformTestManager = new PlatformTestManager(config);
-        platformTestManager.setUp();
-
-        RequestStorage realStorage = RepositoryModule.getRequestStorage();
-        RequestStorage spyStorage = Mockito.spy(realStorage);
-
-        try (MockedStatic<RepositoryModule> mocked =
-                Mockito.mockStatic(RepositoryModule.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(RepositoryModule::getRequestStorage).thenReturn(spyStorage);
-
-            platformTestManager.getNotificationManager().setAppId("XXXXX-XXXXX");
-
-            Mockito.verify(spyStorage, never()).clear();
         }
     }
 

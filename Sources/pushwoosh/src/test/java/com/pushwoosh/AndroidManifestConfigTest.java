@@ -135,27 +135,27 @@ public class AndroidManifestConfigTest {
         assertEquals(FakeNotificationService.class, config.getNotificationService());
     }
 
-    // Verifies that referencing a non-existent class throws IllegalStateException.
+    // Verifies that a non-existent class name leaves notificationService null and does not throw.
     @Test
-    public void unknownNotificationServiceClassThrows() {
+    public void unknownNotificationServiceClassReturnsNull() {
         Bundle metaData = new Bundle();
         metaData.putString("com.pushwoosh.notification_service_extension", "com.pushwoosh.test.manifest.NotExisting");
-        prepareConfigInputs(metaData);
 
-        IllegalStateException ex = assertThrows(IllegalStateException.class, AndroidManifestConfig::new);
-        assertTrue(ex.getMessage().contains("com.pushwoosh.test.manifest.NotExisting"));
+        AndroidManifestConfig config = configWithMetaData(metaData);
+
+        assertNull(config.getNotificationService());
     }
 
-    // Verifies that a class without a public no-arg constructor is rejected with IllegalStateException.
+    // Verifies that a class without a public no-arg constructor leaves notificationService null and does not throw.
     @Test
-    public void classWithoutPublicDefaultConstructorThrows() {
+    public void classWithoutPublicDefaultConstructorReturnsNull() {
         Bundle metaData = new Bundle();
         metaData.putString(
                 "com.pushwoosh.notification_service_extension", "com.pushwoosh.test.manifest.NoDefaultCtorClass");
-        prepareConfigInputs(metaData);
 
-        IllegalStateException ex = assertThrows(IllegalStateException.class, AndroidManifestConfig::new);
-        assertTrue(ex.getMessage().toLowerCase().contains("default constructor"));
+        AndroidManifestConfig config = configWithMetaData(metaData);
+
+        assertNull(config.getNotificationService());
     }
 
     // Verifies the documented defaults of every boolean flag and timeout when no meta-data is supplied.
@@ -333,6 +333,23 @@ public class AndroidManifestConfigTest {
         assertEquals(0, config.getTrustedPackageNames().length);
         assertTrue(config.getPlugins().isEmpty());
         assertNull(config.getPluginProvider());
+    }
+
+    // Verifies that resolveClassName degrades to the trimmed input when AppInfoProvider is unavailable (guards a NPE
+    // when AndroidPlatformModule has not initialised yet).
+    @Test
+    public void resolveClassNameReturnsTrimmedWhenProviderIsNull() {
+        platformMock.when(AndroidPlatformModule::getAppInfoProvider).thenReturn(null);
+
+        assertEquals(".Foo", AndroidManifestConfig.resolveClassName(".Foo"));
+    }
+
+    // Verifies that resolveClassName treats blank input as absent, so an accidental empty <meta-data android:value="">
+    // does not produce a noisy "points to ''" warning from ManifestValidator.
+    @Test
+    public void resolveClassNameReturnsNullForBlankInput() {
+        assertNull(AndroidManifestConfig.resolveClassName(""));
+        assertNull(AndroidManifestConfig.resolveClassName("   "));
     }
 
     // Verifies that notification_icon path is parsed and resolved through ResourceProvider.getIdentifier.

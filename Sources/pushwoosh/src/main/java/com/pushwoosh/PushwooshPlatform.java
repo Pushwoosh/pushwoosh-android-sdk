@@ -10,7 +10,6 @@ import com.pushwoosh.inapp.view.strategy.ResourceViewStrategyFactory;
 import com.pushwoosh.internal.PushRegistrarHelper;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
-import com.pushwoosh.internal.network.RequestStorage;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.DeviceUtils;
@@ -94,7 +93,7 @@ public class PushwooshPlatform {
         UUIDFactory = new UUIDFactory();
         config = builder.config;
         deviceRegistrar = new DeviceRegistrar();
-        RepositoryModule.init(config, UUIDFactory, deviceRegistrar);
+        RepositoryModule.init(config, deviceRegistrar);
         PWLog.init();
         registrationPrefs = RepositoryModule.getRegistrationPreferences();
         serverCommunicationManager = new ServerCommunicationManager();
@@ -111,9 +110,8 @@ public class PushwooshPlatform {
         RequestManager requestManager = NetworkModule.getRequestManager();
         SendTagsProcessor sendTagsProcessor = new SendTagsProcessor();
         NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
-        RequestStorage requestStorage = RepositoryModule.getRequestStorage();
-        pushwooshRepository = new PushwooshRepository(
-                requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage);
+        pushwooshRepository =
+                new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs);
 
         richMediaStyle = new RichMediaStyle(0, new RichMediaAnimationSlideBottom());
         richMediaController = new RichMediaController(

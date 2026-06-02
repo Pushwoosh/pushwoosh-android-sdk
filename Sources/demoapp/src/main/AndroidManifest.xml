@@ -3,8 +3,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Required for Live Update notifications (promoted ongoing notifications) -->
-    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application
@@ -36,6 +34,10 @@
             android:name="com.pushwoosh.CALL_EVENT_LISTENER"
             android:value="com.pushwoosh.demoapp.ui.DemoCallEventListener" />
 
+        <meta-data
+            android:name="com.pushwoosh.LIVE_UPDATE_STYLE_PROVIDER"
+            android:value="com.pushwoosh.demoapp.liveupdate.DemoLiveUpdateStyleProvider" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -51,15 +53,6 @@
             android:theme="@style/Theme.Demoapp"
             android:excludeFromRecents="true"
             android:exported="false" />
-
-        <receiver
-            android:name=".liveupdate.LiveUpdateActionReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.pushwoosh.demoapp.ACTION_CANCEL_ORDER" />
-                <action android:name="com.pushwoosh.demoapp.ACTION_ADD_TIP" />
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>

@@ -1,0 +1,9 @@
+# No protected symbols needed yet. Internal classes obfuscated by R8.
+
+# Pin obfuscated classes under the module package. Each SDK module ships as an
+# independently minified AAR; with nothing kept under .internal, R8 would flatten
+# these classes to the bare root package (a, b, ...) and collide with another
+# root-flattening module (pushwoosh-calls) at demoapp merge time
+# (checkReleaseDuplicateClasses: "Duplicate class a.a"). Repackaging under the
+# module namespace keeps names globally unique, matching firebase/inbox.
+-repackageclasses 'com.pushwoosh.liveupdates'

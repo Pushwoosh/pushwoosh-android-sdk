@@ -42,13 +42,6 @@ import java.lang.reflect.Method;
 public class PushwooshInitializer {
 
     private static final String TAG = PushwooshInitializer.class.getSimpleName();
-    private static final String NO_ATTACHED_PUSH_NOTIFICATIONS_PROVIDERS_FOUND_MESSAGE =
-            "No attached push notifications providers have been found.\n"
-                    + "This error can be seen when you use 'pushwoosh-huawei' module\n"
-                    + "not on Huawei device or you have not added any module attaching\n"
-                    + "push notifications provider.\n"
-                    + "Pushwoosh supports Firebase, Amazon, Huawei push notification providers.\n"
-                    + "See the integration guide https://docs.pushwoosh.com/platform-docs/pushwoosh-sdk/android-push-notifications";
 
     public static void init(Context context) {
         init(context, false);
@@ -77,7 +70,7 @@ public class PushwooshInitializer {
         initFirebaseInXamarinPlugin(context);
 
         if (DeviceSpecificProvider.getInstance() == null) {
-            PWLog.error(TAG, NO_ATTACHED_PUSH_NOTIFICATIONS_PROVIDERS_FOUND_MESSAGE);
+            ManifestValidator.scheduleValidation();
             return;
         }
 
@@ -109,6 +102,8 @@ public class PushwooshInitializer {
         } else {
             context.registerReceiver(lockScreenReceiver, filter);
         }
+
+        ManifestValidator.scheduleValidation();
     }
 
     private static void initFirebaseInXamarinPlugin(Context context) {

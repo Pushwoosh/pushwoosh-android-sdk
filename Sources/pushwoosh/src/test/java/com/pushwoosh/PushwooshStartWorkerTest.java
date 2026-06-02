@@ -24,7 +24,6 @@ import com.pushwoosh.internal.platform.ApplicationOpenDetector;
 import com.pushwoosh.internal.platform.utils.DeviceUuidGetter;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.internal.utils.UUIDFactory;
 import com.pushwoosh.notification.PushwooshNotificationManager;
 import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.PushwooshRepository;
@@ -88,6 +87,8 @@ public class PushwooshStartWorkerTest {
     @Mock
     private Plugin pluginMock2;
 
+    private AutoCloseable mocks;
+
     private void setupConfig() {
         when(configMock.getLogLevel()).thenReturn("NOISE");
     }
@@ -99,7 +100,7 @@ public class PushwooshStartWorkerTest {
     }
 
     private void setupRepository() {
-        RepositoryModule.init(configMock, new UUIDFactory(), deviceRegistrarMock);
+        RepositoryModule.init(configMock, deviceRegistrarMock);
     }
 
     private void configureFakePreferences() {
@@ -115,7 +116,7 @@ public class PushwooshStartWorkerTest {
     public void setUp() throws Exception {
         // logs
         ShadowLog.stream = System.out;
-        MockitoAnnotations.openMocks(this);
+        mocks = MockitoAnnotations.openMocks(this);
 
         // setup config
         setupConfig();
@@ -155,6 +156,7 @@ public class PushwooshStartWorkerTest {
     public void tearDown() throws Exception {
         pushwooshStartWorker.shutdown();
         SdkStateProvider.getInstance().resetForTesting();
+        mocks.close();
     }
 
     private void initializeAndRunPushwooshStartWorker() {

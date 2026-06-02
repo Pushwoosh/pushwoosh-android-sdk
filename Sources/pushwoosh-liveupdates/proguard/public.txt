@@ -1,0 +1,8 @@
+# Public API for SDK consumers.
+-keep public class com.pushwoosh.liveupdates.PushwooshLiveUpdates { *; }
+-keep public class com.pushwoosh.liveupdates.LiveUpdatesPlugin { *; }
+-keep public interface com.pushwoosh.liveupdates.LiveUpdateProgressStyleProvider { *; }
+-keep public class com.pushwoosh.liveupdates.LiveUpdateState { *; }
+-keep public class com.pushwoosh.liveupdates.LiveUpdateState$Builder { *; }
+-keep public enum com.pushwoosh.liveupdates.LiveUpdateOperation { *; }
+-keep public class com.pushwoosh.liveupdates.LiveUpdateSegment { *; }

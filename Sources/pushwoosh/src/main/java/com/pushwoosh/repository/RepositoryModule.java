@@ -30,7 +30,6 @@ import android.content.Context;
 import android.os.Build;
 
 import com.pushwoosh.internal.Plugin;
-import com.pushwoosh.internal.network.RequestStorage;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.prefs.PrefsFactory;
 import com.pushwoosh.internal.platform.prefs.PrefsProvider;
@@ -39,7 +38,6 @@ import com.pushwoosh.internal.platform.prefs.migration.PrefsMigration;
 import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.internal.utils.UUIDFactory;
 import com.pushwoosh.repository.util.StatusBarNotificationHelper;
 
 import java.util.ArrayList;
@@ -49,14 +47,13 @@ public class RepositoryModule {
     private static NotificationPrefs notificationPreferences;
     private static RegistrationPrefs registrationPreferences;
     private static LocalNotificationStorage localNotificationStorage;
-    private static RequestStorage requestStorage;
     private static LockScreenMediaStorage lockScreenMediaStorage;
     private static PushBundleStorage pushBundleStorage;
     private static InboxNotificationStorage inboxNotificationStorage;
     private static SilentRichMediaStorage silentRichMediaStorage;
     private static SummaryNotificationStorage summaryNotificationStorage;
 
-    public static void init(Config config, UUIDFactory uuidFactory, DeviceRegistrar deviceRegistrar) {
+    public static void init(Config config, DeviceRegistrar deviceRegistrar) {
 
         migratePrefsIfNeeded(config);
 
@@ -70,11 +67,6 @@ public class RepositoryModule {
 
         if (localNotificationStorage == null) {
             createLocalNotificationStorage();
-        }
-
-        if (requestStorage == null) {
-            Context context = AndroidPlatformModule.getApplicationContext();
-            requestStorage = new RequestStorage(context, uuidFactory);
         }
 
         if (lockScreenMediaStorage == null) {
@@ -173,14 +165,6 @@ public class RepositoryModule {
 
     public static void setLocalNotificationStorage(LocalNotificationStorage storage) {
         localNotificationStorage = storage;
-    }
-
-    public static RequestStorage getRequestStorage() {
-        return requestStorage;
-    }
-
-    public static void setRequestStorage(RequestStorage storage) {
-        requestStorage = storage;
     }
 
     public static LockScreenMediaStorage getLockScreenMediaStorage() {

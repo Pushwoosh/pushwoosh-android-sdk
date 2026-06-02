@@ -8,78 +8,79 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Action {
-	public enum Type {
-		ACTIVITY,
-		SERVICE,
-		BROADCAST
-	}
+    public enum Type {
+        ACTIVITY,
+        SERVICE,
+        BROADCAST
+    }
 
-	private Type mType;
-	private String mIntentAction;
-	private String mTitle;
-	private String mIcon;
-	private String mUrl;
+    private final Type mType;
+    private final String mIntentAction;
+    private final String mTitle;
+    private final String mIcon;
+    private final String mUrl;
 
-	@SuppressWarnings("rawtypes")
-	private Class mClass;
-	private JSONObject mExtras;
+    @SuppressWarnings("rawtypes")
+    private Class mClass;
 
-	public Action(JSONObject json) throws JSONException {
-		// mandatory
-		try {
-			mType = Type.valueOf(json.getString("type"));
-		} catch (Exception e) {
-			throw new JSONException(e.getMessage());
-		}
+    private JSONObject mExtras;
 
-		mTitle = json.getString("title");
+    public Action(JSONObject json) throws JSONException {
+        // mandatory
+        try {
+            mType = Type.valueOf(json.getString("type"));
+        } catch (Exception e) {
+            throw new JSONException(e.getMessage());
+        }
 
-		// optional
-		mIcon = json.optString("icon");
-		mIntentAction = json.optString("action");
-		mUrl = json.optString("url");
-		String className = json.optString("class");
-		if (!TextUtils.isEmpty(className)) {
-			try {
-				mClass = Class.forName(className);
-			} catch (ClassNotFoundException e) {
-				PWLog.exception(e);
-			}
-		}
+        mTitle = json.getString("title");
 
-		try {
-			mExtras = json.getJSONObject("extras");
-		} catch (JSONException e) {
-			// ignore
-		}
-	}
+        // optional
+        mIcon = json.optString("icon");
+        mIntentAction = json.optString("action");
+        mUrl = json.optString("url");
+        String className = json.optString("class");
+        if (!TextUtils.isEmpty(className)) {
+            try {
+                mClass = Class.forName(className);
+            } catch (ClassNotFoundException e) {
+                PWLog.exception(e);
+            }
+        }
 
-	public Type getType() {
-		return mType;
-	}
+        try {
+            mExtras = json.getJSONObject("extras");
+        } catch (JSONException e) {
+            // ignore
+        }
+    }
 
-	public String getTitle() {
-		return mTitle;
-	}
+    public Type getType() {
+        return mType;
+    }
 
-	public String getIcon() {
-		return mIcon;
-	}
+    public String getTitle() {
+        return mTitle;
+    }
 
-	public String getUrl() {
-		return mUrl;
-	}
+    public String getIcon() {
+        return mIcon;
+    }
 
-	@SuppressWarnings("rawtypes")
-	public Class getActionClass() {
-		return mClass;
-	}
+    public String getUrl() {
+        return mUrl;
+    }
 
-	public JSONObject getExtras() {
-		return mExtras;
-	}
+    @SuppressWarnings("rawtypes")
+    public Class getActionClass() {
+        return mClass;
+    }
 
-	public String getIntentAction() {
-		return mIntentAction;
-	}
+    public JSONObject getExtras() {
+        return mExtras;
+    }
+
+    public String getIntentAction() {
+        return mIntentAction;
+    }
 }

@@ -7,7 +7,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.Navigation.findNavController
 import androidx.navigation.ui.NavigationUI.setupWithNavController
-import com.pushwoosh.calls.PushwooshCallSettings
 import com.pushwoosh.demoapp.databinding.ActivityMainBinding
 import com.pushwoosh.demoapp.utils.InboxStyleHelper
 import com.pushwoosh.inapp.view.config.ModalRichmediaConfig
@@ -33,11 +32,13 @@ class MainActivity : AppCompatActivity() {
 
             // Top inset for fragment area; BottomNavigationView handles its own bottom inset
             // internally via Material's NavigationBarView listener.
-            binding!!.contentContainer.setPadding(
-                binding!!.contentContainer.paddingLeft,
-                systemBars.top,
-                binding!!.contentContainer.paddingRight,
-                binding!!.contentContainer.paddingBottom)
+            binding!!
+                .contentContainer
+                .setPadding(
+                    binding!!.contentContainer.paddingLeft,
+                    systemBars.top,
+                    binding!!.contentContainer.paddingRight,
+                    binding!!.contentContainer.paddingBottom)
 
             insets
         }
@@ -63,23 +64,7 @@ class MainActivity : AppCompatActivity() {
         // Configure Inbox style
         InboxStyleHelper.setupCustomInboxStyle(this)
 
-        // Request call permissions
-        PushwooshCallSettings.requestCallPermissions(
-            object : com.pushwoosh.calls.CallPermissionsCallback {
-                override fun onPermissionResult(
-                    granted: Boolean,
-                    grantedPermissions: List<String>,
-                    deniedPermissions: List<String>
-                ) {
-                    if (granted) {
-                        android.util.Log.d(
-                            "MainActivity", "Call permissions granted: $grantedPermissions")
-                    } else {
-                        android.util.Log.w(
-                            "MainActivity", "Call permissions denied: $deniedPermissions")
-                    }
-                }
-            })
+        // VoIP permission request is deferred to Settings — surfacing a system dialog on first
+        // launch interrupts the demo flow before the user has any context for it.
     }
-
 }

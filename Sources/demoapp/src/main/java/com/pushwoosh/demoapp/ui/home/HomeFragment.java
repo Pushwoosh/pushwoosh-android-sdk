@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -14,9 +13,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.pushwoosh.Pushwoosh;
-import com.pushwoosh.demoapp.R;
 import com.pushwoosh.demoapp.databinding.FragmentHomeBinding;
-import com.pushwoosh.demoapp.liveupdate.LiveUpdateDemo;
 import com.pushwoosh.inapp.InAppManager;
 import com.pushwoosh.tags.TagsBundle;
 
@@ -32,7 +29,6 @@ import java.util.Objects;
  *   <li>Posting in-app events to trigger campaigns</li>
  *   <li>Retrieving device identifiers (push token, HWID, user ID)</li>
  *   <li>Managing notification state</li>
- *   <li>Live Activities updates (iOS Live Activities analog for Android)</li>
  * </ul>
  *
  * @see Pushwoosh
@@ -43,8 +39,6 @@ public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
     private boolean attributeState;
-    private LiveUpdateDemo liveUpdateDemo;
-    private boolean autoProgressEnabled = false;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
@@ -221,76 +215,7 @@ public class HomeFragment extends Fragment {
             showSnackbar("Launch notification cleared");
         });
 
-        setupLiveUpdateControls();
-
         return root;
-    }
-
-    /*
-     * Demonstrates Live Update notifications (Android 15+ feature).
-     *
-     * Use case: Display real-time progress updates as prominent status bar chips,
-     * similar to iOS Live Activities. Ideal for delivery tracking, ride-sharing,
-     * sports scores, or any time-sensitive status updates.
-     *
-     * This demo simulates a food delivery with progress steps:
-     * - Start: begins the Live Update with initial status
-     * - Update: advances to next delivery step
-     * - Finish: completes with success notification
-     * - Cancel: dismisses the Live Update
-     *
-     * Note: This is a native Android feature, not a Pushwoosh API.
-     * Pushwoosh can trigger Live Updates via push notifications.
-     */
-    private void setupLiveUpdateControls() {
-        TextView statusText = binding.liveUpdateStatus;
-        Button btnStart = binding.btnLiveUpdateStart;
-        Button btnUpdate = binding.btnLiveUpdateUpdate;
-        Button btnFinish = binding.btnLiveUpdateFinish;
-        Button btnCancel = binding.btnLiveUpdateCancel;
-        MaterialSwitch switchAutoProgress = binding.switchAutoProgress;
-
-        // Defer heavy initialization to avoid blocking main thread during layout
-        btnStart.post(() -> {
-            liveUpdateDemo = LiveUpdateDemo.getInstance(requireContext());
-            updateStatusDisplay(statusText);
-        });
-
-        switchAutoProgress.setOnCheckedChangeListener((buttonView, isChecked) -> autoProgressEnabled = isChecked);
-
-        btnStart.setOnClickListener(v -> {
-            if (liveUpdateDemo == null) return;
-            liveUpdateDemo.start(autoProgressEnabled);
-            updateStatusDisplay(statusText);
-        });
-
-        btnUpdate.setOnClickListener(v -> {
-            if (liveUpdateDemo == null) return;
-            liveUpdateDemo.update();
-            updateStatusDisplay(statusText);
-        });
-
-        btnFinish.setOnClickListener(v -> {
-            if (liveUpdateDemo == null) return;
-            liveUpdateDemo.finish();
-            updateStatusDisplay(statusText);
-        });
-
-        btnCancel.setOnClickListener(v -> {
-            if (liveUpdateDemo == null) return;
-            liveUpdateDemo.cancel();
-            updateStatusDisplay(statusText);
-        });
-    }
-
-    private void updateStatusDisplay(TextView statusText) {
-        if (liveUpdateDemo != null && liveUpdateDemo.isRunning()) {
-            int step = liveUpdateDemo.getCurrentStep() + 1;
-            int total = liveUpdateDemo.getTotalSteps();
-            statusText.setText(getString(R.string.live_update_status_running, step, total));
-        } else {
-            statusText.setText(R.string.live_update_status_not_started);
-        }
     }
 
     private void showSnackbar(String message) {

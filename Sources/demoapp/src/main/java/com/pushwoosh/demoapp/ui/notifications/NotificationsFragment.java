@@ -14,6 +14,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.snackbar.Snackbar;
 import com.pushwoosh.Pushwoosh;
+import com.pushwoosh.calls.CallPermissionsCallback;
+import com.pushwoosh.calls.PushwooshCallSettings;
 import com.pushwoosh.demoapp.BuildConfig;
 import com.pushwoosh.demoapp.R;
 import com.pushwoosh.demoapp.databinding.FragmentNotificationsBinding;
@@ -140,6 +142,20 @@ public class NotificationsFragment extends Fragment {
 
         binding.buttonBackgroundLocation.setOnClickListener(v -> {
             PushwooshLocation.requestBackgroundLocationPermission();
+        });
+
+        binding.buttonRequestCallPermissions.setOnClickListener(v -> {
+            PushwooshCallSettings.requestCallPermissions(new CallPermissionsCallback() {
+                @Override
+                public void onPermissionResult(
+                        boolean granted,
+                        @NonNull java.util.List<String> grantedPermissions,
+                        @NonNull java.util.List<String> deniedPermissions) {
+                    if (binding == null) return;
+                    String msg = granted ? "Call permissions granted" : "Call permissions denied";
+                    Snackbar.make(binding.getRoot(), msg, Snackbar.LENGTH_SHORT).show();
+                }
+            });
         });
 
         return root;

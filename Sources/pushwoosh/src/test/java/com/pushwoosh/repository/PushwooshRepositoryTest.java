@@ -48,8 +48,6 @@ import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.RequestManager;
-import com.pushwoosh.internal.network.RequestStorage;
-import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.preference.PreferenceBooleanValue;
 import com.pushwoosh.internal.preference.PreferenceJsonObjectValue;
 import com.pushwoosh.internal.preference.PreferenceStringValue;
@@ -80,7 +78,6 @@ public class PushwooshRepositoryTest {
     private SendTagsProcessor sendTagsProcessor;
     private RegistrationPrefs registrationPrefs;
     private NotificationPrefs notificationPrefs;
-    private RequestStorage requestStorage;
 
     private PreferenceJsonObjectValue tagsPref;
     private PreferenceStringValue lastNotificationHashPref;
@@ -105,12 +102,8 @@ public class PushwooshRepositoryTest {
         lastNotificationHashPref = mock(PreferenceStringValue.class);
         when(notificationPrefs.lastNotificationHash()).thenReturn(lastNotificationHashPref);
 
-        requestStorage = Mockito.mock(RequestStorage.class);
-
-        ServerCommunicationManager serverCommunicationManager = mock(ServerCommunicationManager.class);
-        when(serverCommunicationManager.isServerCommunicationAllowed()).thenReturn(true);
-        pushwooshRepository = new PushwooshRepository(
-                requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage);
+        pushwooshRepository =
+                new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs);
     }
 
     @Test
@@ -170,7 +163,7 @@ public class PushwooshRepositoryTest {
     @SuppressWarnings("unchecked")
     public void sendAdvertisingId_withNullRequestManager_invokesCallbackWithNetworkException() {
         PushwooshRepository repoWithoutManager =
-                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage);
+                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs);
         Callback<Void, NetworkException> callback = mock(Callback.class);
 
         repoWithoutManager.sendAdvertisingId("ad-id-1", callback);
@@ -314,7 +307,7 @@ public class PushwooshRepositoryTest {
     @SuppressWarnings("unchecked")
     public void getTags_withNullRequestManager_invokesCallbackWithGetTagsException() {
         PushwooshRepository repoWithoutManager =
-                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage);
+                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs);
         Callback<TagsBundle, GetTagsException> callback = mock(Callback.class);
 
         repoWithoutManager.getTags(callback);
@@ -355,7 +348,7 @@ public class PushwooshRepositoryTest {
     @Test
     public void sendPushOpenedSync_withNullRequestManager_returnsNetworkException() {
         PushwooshRepository repoWithoutManager =
-                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage);
+                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs);
         when(lastNotificationHashPref.get()).thenReturn(null);
 
         Result<Void, NetworkException> result = repoWithoutManager.sendPushOpenedSync("hash-1", "meta");
@@ -397,7 +390,7 @@ public class PushwooshRepositoryTest {
     @Test
     public void sendPushDeliveredSync_withNullRequestManager_returnsNetworkException() {
         PushwooshRepository repoWithoutManager =
-                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs, requestStorage);
+                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs);
 
         Result<Void, NetworkException> result = repoWithoutManager.sendPushDeliveredSync("hash-1", "meta");
 

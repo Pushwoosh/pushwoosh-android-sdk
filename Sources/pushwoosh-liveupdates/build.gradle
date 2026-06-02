@@ -1,0 +1,68 @@
+ext {
+    targetArtefactIdDev = "pushwoosh-liveupdates-dev"
+    targetArtefactId = "pushwoosh-liveupdates"
+    targetName = "Pushwoosh Live Updates"
+    targetDescription = "Pushwoosh Live Updates"
+}
+
+apply plugin: 'com.android.library'
+apply from: '../scripts/buildSdk/publish.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
+apply from: '../scripts/quality/quality.gradle'
+
+android {
+    compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.liveupdates"
+    testNamespace "com.pushwoosh.liveupdates.test"
+
+    defaultConfig {
+        versionName global_versionName
+        minSdkVersion global_minSdkVersion
+        targetSdkVersion global_targetVersion
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles '../proguard-android-optimize-no-access-modification.txt', '../proguard-common.txt',
+                    'proguard/public.txt', 'proguard/protected.txt'
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    publishing {
+        singleVariant("release")
+    }
+}
+
+dependencies {
+    api project(':pushwoosh')
+
+    implementation "androidx.annotation:annotation:${support}"
+    testImplementation libs.junit
+    testImplementation 'org.robolectric:robolectric:4.16.1'
+    testImplementation "org.mockito:mockito-core:${mockito}"
+}
+
+// Robolectric 4.16.1 requires Java 21 to instantiate the Android SDK 36 sandbox.
+// The rest of the project compiles with Java 17, so we override the launcher only
+// for the unit-test tasks in this module. Foojay auto-provisions the JDK.
+tasks.withType(Test).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// Dokka documentation configuration
+apply from: '../scripts/dokka-config.gradle'
+
+// Custom Javadoc generation for Maven publication
+apply from: '../scripts/buildSdk/javadoc.gradle'

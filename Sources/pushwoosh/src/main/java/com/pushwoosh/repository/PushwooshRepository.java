@@ -34,14 +34,12 @@ import androidx.annotation.Nullable;
 
 import com.pushwoosh.exception.GetTagsException;
 import com.pushwoosh.exception.PushwooshException;
-import com.pushwoosh.function.CacheFailedRequestCallback;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.RequestManager;
-import com.pushwoosh.internal.network.RequestStorage;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushMessage;
 import com.pushwoosh.tags.Tags;
@@ -62,7 +60,6 @@ public class PushwooshRepository {
     private final SendTagsProcessor sendTagsProcessor;
     private final RegistrationPrefs registrationPrefs;
     private final NotificationPrefs notificationPrefs;
-    private final RequestStorage requestStorage;
     private String currentSessionHash;
     private String currentRichMediaCode;
     private String currentInAppCode;
@@ -71,13 +68,11 @@ public class PushwooshRepository {
             RequestManager requestManager,
             SendTagsProcessor sendTagsProcessor,
             RegistrationPrefs registrationPrefs,
-            NotificationPrefs notificationPrefs,
-            RequestStorage requestStorage) {
+            NotificationPrefs notificationPrefs) {
         this.requestManager = requestManager;
         this.sendTagsProcessor = sendTagsProcessor;
         this.registrationPrefs = registrationPrefs;
         this.notificationPrefs = notificationPrefs;
-        this.requestStorage = requestStorage;
     }
 
     private <T, E extends PushwooshException> void safeProcessCallback(Callback<T, E> callback, Result<T, E> result) {
@@ -244,7 +239,7 @@ public class PushwooshRepository {
             PWLog.error(TAG, "Request manager is null");
             return;
         }
-        requestManager.sendRequest(request, new CacheFailedRequestCallback<>(request, requestStorage));
+        requestManager.sendRequest(request);
     }
 
     /**
@@ -274,7 +269,7 @@ public class PushwooshRepository {
             PWLog.error(TAG, "Request manager is null");
             return;
         }
-        requestManager.sendRequest(request, null, new CacheFailedRequestCallback<>(request, requestStorage));
+        requestManager.sendRequest(request);
     }
 
     public Result<Void, NetworkException> sendPushOpenedSync(String hash, String metadata) {

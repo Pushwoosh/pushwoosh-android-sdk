@@ -51,6 +51,21 @@
     protected *;
 }
 
+-keep public class com.pushwoosh.notification.Action$Type {
+    public *;
+    protected *;
+}
+
+# Referenced by :pushwoosh-liveupdates (LiveUpdateStateParser).
+-keep public class com.pushwoosh.notification.PushBundleDataProvider {
+    public *;
+}
+
+# Referenced by :pushwoosh-liveupdates (LiveUpdateNotificationRenderer.render).
+-keep public class com.pushwoosh.internal.utils.NotificationUtils {
+    public *;
+}
+
 -keep public class com.pushwoosh.internal.utils.PWLog {
     public *;
     protected *;
@@ -247,6 +262,12 @@
 -keep public class com.pushwoosh.internal.platform.AndroidPlatformModule {
     public *;
     protected *;
+}
+# Name kept so optional modules (e.g. pushwoosh-liveupdates) that call
+# AndroidPlatformModule.getResourceProvider() resolve the type across independently
+# minified AARs — without this R8 renames it and the consumer hits NoClassDefFoundError.
+-keep public interface com.pushwoosh.internal.platform.resource.ResourceProvider {
+    public *;
 }
 -keep class com.pushwoosh.notification.handlers.message.user.NotificationMessageHandler {
     public *;

@@ -40,6 +40,7 @@ import com.pushwoosh.internal.NativePluginProvider;
 import com.pushwoosh.internal.Plugin;
 import com.pushwoosh.internal.PluginProvider;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.FileUtils;
 import com.pushwoosh.internal.utils.PWLog;
@@ -215,36 +216,43 @@ class AndroidManifestConfig implements Config {
             result = (resultObject != null) ? String.valueOf(resultObject) : metadata.getString(deprecatedKey);
 
             if (result != null) {
-                PWLog.warn("'" + deprecatedKey + "' is deprecated, consider using '" + key + "'");
+                PWLog.warn(TAG, "'" + deprecatedKey + "' is deprecated, consider using '" + key + "'");
             }
         }
         return result != null ? result.trim() : null;
     }
 
+    @Nullable static String resolveClassName(@Nullable String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String trimmed = raw.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        if (!trimmed.startsWith(".")) {
+            return trimmed;
+        }
+        AppInfoProvider provider = AndroidPlatformModule.getAppInfoProvider();
+        if (provider == null) {
+            return trimmed;
+        }
+        return provider.getPackageName() + trimmed;
+    }
+
     private Class<?> getClass(Bundle metadata, String key) {
-        String className = metadata.getString(key);
-        if (className != null) {
-            className = className.trim();
+        String className = resolveClassName(metadata.getString(key));
+        if (className == null) {
+            return null;
         }
-        if (className != null && className.startsWith(".")) {
-            className = AndroidPlatformModule.getAppInfoProvider().getPackageName() + className;
+        try {
+            Class<?> clazz = Class.forName(className);
+            clazz.getConstructor();
+            return clazz;
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            PWLog.debug(TAG, "Failed to resolve class '" + className + "' for manifest key '" + key + "'", e);
+            return null;
         }
-
-        if (className != null) {
-            try {
-                Class<?> clazz = Class.forName(className);
-                clazz.getConstructor();
-                return clazz;
-            } catch (ClassNotFoundException e) {
-                PWLog.exception(e);
-                throw new IllegalStateException("Could not find class for name: " + className);
-            } catch (NoSuchMethodException e) {
-                PWLog.exception(e);
-                throw new IllegalStateException("Could not find public default constructor for class: " + className);
-            }
-        }
-
-        return null;
     }
 
     @Override

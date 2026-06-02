@@ -31,7 +31,6 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.registrar.ExistingTokenRegistrarWorker;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
-import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.NotificationPermissionActivity;
 import com.pushwoosh.internal.utils.PWLog;
@@ -111,8 +110,6 @@ public class PushwooshNotificationManager {
                         registrationPrefs.pushToken().get(),
                         registrationPrefs.baseUrl().get());
             }
-            BackgroundExecutor.executeOnPool(
-                    () -> RepositoryModule.getRequestStorage().clear());
             registrationPrefs.removeAppId();
             registrationPrefs
                     .forceRegister()
