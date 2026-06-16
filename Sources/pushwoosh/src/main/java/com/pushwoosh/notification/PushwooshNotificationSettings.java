@@ -36,9 +36,6 @@ import com.pushwoosh.repository.RepositoryModule;
  *       public void onCreate() {
  *           super.onCreate();
  *
- *           // Initialize Pushwoosh first
- *           Pushwoosh.getInstance().registerForPushNotifications();
- *
  *           // Configure notification appearance
  *           PushwooshNotificationSettings.setMultiNotificationMode(true);
  *           PushwooshNotificationSettings.setSoundNotificationType(SoundType.ALWAYS);
@@ -57,8 +54,6 @@ import com.pushwoosh.repository.RepositoryModule;
  *       @Override
  *       public void onCreate() {
  *           super.onCreate();
- *
- *           Pushwoosh.getInstance().registerForPushNotifications();
  *
  *           // Brand colors for notifications
  *           int brandColor = ContextCompat.getColor(this, R.color.brand_primary);
@@ -88,8 +83,6 @@ import com.pushwoosh.repository.RepositoryModule;
  *       @Override
  *       public void onCreate() {
  *           super.onCreate();
- *
- *           Pushwoosh.getInstance().registerForPushNotifications();
  *
  *           // Load user preferences
  *           SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -126,7 +119,6 @@ import com.pushwoosh.repository.RepositoryModule;
  * <ul>
  * <li>All methods are static and apply settings globally across the app</li>
  * <li>Settings persist across app restarts</li>
- * <li>Pushwoosh must be initialized before calling these methods</li>
  * <li>Individual notification settings from Pushwoosh Control Panel can override these defaults</li>
  * <li>LED customization requires {@link android.Manifest.permission#VIBRATE VIBRATE} permission</li>
  * <li>For Android O (API 26+), use {@link #setNotificationChannelName(String)} to set channel name</li>
@@ -165,7 +157,6 @@ public class PushwooshNotificationSettings {
 	 *       @Override
 	 *       public void onCreate() {
 	 *           super.onCreate();
-	 *           Pushwoosh.getInstance().registerForPushNotifications();
 	 *
 	 *           // Enable multi-notification mode for order updates
 	 *           PushwooshNotificationSettings.setMultiNotificationMode(true);
@@ -178,7 +169,6 @@ public class PushwooshNotificationSettings {
 	 *       @Override
 	 *       public void onCreate() {
 	 *           super.onCreate();
-	 *           Pushwoosh.getInstance().registerForPushNotifications();
 	 *
 	 *           // Keep only latest message notification
 	 *           PushwooshNotificationSettings.setMultiNotificationMode(false);
@@ -504,8 +494,6 @@ public class PushwooshNotificationSettings {
 	 *       @Override
 	 *       public void onCreate() {
 	 *           super.onCreate();
-	 *
-	 *           Pushwoosh.getInstance().registerForPushNotifications();
 	 *
 	 *           // Set channel name for different app types
 	 *

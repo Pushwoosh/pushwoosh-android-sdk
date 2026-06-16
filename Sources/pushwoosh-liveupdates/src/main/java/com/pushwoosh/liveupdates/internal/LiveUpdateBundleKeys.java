@@ -12,6 +12,7 @@ public final class LiveUpdateBundleKeys {
     public static final String PW_LIVE_ID = "pw_live_id";
     public static final String PROGRESS = "pw_live_progress";
     public static final String PROGRESS_INDETERMINATE = "pw_live_progress_indeterminate";
+    public static final String PROGRESS_BAR = "pw_live_progress_bar";
     public static final String SEGMENTS = "pw_live_segments";
     public static final String EXTRAS = "pw_live_extras";
     public static final String WHEN = "pw_live_when";

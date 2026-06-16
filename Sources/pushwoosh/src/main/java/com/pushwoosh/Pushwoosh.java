@@ -247,7 +247,7 @@ public class Pushwoosh {
      * @return Current Pushwoosh application code, or empty string if not set or SDK not initialized
      * @see #setAppId(String)
      */
-    public String getApplicationCode() {
+    @NonNull public String getApplicationCode() {
         try {
             if (ensureInitialized()) {
                 return registrationPrefs.applicationId().get();
@@ -350,6 +350,46 @@ public class Pushwoosh {
             PWLog.error("Pushwoosh", "can't get hwid", e);
         }
         return "";
+    }
+
+    /**
+     * Returns the account identifier for Google Play subscription cancellation tracking, in the
+     * format {@code "<appCode>:<hwid>"}.
+     * <p>
+     * Pass this value to {@code BillingFlowParams.setObfuscatedAccountId(...)} when launching the
+     * Google Play billing flow. Pushwoosh uses it to identify the application and device that
+     * started the subscription, so a {@code PW_SubscriptionCancel} event can be attributed when
+     * Google reports a cancellation.
+     * <br><br>
+     * The value combines {@link #getApplicationCode()} and {@link #getHwid()} separated by the
+     * first colon. Returns an empty string if the SDK is not initialized yet (application code or
+     * HWID unavailable). If the result exceeds Google's 64-character limit for the obfuscated
+     * account id, a warning is logged but the full value is still returned (truncating it would
+     * break device matching on the backend).
+     * <br><br>
+     * Example:
+     * <pre>
+     * {@code
+     *   BillingFlowParams params = BillingFlowParams.newBuilder()
+     *           .setObfuscatedAccountId(Pushwoosh.getInstance().getSubscriptionAccountId())
+     *           // ... other params
+     *           .build();
+     * }
+     * </pre>
+     *
+     * @return {@code "<appCode>:<hwid>"}, or an empty string if application code or HWID is not available.
+     */
+    @NonNull public String getSubscriptionAccountId() {
+        String appCode = getApplicationCode();
+        String hwid = getHwid();
+        if (appCode.isEmpty() || hwid.isEmpty()) {
+            return "";
+        }
+        String accountId = appCode + ":" + hwid;
+        if (accountId.length() > 64) {
+            PWLog.warn("Pushwoosh", "subscription account id exceeds Google's 64-character limit (" + accountId.length() + " chars)");
+        }
+        return accountId;
     }
 
     /**

@@ -1,0 +1,168 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>LiveUpdateProgressStyleProvider</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script><link href="../../../styles/pushwoosh-docs.css" rel="Stylesheet">
+</head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    Pushwoosh Android SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh-liveupdates/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":pushwoosh-liveupdates/main" data-filter=":pushwoosh-liveupdates/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Pushwoosh Android SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh-liveupdates::com.pushwoosh.liveupdates/LiveUpdateProgressStyleProvider///PointingToDeclaration//-1804759215">
+  <div class="breadcrumbs"><a href="../../index.html">pushwoosh-liveupdates</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.liveupdates</a><span class="delimiter">/</span><span class="current">LiveUpdateProgressStyleProvider</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Live</span><wbr><span>Update</span><wbr><span>Progress</span><wbr><span>Style</span><wbr><span><span>Provider</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">LiveUpdateProgressStyleProvider</a></div><p class="paragraph">The single customization point for Pushwoosh Live Updates: supply the <span data-unresolved-link="android.app/Notification.ProgressStyle///PointingToDeclaration/">Notification.ProgressStyle</span> used to render a live-update notification. </p><p class="paragraph">The SDK owns everything else — channel registration, the <span data-unresolved-link="android.app/Notification.Builder///PointingToDeclaration/">Notification.Builder</span>, the ongoing flag, promoted-ongoing extras, large-icon download, header-time wiring, action mapping and the final <code class="lang-kotlin">NotificationManager.notify()</code>. A custom provider can only shape the progress bar; it cannot break promoted-ongoing eligibility or skip channel setup. If a provider throws, the SDK falls back to the default style and the notification still posts. </p><p class="paragraph">Register an implementation via manifest meta-data: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+&lt;meta-data
+    android:name="com.pushwoosh.LIVE_UPDATE_STYLE_PROVIDER"
+    android:value="com.example.MyStyleProvider" /&gt;
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div> The class must have a public no-argument constructor; it is instantiated once via reflection during SDK initialization. <p class="paragraph"><strong>Example</strong> — map the payload's segments onto the bar and mark each phase boundary with a point: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+public class OrderStyleProvider implements LiveUpdateProgressStyleProvider {
+    
+    
+    public Notification.ProgressStyle createStyle(@NonNull LiveUpdateState state) {
+        Notification.ProgressStyle style = new Notification.ProgressStyle();
+        if (state.getProgress() != null) {
+            style.setProgress(state.getProgress());
+        }
+        style.setProgressIndeterminate(state.isProgressIndeterminate());
+
+        List&lt;LiveUpdateSegment&gt; segments = state.getSegments();
+        int boundary = 0;
+        for (int i = 0; i &lt; segments.size(); i++) {
+            LiveUpdateSegment seg = segments.get(i);
+            style.addProgressSegment(
+                    new Notification.ProgressStyle.Segment(seg.getLength()).setColor(seg.getColor()));
+            boundary += seg.getLength();
+            if (i &lt; segments.size() - 1) {
+                style.addProgressPoint(new Notification.ProgressStyle.Point(boundary));
+            }
+        }
+        return style;
+    }
+}
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Threading </strong>&amp;<strong>per-push contract.</strong><a href="create-style.html">createStyle</a> is invoked once per rendered push — on every <code class="lang-kotlin">start</code> and every <code class="lang-kotlin">update</code> (an <code class="lang-kotlin">end</code> dismisses and does not call it) — on a worker thread. The provider is a single instance per process, so implementations <strong>must be stateless</strong>: derive the returned style only from the supplied <code class="lang-kotlin">state</code> and keep no mutable state between calls. Vary output using <a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-progress.html">getProgress</a>, <a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-segments.html">getSegments</a>, <a href="../-live-update-state/is-progress-indeterminate.html">isProgressIndeterminate</a>, <a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-operation.html">getOperation</a> and the arbitrary payload JSON in <a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-extras.html">getExtras</a>.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="2077741550%2FFunctions%2F-1804759215" anchor-label="createStyle" id="2077741550%2FFunctions%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-style.html"><span>create</span><wbr><span><span>Style</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2077741550%2FFunctions%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="create-style.html"><span class="token function">createStyle</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">state<span class="token operator">: </span><a href="../-live-update-state/index.html">LiveUpdateState</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="android.app/Notification.ProgressStyle///PointingToDeclaration/">Notification.ProgressStyle</span></div><div class="brief ">Builds the <span data-unresolved-link="android.app/Notification.ProgressStyle///PointingToDeclaration/">Notification.ProgressStyle</span> for one rendered push.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

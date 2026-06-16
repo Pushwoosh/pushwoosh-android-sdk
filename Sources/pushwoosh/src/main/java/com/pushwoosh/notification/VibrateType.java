@@ -32,9 +32,6 @@ package com.pushwoosh.notification;
  *       public void onCreate() {
  *           super.onCreate();
  *
- *           // Initialize Pushwoosh
- *           Pushwoosh.getInstance().registerForPushNotifications();
- *
  *           // Configure notification vibration behavior
  *           PushwooshNotificationSettings settings =
  *               new PushwooshNotificationSettings();

@@ -73,6 +73,7 @@ import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -784,6 +785,32 @@ public class PushwooshRequestManagerTest {
         ConnectionException ce = (ConnectionException) result.getException();
         assertThat(ce.getStatusCode(), is(0));
         assertThat(ce.getPushwooshStatusCode(), is(0));
+    }
+
+    // A server that accepts the connection then goes silent blocks read() forever without a read
+    // timeout, capturing the single network thread. The silent server is a ServerSocket we never
+    // accept() on: the OS completes the TCP handshake so connect succeeds, but read() never gets a
+    // response and hits the timeout. With the timeout set the request fails fast as
+    // ConnectionException(0/0) — the exact RetriableRequestCallback retry trigger.
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestSyncTimesOutWhenServerIsSilent() throws Exception {
+        int originalReadTimeout = HttpTransport.readTimeoutMs;
+        ServerSocket silentServer = new ServerSocket(0);
+        try {
+            HttpTransport.readTimeoutMs = 200;
+            requestManager.updateBaseUrl("http://127.0.0.1:" + silentServer.getLocalPort() + "/");
+
+            Result<String, NetworkException> result = requestManager.sendRequestSync(new TestRequest("p", "r"));
+
+            assertThat(result.isSuccess(), is(false));
+            assertThat(result.getException(), instanceOf(ConnectionException.class));
+            ConnectionException ce = (ConnectionException) result.getException();
+            assertThat(ce.getStatusCode(), is(0));
+            assertThat(ce.getPushwooshStatusCode(), is(0));
+        } finally {
+            HttpTransport.readTimeoutMs = originalReadTimeout;
+            silentServer.close();
+        }
     }
 
     // HTTP 200 + empty body: Content-Length is 0 → Manager skips body parsing →

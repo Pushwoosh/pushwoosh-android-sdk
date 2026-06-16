@@ -30,6 +30,8 @@ module:pushwoosh-inbox-ui
 com.pushwoosh.inbox.ui
 com.pushwoosh.inbox.ui.model.customizing.formatter
 com.pushwoosh.inbox.ui.presentation.view.activity
+module:pushwoosh-liveupdates
+com.pushwoosh.liveupdates
 module:pushwoosh-location
 com.pushwoosh.location
 com.pushwoosh.location.network.exception

@@ -112,6 +112,18 @@ public class LiveUpdatePushHandlerTest {
         }
     }
 
+    // Verifies the below-API-36 path on the OLD SDK classes (Robolectric sdk 35): a valid live push
+    // parses and hits the null-renderer guard without touching any API-36 type, and is consumed.
+    // The nullRenderer_… test above covers the same branch but only on sdk 36 — this closes that gap.
+    @Config(sdk = 35)
+    @Test
+    public void api35_validLivePush_consumedWithNullRenderer() {
+        LiveUpdatePushHandler h = new LiveUpdatePushHandler(() -> null);
+        Bundle b = liveBundle("start", "order_1");
+
+        assertTrue(h.preHandleMessage(b));
+    }
+
     private static Bundle liveBundle(String op, String id) {
         Bundle b = new Bundle();
         b.putString("pw_live_op", op);

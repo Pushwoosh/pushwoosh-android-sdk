@@ -35,8 +35,11 @@ public class FirebaseChecker implements Checker {
 		try {
 			Class.forName("com.google.firebase.messaging.FirebaseMessaging");
 		} catch (ClassNotFoundException e) {
-			final String message = "You must add \"implementation 'com.google.firebase:firebase-messaging:+'\" line to your app build.gradle.\n" +
-					"Check documentation for more info https://goo.gl/UVJKfp";
+			final String message = "com.google.firebase:firebase-messaging is missing. It is normally pulled in transitively by "
+					+ "pushwoosh-firebase; add it explicitly only if you excluded it, preferably via the Firebase BoM:\n"
+					+ "    implementation(platform(\"com.google.firebase:firebase-bom:<version>\"))\n"
+					+ "    implementation(\"com.google.firebase:firebase-messaging\")\n"
+					+ "See https://firebase.google.com/docs/android/setup#available-libraries";
 			PWLog.error(message);
 			throw new IllegalStateException(message, e);
 		}

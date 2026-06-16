@@ -101,9 +101,6 @@
       public void onCreate() {
           super.onCreate();
 
-          // Initialize Pushwoosh first
-          Pushwoosh.getInstance().registerForPushNotifications();
-
           // Configure notification appearance
           PushwooshNotificationSettings.setMultiNotificationMode(true);
           PushwooshNotificationSettings.setSoundNotificationType(SoundType.ALWAYS);
@@ -117,8 +114,6 @@
       
       public void onCreate() {
           super.onCreate();
-
-          Pushwoosh.getInstance().registerForPushNotifications();
 
           // Brand colors for notifications
           int brandColor = ContextCompat.getColor(this, R.color.brand_primary);
@@ -143,8 +138,6 @@
       
       public void onCreate() {
           super.onCreate();
-
-          Pushwoosh.getInstance().registerForPushNotifications();
 
           // Load user preferences
           SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -174,7 +167,7 @@
           PushwooshNotificationSettings.setVibrateNotificationType(VibrateType.DEFAULT_MODE);
       }
   }
-</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Important Notes:</strong></p><ul><li>All methods are static and apply settings globally across the app</li><li>Settings persist across app restarts</li><li>Pushwoosh must be initialized before calling these methods</li><li>Individual notification settings from Pushwoosh Control Panel can override these defaults</li><li>LED customization requires <span data-unresolved-link="android/Manifest.permission/VIBRATE/#/PointingToDeclaration/">VIBRATE</span> permission</li><li>For Android O (API 26+), use <a href="set-notification-channel-name.html">setNotificationChannelName</a> to set channel name</li></ul><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-sound-type/index.html"><span>Sound</span><wbr><span><span>Type</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-vibrate-type/index.html"><span>Vibrate</span><wbr><span><span>Type</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh/-pushwoosh/index.html"><span><span>Pushwoosh</span></span></a></div></span></div><div></div></div></div></div></div></div>
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Important Notes:</strong></p><ul><li>All methods are static and apply settings globally across the app</li><li>Settings persist across app restarts</li><li>Individual notification settings from Pushwoosh Control Panel can override these defaults</li><li>LED customization requires <span data-unresolved-link="android/Manifest.permission/VIBRATE/#/PointingToDeclaration/">VIBRATE</span> permission</li><li>For Android O (API 26+), use <a href="set-notification-channel-name.html">setNotificationChannelName</a> to set channel name</li></ul><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-sound-type/index.html"><span>Sound</span><wbr><span><span>Type</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-vibrate-type/index.html"><span>Vibrate</span><wbr><span><span>Type</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../com.pushwoosh/-pushwoosh/index.html"><span><span>Pushwoosh</span></span></a></div></span></div><div></div></div></div></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>

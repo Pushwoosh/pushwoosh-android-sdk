@@ -26,9 +26,9 @@ import java.util.List;
  * To customize how a Live Update looks, implement {@link LiveUpdateProgressStyleProvider} and
  * register it via manifest meta-data — see that interface for details.
  * <p>
- * <b>Availability:</b> Live Updates require Android 16 (API 36) or newer. On older devices the
- * plugin never activates and every method here is a safe no-op ({@link #getActiveIds()} returns
- * an empty list).
+ * <b>Availability:</b> Live Updates require Android 16 (API 36) or newer. On older devices
+ * live-update pushes are suppressed (not shown at all) and every method here is a safe no-op
+ * ({@link #getActiveIds()} returns an empty list).
  * <p>
  * <b>Example:</b>
  * <pre>
@@ -149,7 +149,7 @@ public final class PushwooshLiveUpdates {
 
     /** Test hook: directly sets the renderer (or clears it with {@code null}). */
     @VisibleForTesting
-    public static void installForTest(@Nullable LiveUpdateNotificationRenderer r) {
+    static void installForTest(@Nullable LiveUpdateNotificationRenderer r) {
         renderer = r;
     }
 

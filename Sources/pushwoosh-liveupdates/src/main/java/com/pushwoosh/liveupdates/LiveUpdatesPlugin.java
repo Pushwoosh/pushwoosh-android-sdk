@@ -27,12 +27,13 @@ import java.util.Collections;
  * Auto-discovered {@link Plugin} that wires the Live Updates module into the SDK.
  * <p>
  * Discovered at startup via the manifest meta-data {@code com.pushwoosh.plugin.live_updates}.
- * On {@link #init()} it gates on API 36 (Live Updates are unavailable below Android 16), resolves
- * the {@link LiveUpdateProgressStyleProvider} the integrator declared in the manifest (falling
- * back to {@link DefaultProgressStyleProvider}), installs the SDK-owned
- * {@link LiveUpdateNotificationRenderer} into {@link PushwooshLiveUpdates}, and registers a
- * {@link LiveUpdatePushHandler} on the system message chain so live-update pushes are intercepted
- * before the default notification path.
+ * On {@link #init()} it always registers a {@link LiveUpdatePushHandler} on the system message
+ * chain so live-update pushes are intercepted before the default notification path. On API 36+
+ * (Live Updates are unavailable below Android 16) it additionally resolves the
+ * {@link LiveUpdateProgressStyleProvider} the integrator declared in the manifest (falling back
+ * to {@link DefaultProgressStyleProvider}) and installs the SDK-owned
+ * {@link LiveUpdateNotificationRenderer} into {@link PushwooshLiveUpdates}; below API 36 no
+ * renderer exists, so the handler silently consumes live-update pushes.
  */
 public class LiveUpdatesPlugin implements Plugin {
 
@@ -40,19 +41,19 @@ public class LiveUpdatesPlugin implements Plugin {
     private static final String META_STYLE_PROVIDER = "com.pushwoosh.LIVE_UPDATE_STYLE_PROVIDER";
 
     /**
-     * Activates the module: gates on API 36+, then installs the renderer and registers the
-     * live-update push handler. A no-op below API 36.
+     * Activates the module: installs the renderer on API 36+ and registers the live-update push
+     * handler unconditionally. Below API 36 the renderer is never created, so the handler consumes
+     * live-update pushes without rendering — they never reach the default notification path.
      */
     @Override
     public void init() {
         PWLog.info(TAG, "init() entry; SDK_INT=" + Build.VERSION.SDK_INT);
-        if (Build.VERSION.SDK_INT < 36) {
-            PWLog.warn(TAG, "Live Updates require API 36+, plugin disabled");
-            return;
+        if (Build.VERSION.SDK_INT >= 36) {
+            LiveUpdateProgressStyleProvider provider = resolveStyleProvider();
+            PushwooshLiveUpdates.install(new LiveUpdateNotificationRenderer(provider));
+        } else {
+            PWLog.warn(TAG, "Live Updates require API 36+; live-update pushes will be suppressed");
         }
-
-        LiveUpdateProgressStyleProvider provider = resolveStyleProvider();
-        PushwooshLiveUpdates.install(new LiveUpdateNotificationRenderer(provider));
 
         MessageSystemHandleChainProvider.getMessageSystemChain()
                 .addItem(new LiveUpdatePushHandler(PushwooshLiveUpdates::getActiveRenderer));

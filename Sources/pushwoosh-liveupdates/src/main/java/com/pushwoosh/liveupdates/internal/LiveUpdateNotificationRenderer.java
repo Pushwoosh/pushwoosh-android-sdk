@@ -122,7 +122,9 @@ public class LiveUpdateNotificationRenderer {
         builder.setChronometerCountDown(state.isChronometerCountDown());
         builder.setShowWhen(state.isShowWhen());
 
-        builder.setStyle(styleFor(state));
+        if (state.showProgressBar()) {
+            builder.setStyle(styleFor(state));
+        }
 
         if (state.getIconUrl() != null) {
             int dimension = (int) AndroidPlatformModule.getResourceProvider()

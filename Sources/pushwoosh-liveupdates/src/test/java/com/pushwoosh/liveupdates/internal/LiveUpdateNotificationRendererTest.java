@@ -104,6 +104,24 @@ public class LiveUpdateNotificationRendererTest {
     }
 
     @Test
+    public void render_showProgressBarFalse_postsWithoutProgressStyle() {
+        LiveUpdateState state = new LiveUpdateState.Builder("order_1", LiveUpdateOperation.UPDATE)
+                .title("Order")
+                .progress(35)
+                .showProgressBar(false)
+                .build();
+
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+
+        Notification n = nm.getActiveNotifications()[0].getNotification();
+        // No setStyle() call → the ProgressStyle template marker is absent.
+        assertNotEquals(Notification.ProgressStyle.class.getName(), n.extras.getString(Notification.EXTRA_TEMPLATE));
+        // Everything else is still wired: title and the promoted-ongoing extra survive.
+        assertEquals("Order", n.extras.getString(Notification.EXTRA_TITLE));
+        assertTrue(n.extras.getBoolean("android.requestPromotedOngoing", false));
+    }
+
+    @Test
     public void render_addsActionsFromState() throws Exception {
         org.json.JSONObject json =
                 new org.json.JSONObject("{\"type\":\"BROADCAST\",\"title\":\"Cancel\",\"action\":\"com.app.CANCEL\"}");

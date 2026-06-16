@@ -65,6 +65,7 @@ public final class LiveUpdateStateParser {
                 .iconUrl(PushBundleDataProvider.getLargeIcon(bundle))
                 .progress(parseInt(bundle.getString(LiveUpdateBundleKeys.PROGRESS)))
                 .progressIndeterminate(parseBool(bundle.getString(LiveUpdateBundleKeys.PROGRESS_INDETERMINATE), false))
+                .showProgressBar(parseBool(bundle.getString(LiveUpdateBundleKeys.PROGRESS_BAR), true))
                 .segments(parseSegments(bundle.getString(LiveUpdateBundleKeys.SEGMENTS)))
                 .actions(new ArrayList<>(PushBundleDataProvider.getActions(bundle)))
                 .extras(parseObject(bundle.getString(LiveUpdateBundleKeys.EXTRAS)))

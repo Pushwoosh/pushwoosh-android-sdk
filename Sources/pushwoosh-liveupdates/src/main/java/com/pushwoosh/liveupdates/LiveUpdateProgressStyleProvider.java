@@ -25,6 +25,35 @@ import androidx.annotation.WorkerThread;
  * The class must have a public no-argument constructor; it is instantiated once via reflection
  * during SDK initialization.
  *
+ * <p><b>Example</b> — map the payload's segments onto the bar and mark each phase boundary with a
+ * point:
+ * <pre>{@code
+ * public class OrderStyleProvider implements LiveUpdateProgressStyleProvider {
+ *     @NonNull
+ *     @Override
+ *     public Notification.ProgressStyle createStyle(@NonNull LiveUpdateState state) {
+ *         Notification.ProgressStyle style = new Notification.ProgressStyle();
+ *         if (state.getProgress() != null) {
+ *             style.setProgress(state.getProgress());
+ *         }
+ *         style.setProgressIndeterminate(state.isProgressIndeterminate());
+ *
+ *         List<LiveUpdateSegment> segments = state.getSegments();
+ *         int boundary = 0;
+ *         for (int i = 0; i < segments.size(); i++) {
+ *             LiveUpdateSegment seg = segments.get(i);
+ *             style.addProgressSegment(
+ *                     new Notification.ProgressStyle.Segment(seg.getLength()).setColor(seg.getColor()));
+ *             boundary += seg.getLength();
+ *             if (i < segments.size() - 1) {
+ *                 style.addProgressPoint(new Notification.ProgressStyle.Point(boundary));
+ *             }
+ *         }
+ *         return style;
+ *     }
+ * }
+ * }</pre>
+ *
  * <p><b>Threading &amp; per-push contract.</b> {@link #createStyle(LiveUpdateState)} is invoked
  * once per rendered push — on every {@code start} and every {@code update} (an {@code end}
  * dismisses and does not call it) — on a worker thread. The provider is a single instance per

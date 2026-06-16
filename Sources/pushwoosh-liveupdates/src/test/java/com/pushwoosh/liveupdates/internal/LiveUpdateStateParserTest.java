@@ -188,6 +188,16 @@ public class LiveUpdateStateParserTest {
     }
 
     @Test
+    public void showProgressBar_defaultsTrue_falsyTurnsOff() {
+        assertTrue(LiveUpdateStateParser.parse(baseBundle()).showProgressBar());
+        for (String v : new String[] {"false", "0", "no"}) {
+            Bundle b = baseBundle();
+            b.putString("pw_live_progress_bar", v);
+            assertFalse("for value: " + v, LiveUpdateStateParser.parse(b).showProgressBar());
+        }
+    }
+
+    @Test
     public void isLiveUpdatePush_recognizesByPwLiveOpKey() {
         Bundle yes = new Bundle();
         yes.putString("pw_live_op", "start");

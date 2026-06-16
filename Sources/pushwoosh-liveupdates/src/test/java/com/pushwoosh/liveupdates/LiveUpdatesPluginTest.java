@@ -68,9 +68,10 @@ public class LiveUpdatesPluginTest {
 
     @Test
     @Config(sdk = 35)
-    public void api35_doesNotRegisterHandler() {
+    public void api35_registersHandlerWithoutRenderer() {
         new LiveUpdatesPlugin().init();
-        assertFalse(chainHasLiveUpdateHandler());
+        assertEquals(1, countLiveUpdateHandlersInChain());
+        assertNull(PushwooshLiveUpdates.getActiveRenderer());
     }
 
     @Test
@@ -130,10 +131,6 @@ public class LiveUpdatesPluginTest {
         setStyleProviderMeta("java.lang.Object");
         new LiveUpdatesPlugin().init();
         assertTrue(installedProvider() instanceof DefaultProgressStyleProvider);
-    }
-
-    private boolean chainHasLiveUpdateHandler() {
-        return countLiveUpdateHandlersInChain() > 0;
     }
 
     private int countLiveUpdateHandlersInChain() {

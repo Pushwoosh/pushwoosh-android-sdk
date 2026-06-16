@@ -1,6 +1,7 @@
 package com.pushwoosh.internal.network;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import com.pushwoosh.internal.utils.PWLog;
 
@@ -18,6 +19,12 @@ import java.util.Map;
 class HttpTransport {
     private static final String TAG = "HttpTransport";
 
+    @VisibleForTesting
+    static int connectTimeoutMs = 30_000;
+
+    @VisibleForTesting
+    static int readTimeoutMs = 60_000;
+
     @NonNull HttpResponse makeRequest(
             @NonNull String endpointUrl,
             @NonNull JSONObject data,
@@ -28,6 +35,8 @@ class HttpTransport {
         try {
             URL url = new URL(endpointUrl + methodName);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(connectTimeoutMs);
+            connection.setReadTimeout(readTimeoutMs);
 
             connection.setRequestMethod("POST");
             for (Map.Entry<String, String> header : headers.entrySet()) {

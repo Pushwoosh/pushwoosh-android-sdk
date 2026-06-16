@@ -52,6 +52,8 @@ public final class LiveUpdateState {
 
     private final boolean progressIndeterminate;
 
+    private final boolean showProgressBar;
+
     @NonNull private final List<LiveUpdateSegment> segments;
 
     @Nullable private final String iconUrl;
@@ -75,6 +77,7 @@ public final class LiveUpdateState {
         this.subtitle = b.subtitle;
         this.progress = b.progress;
         this.progressIndeterminate = b.progressIndeterminate;
+        this.showProgressBar = b.showProgressBar;
         this.segments = b.segments == null ? Collections.emptyList() : b.segments;
         this.iconUrl = b.iconUrl;
         this.actions = b.actions == null ? Collections.emptyList() : b.actions;
@@ -113,6 +116,15 @@ public final class LiveUpdateState {
     /** Whether the progress bar animates indeterminately rather than showing a concrete value. */
     public boolean isProgressIndeterminate() {
         return progressIndeterminate;
+    }
+
+    /**
+     * Whether the progress bar is rendered at all. When {@code false} the notification posts
+     * without a {@link android.app.Notification.ProgressStyle} — still ongoing and promoted, just
+     * bar-less. Defaults to {@code true}.
+     */
+    public boolean showProgressBar() {
+        return showProgressBar;
     }
 
     /** Ordered progress segments; empty if none were supplied. See {@link LiveUpdateSegment}. */
@@ -173,6 +185,8 @@ public final class LiveUpdateState {
 
         private boolean progressIndeterminate;
 
+        private boolean showProgressBar = true;
+
         @Nullable private List<LiveUpdateSegment> segments;
 
         @Nullable private String iconUrl;
@@ -215,6 +229,11 @@ public final class LiveUpdateState {
 
         public Builder progressIndeterminate(boolean v) {
             this.progressIndeterminate = v;
+            return this;
+        }
+
+        public Builder showProgressBar(boolean v) {
+            this.showProgressBar = v;
             return this;
         }
 

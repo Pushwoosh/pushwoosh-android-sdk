@@ -1,0 +1,379 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>LiveUpdateState</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script><link href="../../../styles/pushwoosh-docs.css" rel="Stylesheet">
+</head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    Pushwoosh Android SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh-liveupdates/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":pushwoosh-liveupdates/main" data-filter=":pushwoosh-liveupdates/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Pushwoosh Android SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh-liveupdates::com.pushwoosh.liveupdates/LiveUpdateState///PointingToDeclaration//-1804759215">
+  <div class="breadcrumbs"><a href="../../index.html">pushwoosh-liveupdates</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.liveupdates</a><span class="delimiter">/</span><span class="current">LiveUpdateState</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Live</span><wbr><span>Update</span><wbr><span><span>State</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">LiveUpdateState</a></div><p class="paragraph">Immutable snapshot of a Live Update, parsed from a single push payload. </p><p class="paragraph"> This is the input handed to <a href="../-live-update-progress-style-provider/create-style.html">createStyle</a> on every <code class="lang-kotlin">start</code> / <code class="lang-kotlin">update</code> render, and the value type an integrator reads to drive a custom progress style. It carries the identity and lifecycle of the update (<a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-activity-id.html">getActivityId</a>, <a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-operation.html">getOperation</a>), its textual content (<a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-title.html">getTitle</a>, <a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-subtitle.html">getSubtitle</a>), progress data (<a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-progress.html">getProgress</a>, <a href="is-progress-indeterminate.html">isProgressIndeterminate</a>, <a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-segments.html">getSegments</a>), the large-icon URL, notification actions, the header-time configuration (see the mode tree below), and an arbitrary <a href="../../../pushwoosh-liveupdates/com.pushwoosh.liveupdates/-live-update-state/get-extras.html">JSON extras</a> object that is the primary channel for custom business data. </p><p class="paragraph"> Instances are immutable and built via <a href="-builder/index.html">Builder</a>; all reference getters are non-null except where annotated <code class="lang-kotlin">@Nullable</code>. </p><p class="paragraph">Header-time mode tree — how the four time fields interact. The platform silently ignores meaningless combinations; this is the integrator's contract, not enforced here: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">showWhen=false ──────────────► time hidden, the other three are irrelevant
+showWhen=true (default)
+  └─ when = anchor (epoch ms)
+       ├─ chronometer=false (default) ──► static stamp ("14:42" / "5 min ago")
+       └─ chronometer=true ──► live counter from `when`
+            ├─ chronometerCountDown=false (default) ──► counts up ("12:34" rising)
+            └─ chronometerCountDown=true ───────────► counts down ("5:00" falling)
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-1338188574%2FClasslikes%2F-1804759215" anchor-label="Builder" id="-1338188574%2FClasslikes%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-builder/index.html"><span><span>Builder</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1338188574%2FClasslikes%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="-builder/index.html">Builder</a></div><div class="brief ">Fluent builder for <a href="index.html">LiveUpdateState</a>.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="1302690605%2FProperties%2F-1804759215" anchor-label="actions" id="1302690605%2FProperties%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="actions.html"><span><span>actions</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1302690605%2FProperties%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="actions.html">actions</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html">List</a><span class="token operator">&lt;</span>Action<span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-990505594%2FProperties%2F-1804759215" anchor-label="activityId" id="-990505594%2FProperties%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="activity-id.html"><span>activity</span><wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-990505594%2FProperties%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="activity-id.html">activityId</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-528698547%2FProperties%2F-1804759215" anchor-label="extras" id="-528698547%2FProperties%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="extras.html"><span><span>extras</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-528698547%2FProperties%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="extras.html">extras</a><span class="token operator">: </span><span data-unresolved-link="org.json/JSONObject///PointingToDeclaration/">JSONObject</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1116744684%2FProperties%2F-1804759215" anchor-label="iconUrl" id="-1116744684%2FProperties%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="icon-url.html"><span>icon</span><wbr><span><span>Url</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1116744684%2FProperties%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="icon-url.html">iconUrl</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="979737283%2FProperties%2F-1804759215" anchor-label="operation" id="979737283%2FProperties%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="operation.html"><span><span>operation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="979737283%2FProperties%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="operation.html">operation</a><span class="token operator">: </span><a href="../-live-update-operation/index.html">LiveUpdateOperation</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1181876733%2FProperties%2F-1804759215" anchor-label="progress" id="-1181876733%2FProperties%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="progress.html"><span><span>progress</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1181876733%2FProperties%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="progress.html">progress</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Integer.html">Integer</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1023635440%2FProperties%2F-1804759215" anchor-label="segments" id="1023635440%2FProperties%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="segments.html"><span><span>segments</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1023635440%2FProperties%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="segments.html">segments</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/List.html">List</a><span class="token operator">&lt;</span><a href="../-live-update-segment/index.html">LiveUpdateSegment</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1041309064%2FProperties%2F-1804759215" anchor-label="subtitle" id="-1041309064%2FProperties%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="subtitle.html"><span><span>subtitle</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1041309064%2FProperties%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="subtitle.html">subtitle</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-976855694%2FProperties%2F-1804759215" anchor-label="title" id="-976855694%2FProperties%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="title.html"><span><span>title</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-976855694%2FProperties%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="title.html">title</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="788746006%2FProperties%2F-1804759215" anchor-label="when" id="788746006%2FProperties%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="when.html"><span><span>when</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="788746006%2FProperties%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="when.html">when</a><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Long.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="1614448654%2FFunctions%2F-1804759215" anchor-label="isChronometer" id="1614448654%2FFunctions%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-chronometer.html"><span>is</span><wbr><span><span>Chronometer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1614448654%2FFunctions%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-chronometer.html"><span class="token function">isChronometer</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Whether the header time ticks as a live chronometer.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="298404219%2FFunctions%2F-1804759215" anchor-label="isChronometerCountDown" id="298404219%2FFunctions%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-chronometer-count-down.html"><span>is</span><wbr><span>Chronometer</span><wbr><span>Count</span><wbr><span><span>Down</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="298404219%2FFunctions%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-chronometer-count-down.html"><span class="token function">isChronometerCountDown</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Whether a ticking chronometer counts down rather than up.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="854307718%2FFunctions%2F-1804759215" anchor-label="isProgressIndeterminate" id="854307718%2FFunctions%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-progress-indeterminate.html"><span>is</span><wbr><span>Progress</span><wbr><span><span>Indeterminate</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="854307718%2FFunctions%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-progress-indeterminate.html"><span class="token function">isProgressIndeterminate</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Whether the progress bar animates indeterminately rather than showing a concrete value.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="792295119%2FFunctions%2F-1804759215" anchor-label="isShowWhen" id="792295119%2FFunctions%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-show-when.html"><span>is</span><wbr><span>Show</span><wbr><span><span>When</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="792295119%2FFunctions%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-show-when.html"><span class="token function">isShowWhen</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Whether the header time column is shown at all.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1488094529%2FFunctions%2F-1804759215" anchor-label="showProgressBar" id="1488094529%2FFunctions%2F-1804759215" data-filterable-set=":pushwoosh-liveupdates/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-liveupdates/main" data-filterable-set=":pushwoosh-liveupdates/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="show-progress-bar.html"><span>show</span><wbr><span>Progress</span><wbr><span><span>Bar</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1488094529%2FFunctions%2F-1804759215"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-liveupdates/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="show-progress-bar.html"><span class="token function">showProgressBar</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief ">Whether the progress bar is rendered at all.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

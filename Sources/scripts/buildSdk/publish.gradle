@@ -35,6 +35,7 @@ def playServicesVersion = "[21.0.1, 21.0.99]"
 def glideVersion = "[4.12.0, 4.16.99]"
 def pushwooshVersion = global_versionName
 def workManagerVersion = "[2.0.0, 2.9.99]"
+def firebaseMessagingVersion = "24.0.0"
 def swipeRefreshLayoutVersion = "[1.0.0, 1.1.99]"
 def coreKtxVersion = "1.10.1"
 
@@ -171,6 +172,10 @@ afterEvaluate {
                                 addDependency(dependenciesNode, 'androidx.appcompat', 'appcompat', androidAppCompatVersion)
                                 addDependency(dependenciesNode, 'androidx.core', 'core-ktx', coreKtxVersion)
                                 addDependency(dependenciesNode, 'com.google.android.material', 'material', androidMaterialVersion)
+                                addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
+                                break
+                            case 'pushwoosh-firebase':
+                                addDependency(dependenciesNode, 'com.google.firebase', 'firebase-messaging', firebaseMessagingVersion)
                                 addDependency(dependenciesNode, 'com.pushwoosh', 'pushwoosh', pushwooshVersion)
                                 break
                             default:

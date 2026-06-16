@@ -1,6 +1,7 @@
 package com.pushwoosh;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 import android.content.Context;
@@ -153,5 +154,42 @@ public class PushwooshTest {
             Mockito.verify(notificationManagerSpy, Mockito.times(1))
                     .onExistingTokenReceived(Mockito.any(), Mockito.any());
             ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+    }
+
+    private Pushwoosh spyWith(String appCode, String hwid) {
+        Pushwoosh pushwoosh = Mockito.spy(Pushwoosh.getInstance());
+        Mockito.doReturn(appCode).when(pushwoosh).getApplicationCode();
+        Mockito.doReturn(hwid).when(pushwoosh).getHwid();
+        return pushwoosh;
+    }
+
+    @Test
+    public void shouldBuildSubscriptionAccountIdFromAppCodeAndHwid() {
+        Pushwoosh pushwoosh = spyWith("XXXXX-XXXXX", "550e8400-e29b-41d4-a716-446655440000");
+
+        assertThat(pushwoosh.getSubscriptionAccountId(), equalTo("XXXXX-XXXXX:550e8400-e29b-41d4-a716-446655440000"));
+    }
+
+    @Test
+    public void shouldReturnEmptySubscriptionAccountIdWhenAppCodeEmpty() {
+        Pushwoosh pushwoosh = spyWith("", "550e8400-e29b-41d4-a716-446655440000");
+
+        assertThat(pushwoosh.getSubscriptionAccountId(), equalTo(""));
+    }
+
+    @Test
+    public void shouldReturnEmptySubscriptionAccountIdWhenHwidEmpty() {
+        Pushwoosh pushwoosh = spyWith("XXXXX-XXXXX", "");
+
+        assertThat(pushwoosh.getSubscriptionAccountId(), equalTo(""));
+    }
+
+    @Test
+    public void shouldReturnFullSubscriptionAccountIdWhenExceeds64Chars() {
+        String appCode = "XXXXX-XXXXX";
+        String longHwid = "550e8400-e29b-41d4-a716-446655440000-extra-long-suffix-overflow";
+        Pushwoosh pushwoosh = spyWith(appCode, longHwid);
+
+        assertThat(pushwoosh.getSubscriptionAccountId(), equalTo(appCode + ":" + longHwid));
     }
 }

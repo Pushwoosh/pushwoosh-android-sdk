@@ -22,4 +22,13 @@ public class LiveUpdateStateTest {
         assertFalse(s.isChronometer());
         assertFalse(s.isChronometerCountDown());
     }
+
+    @Test
+    public void showProgressBar_defaultsToTrue_whenBuilderNotTouched() {
+        // boolean defaults to false, but today's behaviour is "bar shown" — the Builder
+        // must seed showProgressBar=true so direct API users keep the progress bar by default.
+        LiveUpdateState s = new LiveUpdateState.Builder("id", LiveUpdateOperation.START).build();
+
+        assertTrue(s.showProgressBar());
+    }
 }
