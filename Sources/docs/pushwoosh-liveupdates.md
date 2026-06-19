@@ -21,9 +21,10 @@ notification) — and every [PushwooshLiveUpdates] method is a safe no-op.
 ## Sending a Live Update from the backend
 
 A Live Update is created and driven entirely from the server through the Pushwoosh Messaging API —
-the app cannot start or update one. Every push carries a `pw_live_op` (`start` / `update` / `end`)
-and a stable `pw_live_id`; reusing the same `pw_live_id` refreshes the notification in place, and
-`end` dismisses it. These fields travel as plain strings inside `android.root_params`.
+the app cannot start or update one. Every push carries an `op` (`OPERATION_START` /
+`OPERATION_UPDATE` / `OPERATION_END`) and a stable `id`; reusing the same `id` refreshes the
+notification in place, and `OPERATION_END` dismisses it. These fields travel inside a structured
+`live_update` object under the `android` platform block, alongside `title` and `body`.
 
 Start one — `POST https://api.pushwoosh.com/messaging/v2/notify` with header
 `Authorization: Token YOUR-API-TOKEN`:
@@ -38,35 +39,35 @@ Start one — `POST https://api.pushwoosh.com/messaging/v2/notify` with header
     "payload": { "content": { "localized_content": { "default": { "android": {
       "title": "Pizza Margherita — order #4521",
       "body": "Courier on the way • ETA 12 min",
-      "root_params": {
-        "pw_live_op": "start",
-        "pw_live_id": "pizza_4521",
-        "pw_live_progress": "4",
-        "pw_live_segments": "[{\"color\":\"#705289\",\"length\":8}]"
+      "live_update": {
+        "op": "OPERATION_START",
+        "id": "pizza_4521",
+        "progress": 4,
+        "segments": [{"color": "#705289", "length": 8}]
       }
     }}}}}
   }
 }
 ```
 
-To advance it, resend with `"pw_live_op": "update"`, the same `pw_live_id` and a new
-`pw_live_progress`; to dismiss it, send `"pw_live_op": "end"` with that `pw_live_id`.
+To advance it, resend with `"op": "OPERATION_UPDATE"`, the same `id` and a new `progress`; to
+dismiss it, send `"op": "OPERATION_END"` with that `id`.
 
-### Live Update payload keys (`android.root_params`)
+### Live Update fields (`android.live_update`)
 
-| Key | Meaning |
+| Field | Meaning |
 |---|---|
-| `pw_live_op` | Lifecycle operation: `start`, `update`, or `end` (required) |
-| `pw_live_id` | Stable activity id; reuse across pushes to update in place (required) |
-| `pw_live_progress` | Progress value, measured against the sum of segment lengths |
-| `pw_live_progress_indeterminate` | `"true"` for an animated, value-less bar |
-| `pw_live_progress_bar` | `"false"` to hide the progress bar entirely; the notification still posts ongoing and promoted (default `"true"`) |
-| `pw_live_segments` | JSON array of `{"color":"#RRGGBB","length":N}` progress segments |
-| `pw_live_extras` | Arbitrary JSON, surfaced to your provider via `LiveUpdateState.getExtras()` |
-| `pw_live_when` | Header time anchor, epoch ms |
-| `pw_live_chronometer` | `"true"` to tick the header time as a live counter from `pw_live_when` |
-| `pw_live_chronometer_count_down` | with chronometer: `"true"` counts down instead of up |
-| `pw_live_show_when` | `"false"` to hide the header time column |
+| `op` | Lifecycle operation: `OPERATION_START`, `OPERATION_UPDATE`, or `OPERATION_END` (required) |
+| `id` | Stable activity id; reuse across pushes to update in place (required) |
+| `progress` | Progress value, measured against the sum of segment lengths |
+| `progress_indeterminate` | `true` for an animated, value-less bar |
+| `progress_bar` | `false` to hide the progress bar entirely; the notification still posts ongoing and promoted (default `true`) |
+| `segments` | JSON array of `{"color":"#RRGGBB","length":N}` progress segments |
+| `extras` | Arbitrary JSON object, surfaced to your provider via `LiveUpdateState.getExtras()` |
+| `when` | Header time anchor, epoch ms |
+| `chronometer` | `true` to tick the header time as a live counter from `when` |
+| `chronometer_count_down` | with chronometer: `true` counts down instead of up |
+| `show_when` | `false` to hide the header time column |
 
 Title, body and large icon use the standard Pushwoosh push fields (`android.title`,
 `android.body`, `ci`) — they are not Live-Update-specific. Action buttons are covered below.
@@ -94,14 +95,15 @@ The three `type` values map to the matching `PendingIntent`:
   background without bringing UI forward.
 - **`SERVICE`** — starts a Service.
 
-Example — a `start` push with two buttons:
+Example — a `start` push with two buttons (`pw_actions` sits in `root_params`, alongside the
+`live_update` object):
 
 ```json
-"root_params": {
-  "pw_live_op": "start",
-  "pw_live_id": "pizza_4521",
-  "pw_live_progress": "4",
-  "pw_actions": "[{\"type\":\"ACTIVITY\",\"title\":\"Track order\",\"url\":\"myapp://orders/4521\"},{\"type\":\"BROADCAST\",\"title\":\"Cancel\",\"extras\":{\"orderId\":\"4521\"}}]"
+"android": {
+  "live_update": { "op": "OPERATION_START", "id": "pizza_4521", "progress": 4 },
+  "root_params": {
+    "pw_actions": "[{\"type\":\"ACTIVITY\",\"title\":\"Track order\",\"url\":\"myapp://orders/4521\"},{\"type\":\"BROADCAST\",\"title\":\"Cancel\",\"extras\":{\"orderId\":\"4521\"}}]"
+  }
 }
 ```
 

@@ -66,6 +66,7 @@ dependencies {
     implementation "androidx.work:work-runtime:${workManager}"
     implementation "androidx.legacy:legacy-support-v4:${legacy_support_v4}"
     implementation "androidx.core:core:${androidx_core}"
+    implementation "androidx.webkit:webkit:${webkit}"
 
     androidTestImplementation "androidx.annotation:annotation:${support}"
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'

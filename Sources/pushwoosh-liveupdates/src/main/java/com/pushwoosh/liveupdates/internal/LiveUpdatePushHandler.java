@@ -59,10 +59,6 @@ public class LiveUpdatePushHandler implements MessageSystemHandler {
         if (!LiveUpdateStateParser.isLiveUpdatePush(pushBundle)) {
             return false;
         }
-        PWLog.debug(
-                TAG,
-                "live-update push id=" + pushBundle.getString(LiveUpdateBundleKeys.PW_LIVE_ID) + " op="
-                        + pushBundle.getString(LiveUpdateBundleKeys.PW_LIVE_OP));
 
         try {
             LiveUpdateState state = LiveUpdateStateParser.parse(pushBundle);
@@ -70,6 +66,7 @@ public class LiveUpdatePushHandler implements MessageSystemHandler {
                 PWLog.error(TAG, "malformed live-update payload, dropping");
                 return true; // eat the push so it doesn't fall through to the default notification path
             }
+            PWLog.debug(TAG, "live-update push id=" + state.getActivityId() + " op=" + state.getOperation());
 
             LiveUpdateNotificationRenderer renderer = rendererProvider.get();
             if (renderer == null) {
@@ -84,6 +81,9 @@ public class LiveUpdatePushHandler implements MessageSystemHandler {
                     break;
                 case END:
                     renderer.dismiss(state.getActivityId());
+                    break;
+                default:
+                    PWLog.warn(TAG, "unhandled live-update operation: " + state.getOperation());
                     break;
             }
         } catch (Throwable t) {

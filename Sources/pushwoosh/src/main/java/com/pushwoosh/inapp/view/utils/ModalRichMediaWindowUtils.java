@@ -65,6 +65,24 @@ public class ModalRichMediaWindowUtils {
         }
     }
 
+    private static boolean isAttachedAndShowing(ModalRichMediaWindow window) {
+        View content = window.getContentView();
+        return window.isShowing() && content != null && content.isAttachedToWindow();
+    }
+
+    private static void updateIfAttached(ModalRichMediaWindow window, int x, int y, int width, int height) {
+        if (isAttachedAndShowing(window)) {
+            window.update(x, y, width, height);
+        }
+    }
+
+    private static void updateIfAttached(
+            ModalRichMediaWindow window, int x, int y, int width, int height, boolean force) {
+        if (isAttachedAndShowing(window)) {
+            window.update(x, y, width, height, force);
+        }
+    }
+
     public static ValueAnimator dismissWindowWithFadeOutAnimation(ModalRichMediaWindow window) {
         ValueAnimator fadeInAnimator = ValueAnimator.ofFloat(1f, 0f);
         fadeInAnimator.addUpdateListener(animation -> {
@@ -78,7 +96,7 @@ public class ModalRichMediaWindowUtils {
         ValueAnimator animator = ValueAnimator.ofInt(0, screenWidth);
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
-            window.update(-animatedValue, window.getTopInset() + window.getBottomInset(), -1, -1);
+            updateIfAttached(window, -animatedValue, window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
@@ -87,7 +105,7 @@ public class ModalRichMediaWindowUtils {
         ValueAnimator animator = ValueAnimator.ofInt(0, screenWidth);
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
-            window.update(animatedValue, window.getTopInset() + window.getBottomInset(), -1, -1);
+            updateIfAttached(window, animatedValue, window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
@@ -100,7 +118,7 @@ public class ModalRichMediaWindowUtils {
             if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
                 animatedValue = -animatedValue; // for bottom coordinates are inverted
             }
-            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
+            updateIfAttached(window, 0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
@@ -113,7 +131,7 @@ public class ModalRichMediaWindowUtils {
             if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
                 animatedValue = -animatedValue; // for bottom coordinates are inverted
             }
-            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
+            updateIfAttached(window, 0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
@@ -122,7 +140,7 @@ public class ModalRichMediaWindowUtils {
         ValueAnimator animator = ValueAnimator.ofInt(-screenWidth, 0);
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
-            window.update(animatedValue, window.getBottomInset() + window.getTopInset(), -1, -1);
+            updateIfAttached(window, animatedValue, window.getBottomInset() + window.getTopInset(), -1, -1);
         });
         return animator;
     }
@@ -131,7 +149,7 @@ public class ModalRichMediaWindowUtils {
         ValueAnimator animator = ValueAnimator.ofInt(screenWidth, 0);
         animator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
-            window.update(animatedValue, window.getBottomInset() + window.getTopInset(), -1, -1);
+            updateIfAttached(window, animatedValue, window.getBottomInset() + window.getTopInset(), -1, -1);
         });
         return animator;
     }
@@ -144,7 +162,7 @@ public class ModalRichMediaWindowUtils {
             if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
                 animatedValue = -animatedValue; // for bottom coordinates are inverted
             }
-            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
+            updateIfAttached(window, 0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
@@ -157,7 +175,7 @@ public class ModalRichMediaWindowUtils {
             if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
                 animatedValue = -animatedValue; // for bottom coordinates are inverted
             }
-            window.update(0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
+            updateIfAttached(window, 0, animatedValue + window.getTopInset() + window.getBottomInset(), -1, -1);
         });
         return animator;
     }
@@ -369,7 +387,7 @@ public class ModalRichMediaWindowUtils {
             dx = horizontalAllowed ? dx : 0;
             dy = verticalAllowed ? dy : 0;
 
-            window.update(dx, dy + window.getTopInset() + window.getBottomInset(), -1, -1, true);
+            updateIfAttached(window, dx, dy + window.getTopInset() + window.getBottomInset(), -1, -1, true);
         }
     }
 

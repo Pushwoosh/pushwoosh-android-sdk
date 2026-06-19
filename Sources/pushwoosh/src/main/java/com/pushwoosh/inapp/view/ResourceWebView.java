@@ -35,8 +35,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
-import androidx.annotation.NonNull;
-
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.ContextThemeWrapper;
@@ -48,14 +46,16 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
+
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.R;
 import com.pushwoosh.inapp.model.HtmlData;
+import com.pushwoosh.inapp.network.model.InAppLayout;
 import com.pushwoosh.inapp.view.js.PushwooshJSInterface;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.richmedia.RichMediaStyle;
-import com.pushwoosh.inapp.network.model.InAppLayout;
 import com.pushwoosh.richmedia.animation.RichMediaAnimation;
 
 @SuppressLint("ViewConstructor")
@@ -68,6 +68,7 @@ public class ResourceWebView extends FrameLayout {
     protected FrameLayout container;
     private View loadingView;
     protected WebView webView;
+    private WebClient webClient;
     private boolean animated;
     private boolean progressVisible = false;
     private Runnable postedShowLoading;
@@ -78,15 +79,25 @@ public class ResourceWebView extends FrameLayout {
 
     public ResourceWebView(Context context, InAppLayout inAppLayout) {
         super(context);
-        init(inAppLayout, PushwooshPlatform.getInstance().getRichMediaController().getRichMediaStyle(), context);
+        init(
+                inAppLayout,
+                PushwooshPlatform.getInstance().getRichMediaController().getRichMediaStyle(),
+                context);
     }
 
     protected ResourceWebView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        init(InAppLayout.DIALOG, PushwooshPlatform.getInstance().getRichMediaController().getRichMediaStyle(), context);
+        init(
+                InAppLayout.DIALOG,
+                PushwooshPlatform.getInstance().getRichMediaController().getRichMediaStyle(),
+                context);
     }
 
-    protected ResourceWebView(@NonNull Context context, InAppLayout inAppLayout, RichMediaStyle richMediaStyle, boolean isInMultiWindowMode) {
+    protected ResourceWebView(
+            @NonNull Context context,
+            InAppLayout inAppLayout,
+            RichMediaStyle richMediaStyle,
+            boolean isInMultiWindowMode) {
         super(context);
         this.isInMultiWindowMode = isInMultiWindowMode;
         init(inAppLayout, richMediaStyle, context);
@@ -103,10 +114,11 @@ public class ResourceWebView extends FrameLayout {
 
         container = new FrameLayout(getContext());
         if (inAppLayout == InAppLayout.FULLSCREEN) {
-            this.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        }
-        else {
-            this.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            this.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        } else {
+            this.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         }
         container.setLayoutParams(createWebViewParams(inAppLayout, 0));
         container.setBackgroundColor(Color.TRANSPARENT);
@@ -135,6 +147,8 @@ public class ResourceWebView extends FrameLayout {
         webView = createWebView();
 
         webView.getSettings().setJavaScriptEnabled(true);
+        // Allow http:// sub-resources under the https origin, matching the old file:// behaviour.
+        webView.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             webView.getSettings().setForceDark(WebSettings.FORCE_DARK_OFF);
             webView.setForceDarkAllowed(false);
@@ -147,8 +161,7 @@ public class ResourceWebView extends FrameLayout {
         webView.setHapticFeedbackEnabled(false);
     }
 
-    @NonNull
-    protected LayoutParams createWebViewParams(InAppLayout mode, int topMargin) {
+    @NonNull protected LayoutParams createWebViewParams(InAppLayout mode, int topMargin) {
         LayoutParams layoutParams;
         switch (mode) {
             case FULLSCREEN: {
@@ -165,7 +178,11 @@ public class ResourceWebView extends FrameLayout {
                 layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
                 layoutParams.gravity = Gravity.TOP;
                 if (!isInMultiWindowMode) {
-                    layoutParams.topMargin = RepositoryModule.getNotificationPreferences().showFullscreenRichMedia().get() ? 0 : topMargin;
+                    layoutParams.topMargin = RepositoryModule.getNotificationPreferences()
+                                    .showFullscreenRichMedia()
+                                    .get()
+                            ? 0
+                            : topMargin;
                 }
                 break;
             }
@@ -182,25 +199,30 @@ public class ResourceWebView extends FrameLayout {
     }
 
     public void setWebViewClient(WebClient webViewClient) {
+        this.webClient = webViewClient;
         webViewClient.attachToWebView(webView);
     }
 
     protected void showProgress() {
-        if (progressVisible)
-            return;
+        if (progressVisible) return;
         progressVisible = true;
         handler = new Handler();
-        handler.postDelayed(postedShowLoading = () -> {
-            loadingView.setAlpha(0);
-            loadingView.setVisibility(VISIBLE);
-            loadingView.animate().alpha(1).setDuration(ANIMATION_DURATION).start();
-        }, 500);
+        handler.postDelayed(
+                postedShowLoading = () -> {
+                    loadingView.setAlpha(0);
+                    loadingView.setVisibility(VISIBLE);
+                    loadingView
+                            .animate()
+                            .alpha(1)
+                            .setDuration(ANIMATION_DURATION)
+                            .start();
+                },
+                500);
         webView.setVisibility(INVISIBLE);
     }
 
     protected void hideProgress() {
-        if (!progressVisible)
-            return;
+        if (!progressVisible) return;
         progressVisible = false;
 
         if (handler != null) {
@@ -246,15 +268,21 @@ public class ResourceWebView extends FrameLayout {
         webView.loadUrl(url);
     }
 
-    protected void loadDataWithBaseURL(String baseUrl, String htmlData, String mimeType, String encoding, String historyUri) {
+    protected void loadDataWithBaseURL(
+            String baseUrl, String htmlData, String mimeType, String encoding, String historyUri) {
         PWLog.noise(TAG, String.format("Loading HTML data with baseUrl: %s", baseUrl));
-        webView.getSettings().setAllowFileAccess(true);
+        // Synthetic https origin makes file:// access unneeded; keeping it off hardens the root cause.
+        webView.getSettings().setAllowFileAccess(false);
         webView.loadDataWithBaseURL(baseUrl, htmlData, mimeType, encoding, historyUri);
     }
 
     protected void clear() {
         if (webView != null) {
-            webView.setWebViewClient(null);
+            // Layer 2: release() first (queued lifecycle callbacks become no-ops), then destroy() — never leave a live
+            // WebView with a null client that lets Chromium run target=_blank itself.
+            if (webClient != null) {
+                webClient.release();
+            }
             webView.stopLoading();
             ViewGroup parent = (ViewGroup) webView.getParent();
             if (parent != null) {
@@ -262,6 +290,7 @@ public class ResourceWebView extends FrameLayout {
             }
             webView.destroy();
             webView = null;
+            webClient = null;
         }
     }
 
@@ -274,8 +303,10 @@ public class ResourceWebView extends FrameLayout {
                 theme = android.R.style.Theme_Holo;
             }
         }
-        View loadingView = View.inflate(new ContextThemeWrapper(context, theme), R.layout.pw_default_loading_view, null);
-        LayoutParams progressParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        View loadingView =
+                View.inflate(new ContextThemeWrapper(context, theme), R.layout.pw_default_loading_view, null);
+        LayoutParams progressParams =
+                new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         progressParams.gravity = Gravity.CENTER;
         loadingView.setLayoutParams(progressParams);
 
@@ -288,7 +319,9 @@ public class ResourceWebView extends FrameLayout {
         if (!baseUrl.endsWith("/")) {
             baseUrl += "/";
         }
-        String htmlContentWithPushWooshInterface = htmlContent.replace("<head>", "<head>\n<script type=\"text/javascript\">" + PushwooshJSInterface.PUSHWOOSH_JS + "</script>");
+        String htmlContentWithPushWooshInterface = htmlContent.replace(
+                "<head>",
+                "<head>\n<script type=\"text/javascript\">" + PushwooshJSInterface.PUSHWOOSH_JS + "</script>");
         loadDataWithBaseURL(baseUrl, htmlContentWithPushWooshInterface, "text/html", "UTF-8", null);
     }
 

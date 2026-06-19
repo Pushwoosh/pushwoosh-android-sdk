@@ -18,11 +18,14 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 
 import com.pushwoosh.PushwooshPlatform;
+import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.inapp.network.model.Resource;
+import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.LockScreenMediaStorage;
 import com.pushwoosh.repository.RepositoryModule;
@@ -43,6 +46,8 @@ import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowPackageManager;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Collections;
 
 @RunWith(RobolectricTestRunner.class)
@@ -71,9 +76,13 @@ public class WebClientTest {
     @Mock
     private LockScreenMediaStorage lockScreenMediaStorage;
 
+    @Mock
+    private InAppFolderProvider inAppFolderProvider;
+
     private AutoCloseable mocks;
     private MockedStatic<PushwooshPlatform> pushwooshPlatformStatic;
     private MockedStatic<RepositoryModule> repositoryModuleStatic;
+    private MockedStatic<InAppModule> inAppModuleStatic;
 
     private WebClient webClient;
     private Application application;
@@ -93,6 +102,11 @@ public class WebClientTest {
 
         repositoryModuleStatic.when(RepositoryModule::getLockScreenMediaStorage).thenReturn(lockScreenMediaStorage);
 
+        inAppModuleStatic = Mockito.mockStatic(InAppModule.class);
+        inAppModuleStatic.when(InAppModule::getInAppFolderProvider).thenReturn(inAppFolderProvider);
+
+        when(resource.getCode()).thenReturn("CODE");
+
         when(webView.getContext()).thenReturn(application);
         when(inAppView.getMode()).thenReturn(InAppView.MODE_DEFAULT);
 
@@ -101,6 +115,9 @@ public class WebClientTest {
 
     @After
     public void tearDown() throws Exception {
+        if (inAppModuleStatic != null) {
+            inAppModuleStatic.close();
+        }
         if (repositoryModuleStatic != null) {
             repositoryModuleStatic.close();
         }
@@ -218,7 +235,74 @@ public class WebClientTest {
         assertNull(Shadows.shadowOf(application).getNextStartedActivity());
     }
 
-    // Verifies that file:// URL is treated as local and triggers no close or intent.
+    // Verifies an absolute external https URL is not intercepted (loader returns null → network load).
+    @Test
+    public void shouldInterceptRequest_absoluteHttpsUrl_returnsNullForNetworkLoad() {
+        File folder = new File(application.getCacheDir(), "richmedia");
+        folder.mkdirs();
+        when(inAppFolderProvider.getInAppFolder("CODE")).thenReturn(folder);
+        when(webResourceRequest.getUrl()).thenReturn(Uri.parse("https://lh3.googleusercontent.com/x.png"));
+
+        WebResourceResponse response = webClient.shouldInterceptRequest(webView, webResourceRequest);
+
+        assertNull(response);
+    }
+
+    // Verifies a relative asset under the synthetic origin is intercepted and served from disk.
+    @Test
+    public void shouldInterceptRequest_localAsset_servedFromDisk() throws Exception {
+        File folder = new File(application.getCacheDir(), "richmedia");
+        folder.mkdirs();
+        File asset = new File(folder, "img.png");
+        try (FileWriter w = new FileWriter(asset)) {
+            w.write("PNGDATA");
+        }
+        when(inAppFolderProvider.getInAppFolder("CODE")).thenReturn(folder);
+        when(webResourceRequest.getUrl())
+                .thenReturn(Uri.parse("https://appassets.androidplatform.net/pushwoosh_richmedia/CODE/img.png"));
+
+        WebResourceResponse response = webClient.shouldInterceptRequest(webView, webResourceRequest);
+
+        assertNotNull("expected local asset to be intercepted", response);
+    }
+
+    // Verifies a folder outside allowed storage degrades to no interception instead of crashing the worker thread.
+    @Test
+    public void shouldInterceptRequest_folderOutsideAllowedStorage_servesWithoutCrashing() throws Exception {
+        File outside =
+                java.nio.file.Files.createTempDirectory("outside_datadir").toFile();
+        when(inAppFolderProvider.getInAppFolder("CODE")).thenReturn(outside);
+        when(webResourceRequest.getUrl())
+                .thenReturn(Uri.parse("https://appassets.androidplatform.net/pushwoosh_richmedia/CODE/img.png"));
+
+        WebResourceResponse response = webClient.shouldInterceptRequest(webView, webResourceRequest);
+
+        assertNull(response);
+    }
+
+    // Verifies that after release() a lifecycle callback is a no-op: no inAppView callback, no phantom present event.
+    @Test
+    public void onPageFinished_afterRelease_isNoOp() {
+        webClient.release();
+
+        webClient.onPageFinished(webView, "https://appassets.androidplatform.net/pushwoosh_richmedia/CODE/");
+
+        verify(inAppView, never()).onPageLoaded();
+    }
+
+    // Verifies navigation to the in-app's own synthetic origin is a no-op: no external intent, no close. Layer 1.
+    @Test
+    public void shouldOverrideUrlLoading_ownVirtualOrigin_doesNothing() {
+        boolean handled = webClient.shouldOverrideUrlLoading(
+                webView, "https://appassets.androidplatform.net/pushwoosh_richmedia/CODE/");
+
+        assertTrue(handled);
+        verify(inAppView, never()).close();
+        assertNull(Shadows.shadowOf(application).getNextStartedActivity());
+        verify(lockScreenMediaStorage, never()).cacheRemoteUrl(any());
+    }
+
+    // Verifies file:// URLs are still swallowed and never start an activity.
     @Test
     public void shouldOverrideUrlLoading_fileUrl_doesNothing() {
         boolean handled = webClient.shouldOverrideUrlLoading(webView, "file:///android_asset/index.html");

@@ -26,8 +26,6 @@
 
 package com.pushwoosh.inapp.mapper;
 
-import android.net.Uri;
-
 import androidx.annotation.WorkerThread;
 
 import com.pushwoosh.inapp.InAppConfig;
@@ -50,6 +48,11 @@ import java.util.regex.Pattern;
 public class ResourceMapper {
     private static final String TAG = "[InApp]ResourceMapper";
 
+    // Synthetic https origin replaces legacy file:// so target=_blank can't leak a file:// URI to Chromium →
+    // FileUriExposedException.
+    public static final String RICH_MEDIA_ASSET_HOST = "appassets.androidplatform.net";
+    public static final String RICH_MEDIA_PATH_PREFIX = "/pushwoosh_richmedia/";
+
     private final InAppFolderProvider inAppFolderProvider;
     private final InAppConfig config;
 
@@ -60,8 +63,7 @@ public class ResourceMapper {
 
     @WorkerThread
     public HtmlData map(Resource resource) throws IOException {
-        String baseUrl = Uri.fromFile(inAppFolderProvider.getInAppFolder(resource.getCode()))
-                .toString();
+        String baseUrl = "https://" + RICH_MEDIA_ASSET_HOST + RICH_MEDIA_PATH_PREFIX + resource.getCode() + "/";
         String htmlData = getHtmlData(resource.getCode(), resource.getTags());
 
         return new HtmlData(resource.getCode(), baseUrl, htmlData);

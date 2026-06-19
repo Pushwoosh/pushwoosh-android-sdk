@@ -3,6 +3,7 @@ package com.pushwoosh.liveupdates.internal;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.utils.PWLog;
@@ -17,16 +18,21 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
- * Tolerant parser that turns a raw push {@link Bundle} into a {@link LiveUpdateState}.
+ * Parses a live-update push into a {@link LiveUpdateState}.
  * <p>
- * Live-update payload values arrive flattened into the bundle as strings (they travel in
- * {@code android_root_params}), so every field is read by key and coerced leniently: numbers and
- * booleans accept multiple textual forms, malformed segments are skipped individually, and absent
- * optional fields fall back to defaults. Parsing fails (returns {@code null}) only when a required
- * field is missing or invalid — the operation ({@code pw_live_op}) or the id ({@code pw_live_id}).
+ * The whole payload arrives in one FCM data key, {@code pw_live}, whose value is a JSON object
+ * serialized to a string. This parser reads that string into a {@link JSONObject} and pulls each
+ * field with {@code org.json} {@code opt*} accessors: {@code op}/{@code id} are required;
+ * {@code progress}/{@code when} arrive as numeric strings and are read only when present (absent →
+ * {@code null}, never {@code 0}); bool fields read directly with their defaults; {@code segments}
+ * is an array whose malformed elements are skipped individually. Title, subtitle, icon and actions
+ * are NOT in {@code pw_live} — they come from the standard push bundle via
+ * {@link PushBundleDataProvider}.
+ * <p>
+ * Parsing fails (returns {@code null}) when the bundle is {@code null}, {@code pw_live} is missing
+ * or not valid JSON, or the required {@code op}/{@code id} are missing or invalid.
  */
 public final class LiveUpdateStateParser {
 
@@ -36,26 +42,39 @@ public final class LiveUpdateStateParser {
 
     /** Cheap check used by the push handler to recognize a live-update push by its marker key. */
     public static boolean isLiveUpdatePush(@Nullable Bundle bundle) {
-        return bundle != null && !TextUtils.isEmpty(bundle.getString(LiveUpdateBundleKeys.PW_LIVE_OP));
+        return bundle != null && !TextUtils.isEmpty(bundle.getString(LiveUpdateBundleKeys.PW_LIVE));
     }
 
     /**
-     * Parses the bundle into a state, coercing each field tolerantly.
+     * Parses the bundle's {@code pw_live} JSON object into a state.
      *
      * @param bundle the raw push payload
-     * @return the parsed state, or {@code null} if {@code bundle} is {@code null} or the required
-     *         {@code pw_live_op} / {@code pw_live_id} are missing or invalid
+     * @return the parsed state, or {@code null} if {@code bundle} is {@code null}, {@code pw_live}
+     *         is absent / malformed, or the required {@code op} / {@code id} are missing or invalid
      */
     @Nullable public static LiveUpdateState parse(@Nullable Bundle bundle) {
         if (bundle == null) {
             return null;
         }
 
-        LiveUpdateOperation op = LiveUpdateOperation.fromString(bundle.getString(LiveUpdateBundleKeys.PW_LIVE_OP));
-        String id = bundle.getString(LiveUpdateBundleKeys.PW_LIVE_ID);
+        String raw = bundle.getString(LiveUpdateBundleKeys.PW_LIVE);
+        if (TextUtils.isEmpty(raw)) {
+            return null;
+        }
+
+        JSONObject json;
+        try {
+            json = new JSONObject(raw);
+        } catch (JSONException e) {
+            PWLog.error(TAG, "pw_live is not valid JSON, ignoring: " + e.getMessage());
+            return null;
+        }
+
+        LiveUpdateOperation op = LiveUpdateOperation.fromString(optStringOrNull(json, LiveUpdateBundleKeys.OP));
+        String id = optStringOrNull(json, LiveUpdateBundleKeys.ID);
 
         if (op == null || TextUtils.isEmpty(id)) {
-            PWLog.error(TAG, "missing or invalid pw_live_op / pw_live_id");
+            PWLog.error(TAG, "missing or invalid op / id in pw_live");
             return null;
         }
 
@@ -63,89 +82,60 @@ public final class LiveUpdateStateParser {
                 .title(PushBundleDataProvider.getHeader(bundle))
                 .subtitle(PushBundleDataProvider.getMessage(bundle))
                 .iconUrl(PushBundleDataProvider.getLargeIcon(bundle))
-                .progress(parseInt(bundle.getString(LiveUpdateBundleKeys.PROGRESS)))
-                .progressIndeterminate(parseBool(bundle.getString(LiveUpdateBundleKeys.PROGRESS_INDETERMINATE), false))
-                .showProgressBar(parseBool(bundle.getString(LiveUpdateBundleKeys.PROGRESS_BAR), true))
-                .segments(parseSegments(bundle.getString(LiveUpdateBundleKeys.SEGMENTS)))
+                .progress(optInteger(json, LiveUpdateBundleKeys.PROGRESS))
+                .progressIndeterminate(json.optBoolean(LiveUpdateBundleKeys.PROGRESS_INDETERMINATE, false))
+                .showProgressBar(json.optBoolean(LiveUpdateBundleKeys.PROGRESS_BAR, true))
+                .segments(parseSegments(json.optJSONArray(LiveUpdateBundleKeys.SEGMENTS)))
                 .actions(new ArrayList<>(PushBundleDataProvider.getActions(bundle)))
-                .extras(parseObject(bundle.getString(LiveUpdateBundleKeys.EXTRAS)))
-                .when(parseLong(bundle.getString(LiveUpdateBundleKeys.WHEN)))
-                .chronometer(parseBool(bundle.getString(LiveUpdateBundleKeys.CHRONOMETER), false))
-                .chronometerCountDown(parseBool(bundle.getString(LiveUpdateBundleKeys.CHRONOMETER_COUNT_DOWN), false))
-                .showWhen(parseBool(bundle.getString(LiveUpdateBundleKeys.SHOW_WHEN), true))
+                .extras(json.optJSONObject(LiveUpdateBundleKeys.EXTRAS))
+                .when(optLongOrNull(json, LiveUpdateBundleKeys.WHEN))
+                .chronometer(json.optBoolean(LiveUpdateBundleKeys.CHRONOMETER, false))
+                .chronometerCountDown(json.optBoolean(LiveUpdateBundleKeys.CHRONOMETER_COUNT_DOWN, false))
+                .showWhen(json.optBoolean(LiveUpdateBundleKeys.SHOW_WHEN, true))
                 .build();
     }
 
-    @Nullable private static Integer parseInt(@Nullable String raw) {
-        if (TextUtils.isEmpty(raw)) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(raw.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
+    /**
+     * Reads a string field, treating a literal JSON {@code null} the same as an absent key (both →
+     * {@code null}). {@code optString(key, null)} alone is not enough: org.json coerces a JSON null
+     * to the string {@code "null"}, which would slip past an {@code isEmpty} check downstream.
+     */
+    @Nullable private static String optStringOrNull(@NonNull JSONObject json, @NonNull String key) {
+        return json.isNull(key) ? null : json.optString(key, null);
     }
 
-    @Nullable private static Long parseLong(@Nullable String raw) {
-        if (TextUtils.isEmpty(raw)) {
-            return null;
-        }
-        try {
-            return Long.parseLong(raw.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
+    /**
+     * Reads an int-valued field that arrives as a numeric string. Absent or literal {@code null} →
+     * {@code null} (never 0); present → {@code optInt} coerces the numeric string. A present-but-
+     * non-numeric value falls back to {@code 0} via {@code optInt} — acceptable, the backend never
+     * emits such a value.
+     */
+    @Nullable private static Integer optInteger(@NonNull JSONObject json, @NonNull String key) {
+        return json.has(key) && !json.isNull(key) ? json.optInt(key) : null;
     }
 
-    /** Accepts {@code true/1/yes} and {@code false/0/no} (case-insensitive); else {@code defaultValue}. */
-    private static boolean parseBool(@Nullable String raw, boolean defaultValue) {
-        if (raw == null) {
-            return defaultValue;
-        }
-        switch (raw.trim().toLowerCase(Locale.ROOT)) {
-            case "true":
-            case "1":
-            case "yes":
-                return true;
-            case "false":
-            case "0":
-            case "no":
-                return false;
-            default:
-                return defaultValue;
-        }
+    /** Like {@link #optInteger}, for the {@code when} epoch-ms field. Absent / {@code null} → {@code null}. */
+    @Nullable private static Long optLongOrNull(@NonNull JSONObject json, @NonNull String key) {
+        return json.has(key) && !json.isNull(key) ? json.optLong(key) : null;
     }
 
-    private static List<LiveUpdateSegment> parseSegments(@Nullable String raw) {
-        if (TextUtils.isEmpty(raw)) {
+    @NonNull private static List<LiveUpdateSegment> parseSegments(@Nullable JSONArray arr) {
+        if (arr == null) {
             return new ArrayList<>();
         }
-        try {
-            JSONArray arr = new JSONArray(raw);
-            List<LiveUpdateSegment> result = new ArrayList<>(arr.length());
-            for (int i = 0; i < arr.length(); i++) {
-                try {
-                    result.add(LiveUpdateSegment.fromJson(arr.getJSONObject(i)));
-                } catch (Throwable t) {
-                    PWLog.warn(TAG, "skipping malformed segment at " + i + ": " + t.getMessage());
-                }
+        List<LiveUpdateSegment> result = new ArrayList<>(arr.length());
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject obj = arr.optJSONObject(i);
+            if (obj == null) {
+                PWLog.warn(TAG, "skipping non-object segment at " + i);
+                continue;
             }
-            return result;
-        } catch (JSONException e) {
-            PWLog.warn(TAG, "segments not a valid JSON array, ignoring");
-            return new ArrayList<>();
+            try {
+                result.add(LiveUpdateSegment.fromJson(obj));
+            } catch (Throwable t) {
+                PWLog.warn(TAG, "skipping malformed segment at " + i + ": " + t.getMessage());
+            }
         }
-    }
-
-    @Nullable private static JSONObject parseObject(@Nullable String raw) {
-        if (TextUtils.isEmpty(raw)) {
-            return null;
-        }
-        try {
-            return new JSONObject(raw);
-        } catch (JSONException e) {
-            return null;
-        }
+        return result;
     }
 }

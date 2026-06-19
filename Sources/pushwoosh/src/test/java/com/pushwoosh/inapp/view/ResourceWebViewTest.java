@@ -10,6 +10,8 @@ import static org.mockito.Mockito.verify;
 
 import android.content.Context;
 import android.view.animation.Animation;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 
 import com.pushwoosh.inapp.model.HtmlData;
 import com.pushwoosh.inapp.view.js.PushwooshJSInterface;
@@ -94,18 +96,27 @@ public class ResourceWebViewTest {
                 .loadDataWithBaseURL(eq("https://example.com/"), anyString(), eq("text/html"), eq("UTF-8"), isNull());
     }
 
-    // Verifies that loadData passes html content unchanged when there is no <head> tag to inject into.
+    // Verifies file access is disabled on load (synthetic https origin makes file:// unnecessary).
     @Test
-    public void loadData_htmlWithoutHead_contentPassedAsIs() {
-        ResourceWebView spy = Mockito.spy(resourceWebView);
-        doNothing().when(spy).loadDataWithBaseURL(anyString(), anyString(), anyString(), anyString(), isNull());
+    public void loadDataWithBaseURL_disablesFileAccess() {
+        WebView webView = resourceWebView.webView;
+        webView.getSettings().setAllowFileAccess(true);
 
-        HtmlData htmlData = new HtmlData("code3", "https://example.com/", "<body>hi</body>");
+        resourceWebView.loadDataWithBaseURL(
+                "https://appassets.androidplatform.net/pushwoosh_richmedia/code/",
+                "<html></html>",
+                "text/html",
+                "UTF-8",
+                null);
 
-        spy.loadData(htmlData);
+        org.junit.Assert.assertFalse(webView.getSettings().getAllowFileAccess());
+    }
 
-        verify(spy)
-                .loadDataWithBaseURL(
-                        eq("https://example.com/"), eq("<body>hi</body>"), eq("text/html"), eq("UTF-8"), isNull());
+    // Verifies mixed-content is set to COMPATIBILITY so http:// sub-resources render on the https origin.
+    @Test
+    public void initWebView_setsMixedContentCompatibilityMode() {
+        WebSettings settings = resourceWebView.webView.getSettings();
+
+        org.junit.Assert.assertEquals(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE, settings.getMixedContentMode());
     }
 }

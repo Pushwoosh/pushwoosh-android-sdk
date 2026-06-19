@@ -2,8 +2,6 @@ package com.pushwoosh.liveupdates;
 
 import androidx.annotation.Nullable;
 
-import java.util.Locale;
-
 /**
  * The lifecycle operation carried by a Live Update push, available via
  * {@link LiveUpdateState#getOperation()}.
@@ -27,19 +25,24 @@ public enum LiveUpdateOperation {
     END;
 
     /**
-     * Parses the raw {@code pw_live_op} payload value into an operation, case-insensitively.
+     * Parses the raw {@code op} value from the {@code pw_live} JSON into an operation.
+     * <p>
+     * The backend emits protojson enum names with the {@code OPERATION_} prefix
+     * ({@code "OPERATION_START"} / {@code "OPERATION_UPDATE"} / {@code "OPERATION_END"}); matching is
+     * exact, against the full names only. Anything else (short forms, garbage, {@code null}) yields
+     * {@code null} and the push is consumed without rendering.
      *
-     * @param raw the raw operation string from the push payload (e.g. {@code "start"})
+     * @param raw the raw {@code op} value from the payload (e.g. {@code "OPERATION_START"})
      * @return the matching operation, or {@code null} if {@code raw} is {@code null} or unrecognized
      */
     @Nullable public static LiveUpdateOperation fromString(@Nullable String raw) {
         if (raw == null) return null;
-        switch (raw.toLowerCase(Locale.ROOT)) {
-            case "start":
+        switch (raw) {
+            case "OPERATION_START":
                 return START;
-            case "update":
+            case "OPERATION_UPDATE":
                 return UPDATE;
-            case "end":
+            case "OPERATION_END":
                 return END;
             default:
                 return null;

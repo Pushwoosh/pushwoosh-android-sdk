@@ -38,11 +38,17 @@ import android.os.Looper;
 import android.view.View;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.annotation.Nullable;
+import androidx.webkit.WebViewAssetLoader;
+
 import com.pushwoosh.PushwooshPlatform;
+import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.event.RichMediaPresentEvent;
+import com.pushwoosh.inapp.mapper.ResourceMapper;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.js.JsCallback;
 import com.pushwoosh.inapp.view.js.PushManagerJSInterface;
@@ -51,6 +57,7 @@ import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
 
+import java.io.File;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -70,9 +77,15 @@ public class WebClient extends WebViewClient implements JsCallback {
 
     private Handler handler = new Handler(Looper.getMainLooper());
 
-    private Resource resource;
+    private volatile Resource resource;
 
     private View mainContainer;
+
+    @Nullable private WebViewAssetLoader assetLoader;
+
+    private boolean assetLoaderInitialized;
+
+    private boolean released;
 
     public WebClient(InAppView inAppView, Resource resource) {
         this.inAppView = inAppView;
@@ -111,10 +124,20 @@ public class WebClient extends WebViewClient implements JsCallback {
         this.mainContainer = view;
     }
 
+    // Released from clear() before destroy(): skips side effects of lifecycle callbacks still queued after teardown (JS
+    // bridge, phantom present event).
+    public void release() {
+        released = true;
+    }
+
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
         PWLog.noise(TAG, String.format("onPageFinished(url: %s)", url));
+
+        if (released) {
+            return;
+        }
 
         pushwooshJSInterface.onPageFinished(view, resource);
 
@@ -127,6 +150,10 @@ public class WebClient extends WebViewClient implements JsCallback {
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
         super.onPageStarted(view, url, favicon);
         PWLog.noise(TAG, String.format("onPageStarted(url: %s)", url));
+
+        if (released) {
+            return;
+        }
 
         pushwooshJSInterface.onPageStarted(view, resource);
     }
@@ -153,6 +180,61 @@ public class WebClient extends WebViewClient implements JsCallback {
         return handleUri(view.getContext(), uri);
     }
 
+    @Override
+    @Nullable public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+        return interceptViaAssetLoader(view, request.getUrl());
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    @Nullable public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+        return interceptViaAssetLoader(view, Uri.parse(url));
+    }
+
+    @Nullable private WebResourceResponse interceptViaAssetLoader(WebView view, Uri uri) {
+        WebViewAssetLoader loader = getAssetLoader(view.getContext());
+        if (loader == null) {
+            return null;
+        }
+        return loader.shouldInterceptRequest(uri);
+    }
+
+    // synchronized: parallel shouldInterceptRequest worker threads must not see assetLoaderInitialized==true while
+    // assetLoader is still null mid-build and miss interception.
+    @Nullable private synchronized WebViewAssetLoader getAssetLoader(Context context) {
+        if (assetLoaderInitialized) {
+            return assetLoader;
+        }
+
+        String code = resource.getCode();
+        File inAppFolder = InAppModule.getInAppFolderProvider().getInAppFolder(code);
+        if (inAppFolder == null) {
+            // Don't latch initialized here: a null folder may be transient, so a later request can retry the build.
+            PWLog.warn(TAG, "InApp folder is null for code " + code + "; serving without asset interception");
+            return null;
+        }
+        assetLoaderInitialized = true;
+
+        try {
+            assetLoader = new WebViewAssetLoader.Builder()
+                    // Same host constant as ResourceMapper's document origin so the two never drift.
+                    .setDomain(ResourceMapper.RICH_MEDIA_ASSET_HOST)
+                    .addPathHandler(
+                            ResourceMapper.RICH_MEDIA_PATH_PREFIX + code + "/",
+                            new WebViewAssetLoader.InternalStoragePathHandler(context, inAppFolder))
+                    .build();
+        } catch (RuntimeException e) {
+            // Builder can throw IllegalArgumentException; an uncaught throw on the WebView worker thread crashes the
+            // process, so degrade to no interception (null → normal load).
+            PWLog.warn(
+                    TAG,
+                    "Failed to build rich media asset loader for code " + code + "; serving without interception",
+                    e);
+            assetLoader = null;
+        }
+        return assetLoader;
+    }
+
     private boolean handleUri(Context context, Uri uri) {
         PWLog.noise(TAG, String.format("handleUri(uri: %s)", uri));
 
@@ -164,6 +246,12 @@ public class WebClient extends WebViewClient implements JsCallback {
                 PWLog.error(TAG, "Wrong url format: " + uri);
             }
 
+            return true;
+        }
+
+        // Layer 1: navigation to our own synthetic origin (e.g. empty href → base URL) is a no-op, never opened
+        // externally.
+        if (ResourceMapper.RICH_MEDIA_ASSET_HOST.equals(uri.getHost())) {
             return true;
         }
 
