@@ -207,6 +207,23 @@ public class LiveUpdateNotificationRenderer {
         return ids;
     }
 
+    /**
+     * Dismisses every live update this app is currently showing. Reuses {@link #getActiveIds()}
+     * (which yields an empty list on failure) and cancels each id independently, so one failing
+     * cancel does not abort the rest. A no-op when nothing is shown.
+     */
+    @AnyThread
+    public void dismissAll() {
+        PWLog.noise(TAG, "dismissAll()");
+        for (String id : getActiveIds()) {
+            try {
+                dismiss(id);
+            } catch (Throwable t) {
+                PWLog.error(TAG, "dismiss failed for " + id, t);
+            }
+        }
+    }
+
     /** Resolves the platform {@link NotificationManager}, or {@code null} if it is unavailable. */
     @Nullable private static NotificationManager notificationManager() {
         ManagerProvider managerProvider = AndroidPlatformModule.getManagerProvider();

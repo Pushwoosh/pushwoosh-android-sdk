@@ -38,6 +38,8 @@ def workManagerVersion = "[2.0.0, 2.9.99]"
 def firebaseMessagingVersion = "24.0.0"
 def swipeRefreshLayoutVersion = "[1.0.0, 1.1.99]"
 def coreKtxVersion = "1.10.1"
+def androidxCoreVersion = "1.13.1"
+def webkitVersion = "1.4.0"
 
 def addDependency(node, groupId, artifactId, version, type = 'aar', scope = 'compile') {
     node.appendNode('dependency').with {
@@ -145,6 +147,8 @@ afterEvaluate {
                             case 'pushwoosh':
                                 addDependency(dependenciesNode, 'androidx.legacy', 'legacy-support-v4', legacySupportV4Version)
                                 addDependency(dependenciesNode, 'androidx.work', 'work-runtime', workManagerVersion)
+                                addDependency(dependenciesNode, 'androidx.core', 'core', androidxCoreVersion)
+                                addDependency(dependenciesNode, 'androidx.webkit', 'webkit', webkitVersion)
                                 break
                             case 'pushwoosh-amazon':
                                 addDependency(dependenciesNode, 'androidx.annotation', 'annotation', androidAnnotationVersion, 'jar')

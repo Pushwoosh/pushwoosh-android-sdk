@@ -131,19 +131,10 @@ public final class PushwooshLiveUpdates {
         PWLog.noise(TAG, "endAllLiveUpdates()");
         LiveUpdateNotificationRenderer r = renderer;
         if (r == null) return;
-        List<String> ids;
         try {
-            ids = r.getActiveIds();
+            r.dismissAll();
         } catch (Throwable t) {
-            PWLog.error(TAG, "renderer.getActiveIds failed", t);
-            return;
-        }
-        for (String id : ids) {
-            try {
-                r.dismiss(id);
-            } catch (Throwable t) {
-                PWLog.error(TAG, "renderer.dismiss failed for " + id, t);
-            }
+            PWLog.error(TAG, "renderer.dismissAll failed", t);
         }
     }
 

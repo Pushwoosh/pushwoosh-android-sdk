@@ -285,6 +285,37 @@ public class LiveUpdateNotificationRendererTest {
     }
 
     @Test
+    public void dismissAll_cancelsEveryLiveUpdate_butLeavesForeignNotifications() {
+        LiveUpdateNotificationRenderer renderer =
+                new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider());
+        renderer.render(new LiveUpdateState.Builder("order_1", LiveUpdateOperation.START)
+                .title("A")
+                .build());
+        renderer.render(new LiveUpdateState.Builder("order_2", LiveUpdateOperation.START)
+                .title("B")
+                .build());
+
+        // A foreign notification on another channel must survive dismissAll: it iterates only the
+        // ids getActiveIds() reports, which are filtered to the live-update channel.
+        NotificationChannel other =
+                new NotificationChannel("other_app_channel", "Other", NotificationManager.IMPORTANCE_DEFAULT);
+        nm.createNotificationChannel(other);
+        nm.notify(
+                "foreign_tag",
+                42,
+                new Notification.Builder(context, "other_app_channel")
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setContentTitle("Newsletter")
+                        .build());
+
+        renderer.dismissAll();
+
+        assertTrue("all live updates must be dismissed", renderer.getActiveIds().isEmpty());
+        assertEquals("foreign notification must survive dismissAll", 1, nm.getActiveNotifications().length);
+        assertEquals("foreign_tag", nm.getActiveNotifications()[0].getTag());
+    }
+
+    @Test
     public void render_addsPromotedOngoingExtra() {
         LiveUpdateState state = new LiveUpdateState.Builder("order_1", LiveUpdateOperation.START)
                 .title("Order")
