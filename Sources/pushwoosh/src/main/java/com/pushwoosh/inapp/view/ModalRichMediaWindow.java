@@ -264,6 +264,8 @@ public class ModalRichMediaWindow extends PopupWindow
                     public void onAnimationRepeat(@NonNull Animator animator) {}
                 });
                 animator.start();
+            } else {
+                window.dismiss();
             }
             resourceWebView.clear();
             resourceWebView = null;
@@ -294,9 +296,11 @@ public class ModalRichMediaWindow extends PopupWindow
                 }
 
                 ValueAnimator animator = ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(this, config);
-                Integer duration = config.getAnimationDuration();
-                animator.setDuration(duration != null ? duration.longValue() : DEFAULT_ANIMATION_DURATION_MS);
-                animator.start();
+                if (animator != null) {
+                    Integer duration = config.getAnimationDuration();
+                    animator.setDuration(duration != null ? duration.longValue() : DEFAULT_ANIMATION_DURATION_MS);
+                    animator.start();
+                }
                 EventBus.sendEvent(new InAppViewEvent(resource));
 
             } catch (Exception e) {
