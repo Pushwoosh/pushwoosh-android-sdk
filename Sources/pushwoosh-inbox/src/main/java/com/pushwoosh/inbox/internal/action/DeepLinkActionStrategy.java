@@ -39,22 +39,27 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 class DeepLinkActionStrategy implements InboxActionStrategy {
-	private Context context = AndroidPlatformModule.getApplicationContext();
+    private Context context = AndroidPlatformModule.getApplicationContext();
 
-	@Override
-	public void performAction(JSONObject actionParams) throws JSONException {
-		Intent intent = new Intent(Intent.ACTION_VIEW);
-		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-		final String deepLink = InboxPayloadDataProvider.getUrl(actionParams);
-		if (deepLink == null) {
-			return;
-		}
+    @Override
+    public void performAction(JSONObject actionParams) throws JSONException {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        final String deepLink = InboxPayloadDataProvider.getUrl(actionParams);
+        if (deepLink == null) {
+            return;
+        }
 
-		intent.setData(Uri.parse(deepLink));
-		try {
-			context.startActivity(intent);
-		} catch (ActivityNotFoundException e) {
-			PWLog.error("Can't find activity for deep link: " + deepLink, e);
-		}
-	}
+        if (context == null) {
+            PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
+            return;
+        }
+
+        intent.setData(Uri.parse(deepLink));
+        try {
+            context.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            PWLog.error("Can't find activity for deep link: " + deepLink, e);
+        }
+    }
 }

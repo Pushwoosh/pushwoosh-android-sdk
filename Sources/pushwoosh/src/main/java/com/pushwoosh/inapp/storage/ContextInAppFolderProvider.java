@@ -27,62 +27,62 @@
 package com.pushwoosh.inapp.storage;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
 
 import java.io.File;
 
 public class ContextInAppFolderProvider implements InAppFolderProvider {
 
-	@Nullable
-	private final Context context;
+    @Nullable private final Context context;
 
-	public ContextInAppFolderProvider(@Nullable Context context) {
-		this.context = context;
-	}
+    public ContextInAppFolderProvider(@Nullable Context context) {
+        this.context = context;
+    }
 
-	@Override
-	public File getInAppFolder(String code) {
-		if (context == null) {
-			return null;
-		}
+    @Override
+    public File getInAppFolder(String code) {
+        if (context == null || code == null) {
+            return null;
+        }
 
-		File inAppsDir = context.getDir("htmls", Context.MODE_PRIVATE);
-		return new File(inAppsDir, code);
-	}
+        File inAppsDir = context.getDir("htmls", Context.MODE_PRIVATE);
+        return new File(inAppsDir, code);
+    }
 
-	@Override
-	public File getConfigFile(String code) {
-		File inAppFolder = getInAppFolder(code);
-		if (inAppFolder == null) {
-			return null;
-		}
+    @Override
+    public File getConfigFile(String code) {
+        File inAppFolder = getInAppFolder(code);
+        if (inAppFolder == null) {
+            return null;
+        }
 
-		return new File(inAppFolder, "pushwoosh.json");
-	}
+        return new File(inAppFolder, "pushwoosh.json");
+    }
 
-	@Override
-	public File getInAppHtmlFile(String code) {
-		File inAppFolder = getInAppFolder(code);
-		if (inAppFolder == null) {
-			return null;
-		}
+    @Override
+    public File getInAppHtmlFile(String code) {
+        File inAppFolder = getInAppFolder(code);
+        if (inAppFolder == null) {
+            return null;
+        }
 
-		return new File(inAppFolder, "index.html");
-	}
+        return new File(inAppFolder, "index.html");
+    }
 
-	@Override
-	public File getCacheDir() {
-		if (context == null) {
-			return null;
-		}
+    @Override
+    public File getCacheDir() {
+        if (context == null) {
+            return null;
+        }
 
-		return context.getCacheDir();
-	}
+        return context.getCacheDir();
+    }
 
-	@Override
-	public boolean isInAppDownloaded(String code) {
-		File inappFolder = getInAppFolder(code);
+    @Override
+    public boolean isInAppDownloaded(String code) {
+        File inappFolder = getInAppFolder(code);
 
-		return inappFolder != null && inappFolder.exists();
-	}
+        return inappFolder != null && inappFolder.exists();
+    }
 }

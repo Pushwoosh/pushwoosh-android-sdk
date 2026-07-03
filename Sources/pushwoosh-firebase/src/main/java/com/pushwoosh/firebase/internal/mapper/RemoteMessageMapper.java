@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -39,7 +40,11 @@ public class RemoteMessageMapper {
 
     private static final String KEY_PW_MSG_TAG = "pw_msg_tag";
 
-    @NonNull public static Bundle mapToBundle(@NonNull RemoteMessage remoteMessage) {
+    @NonNull public static Bundle mapToBundle(@Nullable RemoteMessage remoteMessage) {
+        if (remoteMessage == null) {
+            return new Bundle();
+        }
+
         Map<String, String> data = remoteMessage.getData();
         Bundle bundle = new Bundle();
         if (data != null) {

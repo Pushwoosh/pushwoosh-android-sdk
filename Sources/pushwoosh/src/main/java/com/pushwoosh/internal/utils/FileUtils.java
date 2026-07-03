@@ -28,8 +28,7 @@ public class FileUtils {
 
     private static final int TRY_COUNT = 3;
 
-    @Nullable
-    public static File downloadFile(String linkUrl, File destination) {
+    @Nullable public static File downloadFile(String linkUrl, File destination) {
         int count;
         int tryCount = 0;
         InputStream input = null;
@@ -43,7 +42,9 @@ public class FileUtils {
                     openConnection.connect();
 
                     if (openConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                        PWLog.error(TAG, "fail download: " + linkUrl + "  responseCode: " + openConnection.getResponseCode());
+                        PWLog.error(
+                                TAG,
+                                "fail download: " + linkUrl + "  responseCode: " + openConnection.getResponseCode());
                         return null;
                     }
 
@@ -59,11 +60,11 @@ public class FileUtils {
                     output.flush();
                     return destination;
                 } catch (MalformedURLException ignore) {
-                    //not need retry
+                    // not need retry
                     break;
                 } catch (IOException e) {
                     PWLog.exception(e);
-                    //XXX retry
+                    // XXX retry
                 } finally {
                     if (input != null) {
                         try {
@@ -94,8 +95,7 @@ public class FileUtils {
         return (e instanceof NullPointerException) && e.getMessage().equals("ssl_session == null");
     }
 
-    @Nullable
-    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @Nullable @SuppressWarnings("ResultOfMethodCallIgnored")
     public static File unzip(@Nullable File zip, @Nullable File destination) {
         if (zip == null || destination == null) {
             return null;
@@ -135,8 +135,8 @@ public class FileUtils {
                     continue;
                 }
 
-                //create all non exists folders
-                //else you will hit FileNotFoundException for compressed folder
+                // create all non exists folders
+                // else you will hit FileNotFoundException for compressed folder
                 new File(file.getParent()).mkdirs();
 
                 OutputStream out = null;
@@ -229,8 +229,7 @@ public class FileUtils {
         }
     }
 
-    @NonNull
-    public static String getMd5Hash(@NonNull File file) {
+    @NonNull public static String getMd5Hash(@NonNull File file) {
         InputStream inputStream = null;
         MessageDigest md;
 
@@ -289,6 +288,7 @@ public class FileUtils {
     }
 
     public static String removeExtension(String path) {
-        return path.substring(0, path.lastIndexOf("."));
+        int dot = path.lastIndexOf(".");
+        return dot < 0 ? path : path.substring(0, dot);
     }
 }

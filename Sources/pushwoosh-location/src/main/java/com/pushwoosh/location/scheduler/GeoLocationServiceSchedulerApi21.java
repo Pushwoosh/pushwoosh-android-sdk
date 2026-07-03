@@ -26,12 +26,15 @@
 
 package com.pushwoosh.location.scheduler;
 
+import static com.pushwoosh.location.internal.LocationModule.jobLocationIdProvider;
+
 import android.annotation.SuppressLint;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.Build;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
@@ -39,68 +42,83 @@ import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.location.internal.utils.LocationConfig;
 import com.pushwoosh.location.network.GeoLocationServiceApi21;
 
-import static com.pushwoosh.location.internal.LocationModule.jobLocationIdProvider;
-
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class GeoLocationServiceSchedulerApi21 implements Scheduler {
 
-	@Override
-	public void scheduleNearestGeoZones(@Nullable final Context context, final long interval) {
-		scheduleJob(context, provideJobInfo(context)
-				.setMinimumLatency(interval)
-				.setExtras(GeoLocationServiceApi21.createGetNearestExtras(false))
-				.setPersisted(true)
-				.build());
-	}
+    @Override
+    public void scheduleNearestGeoZones(@Nullable final Context context, final long interval) {
+        if (context == null) {
+            return;
+        }
+        scheduleJob(
+                context,
+                provideJobInfo(context)
+                        .setMinimumLatency(interval)
+                        .setExtras(GeoLocationServiceApi21.createGetNearestExtras(false))
+                        .setPersisted(true)
+                        .build());
+    }
 
-	@Override
-	public void requestUpdateNearestGeoZones(@Nullable final Context context) {
-		scheduleJob(context, provideJobInfo(context)
-				.setExtras(GeoLocationServiceApi21.createGetNearestExtras(true))
-				.build());
-	}
+    @Override
+    public void requestUpdateNearestGeoZones(@Nullable final Context context) {
+        if (context == null) {
+            return;
+        }
+        scheduleJob(
+                context,
+                provideJobInfo(context)
+                        .setExtras(GeoLocationServiceApi21.createGetNearestExtras(true))
+                        .build());
+    }
 
-	@SuppressLint("WrongConstant")
-	private void scheduleJob(@Nullable Context context, JobInfo jobInfo) {
-		int schedule = -1;
-		if (context != null) {
-			JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-			if (jobScheduler != null) {
-				schedule = jobScheduler.schedule(jobInfo);
-			}
-		}
+    @SuppressLint("WrongConstant")
+    private void scheduleJob(@Nullable Context context, JobInfo jobInfo) {
+        int schedule = -1;
+        if (context != null) {
+            JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+            if (jobScheduler != null) {
+                schedule = jobScheduler.schedule(jobInfo);
+            }
+        }
 
-		if (schedule <= 0) {
-			PWLog.error(LocationConfig.TAG, "Can't run job scheduler");
-		}
-	}
+        if (schedule <= 0) {
+            PWLog.error(LocationConfig.TAG, "Can't run job scheduler");
+        }
+    }
 
-	private JobInfo.Builder provideJobInfo(final Context context) {
-		return new JobInfo.Builder(jobLocationIdProvider().getNearestServiceJobId(), new ComponentName(context, GeoLocationServiceApi21.class))
-				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
-	}
+    private JobInfo.Builder provideJobInfo(final Context context) {
+        return new JobInfo.Builder(
+                        jobLocationIdProvider().getNearestServiceJobId(),
+                        new ComponentName(context, GeoLocationServiceApi21.class))
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+    }
 
-	@Override
-	public void stop(@Nullable final Context context) {
-		if (context == null) {
-			return;
-		}
+    @Override
+    public void stop(@Nullable final Context context) {
+        if (context == null) {
+            return;
+        }
 
-		JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-		if (jobScheduler != null) {
-			jobScheduler.cancel(jobLocationIdProvider().getNearestServiceJobId());
-		}
-	}
+        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        if (jobScheduler != null) {
+            jobScheduler.cancel(jobLocationIdProvider().getNearestServiceJobId());
+        }
+    }
 
-	@Override
-	public void deviceRebooted(final Context context) {
-		//stub can't start service starting from android O
-	}
+    @Override
+    public void deviceRebooted(final Context context) {
+        // stub can't start service starting from android O
+    }
 
-	@Override
-	public void requestLocationDisabled(@Nullable Context context) {
-		scheduleJob(context, provideJobInfo(context)
-				.setExtras(GeoLocationServiceApi21.createDisableLocationExtras())
-				.build());
-	}
+    @Override
+    public void requestLocationDisabled(@Nullable Context context) {
+        if (context == null) {
+            return;
+        }
+        scheduleJob(
+                context,
+                provideJobInfo(context)
+                        .setExtras(GeoLocationServiceApi21.createDisableLocationExtras())
+                        .build());
+    }
 }

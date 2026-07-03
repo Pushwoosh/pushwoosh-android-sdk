@@ -30,6 +30,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.pushwoosh.badge.prefs.BadgePrefs;
 import com.pushwoosh.badge.thirdparty.shortcutbadger.ShortcutBadger;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 
@@ -38,71 +39,79 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
  * By default pushwoosh-badge library automatically adds following permissions:<br>
  * com.sec.android.provider.badge.permission.READ<br>
  * com.sec.android.provider.badge.permission.WRITE<br>
- <!--for htc-->
+ * <!--for htc-->
  * com.htc.launcher.permission.READ_SETTINGS<br>
  * com.htc.launcher.permission.UPDATE_SHORTCUT<br>
- <!--for sony-->
+ * <!--for sony-->
  * com.sonyericsson.home.permission.BROADCAST_BADGE<br>
  * com.sonymobile.home.permission.PROVIDER_INSERT_BADGE<br>
- <!--for apex-->
+ * <!--for apex-->
  * com.anddoes.launcher.permission.UPDATE_COUNT<br>
- <!--for solid-->
+ * <!--for solid-->
  * com.majeur.launcher.permission.UPDATE_BADGE<br>
- <!--for huawei-->
+ * <!--for huawei-->
  * com.huawei.android.launcher.permission.CHANGE_BADGE<br>
  * com.huawei.android.launcher.permission.READ_SETTINGS<br>
  * com.huawei.android.launcher.permission.WRITE_SETTINGS<br>
- <!--for ZUK-->
+ * <!--for ZUK-->
  * android.permission.READ_APP_BADGE<br>
- <!--for OPPO-->
+ * <!--for OPPO-->
  * com.oppo.launcher.permission.READ_SETTINGS<br>
  * com.oppo.launcher.permission.WRITE_SETTINGS<br>
- <!--for EvMe-->
+ * <!--for EvMe-->
  * me.everything.badger.permission.BADGE_COUNT_READ<br>
  * me.everything.badger.permission.BADGE_COUNT_WRITE<br>
  *
  */
 public class PushwooshBadge {
 
-	/**
-	 * Set application icon badge number and synchronize this value with pushwoosh backend.
-	 * 0 value can be used to clear badges
-	 *
-	 * @param newBadge icon badge number
-	 */
-	public static void setBadgeNumber(int newBadge) {
-		// must be executed on main thread
-		Handler mainHandler = new Handler(Looper.getMainLooper());
-		mainHandler.post(() -> {
-			Context context = AndroidPlatformModule.getApplicationContext();
-			if (context == null) {
-				return;
-			}
-			ShortcutBadger.applyCount(context, newBadge);
-			BadgeModule.getBadgePrefs().badgeCount().set(newBadge);
-		});
-	}
+    /**
+     * Set application icon badge number and synchronize this value with pushwoosh backend.
+     * 0 value can be used to clear badges
+     *
+     * @param newBadge icon badge number
+     */
+    public static void setBadgeNumber(int newBadge) {
+        // must be executed on main thread
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        mainHandler.post(() -> {
+            Context context = AndroidPlatformModule.getApplicationContext();
+            if (context == null) {
+                return;
+            }
+            ShortcutBadger.applyCount(context, newBadge);
+            BadgePrefs prefs = BadgeModule.getBadgePrefs();
+            if (prefs == null) {
+                return;
+            }
+            prefs.badgeCount().set(newBadge);
+        });
+    }
 
-	/**
-	 * @return current application icon badge number
-	 */
-	public static int getBadgeNumber() {
-		return BadgeModule.getBadgePrefs().badgeCount().get();
-	}
+    /**
+     * @return current application icon badge number
+     */
+    public static int getBadgeNumber() {
+        BadgePrefs prefs = BadgeModule.getBadgePrefs();
+        if (prefs == null) {
+            return 0;
+        }
+        return prefs.badgeCount().get();
+    }
 
-	/**
-	 * Increment current icon badge number
-	 *
-	 * @param deltaBadge application icon badge number addition
-	 */
-	public static void addBadgeNumber(int deltaBadge) {
-		int oldBadges = getBadgeNumber();
-		int newBadge = oldBadges + deltaBadge;
+    /**
+     * Increment current icon badge number
+     *
+     * @param deltaBadge application icon badge number addition
+     */
+    public static void addBadgeNumber(int deltaBadge) {
+        int oldBadges = getBadgeNumber();
+        int newBadge = oldBadges + deltaBadge;
 
-		if (newBadge < 0) {
-			newBadge = 0;
-		}
+        if (newBadge < 0) {
+            newBadge = 0;
+        }
 
-		setBadgeNumber(newBadge);
-	}
+        setBadgeNumber(newBadge);
+    }
 }

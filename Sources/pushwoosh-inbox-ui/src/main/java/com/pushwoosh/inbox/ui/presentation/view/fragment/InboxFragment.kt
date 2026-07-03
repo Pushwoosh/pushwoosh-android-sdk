@@ -313,6 +313,7 @@ open class InboxFragment : BaseFragment(), InboxView {
     }
 
     private fun onAttachmentClicked(url: String, view : View) {
+        val activity = activity ?: return
         var intent = Intent(activity, AttachmentActivity::class.java)
         intent.putExtra(AttachmentActivity.attachmentUrlExtra, url)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP){

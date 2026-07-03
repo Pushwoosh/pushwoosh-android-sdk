@@ -31,6 +31,7 @@ import android.text.TextUtils;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.richmedia.RichMediaController;
 
@@ -51,15 +52,24 @@ public final class ResourceAction {
             return;
         }
 
+        PushwooshPlatform pushwooshPlatform = PushwooshPlatform.getInstance();
+        if (pushwooshPlatform == null) {
+            PWLog.warn("ResourceAction", "Pushwoosh is not initialized, skipping Rich Media action");
+            return;
+        }
+
+        NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+        if (notificationPrefs == null) {
+            PWLog.warn("ResourceAction", "notification preferences unavailable, skipping Rich Media action");
+            return;
+        }
+
         ResourceWrapper resourceWrapper = new ResourceWrapper.Builder()
                 .setRichMedia(richMedia)
-                .setDelay(RepositoryModule.getNotificationPreferences()
-                        .richMediaDelayMs()
-                        .get())
+                .setDelay(notificationPrefs.richMediaDelayMs().get())
                 .build();
 
-        RichMediaController richMediaController =
-                PushwooshPlatform.getInstance().getRichMediaController();
+        RichMediaController richMediaController = pushwooshPlatform.getRichMediaController();
         if (richMediaController != null) richMediaController.showResourceWrapper(resourceWrapper);
     }
 

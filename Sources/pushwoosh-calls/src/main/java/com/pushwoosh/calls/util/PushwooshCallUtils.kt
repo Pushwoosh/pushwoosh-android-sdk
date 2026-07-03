@@ -137,8 +137,11 @@ object PushwooshCallUtils {
         }
     }
 
-    fun buildIncomingCallNotification(payload: Bundle?): Notification {
-        val context = AndroidPlatformModule.getApplicationContext() as Context
+    fun buildIncomingCallNotification(payload: Bundle?): Notification? {
+        val context = AndroidPlatformModule.getApplicationContext() ?: run {
+            PWLog.warn("PushwooshCallUtils", "buildIncomingCallNotification() - application context is null, cannot build notification")
+            return null
+        }
 
         PWLog.debug("PushwooshCallUtils", "buildIncomingCallNotification() - payload: $payload")
         val callerNameFromPayload = payload?.getString("callerName")
@@ -250,8 +253,11 @@ object PushwooshCallUtils {
         return notification
     }
 
-    fun buildOngoingCallNotification(payload: Bundle?): Notification {
-        val context = AndroidPlatformModule.getApplicationContext() as Context
+    fun buildOngoingCallNotification(payload: Bundle?): Notification? {
+        val context = AndroidPlatformModule.getApplicationContext() ?: run {
+            PWLog.warn("PushwooshCallUtils", "buildOngoingCallNotification() - application context is null, cannot build notification")
+            return null
+        }
         val voIPMessage = PushwooshVoIPMessage(payload)
 
         val endCallIntent = Intent(context, PushwooshCallReceiver::class.java).apply {

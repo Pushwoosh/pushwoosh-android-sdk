@@ -74,6 +74,13 @@ android {
     kotlin {
         jvmToolchain(17)
     }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
     publishing {
         singleVariant("release")
     }
@@ -97,6 +104,9 @@ dependencies {
     // Fix Kotlin stdlib conflict in androidTest: androidx.lifecycle brings old kotlinx-coroutines:1.6.4
     // which pulls kotlin-stdlib-jdk8:1.7.20, conflicting with kotlin-stdlib:1.8.22
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1"
+
+    testImplementation libs.junit
+    testImplementation 'org.robolectric:robolectric:4.14.1'
 }
 
 // Dokka documentation configuration

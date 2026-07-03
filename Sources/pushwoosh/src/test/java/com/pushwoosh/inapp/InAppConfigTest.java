@@ -396,4 +396,168 @@ public class InAppConfigTest {
                     result.getPresentAnimationType());
         }
     }
+
+    @Test
+    public void testParseModalConfig_AnimationDuration_Parsed() throws IOException {
+        when(mockConfigFile.exists()).thenReturn(true);
+
+        String jsonContent = "{\n" + "  \"style_settings\": {\n"
+                + "    \"animation_duration\": 500\n"
+                + "  }\n"
+                + "}";
+
+        try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
+            fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
+
+            ModalRichmediaConfig result = inAppConfig.parseModalConfig("test_code");
+
+            assertEquals(
+                    "animationDuration should be parsed in milliseconds",
+                    Integer.valueOf(500),
+                    result.getAnimationDuration());
+        }
+    }
+
+    @Test
+    public void testParseModalConfig_AnimationDuration_LegacyDurationKeyIgnored() throws IOException {
+        when(mockConfigFile.exists()).thenReturn(true);
+
+        String jsonContent = "{\n" + "  \"style_settings\": {\n"
+                + "    \"duration\": 1000\n"
+                + "  }\n"
+                + "}";
+
+        try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
+            fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
+
+            ModalRichmediaConfig result = inAppConfig.parseModalConfig("test_code");
+
+            assertNull(
+                    "legacy \"duration\" key must be ignored; only animation_duration is read",
+                    result.getAnimationDuration());
+        }
+    }
+
+    @Test
+    public void testParseModalConfig_AnimationDurationZero_RemainsNull() throws IOException {
+        when(mockConfigFile.exists()).thenReturn(true);
+
+        String jsonContent = "{\n" + "  \"style_settings\": {\n"
+                + "    \"animation_duration\": 0\n"
+                + "  }\n"
+                + "}";
+
+        try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
+            fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
+
+            ModalRichmediaConfig result = inAppConfig.parseModalConfig("test_code");
+
+            assertNull(
+                    "server-sent 0 should be treated as unset so the default animation plays (iOS parity)",
+                    result.getAnimationDuration());
+        }
+    }
+
+    @Test
+    public void testParseModalConfig_NoAnimationDuration_RemainsNull() throws IOException {
+        when(mockConfigFile.exists()).thenReturn(true);
+
+        String jsonContent = "{\n" + "  \"style_settings\": {\n"
+                + "    \"position\": \"center\"\n"
+                + "  }\n"
+                + "}";
+
+        try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
+            fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
+
+            ModalRichmediaConfig result = inAppConfig.parseModalConfig("test_code");
+
+            assertNull(
+                    "animationDuration should stay null when absent (resolver applies default)",
+                    result.getAnimationDuration());
+        }
+    }
+
+    @Test
+    public void testParseModalConfig_AnimationDuration_Negative_RemainsNull() throws IOException {
+        when(mockConfigFile.exists()).thenReturn(true);
+
+        String jsonContent = "{\n" + "  \"style_settings\": {\n"
+                + "    \"animation_duration\": -100\n"
+                + "  }\n"
+                + "}";
+
+        try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
+            fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
+
+            ModalRichmediaConfig result = inAppConfig.parseModalConfig("test_code");
+
+            assertNull(
+                    "negative animationDuration should be dropped (resolver applies default)",
+                    result.getAnimationDuration());
+        }
+    }
+
+    @Test
+    public void testParseModalConfig_AnimationDuration_NonNumericString_RemainsNull() throws IOException {
+        when(mockConfigFile.exists()).thenReturn(true);
+
+        String jsonContent = "{\n" + "  \"style_settings\": {\n"
+                + "    \"animation_duration\": \"abc\"\n"
+                + "  }\n"
+                + "}";
+
+        try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
+            fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
+
+            ModalRichmediaConfig result = inAppConfig.parseModalConfig("test_code");
+
+            assertNull(
+                    "non-numeric animationDuration should be swallowed and stay null",
+                    result.getAnimationDuration());
+        }
+    }
+
+    @Test
+    public void testParseModalConfig_AnimationDuration_BothKeys_PrefersAnimationDuration() throws IOException {
+        when(mockConfigFile.exists()).thenReturn(true);
+
+        String jsonContent = "{\n" + "  \"style_settings\": {\n"
+                + "    \"animation_duration\": 700,\n"
+                + "    \"duration\": 300\n"
+                + "  }\n"
+                + "}";
+
+        try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
+            fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
+
+            ModalRichmediaConfig result = inAppConfig.parseModalConfig("test_code");
+
+            assertEquals(
+                    "animation_duration should take precedence over duration",
+                    Integer.valueOf(700),
+                    result.getAnimationDuration());
+        }
+    }
+
+    @Test
+    public void testParseModalConfig_AnimationDuration_Fractional_Truncated() throws IOException {
+        when(mockConfigFile.exists()).thenReturn(true);
+
+        String jsonContent = "{\n" + "  \"style_settings\": {\n"
+                + "    \"animation_duration\": 500.5\n"
+                + "  }\n"
+                + "}";
+
+        try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
+            fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
+
+            ModalRichmediaConfig result = inAppConfig.parseModalConfig("test_code");
+
+            assertEquals(
+                    "fractional animationDuration is truncated to int milliseconds",
+                    Integer.valueOf(500),
+                    result.getAnimationDuration());
+        }
+    }
 }

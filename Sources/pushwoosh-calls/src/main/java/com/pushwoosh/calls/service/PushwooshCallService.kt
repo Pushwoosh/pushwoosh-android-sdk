@@ -17,16 +17,33 @@ class PushwooshCallService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         PWLog.noise(TAG, "onStartCommand() action=${intent?.action}")
-        val notification : Notification
         if (Constants.PW_POST_INCOMING_CALL_ACTION == intent?.action) {
             PWLog.debug(TAG, "Building INCOMING call notification")
-            notification = PushwooshCallUtils.buildIncomingCallNotification(intent.extras)
-            startForegroundNotification(notification, Constants.PW_NOTIFICATION_ID_INCOMING)
+            val incoming = PushwooshCallUtils.buildIncomingCallNotification(intent.extras)
+            if (incoming == null) {
+                // Started via startForegroundService(): the OS expects startForeground() within ~5s.
+                // We cannot build a placeholder notification without a context (the very thing that is
+                // null here), so stopSelf() to release the pending-foreground contract instead of
+                // letting it expire into ForegroundServiceDidNotStartInTimeException.
+                PWLog.warn(TAG, "INCOMING call notification could not be built, stopping service")
+                stopSelf()
+                return START_NOT_STICKY
+            }
+            startForegroundNotification(incoming, Constants.PW_NOTIFICATION_ID_INCOMING)
             PWLog.info(TAG, "INCOMING call notification shown (id=${Constants.PW_NOTIFICATION_ID_INCOMING})")
         } else if (Constants.PW_POST_ONGOING_CALL_ACTION == intent?.action) {
             PWLog.debug(TAG, "Building ONGOING call notification")
-            notification = PushwooshCallUtils.buildOngoingCallNotification(intent.extras)
-            startForegroundNotification(notification, Constants.PW_NOTIFICATION_ID_ONGOING)
+            val ongoing = PushwooshCallUtils.buildOngoingCallNotification(intent.extras)
+            if (ongoing == null) {
+                // Started via startForegroundService(): the OS expects startForeground() within ~5s.
+                // We cannot build a placeholder notification without a context (the very thing that is
+                // null here), so stopSelf() to release the pending-foreground contract instead of
+                // letting it expire into ForegroundServiceDidNotStartInTimeException.
+                PWLog.warn(TAG, "ONGOING call notification could not be built, stopping service")
+                stopSelf()
+                return START_NOT_STICKY
+            }
+            startForegroundNotification(ongoing, Constants.PW_NOTIFICATION_ID_ONGOING)
             PWLog.info(TAG, "ONGOING call notification shown (id=${Constants.PW_NOTIFICATION_ID_ONGOING})")
         } else {
             PWLog.warn(TAG, "Unknown action: ${intent?.action}, not showing notification")

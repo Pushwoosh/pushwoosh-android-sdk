@@ -62,6 +62,10 @@ class InboxAdapter(context: Context,
     }
 
     override fun onItemSwiped(position: Int) {
+        if (position < 0 || position >= collection.size) {
+            return
+        }
+
         onItemRemoved?.invoke(getItem(position))
 
         collection.removeAt(position)

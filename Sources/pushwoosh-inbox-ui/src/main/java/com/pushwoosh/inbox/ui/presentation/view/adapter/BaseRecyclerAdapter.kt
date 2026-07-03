@@ -97,7 +97,7 @@ abstract class BaseRecyclerAdapter<VH : BaseRecyclerAdapter.ViewHolder<Model>, M
         get() = mDataList
 
     open fun getItem(position: Int): Model? {
-        return mDataList[position]
+        return mDataList.getOrNull(position)
     }
 
     fun setItem(position: Int, item: Model) {

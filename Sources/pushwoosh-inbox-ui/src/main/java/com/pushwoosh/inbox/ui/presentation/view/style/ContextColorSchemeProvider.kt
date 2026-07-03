@@ -29,9 +29,11 @@ package com.pushwoosh.inbox.ui.presentation.view.style
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.TypedArray
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
@@ -147,7 +149,7 @@ class ContextColorSchemeProvider(private val context: Context) : ColorSchemeProv
         return if (mapResult == null || mapResult == 0) {
             val defaultColor = provideDefaultColor(attr)
             if (defaultColor == 0) {
-                throw throw getResourceException(attr)
+                FALLBACK_COLOR
             } else {
                 defaultColor
             }
@@ -238,9 +240,15 @@ class ContextColorSchemeProvider(private val context: Context) : ColorSchemeProv
             else -> null
         }
 
-        return defaultColor ?: throw getResourceException(attr)
+        // A host app may embed the inbox under a theme that defines neither the inbox* attrs nor
+        // their android/appcompat fallbacks. An unresolved attr must degrade to a neutral color
+        // rather than throw IllegalArgumentException out of the Fragment/Activity lifecycle and
+        // crash the host process.
+        return defaultColor ?: FALLBACK_COLOR
     }
 
-    private fun getResourceException(attr: Int): Exception =
-        IllegalArgumentException("Unknown attribute please set up ${context.resources.getResourceName(attr)} into your theme")
+    companion object {
+        @ColorInt
+        private const val FALLBACK_COLOR: Int = Color.GRAY
+    }
 }

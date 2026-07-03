@@ -34,6 +34,7 @@ public class InAppConfig {
         static final String KEY_PRESENT_ANIMATION = "present_animation";
         static final String KEY_DISMISS_ANIMATION = "dismiss_animation";
         static final String KEY_SWIPE_TO_DISMISS = "swipe_to_dismiss";
+        static final String KEY_ANIMATION_DURATION = "animation_duration";
     }
 
     private InAppFolderProvider inAppFolderProvider;
@@ -102,6 +103,20 @@ public class InAppConfig {
         }
     }
 
+    private void parseAnimationDuration(JSONObject json, ModalRichmediaConfig config) {
+        if (!json.has(Column.KEY_ANIMATION_DURATION)) {
+            return;
+        }
+        try {
+            int duration = json.getInt(Column.KEY_ANIMATION_DURATION);
+            if (duration > 0) {
+                config.setAnimationDuration(duration);
+            }
+        } catch (JSONException e) {
+            PWLog.warn(TAG, "Failed to parse " + Column.KEY_ANIMATION_DURATION + ": " + e.getMessage());
+        }
+    }
+
     @WorkerThread
     public Map<String, String> parseLocalizedStrings(String code) throws IOException, JSONException {
         File configFile = inAppFolderProvider.getConfigFile(code);
@@ -150,6 +165,7 @@ public class InAppConfig {
                 parsePresentAnimation(styleSettingsJson, config);
                 parseDismissAnimation(styleSettingsJson, config);
                 parseSwipeGestures(styleSettingsJson, config);
+                parseAnimationDuration(styleSettingsJson, config);
             }
 
             return config;

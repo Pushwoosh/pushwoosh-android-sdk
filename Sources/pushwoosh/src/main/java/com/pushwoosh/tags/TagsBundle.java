@@ -507,6 +507,10 @@ public class TagsBundle {
          * @return this Builder instance for method chaining
          */
         public Builder putDate(String key, Date value) {
+            if (value == null) {
+                PWLog.warn("Skipping date tag \"" + key + "\": value is null");
+                return this;
+            }
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             tags.put(key, dateFormat.format(value));
             return this;

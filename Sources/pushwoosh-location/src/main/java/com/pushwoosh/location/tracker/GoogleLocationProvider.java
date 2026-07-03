@@ -26,11 +26,17 @@
 
 package com.pushwoosh.location.tracker;
 
+import static com.google.android.gms.location.LocationServices.getFusedLocationProviderClient;
+import static com.pushwoosh.location.tracker.GoogleLocationTracker.SUB_TAG;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
@@ -53,275 +59,282 @@ import com.pushwoosh.location.internal.event.LocationPermissionEvent;
 import com.pushwoosh.location.internal.utils.LocationConfig;
 import com.pushwoosh.location.internal.utils.ResolutionActivity;
 
-import java.util.Collections;
 import java.util.concurrent.Executor;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import static com.google.android.gms.location.LocationServices.getFusedLocationProviderClient;
-import static com.pushwoosh.location.tracker.GoogleLocationTracker.SUB_TAG;
 
 /**
  * This class encapsulates all logic connected with googleApiClient for {@link GoogleLocationTracker}
  */
-class GoogleLocationProvider implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-	@Nullable
-	private final Context context;
-	private final GoogleApiChecker googleApiChecker;
-	private final LocationPermissionChecker locationPermissionChecker;
-	@Nullable
-	private GoogleLocationListener googleLocationListener;
-	@Nullable
-	private RequestLocationListener requestLocationListener;
+class GoogleLocationProvider
+        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+    @Nullable private final Context context;
 
-	@Nullable
-	private final GoogleApiClient googleApiClient;
-	private Location location;
+    private final GoogleApiChecker googleApiChecker;
+    private final LocationPermissionChecker locationPermissionChecker;
 
-	private LocationRequest locationRequest;
-	private boolean checkedState;
-	private ForegroundServiceHelper foregroundServiceHelper;
-	private final GoogleLocationCallback googleLocationCallback;
+    @Nullable private GoogleLocationListener googleLocationListener;
 
-	GoogleLocationProvider(@Nullable final Context context,
-						   final GoogleApiChecker googleApiChecker,
-						   final LocationPermissionChecker locationPermissionChecker,
-						   @Nullable ForegroundServiceHelper foregroundServiceHelper) {
-		this.context = context;
-		this.googleApiChecker = googleApiChecker;
-		if (context == null) {
-			PWLog.error("Incorrect state of application. Context is empty");
-			googleApiClient = null;
-		} else {
-			googleApiClient = new GoogleApiClient.Builder(context)
-					.addConnectionCallbacks(this)
-					.addOnConnectionFailedListener(this)
-					.addApi(LocationServices.API)
-					.build();
-		}
-		this.locationPermissionChecker = locationPermissionChecker;
-		this.foregroundServiceHelper = foregroundServiceHelper;
+    @Nullable private RequestLocationListener requestLocationListener;
 
-		googleApiChecker.setGoogleApiClient(googleApiClient);
+    @Nullable private final GoogleApiClient googleApiClient;
 
-		this.googleLocationCallback = new GoogleLocationCallback();
+    private Location location;
 
-		EventBus.subscribe(ResolutionActivity.ResolutionEvent.class, event -> notifyRequestLocationListener(event.isSuccess()));
-		EventBus.subscribe(LocationPermissionEvent.class, event -> {
-			checkedState = false;
-		});
-	}
+    private LocationRequest locationRequest;
+    private boolean checkedState;
+    private ForegroundServiceHelper foregroundServiceHelper;
+    private final GoogleLocationCallback googleLocationCallback;
 
-	void setGoogleLocationListener(@Nullable final GoogleLocationListener googleLocationListener) {
-		this.googleLocationListener = googleLocationListener;
+    GoogleLocationProvider(
+            @Nullable final Context context,
+            final GoogleApiChecker googleApiChecker,
+            final LocationPermissionChecker locationPermissionChecker,
+            @Nullable ForegroundServiceHelper foregroundServiceHelper) {
+        this.context = context;
+        this.googleApiChecker = googleApiChecker;
+        if (context == null) {
+            PWLog.error("Incorrect state of application. Context is empty");
+            googleApiClient = null;
+        } else {
+            googleApiClient = new GoogleApiClient.Builder(context)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
+        this.locationPermissionChecker = locationPermissionChecker;
+        this.foregroundServiceHelper = foregroundServiceHelper;
 
-		if (googleLocationListener == null) {
-			return;
-		}
+        googleApiChecker.setGoogleApiClient(googleApiClient);
 
-		if (isConnected()) {
-			this.googleLocationListener.onConnected();
+        this.googleLocationCallback = new GoogleLocationCallback();
 
-			if (location != null) {
-				googleLocationListener.locationUpdated(location);
-			}
-		}
+        EventBus.subscribe(
+                ResolutionActivity.ResolutionEvent.class, event -> notifyRequestLocationListener(event.isSuccess()));
+        EventBus.subscribe(LocationPermissionEvent.class, event -> {
+            checkedState = false;
+        });
+    }
 
-	}
+    void setGoogleLocationListener(@Nullable final GoogleLocationListener googleLocationListener) {
+        this.googleLocationListener = googleLocationListener;
 
-	void setRequestLocationListener(@Nullable final RequestLocationListener requestLocationListener) {
-		this.requestLocationListener = requestLocationListener;
-	}
+        if (googleLocationListener == null) {
+            return;
+        }
 
-	@SuppressLint("MissingPermission")
-	private void notifyRequestLocationListener(final boolean isSuccess) {
-		if (requestLocationListener == null || googleApiClient == null) {
-			return;
-		}
+        if (isConnected()) {
+            this.googleLocationListener.onConnected();
 
-		if (isSuccess) {
-			startForegroundService();
-			if (!locationPermissionChecker.check() || locationRequest == null || !isConnected()
-					|| context == null) {
-				requestLocationListener.failedRequestLocation();
-				return;
-			}
-			getFusedLocationProviderClient(context)
-					.requestLocationUpdates(locationRequest, googleLocationCallback, Looper.myLooper());
-			requestLocationListener.successRequestLocation();
-		} else {
-			requestLocationListener.failedRequestLocation();
-		}
-	}
+            if (location != null) {
+                googleLocationListener.locationUpdated(location);
+            }
+        }
+    }
 
-	private void startForegroundService() {
-		if (foregroundServiceHelper != null) {
-			foregroundServiceHelper.startService();
-		}
-	}
+    void setRequestLocationListener(@Nullable final RequestLocationListener requestLocationListener) {
+        this.requestLocationListener = requestLocationListener;
+    }
 
-	void connect() {
-		if (googleApiClient == null) {
-			return;
-		}
+    @SuppressLint("MissingPermission")
+    private void notifyRequestLocationListener(final boolean isSuccess) {
+        if (requestLocationListener == null || googleApiClient == null) {
+            return;
+        }
 
-		if (!googleApiClient.isConnected() && !googleApiClient.isConnecting()) {
-			googleApiClient.connect();
-		}
-	}
+        if (isSuccess) {
+            startForegroundService();
+            if (!locationPermissionChecker.check() || locationRequest == null || !isConnected() || context == null) {
+                requestLocationListener.failedRequestLocation();
+                return;
+            }
+            try {
+                getFusedLocationProviderClient(context)
+                        .requestLocationUpdates(locationRequest, googleLocationCallback, Looper.myLooper());
+            } catch (SecurityException e) {
+                // FINE-or-COARSE gate above passed, but a high-accuracy request needs FINE: with only
+                // COARSE granted (e.g. "Approximate" toggle) the Fused provider throws at runtime,
+                // uncaught by the async catch(ApiException). Degrade to the failed path, do not crash.
+                PWLog.error(LocationConfig.TAG, SUB_TAG + " requestLocationUpdates denied: " + e.getMessage());
+                requestLocationListener.failedRequestLocation();
+                return;
+            }
+            requestLocationListener.successRequestLocation();
+        } else {
+            requestLocationListener.failedRequestLocation();
+        }
+    }
 
-	@Override
-	public void onConnected(@Nullable final Bundle bundle) {
-		PWLog.noise(LocationConfig.TAG, SUB_TAG + " connected to google play service");
+    private void startForegroundService() {
+        if (foregroundServiceHelper != null) {
+            foregroundServiceHelper.startService();
+        }
+    }
 
-		//save last location
-		//noinspection MissingPermission
-		if (googleLocationListener != null) {
-			googleLocationListener.onConnected();
-		}
-	}
+    void connect() {
+        if (googleApiClient == null) {
+            return;
+        }
 
-	void getLastLocation(OnGetLastLocationCallback onGetLastLocationCallback) {
-		getLastLocation(null, onGetLastLocationCallback);
-	}
+        if (!googleApiClient.isConnected() && !googleApiClient.isConnecting()) {
+            googleApiClient.connect();
+        }
+    }
 
-	@SuppressLint("MissingPermission")
-	void getLastLocation(Executor executor, OnGetLastLocationCallback onGetLastLocationCallback) {
-		if (!locationPermissionChecker.check() || !googleApiChecker.check() || context == null) {
-			onGetLastLocationCallback.onGetLastLocation(null);
-			return;
-		}
+    @Override
+    public void onConnected(@Nullable final Bundle bundle) {
+        PWLog.noise(LocationConfig.TAG, SUB_TAG + " connected to google play service");
 
-		Task<Location> lastLocationTask =
-				LocationServices.getFusedLocationProviderClient(context).getLastLocation();
-		if (executor == null) {
-			lastLocationTask.addOnCompleteListener(onComplete -> {
-				if (onComplete.isSuccessful()) {
-					onGetLastLocationCallback.onGetLastLocation(onComplete.getResult());
-				}
-			});
-		} else {
-			lastLocationTask.addOnCompleteListener(executor, onComplete -> {
-				if (onComplete.isSuccessful()) {
-					onGetLastLocationCallback.onGetLastLocation(onComplete.getResult());
-				}
-			});
-		}
-	}
+        // save last location
+        //noinspection MissingPermission
+        if (googleLocationListener != null) {
+            googleLocationListener.onConnected();
+        }
+    }
 
-	@Override
-	public void onConnectionFailed(@NonNull ConnectionResult result) {
-		// Refer to the javadoc for ConnectionResult to see what error codes might be returned in
-		// onConnectionFailed.
-		checkedState = false;
-		PWLog.error(LocationConfig.TAG, SUB_TAG + " connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
-	}
+    void getLastLocation(OnGetLastLocationCallback onGetLastLocationCallback) {
+        getLastLocation(null, onGetLastLocationCallback);
+    }
 
-	@Override
-	public void onConnectionSuspended(int cause) {
-		// The connection to Google Play services was lost for some reason. We call connect() to
-		// attempt to re-establish the connection.
-		PWLog.info(LocationConfig.TAG, SUB_TAG + " connection suspended");
+    @SuppressLint("MissingPermission")
+    void getLastLocation(Executor executor, OnGetLastLocationCallback onGetLastLocationCallback) {
+        if (!locationPermissionChecker.check() || !googleApiChecker.check() || context == null) {
+            onGetLastLocationCallback.onGetLastLocation(null);
+            return;
+        }
 
-		if (googleApiClient == null) {
-			return;
-		}
+        Task<Location> lastLocationTask =
+                LocationServices.getFusedLocationProviderClient(context).getLastLocation();
+        if (executor == null) {
+            lastLocationTask.addOnCompleteListener(onComplete -> {
+                if (onComplete.isSuccessful()) {
+                    onGetLastLocationCallback.onGetLastLocation(onComplete.getResult());
+                }
+            });
+        } else {
+            lastLocationTask.addOnCompleteListener(executor, onComplete -> {
+                if (onComplete.isSuccessful()) {
+                    onGetLastLocationCallback.onGetLastLocation(onComplete.getResult());
+                }
+            });
+        }
+    }
 
-		googleApiClient.reconnect();
-	}
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult result) {
+        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
+        // onConnectionFailed.
+        checkedState = false;
+        PWLog.error(
+                LocationConfig.TAG,
+                SUB_TAG + " connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+    }
 
-	void updateLocationTracker(LocationRequest locationRequest) {
-		if (!googleApiChecker.check() || context == null) {
-			return;
-		}
-		getFusedLocationProviderClient(context)
-				.removeLocationUpdates(googleLocationCallback);
+    @Override
+    public void onConnectionSuspended(int cause) {
+        // The connection to Google Play services was lost for some reason. We call connect() to
+        // attempt to re-establish the connection.
+        PWLog.info(LocationConfig.TAG, SUB_TAG + " connection suspended");
 
-		LocationSettingsRequest locationSettingsRequest = new LocationSettingsRequest.Builder()
-				.addLocationRequest(locationRequest)
-				.build();
+        if (googleApiClient == null) {
+            return;
+        }
 
-		this.locationRequest = locationRequest;
+        googleApiClient.reconnect();
+    }
 
-		Task<LocationSettingsResponse> task = LocationServices.getSettingsClient(context).checkLocationSettings(locationSettingsRequest);
-		task.addOnCompleteListener(completedTask -> {
-			try {
-				LocationSettingsResponse response = task.getResult(ApiException.class);
-				notifyRequestLocationListener(true);
-			} catch (ApiException exception) {
-				PWLog.noise(LocationConfig.TAG, SUB_TAG + " Requesting location has status code " + exception.getStatusCode());
-				switch (exception.getStatusCode()) {
-					case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-						if (checkedState) {
-							return;
-						}
-						checkedState = true;
-						// Location settings are not satisfied. But could be fixed by showing the user
-						// a dialog.
-						if (LocationConfig.showLocationDialogs()) {
-							ResolutionActivity.resolutionSettingApi(context, locationSettingsRequest);
-						} else {
-							notifyRequestLocationListener(false);
-						}
-						break;
-					case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-						notifyRequestLocationListener(false);
-						break;
-				}
-			}
-		});
-	}
+    void updateLocationTracker(LocationRequest locationRequest) {
+        if (!googleApiChecker.check() || context == null) {
+            return;
+        }
+        getFusedLocationProviderClient(context).removeLocationUpdates(googleLocationCallback);
 
-	boolean isConnected() {
-		return googleApiClient != null && googleApiClient.isConnected();
-	}
+        LocationSettingsRequest locationSettingsRequest = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest)
+                .build();
 
-	void cancel() {
-		if (googleApiClient != null && googleApiClient.isConnected() && context != null) {
-			getFusedLocationProviderClient(context)
-					.removeLocationUpdates(googleLocationCallback);
-			googleApiClient.disconnect();
-		}
+        this.locationRequest = locationRequest;
 
-		checkedState = false;
-		location = null;
-	}
+        Task<LocationSettingsResponse> task =
+                LocationServices.getSettingsClient(context).checkLocationSettings(locationSettingsRequest);
+        task.addOnCompleteListener(completedTask -> {
+            try {
+                LocationSettingsResponse response = task.getResult(ApiException.class);
+                notifyRequestLocationListener(true);
+            } catch (ApiException exception) {
+                PWLog.noise(
+                        LocationConfig.TAG,
+                        SUB_TAG + " Requesting location has status code " + exception.getStatusCode());
+                switch (exception.getStatusCode()) {
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        if (checkedState) {
+                            return;
+                        }
+                        checkedState = true;
+                        // Location settings are not satisfied. But could be fixed by showing the user
+                        // a dialog.
+                        if (LocationConfig.showLocationDialogs()) {
+                            ResolutionActivity.resolutionSettingApi(context, locationSettingsRequest);
+                        } else {
+                            notifyRequestLocationListener(false);
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        notifyRequestLocationListener(false);
+                        break;
+                }
+            }
+        });
+    }
 
-	@SuppressLint("MissingPermission")
-	boolean isLocationAvailable() {
-		if (!isConnected() || locationPermissionChecker.check() || context == null) {
-			return false;
-		}
-		return LocationServices.FusedLocationApi.getLocationAvailability(googleApiClient).isLocationAvailable();
-	}
+    boolean isConnected() {
+        return googleApiClient != null && googleApiClient.isConnected();
+    }
 
-	interface GoogleLocationListener {
-		void onConnected();
+    void cancel() {
+        if (googleApiClient != null && googleApiClient.isConnected() && context != null) {
+            getFusedLocationProviderClient(context).removeLocationUpdates(googleLocationCallback);
+            googleApiClient.disconnect();
+        }
 
-		void locationUpdated(Location location);
-	}
+        checkedState = false;
+        location = null;
+    }
 
-	interface RequestLocationListener {
-		void successRequestLocation();
+    @SuppressLint("MissingPermission")
+    boolean isLocationAvailable() {
+        if (!isConnected() || locationPermissionChecker.check() || context == null) {
+            return false;
+        }
+        return LocationServices.FusedLocationApi.getLocationAvailability(googleApiClient)
+                .isLocationAvailable();
+    }
 
-		void failedRequestLocation();
-	}
+    interface GoogleLocationListener {
+        void onConnected();
 
-	class GoogleLocationCallback extends LocationCallback {
-		@Override
-		public void onLocationResult(LocationResult locationResult) {
-			super.onLocationResult(locationResult);
-			Location location = locationResult.getLastLocation();
-			GoogleLocationProvider.this.location = location;
-			if (googleLocationListener != null) {
-				googleLocationListener.locationUpdated(location);
-			}
-		}
+        void locationUpdated(Location location);
+    }
 
-		@Override
-		public void onLocationAvailability(LocationAvailability locationAvailability) {
-			super.onLocationAvailability(locationAvailability);
-		}
-	}
+    interface RequestLocationListener {
+        void successRequestLocation();
+
+        void failedRequestLocation();
+    }
+
+    class GoogleLocationCallback extends LocationCallback {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            super.onLocationResult(locationResult);
+            Location location = locationResult.getLastLocation();
+            GoogleLocationProvider.this.location = location;
+            if (googleLocationListener != null) {
+                googleLocationListener.locationUpdated(location);
+            }
+        }
+
+        @Override
+        public void onLocationAvailability(LocationAvailability locationAvailability) {
+            super.onLocationAvailability(locationAvailability);
+        }
+    }
 }

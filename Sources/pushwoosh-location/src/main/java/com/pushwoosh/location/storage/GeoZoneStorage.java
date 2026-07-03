@@ -38,21 +38,21 @@ import java.util.Collection;
  * Used for {@link com.pushwoosh.location.geofence.GeofenceTracker} cache
  */
 public class GeoZoneStorage {
-	private static final String TAG = "GeoZoneStorage";
-	public static final String KEY_NEAREST_GEO_ZONES = TAG + "KEY_NEAREST_GEO_ZONES";
+    private static final String TAG = "GeoZoneStorage";
+    public static final String KEY_NEAREST_GEO_ZONES = TAG + "KEY_NEAREST_GEO_ZONES";
 
-	private final PreferenceArrayListValue<GeoZone> geoZonesPrefs;
+    private final PreferenceArrayListValue<GeoZone> geoZonesPrefs;
 
-	public GeoZoneStorage(PrefsProvider prefsProvider) {
-		SharedPreferences sharedPreferences = prefsProvider.providePrefs(TAG);
-		geoZonesPrefs = new PreferenceArrayListValue<>(sharedPreferences, KEY_NEAREST_GEO_ZONES, 10, GeoZone.class);
-	}
+    public GeoZoneStorage(PrefsProvider prefsProvider) {
+        SharedPreferences sharedPreferences = prefsProvider == null ? null : prefsProvider.providePrefs(TAG);
+        geoZonesPrefs = new PreferenceArrayListValue<>(sharedPreferences, KEY_NEAREST_GEO_ZONES, 10, GeoZone.class);
+    }
 
-	public void saveGeoZones(Collection<GeoZone> geoZones) {
-		geoZonesPrefs.replaceAll(geoZones);
-	}
+    public void saveGeoZones(Collection<GeoZone> geoZones) {
+        geoZonesPrefs.replaceAll(geoZones);
+    }
 
-	public Collection<GeoZone> getGeoZones() {
-		return geoZonesPrefs.get();
-	}
+    public Collection<GeoZone> getGeoZones() {
+        return geoZonesPrefs.get();
+    }
 }

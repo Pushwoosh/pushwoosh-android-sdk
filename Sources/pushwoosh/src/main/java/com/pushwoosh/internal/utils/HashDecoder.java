@@ -14,9 +14,9 @@ public class HashDecoder {
 
     private static final Map<Character, Integer> alphabetRevert = new HashMap<>();
     private static final String[] alphabet = {
-            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
-            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
+        "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H",
+        "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
     };
 
     static {
@@ -27,14 +27,17 @@ public class HashDecoder {
 
     // Decodes the hash into message ID, message code, and campaign ID
     public static String[] parseMessageHash(String hash) {
+        if (hash == null) {
+            return new String[] {"0", "", "0"};
+        }
         String[] parts = hash.split(HASH_DELIMITER);
         if (parts.length > 3) {
             long campaignID = alphabetDecode(parts[1]);
             long messageID = alphabetDecode(parts[2]);
             String messageCode = decodeMessageCode(parts[3]);
-            return new String[]{String.valueOf(messageID), messageCode, String.valueOf(campaignID)};
+            return new String[] {String.valueOf(messageID), messageCode, String.valueOf(campaignID)};
         }
-        return new String[]{"0", "", "0"};
+        return new String[] {"0", "", "0"};
     }
 
     // Decodes the message code, handling parts split by '-'
@@ -62,7 +65,11 @@ public class HashDecoder {
 
         long value = 0;
         for (int i = 0; i < hash.length(); i++) {
-            value = value * HASHING_BASE + alphabetRevert.get(hash.charAt(i));
+            Integer digit = alphabetRevert.get(hash.charAt(i));
+            if (digit == null) {
+                return 0;
+            }
+            value = value * HASHING_BASE + digit;
         }
         return value;
     }
@@ -87,4 +94,3 @@ public class HashDecoder {
         return prefix.toString() + str;
     }
 }
-

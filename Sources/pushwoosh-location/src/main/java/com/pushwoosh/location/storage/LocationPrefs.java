@@ -40,29 +40,29 @@ import com.pushwoosh.internal.preference.PreferenceBooleanValue;
  */
 public class LocationPrefs {
 
-	private static final String PREFERENCE = "com.pushwoosh.location";
-	private static final String PROPERTY_GEOLOCATION_STARTED = "geolocation_started";
+    private static final String PREFERENCE = "com.pushwoosh.location";
+    private static final String PROPERTY_GEOLOCATION_STARTED = "geolocation_started";
 
-	private final PreferenceBooleanValue geolocationStarted;
+    private final PreferenceBooleanValue geolocationStarted;
 
-	public LocationPrefs(PrefsProvider prefsProvider) {
-		SharedPreferences preferences = prefsProvider.providePrefs(PREFERENCE);
-		geolocationStarted = new PreferenceBooleanValue(preferences, PROPERTY_GEOLOCATION_STARTED, false);
-	}
+    public LocationPrefs(PrefsProvider prefsProvider) {
+        SharedPreferences preferences = prefsProvider == null ? null : prefsProvider.providePrefs(PREFERENCE);
+        geolocationStarted = new PreferenceBooleanValue(preferences, PROPERTY_GEOLOCATION_STARTED, false);
+    }
 
-	public PreferenceBooleanValue geolocationStarted() {
-		return geolocationStarted;
-	}
+    public PreferenceBooleanValue geolocationStarted() {
+        return geolocationStarted;
+    }
 
-	/**
-	 * Create {@link com.pushwoosh.internal.platform.prefs.migration.MigrationScheme} associated with this class.
-	 * Don't forget add field here if it will be added to this class
-	 * @param prefsProvider - prefsProvider which will provide prefs for migrationScheme
-	 * @return MigrationScheme to correct migration from one prefs to another
-	 */
-	public static MigrationScheme provideMigrationScheme(PrefsProvider prefsProvider) {
-		MigrationScheme migrationScheme = new MigrationScheme(PREFERENCE);
-		migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.BOOLEAN, PROPERTY_GEOLOCATION_STARTED);
-		return migrationScheme;
-	}
+    /**
+     * Create {@link com.pushwoosh.internal.platform.prefs.migration.MigrationScheme} associated with this class.
+     * Don't forget add field here if it will be added to this class
+     * @param prefsProvider - prefsProvider which will provide prefs for migrationScheme
+     * @return MigrationScheme to correct migration from one prefs to another
+     */
+    public static MigrationScheme provideMigrationScheme(PrefsProvider prefsProvider) {
+        MigrationScheme migrationScheme = new MigrationScheme(PREFERENCE);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.BOOLEAN, PROPERTY_GEOLOCATION_STARTED);
+        return migrationScheme;
+    }
 }

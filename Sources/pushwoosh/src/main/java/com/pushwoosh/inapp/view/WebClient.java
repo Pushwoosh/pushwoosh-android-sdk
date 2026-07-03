@@ -238,6 +238,14 @@ public class WebClient extends WebViewClient implements JsCallback {
     private boolean handleUri(Context context, Uri uri) {
         PWLog.noise(TAG, String.format("handleUri(uri: %s)", uri));
 
+        // A schemeless URI (relative/empty/fragment href in server-controlled rich-media HTML) makes
+        // Uri.getScheme() null; the scheme checks below would NPE on the WebView's main-thread callback.
+        // Such a navigation is neither our scheme nor an openable external URL, so consume it as a no-op.
+        if (uri.getScheme() == null) {
+            PWLog.warn(TAG, "Ignoring navigation to schemeless uri: " + uri);
+            return true;
+        }
+
         // custom pushwoosh scheme
         if (uri.getScheme().equals("pushwoosh")) {
             if (uri.getHost() != null) {

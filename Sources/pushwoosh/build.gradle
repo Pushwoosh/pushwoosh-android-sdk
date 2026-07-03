@@ -96,6 +96,8 @@ dependencies {
     testImplementation project(':pushwoosh-calls')
     // For ManifestValidator tests that need a real LiveUpdateProgressStyleProvider on the classpath.
     testImplementation project(':pushwoosh-liveupdates')
+    // For the DeepLinkActionStrategy crash-repro test, which exercises a package-private inbox class.
+    testImplementation project(':pushwoosh-inbox')
 }
 
 // Dokka documentation configuration

@@ -71,177 +71,181 @@ public class PushwooshJSInterface {
     private String inAppCode;
 
     public static final String PUSHWOOSH_JS = ""
-                + "(function () {"
-                    + "if (window.pushwoosh) return;"
-                    + ""
-                    + "window._pwCallbackHelper = {"
-                    + "    __callbacks: {},"
-                    + "    __cbCounter: 0,"
-                    + ""
-                    + "    invokeCallback: function(cbID) {"
-                    + "        var args = Array.prototype.slice.call(arguments);"
-                    + "        args.shift();"
-                    + ""
-                    + "        var cb = this.__callbacks[cbID];"
-                    + "        this.__callbacks[cbID] = undefined;"
-                    + ""
-                    + "        return cb.apply(null, args);"
-                    + "    },"
-                    + ""
-                    + "    registerCallback: function(func) {"
-                    + "        var cbID = \"__cb\" + (+new Date) + this.__cbCounter;"
-                    + ""
-                    + "        this.__cbCounter++;"
-                    + "        this.__callbacks[cbID] = func;"
-                    + ""
-                    + "        return cbID;"
-                    + "    }"
-                    + "};"
-                    + ""
-                    + "window.pushwoosh = {"
-                    + "    _hwid: \"%s\","
-                    + "    _version: \"%s\","
-                    + "    _application: \"%s\","
-                    + "    _user_id: \"%s\","
-                    + "    _richmedia_code: \"%s\","
-                    + "    _device_type: \"%s\","
-                    + "    _message_hash: \"%s\","
-                    + "    _inapp_code: \"%s\","
-                    + ""
-                    + "    postEvent: function(event, attributes, successCallback, errorCallback) {"
-                    + "        if (!attributes) {"
-                    + "            attributes = {};"
-                    + "        }"
-                    + ""
-                    + "        if (!successCallback) {"
-                    + "            successCallback = function() {};"
-                    + "        }"
-                    + ""
-                    + "        if (!errorCallback) {"
-                    + "            errorCallback = function(error) {};"
-                    + "        }"
-                    + ""
-                    + "        var successCbId = _pwCallbackHelper.registerCallback(successCallback);"
-                    + "        var errorCbId = _pwCallbackHelper.registerCallback(errorCallback);"
-                    + "        pushwooshImpl.postEvent(event, JSON.stringify(attributes), successCbId, errorCbId);"
-                    + "    },"
-                    + ""
-                    + "    richMediaAction: function(inAppCode, richMediaCode, actionType, actionAttributes, successCallback, errorCallback) {"
-                    + "        if (!successCallback) {"
-                    + "            successCallback = function() {};"
-                    + "        }"
-                    + ""
-                    + "        if (!errorCallback) {"
-                    + "            errorCallback = function(error) {};"
-                    + "        }"
-                    + ""
-                    + "        var successCbId = _pwCallbackHelper.registerCallback(successCallback);"
-                    + "        var errorCbId = _pwCallbackHelper.registerCallback(errorCallback);"
-                    + "        pushwooshImpl.richMediaAction(inAppCode, richMediaCode, actionType, JSON.stringify(actionAttributes), successCbId, errorCbId);"
-                    + "    },"
-                    + ""
-                    + "    sendTags: function(tags) {"
-                    + "        pushwooshImpl.sendTags(JSON.stringify(tags));"
-                    + "    },"
-                    + ""
-                    + "    getTags: function(successCallback, errorCallback) {"
-                    + "        if (!errorCallback) {"
-                    + "            errorCallback = function(error) {};"
-                    + "        }"
-                    + ""
-                    + "        var successCbId = _pwCallbackHelper.registerCallback(function(tagsString) {"
-                    + "            console.log(\"tags: \" + tagsString);"
-                    + "            successCallback(JSON.parse(tagsString));"
-                    + "        });"
-                    + ""
-                    + "        var errorCbId = _pwCallbackHelper.registerCallback(errorCallback);"
-                    + ""
-                    + "        pushwooshImpl.getTags(successCbId, errorCbId);"
-                    + "    },"
-                    + ""
-                    + "    log: function(str) {"
-                    + "        pushwooshImpl.log(str);"
-                    + "    },"
-                    + ""
-                    + "    closeInApp: function() {"
-                    + "        pushwooshImpl.closeInApp();"
-                    + "    },"
-                    + ""
-                    + "    getHwid: function() {"
-                    + "        return this._hwid;"
-                    + "    },"
-                    + ""
-                    + "    getVersion: function() {"
-                    + "        return this._version;"
-                    + "    },"
-                    + ""
-                    + "    getApplication: function() {"
-                    + "        return this._application;"
-                    + "    },"
-                    + ""
-                    + "    getUserId: function() {"
-                    + "        return this._user_id;"
-                    + "    },"
-                    + ""
-                    + "    getRichmediaCode: function() {"
-                    + "        return this._richmedia_code;"
-                    + "    },"
-                    + ""
-                    + "    getDeviceType: function() {"
-                    + "        return this._device_type;"
-                    + "    },"
-                    + ""
-                    + "    getMessageHash: function() {"
-                    + "        return this._message_hash;"
-                    + "    },"
-                    + ""
-                    + "    getInAppCode: function() {"
-                    + "        return this._inapp_code;"
-                    + "    },"
-                    + ""
-                    + "    getCustomData: function() {"
-                    + "         var customData = pushwooshImpl.getCustomData();"
-                    + "         if (customData) {"
-                    + "             return JSON.parse(customData);"
-                    + "         } else {"
-                    + "             return null;"
-                    + "         }"
-                    + "    },"
-                    + ""
-                    + "    registerForPushNotifications: function() {"
-                    + "        pushwooshImpl.registerForPushNotifications();"
-                    + "    },"
-                    + ""
-                    + "    openAppSettings: function() {"
-                    + "        pushwooshImpl.openAppSettings();"
-                    + "    },"
-                    + "    getChannels: function(callback) {"
-                    + "        var clb = _pwCallbackHelper.registerCallback(function(channels) {"
-                    + "             callback(JSON.parse(channels));"
-                    + "        });"
-                    + ""
-                    + "        pushwooshImpl.getChannels(clb);"
-                    + "    },"
-                    + "    unregisterForPushNotifications: function(callback) {"
-                    + "        var clb = _pwCallbackHelper.registerCallback(callback);"
-                    + "        pushwooshImpl.unregisterForPushNotifications(clb);"
-                    + "    },"
-                    + "    isRegisteredForPushNotifications: function(callback) {"
-                    + "        var clb = _pwCallbackHelper.registerCallback(function(state) {"
-                    + "           if (state == 'true') {callback(true);} else if (state == 'false') {callback(false);}"
-                    + "        });"
-                    + ""
-                    + "        pushwooshImpl.isRegisteredForPushNotifications(clb);"
-                    + "    },"
-                    + ""
-                    + "    setEmail: function(email) {"
-                    + "        pushwooshImpl.setEmail(email);"
-                    + "    }"
-                    + "};"
-                    + "}());";
+            + "(function () {"
+            + "if (window.pushwoosh) return;"
+            + ""
+            + "window._pwCallbackHelper = {"
+            + "    __callbacks: {},"
+            + "    __cbCounter: 0,"
+            + ""
+            + "    invokeCallback: function(cbID) {"
+            + "        var args = Array.prototype.slice.call(arguments);"
+            + "        args.shift();"
+            + ""
+            + "        var cb = this.__callbacks[cbID];"
+            + "        this.__callbacks[cbID] = undefined;"
+            + ""
+            + "        return cb.apply(null, args);"
+            + "    },"
+            + ""
+            + "    registerCallback: function(func) {"
+            + "        var cbID = \"__cb\" + (+new Date) + this.__cbCounter;"
+            + ""
+            + "        this.__cbCounter++;"
+            + "        this.__callbacks[cbID] = func;"
+            + ""
+            + "        return cbID;"
+            + "    }"
+            + "};"
+            + ""
+            + "window.pushwoosh = {"
+            + "    _hwid: \"%s\","
+            + "    _version: \"%s\","
+            + "    _application: \"%s\","
+            + "    _user_id: \"%s\","
+            + "    _richmedia_code: \"%s\","
+            + "    _device_type: \"%s\","
+            + "    _message_hash: \"%s\","
+            + "    _inapp_code: \"%s\","
+            + ""
+            + "    postEvent: function(event, attributes, successCallback, errorCallback) {"
+            + "        if (!attributes) {"
+            + "            attributes = {};"
+            + "        }"
+            + ""
+            + "        if (!successCallback) {"
+            + "            successCallback = function() {};"
+            + "        }"
+            + ""
+            + "        if (!errorCallback) {"
+            + "            errorCallback = function(error) {};"
+            + "        }"
+            + ""
+            + "        var successCbId = _pwCallbackHelper.registerCallback(successCallback);"
+            + "        var errorCbId = _pwCallbackHelper.registerCallback(errorCallback);"
+            + "        pushwooshImpl.postEvent(event, JSON.stringify(attributes), successCbId, errorCbId);"
+            + "    },"
+            + ""
+            + "    richMediaAction: function(inAppCode, richMediaCode, actionType, actionAttributes, successCallback, errorCallback) {"
+            + "        if (!successCallback) {"
+            + "            successCallback = function() {};"
+            + "        }"
+            + ""
+            + "        if (!errorCallback) {"
+            + "            errorCallback = function(error) {};"
+            + "        }"
+            + ""
+            + "        var successCbId = _pwCallbackHelper.registerCallback(successCallback);"
+            + "        var errorCbId = _pwCallbackHelper.registerCallback(errorCallback);"
+            + "        pushwooshImpl.richMediaAction(inAppCode, richMediaCode, actionType, JSON.stringify(actionAttributes), successCbId, errorCbId);"
+            + "    },"
+            + ""
+            + "    sendTags: function(tags) {"
+            + "        pushwooshImpl.sendTags(JSON.stringify(tags));"
+            + "    },"
+            + ""
+            + "    getTags: function(successCallback, errorCallback) {"
+            + "        if (!errorCallback) {"
+            + "            errorCallback = function(error) {};"
+            + "        }"
+            + ""
+            + "        var successCbId = _pwCallbackHelper.registerCallback(function(tagsString) {"
+            + "            console.log(\"tags: \" + tagsString);"
+            + "            successCallback(JSON.parse(tagsString));"
+            + "        });"
+            + ""
+            + "        var errorCbId = _pwCallbackHelper.registerCallback(errorCallback);"
+            + ""
+            + "        pushwooshImpl.getTags(successCbId, errorCbId);"
+            + "    },"
+            + ""
+            + "    log: function(str) {"
+            + "        pushwooshImpl.log(str);"
+            + "    },"
+            + ""
+            + "    closeInApp: function() {"
+            + "        pushwooshImpl.closeInApp();"
+            + "    },"
+            + ""
+            + "    getHwid: function() {"
+            + "        return this._hwid;"
+            + "    },"
+            + ""
+            + "    getVersion: function() {"
+            + "        return this._version;"
+            + "    },"
+            + ""
+            + "    getApplication: function() {"
+            + "        return this._application;"
+            + "    },"
+            + ""
+            + "    getUserId: function() {"
+            + "        return this._user_id;"
+            + "    },"
+            + ""
+            + "    getRichmediaCode: function() {"
+            + "        return this._richmedia_code;"
+            + "    },"
+            + ""
+            + "    getDeviceType: function() {"
+            + "        return this._device_type;"
+            + "    },"
+            + ""
+            + "    getMessageHash: function() {"
+            + "        return this._message_hash;"
+            + "    },"
+            + ""
+            + "    getInAppCode: function() {"
+            + "        return this._inapp_code;"
+            + "    },"
+            + ""
+            + "    getCustomData: function() {"
+            + "         var customData = pushwooshImpl.getCustomData();"
+            + "         if (customData) {"
+            + "             return JSON.parse(customData);"
+            + "         } else {"
+            + "             return null;"
+            + "         }"
+            + "    },"
+            + ""
+            + "    registerForPushNotifications: function() {"
+            + "        pushwooshImpl.registerForPushNotifications();"
+            + "    },"
+            + ""
+            + "    openAppSettings: function() {"
+            + "        pushwooshImpl.openAppSettings();"
+            + "    },"
+            + "    getChannels: function(callback) {"
+            + "        var clb = _pwCallbackHelper.registerCallback(function(channels) {"
+            + "             callback(JSON.parse(channels));"
+            + "        });"
+            + ""
+            + "        pushwooshImpl.getChannels(clb);"
+            + "    },"
+            + "    unregisterForPushNotifications: function(callback) {"
+            + "        var clb = _pwCallbackHelper.registerCallback(callback);"
+            + "        pushwooshImpl.unregisterForPushNotifications(clb);"
+            + "    },"
+            + "    isRegisteredForPushNotifications: function(callback) {"
+            + "        var clb = _pwCallbackHelper.registerCallback(function(state) {"
+            + "           if (state == 'true') {callback(true);} else if (state == 'false') {callback(false);}"
+            + "        });"
+            + ""
+            + "        pushwooshImpl.isRegisteredForPushNotifications(clb);"
+            + "    },"
+            + ""
+            + "    setEmail: function(email) {"
+            + "        pushwooshImpl.setEmail(email);"
+            + "    }"
+            + "};"
+            + "}());";
 
-
-    public PushwooshJSInterface(JsCallback jsCallback, WebView webView, @Nullable View mainContainer, @Nullable String customData, @Nullable String messageHash) {
+    public PushwooshJSInterface(
+            JsCallback jsCallback,
+            WebView webView,
+            @Nullable View mainContainer,
+            @Nullable String customData,
+            @Nullable String messageHash) {
         this.jsCallback = jsCallback;
         this.webView = new WeakReference<>(webView);
         this.mainContainer = mainContainer;
@@ -250,7 +254,8 @@ public class PushwooshJSInterface {
     }
 
     public void onPageStarted(WebView webView, Resource resource) {
-        String url = String.format("javascript:" + PUSHWOOSH_JS,
+        String url = String.format(
+                "javascript:" + PUSHWOOSH_JS,
                 Pushwoosh.getInstance().getHwid(),
                 GeneralUtils.SDK_VERSION,
                 Pushwoosh.getInstance().getApplicationCode(),
@@ -258,8 +263,7 @@ public class PushwooshJSInterface {
                 !resource.isInApp() ? resource.getCode().substring(2) : "",
                 DeviceSpecificProvider.getInstance().deviceType(),
                 this.messageHash != null ? this.messageHash : "",
-                resource.isInApp() ? resource.getCode() : ""
-        );
+                resource.isInApp() ? resource.getCode() : "");
         richMediaCode = !resource.isInApp() ? resource.getCode().substring(2) : "";
         inAppCode = resource.isInApp() ? resource.getCode() : "";
 
@@ -268,7 +272,8 @@ public class PushwooshJSInterface {
 
     // webView.loadUrl onPageStarted may fail on first start
     public void onPageFinished(WebView webView, Resource resource) {
-        String url = String.format("javascript:" + PUSHWOOSH_JS,
+        String url = String.format(
+                "javascript:" + PUSHWOOSH_JS,
                 Pushwoosh.getInstance().getHwid(),
                 GeneralUtils.SDK_VERSION,
                 Pushwoosh.getInstance().getApplicationCode(),
@@ -276,8 +281,7 @@ public class PushwooshJSInterface {
                 !resource.isInApp() ? resource.getCode().substring(2) : "",
                 DeviceSpecificProvider.getInstance().deviceType(),
                 this.messageHash != null ? this.messageHash : "",
-                resource.isInApp() ? resource.getCode() : ""
-        );
+                resource.isInApp() ? resource.getCode() : "");
         webView.loadUrl(url);
     }
 
@@ -301,15 +305,25 @@ public class PushwooshJSInterface {
     }
 
     @JavascriptInterface
-    public void richMediaAction(String inappCode, String richmediaCode, int actionType, String actionAttributes, String successCb, String errorCb) {
+    public void richMediaAction(
+            String inappCode,
+            String richmediaCode,
+            int actionType,
+            String actionAttributes,
+            String successCb,
+            String errorCb) {
         try {
-            PushwooshPlatform.getInstance().pushwooshInApp().sendRichMediaAction(richmediaCode, inappCode, messageHash, actionAttributes, actionType, result -> {
-                if (result.isSuccess()) {
-                    invokeCallback(successCb);
-                } else {
-                    invokeCallback(errorCb, result.getException().getLocalizedMessage());
-                }
-            });
+            PushwooshPlatform.getInstance()
+                    .pushwooshInApp()
+                    .sendRichMediaAction(
+                            richmediaCode, inappCode, messageHash, actionAttributes, actionType, result -> {
+                                if (result.isSuccess()) {
+                                    invokeCallback(successCb);
+                                } else {
+                                    invokeCallback(
+                                            errorCb, result.getException().getLocalizedMessage());
+                                }
+                            });
         } catch (Exception e) {
             PWLog.error(TAG, "failed to send /richMediaAction request", e);
             invokeCallback(errorCb, e.getLocalizedMessage());
@@ -339,9 +353,8 @@ public class PushwooshJSInterface {
     public void sendTags(String tags) {
         try {
             JSONObject tagsJSObject = new JSONObject(tags);
-            TagsBundle tagsBundle = new TagsBundle.Builder()
-                    .putAll(tagsJSObject)
-                    .build();
+            TagsBundle tagsBundle =
+                    new TagsBundle.Builder().putAll(tagsJSObject).build();
             Pushwoosh.getInstance().setTags(tagsBundle);
         } catch (JSONException e) {
             PWLog.error("Invalid tags format, expected object with string properties", e);
@@ -363,7 +376,7 @@ public class PushwooshJSInterface {
 
     @JavascriptInterface
     public void closeInApp() {
-        richMediaAction(inAppCode,richMediaCode, 4,null,null,null);
+        richMediaAction(inAppCode, richMediaCode, 4, null, null, null);
         jsCallback.close();
     }
 
@@ -388,16 +401,18 @@ public class PushwooshJSInterface {
 
     @JavascriptInterface
     public void openAppSettings() {
-        if (AndroidPlatformModule.getInstance() == null)
-            return;
-
-        //from https://stackoverflow.com/questions/32366649/any-way-to-link-to-the-android-notification-settings-for-my-app
+        // from
+        // https://stackoverflow.com/questions/32366649/any-way-to-link-to-the-android-notification-settings-for-my-app
 
         Context context = AndroidPlatformModule.getApplicationContext();
+        if (context == null) {
+            PWLog.warn(TAG, "openAppSettings skipped: application context is null");
+            return;
+        }
         Intent intent = new Intent();
         intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
 
-        //for Android 5-7
+        // for Android 5-7
         intent.putExtra("app_package", context.getPackageName());
         intent.putExtra("app_uid", context.getApplicationInfo().uid);
         intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
@@ -427,7 +442,10 @@ public class PushwooshJSInterface {
     public void isRegisteredForPushNotifications(String callback) {
         boolean registered = false;
         try {
-            registered = PushwooshPlatform.getInstance().getRegistrationPrefs().isRegisteredForPush().get();
+            registered = PushwooshPlatform.getInstance()
+                    .getRegistrationPrefs()
+                    .isRegisteredForPush()
+                    .get();
         } catch (Exception e) {
             PWLog.warn(TAG, "isRegisteredForPushNotifications JS bridge failed", e);
         }

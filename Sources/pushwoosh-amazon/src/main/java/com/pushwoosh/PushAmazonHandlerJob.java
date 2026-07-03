@@ -23,26 +23,36 @@ public class PushAmazonHandlerJob extends ADMMessageHandlerJobBase {
     protected void onRegistrationError(Context context, String errorId) {
         PWLog.error(TAG, "Messaging registration error: " + errorId);
 
-        NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(errorId);
+        try {
+            NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(errorId);
+        } catch (Exception e) {
+            PWLog.error(TAG, "Failed to handle registration error", e);
+        }
     }
 
     @Override
     protected void onRegistered(Context context, String registrationId) {
         PWLog.info(TAG, "Device registered: regId = " + registrationId);
 
-        String tagsJson = null;
-        if (TagsRegistrarHelper.tagsBundle != null) {
-            tagsJson = TagsRegistrarHelper.tagsBundle.toJson().toString();
-        }
+        try {
+            TagsBundle tags = TagsRegistrarHelper.tagsBundle;
+            String tagsJson = tags != null ? tags.toJson().toString() : null;
 
-        NotificationRegistrarHelper.onRegisteredForRemoteNotifications(registrationId, tagsJson);
-        TagsRegistrarHelper.tagsBundle = null;
+            NotificationRegistrarHelper.onRegisteredForRemoteNotifications(registrationId, tagsJson);
+            TagsRegistrarHelper.tagsBundle = null;
+        } catch (Exception e) {
+            PWLog.error(TAG, "Failed to handle registration", e);
+        }
     }
 
     @Override
     protected void onUnregistered(Context context, String registrationId) {
         PWLog.info(TAG, "Device unregistered");
 
-        NotificationRegistrarHelper.onUnregisteredFromRemoteNotifications(registrationId);
+        try {
+            NotificationRegistrarHelper.onUnregisteredFromRemoteNotifications(registrationId);
+        } catch (Exception e) {
+            PWLog.error(TAG, "Failed to handle unregistration", e);
+        }
     }
 }

@@ -6,6 +6,10 @@ import java.util.Map;
 
 public class RemoteMessageUtils {
     public static boolean isPushwooshMessage(RemoteMessage remoteMessage) {
+        if (remoteMessage == null) {
+            return false;
+        }
+
         Map<String, String> data = remoteMessage.getData();
 
         //noinspection RedundantIfStatement
