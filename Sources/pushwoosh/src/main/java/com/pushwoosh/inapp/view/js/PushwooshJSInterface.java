@@ -343,7 +343,7 @@ public class PushwooshJSInterface {
     }
 
     private void invokeCallback(String method, String args) {
-        String encodedArg = args.replace("\"", "\\\"");
+        String encodedArg = args == null ? "" : args.replace("\"", "\\\"");
         String url = String.format("javascript:_pwCallbackHelper.invokeCallback(\"%s\", \"%s\");", method, encodedArg);
 
         mainHandler.post(() -> loadUrl(url));

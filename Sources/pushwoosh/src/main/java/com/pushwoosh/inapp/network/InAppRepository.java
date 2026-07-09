@@ -26,8 +26,6 @@
 
 package com.pushwoosh.inapp.network;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -61,6 +59,7 @@ import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.preference.PreferenceStringValue;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
@@ -92,7 +91,6 @@ public class InAppRepository {
     private final RegistrationPrefs registrationPrefs;
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
-    private final Handler main = new Handler(Looper.getMainLooper());
 
     public InAppRepository(
             @Nullable RequestManager requestManager,
@@ -646,7 +644,7 @@ public class InAppRepository {
                                 .set(data.getMessageHash());
                     }
                     // presenting rich media is UI operation, should be done in main thread
-                    main.post(() -> {
+                    BackgroundExecutor.main(() -> {
                         callback.process(Result.fromData(postEventResource));
                     });
                 });

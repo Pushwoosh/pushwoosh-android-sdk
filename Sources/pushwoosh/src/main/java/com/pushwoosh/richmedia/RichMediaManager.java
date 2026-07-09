@@ -74,6 +74,10 @@ public class RichMediaManager {
 
     public static void setDefaultRichMediaConfig(ModalRichmediaConfig config) {
         NotificationPrefs prefs = RepositoryModule.getNotificationPreferences();
+        if (prefs == null) {
+            PWLog.warn("RichMediaManager", "NotificationPrefs is null, cannot set default ModalRichmediaConfig");
+            return;
+        }
 
         ModalRichMediaDismissAnimationType dismissType = config.getDismissAnimationType();
         prefs.richMediaDismissAnimation()

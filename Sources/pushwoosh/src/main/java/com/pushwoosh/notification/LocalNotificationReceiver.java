@@ -179,6 +179,10 @@ public class LocalNotificationReceiver extends BroadcastReceiver {
             return;
         }
         LocalNotificationStorage storage = RepositoryModule.getLocalNotificationStorage();
+        if (storage == null) {
+            PWLog.error(TAG, "Local notification storage is not initialized, skipping cancel");
+            return;
+        }
         storage.removeLocalNotification(requestId);
 
         Intent intent = new Intent(context, LocalNotificationReceiver.class);

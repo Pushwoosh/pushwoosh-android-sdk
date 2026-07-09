@@ -64,6 +64,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
     publishing {
         singleVariant("release")
     }
@@ -73,6 +76,10 @@ dependencies {
     api project(':pushwoosh')
 
     implementation "androidx.annotation:annotation:${support}"
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation "org.mockito:mockito-core:${mockito}"
+    testImplementation 'org.robolectric:robolectric:4.14.1'
 }
 
 // Dokka documentation configuration

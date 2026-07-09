@@ -28,6 +28,9 @@ package com.pushwoosh.location.geofence;
 
 import android.location.Location;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.google.android.gms.location.Geofence;
 import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Callback;
@@ -46,247 +49,260 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 final class GeofenceTrackerImp implements GeofenceTracker {
-	private static final String SUB_TAG = "[GeofenceTracker]";
-	static final int MIN_RADIUS = 100;
+    private static final String SUB_TAG = "[GeofenceTracker]";
+    static final int MIN_RADIUS = 100;
 
-	private final Collection<GeoZone> geoZones;
-	@Nullable
-	private final Geofencer geofencer;
-	private final GeoZoneStorage geoZoneStorage;
-	@Nullable
-	private final LocationTracker locationTracker;
-	private final FineLocationPermissionChecker fineLocationPermissionChecker;
+    private final Collection<GeoZone> geoZones;
 
-	private GeoZonesUpdater geoZonesUpdater;
-	List<GeoZone> pushGeoZones = new ArrayList<>();
+    @Nullable private final Geofencer geofencer;
 
-	@Nullable
-	private GeoZone mRadiusZone;
-	private boolean needUpdate = true;
-	private boolean geoZonesUpdated;
+    private final GeoZoneStorage geoZoneStorage;
 
-	GeofenceTrackerImp(@Nullable Geofencer geofencer,
-					   GeoZonesUpdater geoZonesUpdater,
-					   GeoZoneStorage geoZoneStorage,
-					   @Nullable LocationTracker locationTracker,
-					   FineLocationPermissionChecker fineLocationPermissionChecker) {
-		this.geofencer = geofencer;
-		this.geoZonesUpdater = geoZonesUpdater;
-		this.geoZoneStorage = geoZoneStorage;
-		this.locationTracker = locationTracker;
-		this.fineLocationPermissionChecker = fineLocationPermissionChecker;
+    @Nullable private final LocationTracker locationTracker;
 
-		geoZones = new HashSet<>(geoZoneStorage.getGeoZones());
-		EventBus.subscribe(GoogleGeofencer.GoogleGeofencerConnectedEvent.class, (event) -> {
-			geofencer.addZones(new ArrayList<>(this.geoZones));
-		});
-	}
+    private final FineLocationPermissionChecker fineLocationPermissionChecker;
 
-	@Override
-	public void updateZones(@NonNull final List<GeoZone> zones, final Location location) {
-		PWLog.noise(LocationConfig.TAG, SUB_TAG + "updateZones currentZones: " + geoZones + "; newZones: " + zones + "; pushGeoZones: " + pushGeoZones);
-		geoZonesUpdated = true;
-		needUpdate = true;
+    private GeoZonesUpdater geoZonesUpdater;
+    // pushGeoZones is read by the main-looper location-update iteration (locationUpdated) while a
+    // scheduled geozone-refresh job structurally removes from it on THREAD_POOL_EXECUTOR
+    // (updateZones -> updatePushGeoZones). A plain ArrayList makes that a fail-fast race -> uncaught
+    // CME on main. CopyOnWriteArrayList iterates a snapshot, so a concurrent remove never trips the
+    // iteration. Copy-on-write is cheap here because the list holds a handful of zones and is mutated
+    // rarely (on geofence transitions/refreshes, not in a hot loop); it is applicable because nothing
+    // removes via Iterator.remove() (which COW does not support) — all removals go through the list.
+    final List<GeoZone> pushGeoZones = new CopyOnWriteArrayList<>();
 
-		GeoZone newRadiusGeoZone = GeoZone.createRadiusZone(zones, location, MIN_RADIUS);
+    @Nullable private GeoZone mRadiusZone;
 
-		removeExpiredZones(zones, newRadiusGeoZone);
-		addNewZones(zones, newRadiusGeoZone);
+    private boolean needUpdate = true;
+    private boolean geoZonesUpdated;
 
-		geoZoneStorage.saveGeoZones(geoZones);
+    GeofenceTrackerImp(
+            @Nullable Geofencer geofencer,
+            GeoZonesUpdater geoZonesUpdater,
+            GeoZoneStorage geoZoneStorage,
+            @Nullable LocationTracker locationTracker,
+            FineLocationPermissionChecker fineLocationPermissionChecker) {
+        this.geofencer = geofencer;
+        this.geoZonesUpdater = geoZonesUpdater;
+        this.geoZoneStorage = geoZoneStorage;
+        this.locationTracker = locationTracker;
+        this.fineLocationPermissionChecker = fineLocationPermissionChecker;
 
-		updatePushGeoZones(location);
-	}
+        geoZones = new HashSet<>(geoZoneStorage.getGeoZones());
+        EventBus.subscribe(GoogleGeofencer.GoogleGeofencerConnectedEvent.class, (event) -> {
+            geofencer.addZones(new ArrayList<>(this.geoZones));
+        });
+    }
 
-	private void removeExpiredZones(final List<GeoZone> newZones, final GeoZone newRadiusGeoZone) {
-		List<GeoZone> expiredZones = new ArrayList<>(this.geoZones);
+    @Override
+    public void updateZones(@NonNull final List<GeoZone> zones, final Location location) {
+        PWLog.noise(
+                LocationConfig.TAG,
+                SUB_TAG + "updateZones currentZones: " + geoZones + "; newZones: " + zones + "; pushGeoZones: "
+                        + pushGeoZones);
+        geoZonesUpdated = true;
+        needUpdate = true;
 
-		expiredZones.removeAll(newZones);
-		this.geoZones.removeAll(expiredZones);
+        GeoZone newRadiusGeoZone = GeoZone.createRadiusZone(zones, location, MIN_RADIUS);
 
-		if (mRadiusZone != null && !mRadiusZone.equals(newRadiusGeoZone)) {
-			expiredZones.add(mRadiusZone);
-		}
+        removeExpiredZones(zones, newRadiusGeoZone);
+        addNewZones(zones, newRadiusGeoZone);
 
-		if (geofencer == null) {
-			return;
-		}
-		geofencer.removeZones(expiredZones);
-	}
+        geoZoneStorage.saveGeoZones(geoZones);
 
-	private void addNewZones(final List<GeoZone> newZones, final GeoZone newRadiusGeoZone) {
-		final List<GeoZone> newGeoZones = new ArrayList<>(newZones);
-		newGeoZones.removeAll(this.geoZones);
+        updatePushGeoZones(location);
+    }
 
-		this.geoZones.addAll(newGeoZones);
+    private void removeExpiredZones(final List<GeoZone> newZones, final GeoZone newRadiusGeoZone) {
+        List<GeoZone> expiredZones = new ArrayList<>(this.geoZones);
 
-		mRadiusZone = newRadiusGeoZone;
+        expiredZones.removeAll(newZones);
+        this.geoZones.removeAll(expiredZones);
 
-		if (mRadiusZone != null) {
-			newGeoZones.add(mRadiusZone);
-		}
+        if (mRadiusZone != null && !mRadiusZone.equals(newRadiusGeoZone)) {
+            expiredZones.add(mRadiusZone);
+        }
 
-		if (geofencer == null) {
-			return;
-		}
-		geofencer.addZones(newGeoZones);
-	}
+        if (geofencer == null) {
+            return;
+        }
+        geofencer.removeZones(expiredZones);
+    }
 
-	private void updatePushGeoZones(final Location location) {
-		if (pushGeoZones.isEmpty()) {
-			return;
-		}
+    private void addNewZones(final List<GeoZone> newZones, final GeoZone newRadiusGeoZone) {
+        final List<GeoZone> newGeoZones = new ArrayList<>(newZones);
+        newGeoZones.removeAll(this.geoZones);
 
-		for (GeoZone geoZone : geoZones) {
-			if (pushGeoZones.contains(geoZone) && geoZone.distanceTo(location) < geoZone.getRange()) {
-				//User came to this geo zones. Service sent geo push if it was needed
-				pushGeoZones.remove(geoZone);
-			}
-		}
+        this.geoZones.addAll(newGeoZones);
 
-		//if user enter to all geoZones then start update location less intensive
-		requestLocationIfNeeded();
-	}
+        mRadiusZone = newRadiusGeoZone;
 
-	private void requestLocationIfNeeded() {
-		if (pushGeoZones.isEmpty() && locationTracker != null) {
-			locationTracker.requestLocationUpdates(false);
-		}
-	}
+        if (mRadiusZone != null) {
+            newGeoZones.add(mRadiusZone);
+        }
 
-	@Override
-	public void onGeofenceStateChanged(List<String> zoneIds, int geofenceTransition) {
-		List<GeoZone> pushZones = new ArrayList<>();
-		boolean requestUpdates = false;
+        if (geofencer == null) {
+            return;
+        }
+        geofencer.addZones(newGeoZones);
+    }
 
-		for (String zoneId : zoneIds) {
-			GeoZone geoZoneById = getGeoZoneById(zoneId);
-			if (geoZoneById != null) {
-				pushZones.add(geoZoneById);
-			}
+    private void updatePushGeoZones(final Location location) {
+        if (pushGeoZones.isEmpty()) {
+            return;
+        }
 
-			if (mRadiusZone != null && mRadiusZone.getName().equals(zoneId)) {
-				if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-					requestUpdates = true;
-				}
-			}
-		}
+        for (GeoZone geoZone : geoZones) {
+            if (pushGeoZones.contains(geoZone) && geoZone.distanceTo(location) < geoZone.getRange()) {
+                // User came to this geo zones. Service sent geo push if it was needed
+                pushGeoZones.remove(geoZone);
+            }
+        }
 
-		switch (geofenceTransition) {
-			case Geofence.GEOFENCE_TRANSITION_ENTER:
-				enterToGeofence(pushZones, callback -> checkNeedUpdate(callback.getData()));
-				return;
-			case Geofence.GEOFENCE_TRANSITION_EXIT:
-				if (pushGeoZones.isEmpty()) {
-					break;
-				}
+        // if user enter to all geoZones then start update location less intensive
+        requestLocationIfNeeded();
+    }
 
-				pushGeoZones.removeAll(pushZones);
-				// if user exit from all geofence zones then start update location less intensive
-				requestLocationIfNeeded();
-				break;
-			case Geofence.GEOFENCE_TRANSITION_DWELL:
-				break;
-			default:
-				break;
-		}
+    private void requestLocationIfNeeded() {
+        if (pushGeoZones.isEmpty() && locationTracker != null) {
+            locationTracker.requestLocationUpdates(false);
+        }
+    }
 
-		checkNeedUpdate(requestUpdates);
-	}
+    @Override
+    public void onGeofenceStateChanged(List<String> zoneIds, int geofenceTransition) {
+        List<GeoZone> pushZones = new ArrayList<>();
+        boolean requestUpdates = false;
 
-	private void checkNeedUpdate(boolean requestUpdates) {
-		PWLog.noise(LocationConfig.TAG, SUB_TAG + "PushGeoZones updated: " + pushGeoZones);
-		if (requestUpdates) {
-			geoZonesUpdater.requestUpdateGeoZones(callback ->needUpdate = !callback.getData());
-		}
-	}
+        for (String zoneId : zoneIds) {
+            GeoZone geoZoneById = getGeoZoneById(zoneId);
+            if (geoZoneById != null) {
+                pushZones.add(geoZoneById);
+            }
 
-	private void enterToGeofence(final List<GeoZone> pushZones, Callback<Boolean, PushwooshException> callback) {
-		// if user enter to geofence zone and distance to this geozone less than needed range
-		// Start updating location more intensive to getting location which require to this zone
-		if (!pushZones.isEmpty()) {
-			if (locationTracker == null) {
-				callback.process(Result.fromData(false));
-				return;
-			}
+            if (mRadiusZone != null && mRadiusZone.getName().equals(zoneId)) {
+                if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+                    requestUpdates = true;
+                }
+            }
+        }
 
-			locationTracker.getLocation(location -> {
-				boolean needUpdateLocationFaster = false;
-				boolean requestUpdates = false;
-				for (GeoZone geoZone : pushZones) {
-					if (geoZone.distanceTo(location) > geoZone.getRange()) {
-						needUpdateLocationFaster = true;
+        switch (geofenceTransition) {
+            case Geofence.GEOFENCE_TRANSITION_ENTER:
+                enterToGeofence(pushZones, callback -> checkNeedUpdate(callback.getData()));
+                return;
+            case Geofence.GEOFENCE_TRANSITION_EXIT:
+                if (pushGeoZones.isEmpty()) {
+                    break;
+                }
 
-						if (!geoZone.equals(mRadiusZone)) {
-							pushGeoZones.add(geoZone);
-						}
-					} else {
-						requestUpdates = true;
-					}
-				}
+                pushGeoZones.removeAll(pushZones);
+                // if user exit from all geofence zones then start update location less intensive
+                requestLocationIfNeeded();
+                break;
+            case Geofence.GEOFENCE_TRANSITION_DWELL:
+                break;
+            default:
+                break;
+        }
 
-				if (needUpdateLocationFaster && fineLocationPermissionChecker.check()) {
-					locationTracker.requestLocationUpdates(true);
-				}
+        checkNeedUpdate(requestUpdates);
+    }
 
-				callback.process(Result.fromData(requestUpdates));
-			});
-		}
-	}
+    private void checkNeedUpdate(boolean requestUpdates) {
+        PWLog.noise(LocationConfig.TAG, SUB_TAG + "PushGeoZones updated: " + pushGeoZones);
+        if (requestUpdates) {
+            geoZonesUpdater.requestUpdateGeoZones(callback -> needUpdate = !callback.getData());
+        }
+    }
 
-	@Nullable
-	private GeoZone getGeoZoneById(final String zoneId) {
-		for (GeoZone trackingZone : geoZones) {
-			if ((trackingZone.getName() == null && zoneId == null) || (trackingZone.getName().equals(zoneId))) {
-				return trackingZone;
-			}
-		}
+    private void enterToGeofence(final List<GeoZone> pushZones, Callback<Boolean, PushwooshException> callback) {
+        // if user enter to geofence zone and distance to this geozone less than needed range
+        // Start updating location more intensive to getting location which require to this zone
+        if (!pushZones.isEmpty()) {
+            if (locationTracker == null) {
+                callback.process(Result.fromData(false));
+                return;
+            }
 
-		return null;
-	}
+            locationTracker.getLocation(location -> {
+                boolean needUpdateLocationFaster = false;
+                boolean requestUpdates = false;
+                for (GeoZone geoZone : pushZones) {
+                    if (geoZone.distanceTo(location) > geoZone.getRange()) {
+                        needUpdateLocationFaster = true;
 
-	@Override
-	public void onDestroy() {
-		geoZonesUpdated = false;
-		if (geofencer == null) {
-			PWLog.noise(LocationConfig.TAG, "geofencer is null");
-			return;
-		}
-		geofencer.onDestroy();
-	}
+                        if (!geoZone.equals(mRadiusZone)) {
+                            pushGeoZones.add(geoZone);
+                        }
+                    } else {
+                        requestUpdates = true;
+                    }
+                }
 
-	@Override
-	public void startTracking() {
-		PWLog.noise(LocationConfig.TAG, "startTracking");
-		if (geofencer == null) {
-			PWLog.noise(LocationConfig.TAG, "geofencer is null");
-			return;
-		}
-		geofencer.connect();
-	}
+                if (needUpdateLocationFaster && fineLocationPermissionChecker.check()) {
+                    locationTracker.requestLocationUpdates(true);
+                }
 
-	@Override
-	public void locationUpdated(final Location location) {
-		if (!needUpdate) {
-			return;
-		}
+                callback.process(Result.fromData(requestUpdates));
+            });
+        }
+    }
 
-		boolean hasPushGeoZoneInRange = false;
-		for (GeoZone geoZone : pushGeoZones) {
-			if (geoZone.distanceTo(location) < geoZone.getRange()) {
-				hasPushGeoZoneInRange = true;
-				break;
-			}
-		}
+    @Nullable private GeoZone getGeoZoneById(final String zoneId) {
+        for (GeoZone trackingZone : geoZones) {
+            if ((trackingZone.getName() == null && zoneId == null)
+                    || (trackingZone.getName().equals(zoneId))) {
+                return trackingZone;
+            }
+        }
 
-		if (hasPushGeoZoneInRange || !geoZonesUpdated) {
-			PWLog.noise(SUB_TAG, "Request update geoZones. PushGeoZones: " + pushGeoZones + "; geoZonesUpdated: " + geoZonesUpdated);
-			geoZonesUpdater.requestUpdateGeoZones(callback -> needUpdate = !callback.getData());
-		}
-	}
+        return null;
+    }
+
+    @Override
+    public void onDestroy() {
+        geoZonesUpdated = false;
+        if (geofencer == null) {
+            PWLog.noise(LocationConfig.TAG, "geofencer is null");
+            return;
+        }
+        geofencer.onDestroy();
+    }
+
+    @Override
+    public void startTracking() {
+        PWLog.noise(LocationConfig.TAG, "startTracking");
+        if (geofencer == null) {
+            PWLog.noise(LocationConfig.TAG, "geofencer is null");
+            return;
+        }
+        geofencer.connect();
+    }
+
+    @Override
+    public void locationUpdated(final Location location) {
+        if (!needUpdate) {
+            return;
+        }
+
+        boolean hasPushGeoZoneInRange = false;
+        for (GeoZone geoZone : pushGeoZones) {
+            if (geoZone.distanceTo(location) < geoZone.getRange()) {
+                hasPushGeoZoneInRange = true;
+                break;
+            }
+        }
+
+        if (hasPushGeoZoneInRange || !geoZonesUpdated) {
+            PWLog.noise(
+                    SUB_TAG,
+                    "Request update geoZones. PushGeoZones: " + pushGeoZones + "; geoZonesUpdated: " + geoZonesUpdated);
+            geoZonesUpdater.requestUpdateGeoZones(callback -> needUpdate = !callback.getData());
+        }
+    }
 }

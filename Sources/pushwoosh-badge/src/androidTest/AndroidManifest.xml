@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+          Stand-in for the real Sony home badge content provider. Declaring it here (test APK only)
+          makes PackageManager.resolveContentProvider("com.sonymobile.home.resourceprovider") return
+          non-null on a non-Sony device, so SonyHomeBadger takes the ContentProvider insert path; the
+          provider then rejects the insert to model the device-contingent throw.
+        -->
+        <provider
+            android:name="com.pushwoosh.badge.thirdparty.shortcutbadger.impl.ThrowingSonyBadgeProvider"
+            android:authorities="com.sonymobile.home.resourceprovider"
+            android:exported="false" />
+    </application>
+
+</manifest>

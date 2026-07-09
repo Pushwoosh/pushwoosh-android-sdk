@@ -34,8 +34,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import android.os.Handler;
-
 import com.pushwoosh.exception.MergeUserException;
 import com.pushwoosh.exception.PostEventException;
 import com.pushwoosh.exception.PushwooshException;
@@ -163,13 +161,6 @@ public class InAppRepositoryTest {
 
     @Test
     public void postEvent() throws Exception {
-        Handler inlineMain = mock(Handler.class);
-        when(inlineMain.post(any())).thenAnswer(inv -> {
-            Runnable r = inv.getArgument(0);
-            r.run(); // run immediately on the test thread
-            return true;
-        });
-
         List<Resource> resources = new ArrayList<>();
         resources.add(new Resource("test_code", true));
         when(requestManagerMock.sendRequestSync(any())).thenReturn(Result.from(resources, null));
@@ -178,7 +169,6 @@ public class InAppRepositoryTest {
 
         ExecutorService directIo = InAppExecutorServiceHelper.createExecutorService();
 
-        WhiteboxHelper.setInternalState(inAppRepository, "main", inlineMain);
         WhiteboxHelper.setInternalState(inAppRepository, "io", directIo);
 
         Callback<Resource, PostEventException> callback = CallbackWrapper.spy();

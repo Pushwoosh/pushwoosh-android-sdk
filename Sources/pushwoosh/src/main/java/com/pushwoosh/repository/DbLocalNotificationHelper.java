@@ -33,6 +33,7 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.internal.utils.DbUtils;
@@ -47,7 +48,6 @@ import java.util.Set;
 /**
  * Created by aevstefeev on 20/03/2018.
  */
-
 public class DbLocalNotificationHelper extends SQLiteOpenHelper {
     private static final String TAG = DbLocalNotification.class.getSimpleName();
     private static final String DB_NAME = "localNotification.db";
@@ -72,7 +72,7 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
     public interface EnumeratorLocalNotification {
         void enumerate(DbLocalNotification localNotification);
     }
-    
+
     public DbLocalNotificationHelper(Context context) {
         super(context, DB_NAME, null, VERSION);
     }
@@ -85,27 +85,24 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
     }
 
     private void creataRequestIdTable(SQLiteDatabase db) {
-        String createRequestIdTable =
-                String.format("create table %s (", TABLE_NEXT_REQUEST_ID) +
-                        String.format("%s INTEGER primary key ", VALUE_REQUEST_ID) + ");";
+        String createRequestIdTable = String.format("create table %s (", TABLE_NEXT_REQUEST_ID)
+                + String.format("%s INTEGER primary key ", VALUE_REQUEST_ID) + ");";
         db.execSQL(createRequestIdTable);
     }
 
     private void createLocalNotificationTable(SQLiteDatabase db, String table) {
         String createLocalNotificationTable =
-                String.format("create table %s (", table) +
-                        String.format("%s INTEGER primary key, ", Column.REQUEST_ID) +
-                        String.format("%s INTEGER, ", Column.NOTIFICATION_ID) +
-                        String.format("%s INTEGER, ", Column.TRIGGER_AT_MILLIS) +
-                        String.format("%s TEXT, ", Column.NOTIFICATION_TAG) +
-                        String.format("%s TEXT ", Column.BUNDLE_CONTENT) + ");";
+                String.format("create table %s (", table) + String.format("%s INTEGER primary key, ", Column.REQUEST_ID)
+                        + String.format("%s INTEGER, ", Column.NOTIFICATION_ID)
+                        + String.format("%s INTEGER, ", Column.TRIGGER_AT_MILLIS)
+                        + String.format("%s TEXT, ", Column.NOTIFICATION_TAG)
+                        + String.format("%s TEXT ", Column.BUNDLE_CONTENT)
+                        + ");";
         db.execSQL(createLocalNotificationTable);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
-    }
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
 
     public int nextRequestId() {
         synchronized (mutex) {
@@ -133,7 +130,8 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
     private void saveNextId(int nextId, SQLiteDatabase db) {
         ContentValues values = new ContentValues();
         values.put(VALUE_REQUEST_ID, nextId);
-        int updated = db.updateWithOnConflict(TABLE_NEXT_REQUEST_ID, values, null, null, SQLiteDatabase.CONFLICT_IGNORE);
+        int updated =
+                db.updateWithOnConflict(TABLE_NEXT_REQUEST_ID, values, null, null, SQLiteDatabase.CONFLICT_IGNORE);
         if (updated == 0) {
             long insert = db.insert(TABLE_NEXT_REQUEST_ID, null, values);
             if (insert == 0L) {
@@ -184,14 +182,13 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
         return null;
     }
 
-    @NonNull
-    private DbLocalNotification getDbLocalNotification(Cursor cursor) {
+    @NonNull private DbLocalNotification getDbLocalNotification(Cursor cursor) {
         int requesId = cursor.getInt(cursor.getColumnIndex(Column.REQUEST_ID));
         int notificationId = cursor.getInt(cursor.getColumnIndex(Column.NOTIFICATION_ID));
         long triggerAtMillis = cursor.getLong(cursor.getColumnIndex(Column.TRIGGER_AT_MILLIS));
         String tag = cursor.getString(cursor.getColumnIndex(Column.NOTIFICATION_TAG));
         String bundleContent = cursor.getString(cursor.getColumnIndex(Column.BUNDLE_CONTENT));
-        //todo make inject JsonUtils
+        // todo make inject JsonUtils
         Bundle bundle = JsonUtils.jsonStringToBundle(bundleContent);
         return new DbLocalNotification(requesId, notificationId, tag, triggerAtMillis, bundle);
     }
@@ -209,10 +206,9 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
         }
     }
 
-    @NonNull
-    private Set<Integer> getAllRequestInternal(SQLiteDatabase db) {
+    @NonNull private Set<Integer> getAllRequestInternal(SQLiteDatabase db) {
         Set<Integer> idsSet = new HashSet<>();
-        String[] columns = new String[]{Column.REQUEST_ID};
+        String[] columns = new String[] {Column.REQUEST_ID};
         try (Cursor cursor = db.query(TABLE_LOCAL_NOTIFICATION, columns, null, null, null, null, null)) {
             while (cursor.moveToNext()) {
                 int notificationId = cursor.getInt(cursor.getColumnIndex(Column.REQUEST_ID));
@@ -252,7 +248,12 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
 
     private void insertInDb(int requestId, ContentValues values, SQLiteDatabase db, String table) {
         String requestIdString = Integer.toString(requestId);
-        int updated = db.updateWithOnConflict(table, values, Column.REQUEST_ID + "= ?", new String[]{requestIdString}, SQLiteDatabase.CONFLICT_IGNORE);
+        int updated = db.updateWithOnConflict(
+                table,
+                values,
+                Column.REQUEST_ID + "= ?",
+                new String[] {requestIdString},
+                SQLiteDatabase.CONFLICT_IGNORE);
         if (updated == 0) {
             long insert = db.insert(table, null, values);
             if (insert == 0L) {
@@ -261,8 +262,7 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
         }
     }
 
-    @NonNull
-    private ContentValues createContentValues(DbLocalNotification dbLocalNotification) {
+    @NonNull private ContentValues createContentValues(DbLocalNotification dbLocalNotification) {
         ContentValues values = new ContentValues();
         values.put(Column.REQUEST_ID, dbLocalNotification.getRequestId());
         values.put(Column.NOTIFICATION_ID, dbLocalNotification.getNotificationId());
@@ -274,7 +274,6 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
         return values;
     }
 
-
     private long getNotificationShownCount(SQLiteDatabase db) {
         return DatabaseUtils.queryNumEntries(db, TABLE_LOCAL_NOTIFICATION_SHOWN);
     }
@@ -284,7 +283,7 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
 
         if (cursor.moveToFirst()) {
             String rowId = cursor.getString(cursor.getColumnIndex(Column.REQUEST_ID));
-            db.delete(TABLE_LOCAL_NOTIFICATION_SHOWN, Column.REQUEST_ID + "=?", new String[]{rowId});
+            db.delete(TABLE_LOCAL_NOTIFICATION_SHOWN, Column.REQUEST_ID + "=?", new String[] {rowId});
         }
     }
 
@@ -307,6 +306,8 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
                 } else {
                     PWLog.noise(TAG, "fail remove local notification by " + requestId);
                 }
+            } catch (Exception e) {
+                PWLog.error("Can't remove local notification by requestId: " + requestId, e);
             }
         }
     }
@@ -319,7 +320,8 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
         enumerateDbLocalNotificationListInternal(TABLE_LOCAL_NOTIFICATION_SHOWN, enumeratorLocalNotification);
     }
 
-    private void enumerateDbLocalNotificationListInternal(String table, EnumeratorLocalNotification enumeratorLocalNotification) {
+    private void enumerateDbLocalNotificationListInternal(
+            String table, EnumeratorLocalNotification enumeratorLocalNotification) {
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
                 try (Cursor cursor = db.query(table, null, null, null, null, null, null)) {
@@ -340,7 +342,8 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
             try (SQLiteDatabase db = getWritableDatabase()) {
                 String selection = Column.NOTIFICATION_ID + " = ? AND " + Column.NOTIFICATION_TAG + " = ?";
                 String[] selectionArgs = DbUtils.getSelectionArgs(notificationIdString, notificationTag);
-                try (Cursor cursor = db.query(TABLE_LOCAL_NOTIFICATION_SHOWN, null, selection, selectionArgs, null, null, null)) {
+                try (Cursor cursor =
+                        db.query(TABLE_LOCAL_NOTIFICATION_SHOWN, null, selection, selectionArgs, null, null, null)) {
                     while (cursor.moveToNext()) {
                         return getDbLocalNotification(cursor);
                     }

@@ -40,9 +40,12 @@ import androidx.core.view.WindowCompat;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.network.model.Resource;
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.richmedia.RichMediaStyle;
 
 public abstract class WebActivity extends Activity implements InAppView {
+    private static final String TAG = "WebActivity";
+
     static final String EXTRA_INAPP = "extraInApp";
     static final String EXTRA_MODE = "extraMode";
     static final String EXTRA_SOUND = "extraSound";
@@ -95,7 +98,16 @@ public abstract class WebActivity extends Activity implements InAppView {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        processIntent(intent);
+        try {
+            processIntent(intent);
+        } catch (Throwable t) {
+            // Symmetric with RichMediaWebActivity.onCreate's guard: WebView construction inside
+            // processIntent can throw when the system WebView provider is mid-update, and onNewIntent
+            // is the twin entry point the onCreate catch does not cover.
+            PWLog.warn(TAG, "processIntent threw in onNewIntent, finishing activity", t);
+            finish();
+            return;
+        }
         setIntent(intent);
     }
 

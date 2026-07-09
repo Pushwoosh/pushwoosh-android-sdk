@@ -2,6 +2,7 @@ package com.pushwoosh.notification;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.repository.DbLocalNotification;
+import com.pushwoosh.repository.LocalNotificationStorage;
 import com.pushwoosh.repository.RepositoryModule;
 
 import java.io.Serializable;
@@ -199,11 +200,16 @@ public class LocalNotificationRequest implements Serializable {
     public void cancel() {
         unschedule();
 
-        DbLocalNotification dbLocalNotification = RepositoryModule.getLocalNotificationStorage().getLocalNotificationShown(requestId);
+        LocalNotificationStorage storage = RepositoryModule.getLocalNotificationStorage();
+        if (storage == null) {
+            return;
+        }
+        DbLocalNotification dbLocalNotification = storage.getLocalNotificationShown(requestId);
         if (dbLocalNotification != null) {
             int notificationId = dbLocalNotification.getNotificationId();
             String notificationTag = dbLocalNotification.getNotificationTag();
-            android.app.NotificationManager manager = AndroidPlatformModule.getManagerProvider().getNotificationManager();
+            android.app.NotificationManager manager =
+                    AndroidPlatformModule.getManagerProvider().getNotificationManager();
 
             if (manager == null) {
                 return;

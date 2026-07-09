@@ -30,19 +30,20 @@ import com.pushwoosh.internal.checker.Checker;
 import com.pushwoosh.internal.utils.PWLog;
 
 public class FirebaseChecker implements Checker {
-	@Override
-	public boolean check() {
-		try {
-			Class.forName("com.google.firebase.messaging.FirebaseMessaging");
-		} catch (ClassNotFoundException e) {
-			final String message = "com.google.firebase:firebase-messaging is missing. It is normally pulled in transitively by "
-					+ "pushwoosh-firebase; add it explicitly only if you excluded it, preferably via the Firebase BoM:\n"
-					+ "    implementation(platform(\"com.google.firebase:firebase-bom:<version>\"))\n"
-					+ "    implementation(\"com.google.firebase:firebase-messaging\")\n"
-					+ "See https://firebase.google.com/docs/android/setup#available-libraries";
-			PWLog.error(message);
-			throw new IllegalStateException(message, e);
-		}
-		return false;
-	}
+    @Override
+    public boolean check() {
+        try {
+            Class.forName("com.google.firebase.messaging.FirebaseMessaging");
+        } catch (ClassNotFoundException | LinkageError e) {
+            final String message =
+                    "com.google.firebase:firebase-messaging is missing or failed to load. It is normally pulled in transitively by "
+                            + "pushwoosh-firebase; add it explicitly only if you excluded it, preferably via the Firebase BoM:\n"
+                            + "    implementation(platform(\"com.google.firebase:firebase-bom:<version>\"))\n"
+                            + "    implementation(\"com.google.firebase:firebase-messaging\")\n"
+                            + "See https://firebase.google.com/docs/android/setup#available-libraries";
+            PWLog.error(message);
+            throw new IllegalStateException(message, e);
+        }
+        return false;
+    }
 }

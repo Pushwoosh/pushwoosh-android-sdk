@@ -249,7 +249,7 @@ class AndroidManifestConfig implements Config {
             Class<?> clazz = Class.forName(className);
             clazz.getConstructor();
             return clazz;
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException | LinkageError e) {
             PWLog.debug(TAG, "Failed to resolve class '" + className + "' for manifest key '" + key + "'", e);
             return null;
         }

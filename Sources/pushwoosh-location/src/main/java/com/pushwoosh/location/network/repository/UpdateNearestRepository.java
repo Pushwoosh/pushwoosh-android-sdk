@@ -36,7 +36,9 @@ import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.network.NetworkException;
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.location.data.GeoZone;
+import com.pushwoosh.location.internal.utils.LocationConfig;
 import com.pushwoosh.location.network.job.DisableLocationJob;
 import com.pushwoosh.location.network.job.EmptyJob;
 import com.pushwoosh.location.network.job.Job;
@@ -48,57 +50,69 @@ import java.util.List;
 
 public class UpdateNearestRepository {
 
-	private final NearestZonesStorage nearestZonesStorage;
-	@Nullable
-	private final LocationTracker locationTracker;
+    private static final String SUB_TAG = "[UpdateNearestRepository]";
 
-	public UpdateNearestRepository(NearestZonesStorage nearestZonesStorage, @Nullable LocationTracker locationTracker) {
-		this.nearestZonesStorage = nearestZonesStorage;
-		this.locationTracker = locationTracker;
-	}
+    private final NearestZonesStorage nearestZonesStorage;
 
-	public void applyNearestJob(final boolean forceUpdate,
-								Callback<Pair<Location, List<GeoZone>>, PushwooshException> callback,
-								Callback<Job<Result<Pair<Location, List<GeoZone>>, PushwooshException>>, PushwooshException> updateNearestJobCallback) {
-		if (locationTracker == null) {
-			applyNearestJobForLocation(null, forceUpdate, callback, updateNearestJobCallback);
-		} else {
-			locationTracker.getLocation(AsyncTask.THREAD_POOL_EXECUTOR, location ->
-					applyNearestJobForLocation(location,
-						forceUpdate,
-						callback,
-						updateNearestJobCallback));
-		}
-	}
+    @Nullable private final LocationTracker locationTracker;
 
-	private void applyNearestJobForLocation(Location location,
-											boolean forceUpdate,
-											Callback<Pair<Location, List<GeoZone>>, PushwooshException> callback,
-											Callback<Job<Result<Pair<Location, List<GeoZone>>, PushwooshException>>, PushwooshException> updateNearestJobCallback) {
-		List<GeoZone> storageGeoZones = nearestZonesStorage.getAll();
-		if (storageGeoZones != null && !forceUpdate) {
-			callback.process(Result.fromData(new Pair<>(location, storageGeoZones)));
-			updateNearestJobCallback.process(Result.fromData(new EmptyJob<>()));
-			return;
-		}
+    public UpdateNearestRepository(NearestZonesStorage nearestZonesStorage, @Nullable LocationTracker locationTracker) {
+        this.nearestZonesStorage = nearestZonesStorage;
+        this.locationTracker = locationTracker;
+    }
 
-		UpdateNearestJob updateNearestJob = new UpdateNearestJob(location);
-		Result<Pair<Location, List<GeoZone>>, PushwooshException> result = updateNearestJob.apply();
-		if (result.isSuccess() && result.getData() != null) {
-			nearestZonesStorage.save(result.getData().second);
-		}
+    public void applyNearestJob(
+            final boolean forceUpdate,
+            Callback<Pair<Location, List<GeoZone>>, PushwooshException> callback,
+            Callback<Job<Result<Pair<Location, List<GeoZone>>, PushwooshException>>, PushwooshException>
+                    updateNearestJobCallback) {
+        if (locationTracker == null) {
+            applyNearestJobForLocation(null, forceUpdate, callback, updateNearestJobCallback);
+        } else {
+            locationTracker.getLocation(AsyncTask.THREAD_POOL_EXECUTOR, location -> {
+                try {
+                    applyNearestJobForLocation(location, forceUpdate, callback, updateNearestJobCallback);
+                } catch (Throwable t) {
+                    // The GMS Task fires this listener on THREAD_POOL_EXECUTOR after applyNearestJob has
+                    // returned, so the Service barrier (BackgroundExecutor.execute's catch(Throwable) around
+                    // doInBackground) has already closed — any throw here escapes uncaught on the pool thread
+                    // and kills the process. Re-attach an equivalent barrier at the dispatch point.
+                    PWLog.error(LocationConfig.TAG, SUB_TAG + " failed to apply nearest job", t);
+                }
+            });
+        }
+    }
 
-		callback.process(result);
-		updateNearestJobCallback.process(Result.fromData(updateNearestJob));
-	}
+    private void applyNearestJobForLocation(
+            Location location,
+            boolean forceUpdate,
+            Callback<Pair<Location, List<GeoZone>>, PushwooshException> callback,
+            Callback<Job<Result<Pair<Location, List<GeoZone>>, PushwooshException>>, PushwooshException>
+                    updateNearestJobCallback) {
+        List<GeoZone> storageGeoZones = nearestZonesStorage.getAll();
+        if (storageGeoZones != null && !forceUpdate) {
+            callback.process(Result.fromData(new Pair<>(location, storageGeoZones)));
+            updateNearestJobCallback.process(Result.fromData(new EmptyJob<>()));
+            return;
+        }
 
-	public Job<Result<Void, NetworkException>> applyDisableLocationJob(Callback<Void, NetworkException> callback) {
-		DisableLocationJob disableLocationJob = new DisableLocationJob();
-		Result<Void, NetworkException> result = disableLocationJob.apply();
+        UpdateNearestJob updateNearestJob = new UpdateNearestJob(location);
+        Result<Pair<Location, List<GeoZone>>, PushwooshException> result = updateNearestJob.apply();
+        if (result.isSuccess() && result.getData() != null) {
+            nearestZonesStorage.save(result.getData().second);
+        }
 
-		if (callback != null) {
-			callback.process(result);
-		}
-		return disableLocationJob;
-	}
+        callback.process(result);
+        updateNearestJobCallback.process(Result.fromData(updateNearestJob));
+    }
+
+    public Job<Result<Void, NetworkException>> applyDisableLocationJob(Callback<Void, NetworkException> callback) {
+        DisableLocationJob disableLocationJob = new DisableLocationJob();
+        Result<Void, NetworkException> result = disableLocationJob.apply();
+
+        if (callback != null) {
+            callback.process(result);
+        }
+        return disableLocationJob;
+    }
 }

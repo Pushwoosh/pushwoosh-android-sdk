@@ -31,45 +31,45 @@ import com.pushwoosh.internal.utils.PWLog;
 
 public class GcmLibraryChecker implements Checker {
 
-	private static GcmLibraryChecker instance = new GcmLibraryChecker();
+    private static GcmLibraryChecker instance = new GcmLibraryChecker();
 
-	public static boolean checkGcmLibraries() {
-		return instance.check();
-	}
+    public static boolean checkGcmLibraries() {
+        return instance.check();
+    }
 
-	private GcmLibraryChecker() {
-		/*do nothing*/
-	}
+    private GcmLibraryChecker() {
+        /*do nothing*/
+    }
 
-	@Override
-	public boolean check() {
+    @Override
+    public boolean check() {
 
-		try {
-			Class.forName("com.google.android.gms.common.api.GoogleApiClient$ConnectionCallbacks");
-		} catch (ClassNotFoundException e) {
-			String message = "You must add next line to app build.gradle:" +
-			                 "\nimplementation 'com.google.android.gms:play-services-base:11.+";
-			PWLog.error(message);
-			throw new IllegalStateException(message, e);
-		}
+        try {
+            Class.forName("com.google.android.gms.common.api.GoogleApiClient$ConnectionCallbacks");
+        } catch (ClassNotFoundException | LinkageError e) {
+            String message = "You must add next line to app build.gradle:"
+                    + "\nimplementation 'com.google.android.gms:play-services-base:11.+";
+            PWLog.error(message);
+            throw new IllegalStateException(message, e);
+        }
 
-		try{
-			Class.forName("com.google.android.gms.common.api.Status");
-		}catch (ClassNotFoundException e){
-			String message = "You must add next line to app build.gradle:" +
-			                 "\nimplementation 'com.google.android.gms:play-services-basement:11.+";
-			PWLog.error(message);
-			throw new IllegalStateException(message, e);
-		}
+        try {
+            Class.forName("com.google.android.gms.common.api.Status");
+        } catch (ClassNotFoundException | LinkageError e) {
+            String message = "You must add next line to app build.gradle:"
+                    + "\nimplementation 'com.google.android.gms:play-services-basement:11.+";
+            PWLog.error(message);
+            throw new IllegalStateException(message, e);
+        }
 
-		try {
-			Class.forName("com.google.android.gms.location.LocationServices");
-		} catch (ClassNotFoundException e) {
-			String message = "You must add next line to app build.gradle:" +
-			                 "\nimplementation 'com.google.android.gms:play-services-location:11+'";
-			PWLog.error(message);
-			throw new IllegalStateException(message, e);
-		}
-		return true;
-	}
+        try {
+            Class.forName("com.google.android.gms.location.LocationServices");
+        } catch (ClassNotFoundException | LinkageError e) {
+            String message = "You must add next line to app build.gradle:"
+                    + "\nimplementation 'com.google.android.gms:play-services-location:11+'";
+            PWLog.error(message);
+            throw new IllegalStateException(message, e);
+        }
+        return true;
+    }
 }

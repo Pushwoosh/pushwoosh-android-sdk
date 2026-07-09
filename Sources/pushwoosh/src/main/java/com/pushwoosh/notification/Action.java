@@ -43,7 +43,7 @@ public class Action {
         if (!TextUtils.isEmpty(className)) {
             try {
                 mClass = Class.forName(className);
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException | LinkageError e) {
                 PWLog.exception(e);
             }
         }

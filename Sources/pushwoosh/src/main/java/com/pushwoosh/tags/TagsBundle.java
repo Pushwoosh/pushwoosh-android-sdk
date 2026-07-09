@@ -466,6 +466,10 @@ public class TagsBundle {
          * @return this Builder instance for method chaining
          */
         public Builder putList(String key, List<String> value) {
+            if (value == null) {
+                PWLog.warn("Skipping list tag \"" + key + "\": value is null");
+                return this;
+            }
             tags.put(key, value);
             return this;
         }
@@ -584,6 +588,10 @@ public class TagsBundle {
          * @return this Builder instance for method chaining
          */
         public Builder putAll(JSONObject json) {
+            if (json == null) {
+                PWLog.warn("Skipping putAll: JSON is null");
+                return this;
+            }
             Iterator<String> keys = json.keys();
             // use synchronized keyword in attempt to fix rare ConcurrentModificationException in
             // java.util.LinkedHashMap$LinkedKeyIterator.next on devices with Samsung chips

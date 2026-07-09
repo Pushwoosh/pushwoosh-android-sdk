@@ -29,13 +29,14 @@ package com.pushwoosh.location;
 import android.annotation.SuppressLint;
 import android.location.Location;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
+
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.location.data.GeoZone;
 import com.pushwoosh.location.geofence.GeoZonesUpdater;
@@ -56,170 +57,169 @@ import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
 
-import androidx.annotation.Nullable;
-
 public class NearestZonesManager implements GeoZonesUpdater, LocationTrackerCallback {
 
-	private final GeofenceTracker geofenceTracker;
-	private final LocationPrefs locationPrefs;
-	@Nullable
-	private final LocationTracker locationTracker;
-	private final LocationPermissionChecker locationPermissionChecker;
-	private final FineLocationPermissionChecker fineLocationPermissionChecker;
-	private final BackgroundLocationPermissionDeclaredChecker backgroundLocationPermissionDeclaredChecker;
-	private final BackgroundLocationPermissionChecker backgroundLocationPermissionChecker;
+    private final GeofenceTracker geofenceTracker;
+    private final LocationPrefs locationPrefs;
 
-	private final ServiceScheduler serviceScheduler;
-	private final Handler handler = new Handler(Looper.getMainLooper());
+    @Nullable private final LocationTracker locationTracker;
 
-	private WeakReference<Callback<Void, LocationNotAvailableException>> callback;
+    private final LocationPermissionChecker locationPermissionChecker;
+    private final FineLocationPermissionChecker fineLocationPermissionChecker;
+    private final BackgroundLocationPermissionDeclaredChecker backgroundLocationPermissionDeclaredChecker;
+    private final BackgroundLocationPermissionChecker backgroundLocationPermissionChecker;
 
-	public NearestZonesManager(GeofenceTracker geofenceTracker,
-							   LocationPrefs locationPrefs,
-							   @Nullable final LocationTracker locationTracker,
-							   final LocationPermissionChecker locationPermissionChecker,
-							   final FineLocationPermissionChecker fineLocationPermissionChecker,
-							   final BackgroundLocationPermissionDeclaredChecker backgroundLocationPermissionDeclaredChecker,
-							   final BackgroundLocationPermissionChecker backgroundLocationPermissionChecker,
-							   final ServiceScheduler serviceScheduler) {
+    private final ServiceScheduler serviceScheduler;
 
-		this.geofenceTracker = geofenceTracker;
-		this.locationPrefs = locationPrefs;
-		this.locationTracker = locationTracker;
-		this.locationPermissionChecker = locationPermissionChecker;
-		this.fineLocationPermissionChecker = fineLocationPermissionChecker;
-		this.backgroundLocationPermissionDeclaredChecker = backgroundLocationPermissionDeclaredChecker;
-		this.backgroundLocationPermissionChecker = backgroundLocationPermissionChecker;
-		this.serviceScheduler = serviceScheduler;
+    private WeakReference<Callback<Void, LocationNotAvailableException>> callback;
 
-		EventBus.subscribe(LocationPermissionEvent.class, event -> {
-			if (locationPermissionChecker.check()) {
-				startUpdateZones();
-			} else {
-				stop();
-				failedNotifyCallback();
-			}
-		});
-	}
+    public NearestZonesManager(
+            GeofenceTracker geofenceTracker,
+            LocationPrefs locationPrefs,
+            @Nullable final LocationTracker locationTracker,
+            final LocationPermissionChecker locationPermissionChecker,
+            final FineLocationPermissionChecker fineLocationPermissionChecker,
+            final BackgroundLocationPermissionDeclaredChecker backgroundLocationPermissionDeclaredChecker,
+            final BackgroundLocationPermissionChecker backgroundLocationPermissionChecker,
+            final ServiceScheduler serviceScheduler) {
 
-	private void startUpdateZones() {
-		if (locationTracker == null) {
-			return;
-		}
+        this.geofenceTracker = geofenceTracker;
+        this.locationPrefs = locationPrefs;
+        this.locationTracker = locationTracker;
+        this.locationPermissionChecker = locationPermissionChecker;
+        this.fineLocationPermissionChecker = fineLocationPermissionChecker;
+        this.backgroundLocationPermissionDeclaredChecker = backgroundLocationPermissionDeclaredChecker;
+        this.backgroundLocationPermissionChecker = backgroundLocationPermissionChecker;
+        this.serviceScheduler = serviceScheduler;
 
-		this.locationTracker.requestLocationUpdates(false);
-	}
+        EventBus.subscribe(LocationPermissionEvent.class, event -> {
+            if (locationPermissionChecker.check()) {
+                startUpdateZones();
+            } else {
+                stop();
+                failedNotifyCallback();
+            }
+        });
+    }
 
-	private void failedNotifyCallback() {
-		handler.post(() -> {
-			if (callback != null && callback.get() != null) {
-				callback.get().process(Result.fromException(new LocationNotAvailableException()));
-			}
-		});
-	}
+    private void startUpdateZones() {
+        if (locationTracker == null) {
+            return;
+        }
 
-	private void successNotifyCallback() {
-		handler.post(() -> {
-			if (callback != null && callback.get() != null) {
-				callback.get().process(Result.fromData(null));
-			}
-		});
-	}
+        this.locationTracker.requestLocationUpdates(false);
+    }
 
-	@SuppressLint("MissingPermission")
-	@Override
-	public void requestUpdateGeoZones(Callback<Boolean, PushwooshException> callback) {
-		if (locationPermissionChecker.check() && locationPrefs.geolocationStarted().get()) {
-			if (locationTracker == null) {
-				callback.process(Result.fromData(false));
-				return;
-			}
+    private void failedNotifyCallback() {
+        BackgroundExecutor.main(() -> {
+            if (callback != null && callback.get() != null) {
+                callback.get().process(Result.fromException(new LocationNotAvailableException()));
+            }
+        });
+    }
 
-			locationTracker.getLocation(location -> {
-				if (location != null) {
-					serviceScheduler.requestUpdateNearestGeoZones();
-					callback.process(Result.fromData(true));
-				} else {
-					locationTracker.requestLocationUpdates(false);
-					callback.process(Result.fromData(false));
-				}
-			});
-		}
-	}
+    private void successNotifyCallback() {
+        BackgroundExecutor.main(() -> {
+            if (callback != null && callback.get() != null) {
+                callback.get().process(Result.fromData(null));
+            }
+        });
+    }
 
-	@Override
-	public void failedProvidingLocation() {
-		stop();
-		failedNotifyCallback();
-	}
+    @SuppressLint("MissingPermission")
+    @Override
+    public void requestUpdateGeoZones(Callback<Boolean, PushwooshException> callback) {
+        if (locationPermissionChecker.check()
+                && locationPrefs.geolocationStarted().get()) {
+            if (locationTracker == null) {
+                callback.process(Result.fromData(false));
+                return;
+            }
 
-	@Override
-	public void successProvidingLocation() {
-		successNotifyCallback();
-	}
+            locationTracker.getLocation(location -> {
+                if (location != null) {
+                    serviceScheduler.requestUpdateNearestGeoZones();
+                    callback.process(Result.fromData(true));
+                } else {
+                    locationTracker.requestLocationUpdates(false);
+                    callback.process(Result.fromData(false));
+                }
+            });
+        }
+    }
 
-	void start(final Callback<Void, LocationNotAvailableException> callback) {
-		this.callback = new WeakReference<>(callback);
-		locationPrefs.geolocationStarted().set(true);
-		geofenceTracker.startTracking();
+    @Override
+    public void failedProvidingLocation() {
+        stop();
+        failedNotifyCallback();
+    }
 
-		tryUpdateZones();
-	}
+    @Override
+    public void successProvidingLocation() {
+        successNotifyCallback();
+    }
 
-	void stop() {
-		locationPrefs.geolocationStarted().set(false);
+    void start(final Callback<Void, LocationNotAvailableException> callback) {
+        this.callback = new WeakReference<>(callback);
+        locationPrefs.geolocationStarted().set(true);
+        geofenceTracker.startTracking();
 
-		geofenceTracker.onDestroy();
-		if (locationTracker != null) {
-			locationTracker.onDestroy();
-		}
+        tryUpdateZones();
+    }
 
-		serviceScheduler.cancel();
-		serviceScheduler.requestLocationDisabled();
-	}
+    void stop() {
+        locationPrefs.geolocationStarted().set(false);
 
-	private void tryUpdateZones() {
-		if (!locationPermissionChecker.check()) {
-			locationPermissionChecker.requestPermissions(LocationConfig.LOCATION_PERMISSIONS);
-			return;
-		}
+        geofenceTracker.onDestroy();
+        if (locationTracker != null) {
+            locationTracker.onDestroy();
+        }
 
-		startUpdateZones();
-	}
+        serviceScheduler.cancel();
+        serviceScheduler.requestLocationDisabled();
+    }
 
+    private void tryUpdateZones() {
+        if (!locationPermissionChecker.check()) {
+            locationPermissionChecker.requestPermissions(LocationConfig.LOCATION_PERMISSIONS);
+            return;
+        }
 
-	public void updateZones(final Location location, final List<GeoZone> geoZones) {
-		geofenceTracker.updateZones(geoZones == null ? Collections.emptyList() : geoZones, location);
-	}
+        startUpdateZones();
+    }
 
-	public void updateState(final boolean sleep) {
-		serviceScheduler.scheduleNearestGeoZones(sleep);
-	}
+    public void updateZones(final Location location, final List<GeoZone> geoZones) {
+        geofenceTracker.updateZones(geoZones == null ? Collections.emptyList() : geoZones, location);
+    }
 
-	void deviceRebooted() {
-		serviceScheduler.deviceRebooted();
-	}
+    public void updateState(final boolean sleep) {
+        serviceScheduler.scheduleNearestGeoZones(sleep);
+    }
 
-	public void requestLocation() {
-		if (locationPrefs.geolocationStarted().get()) {
-			tryUpdateZones();
-		}
-	}
+    void deviceRebooted() {
+        serviceScheduler.deviceRebooted();
+    }
 
-	public void requestBackgroundLocationPermission() {
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-			return;
-		}
-		if (!locationPermissionChecker.check()) {
-			PWLog.error("The application did not receive Fine/Coarse location permission yet.");
-			return;
-		}
-		if (!backgroundLocationPermissionDeclaredChecker.check()) {
-			PWLog.error("Background location permission is not declared in AndroidManifest.");
-			return;
-		}
-		if (!backgroundLocationPermissionChecker.check()) {
-			locationPermissionChecker.requestPermissions(LocationConfig.BACKGROUND_LOCATION_PERMISSION);
-		}
-	}
+    public void requestLocation() {
+        if (locationPrefs.geolocationStarted().get()) {
+            tryUpdateZones();
+        }
+    }
+
+    public void requestBackgroundLocationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            return;
+        }
+        if (!locationPermissionChecker.check()) {
+            PWLog.error("The application did not receive Fine/Coarse location permission yet.");
+            return;
+        }
+        if (!backgroundLocationPermissionDeclaredChecker.check()) {
+            PWLog.error("Background location permission is not declared in AndroidManifest.");
+            return;
+        }
+        if (!backgroundLocationPermissionChecker.check()) {
+            locationPermissionChecker.requestPermissions(LocationConfig.BACKGROUND_LOCATION_PERMISSION);
+        }
+    }
 }

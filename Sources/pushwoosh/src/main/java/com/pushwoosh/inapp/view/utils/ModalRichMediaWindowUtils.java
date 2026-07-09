@@ -22,10 +22,12 @@ import com.pushwoosh.inapp.view.config.enums.ModalRichMediaPresentAnimationType;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaSwipeGesture;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.utils.PWLog;
 
 import java.util.Set;
 
 public class ModalRichMediaWindowUtils {
+    private static final String TAG = "ModalRichMediaWindowUtils";
     private static final float SWIPE_THRESHOLD_FACTOR = 0.5f;
 
     static int screenWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
@@ -54,8 +56,15 @@ public class ModalRichMediaWindowUtils {
             Window window = topActivity.getWindow();
             if (window != null) {
                 window.getDecorView().post(() -> {
-                    View parentView = window.getDecorView().findViewById(android.R.id.content);
-                    callback.accept(parentView);
+                    // Runs in a later main-looper message, so the caller's try/catch (e.g.
+                    // ModalRichMediaWindow.onPageLoaded) has already returned and cannot guard it.
+                    // The show can throw BadTokenException/NPE if the Activity finished meanwhile.
+                    try {
+                        View parentView = window.getDecorView().findViewById(android.R.id.content);
+                        callback.accept(parentView);
+                    } catch (Throwable t) {
+                        PWLog.error(TAG, "Failed to deliver parent view to async callback", t);
+                    }
                 });
             } else {
                 callback.accept(null);

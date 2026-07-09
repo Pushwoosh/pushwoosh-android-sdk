@@ -30,13 +30,8 @@ import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import android.os.Handler;
 
 import androidx.annotation.NonNull;
 
@@ -99,18 +94,11 @@ public class InAppTest {
         pushwooshRepository = platformTestManager.getPushwooshRepository();
         SdkStateProvider.getInstance().setReady();
 
-        Handler inlineMain = mock(Handler.class);
-        when(inlineMain.post(any())).thenAnswer(inv -> {
-            Runnable r = inv.getArgument(0);
-            r.run(); // run immediately on the test thread
-            return true;
-        });
         ExecutorService directIo = InAppExecutorServiceHelper.createExecutorService();
 
         InAppRepository repository =
                 (InAppRepository) WhiteboxHelper.getInternalState(pushwooshInApp, "inAppRepository");
 
-        WhiteboxHelper.setInternalState(repository, "main", inlineMain);
         WhiteboxHelper.setInternalState(repository, "io", directIo);
     }
 

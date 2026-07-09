@@ -72,9 +72,8 @@ android {
 dependencies {
     api project(':pushwoosh')
 
-    androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.mockito:mockito-core:${mockito}"
     testImplementation 'org.robolectric:robolectric:4.14.1'

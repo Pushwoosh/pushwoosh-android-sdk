@@ -209,7 +209,7 @@ public class PushwooshInAppImpl {
                 if (jsInterface != null) {
                     result.put(name, jsInterface);
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 PWLog.warn(TAG, "Failed to instantiate javascript interface for " + name, e);
             }
         }
