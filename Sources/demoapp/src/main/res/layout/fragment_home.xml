@@ -331,6 +331,100 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Native In-App Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainer"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Native In-App"
+                    android:textAllCaps="true"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:letterSpacing="0.12"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="4dp"
+                    android:text="Preview presets"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:fontFamily="serif" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="14dp"
+                    android:text="Rendered locally via PushwooshInAppUi.present() — no server needed."
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonInAppBanner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Banner (top)"
+                    style="@style/Widget.Demoapp.Button.Outlined"
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonInAppModal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Modal"
+                    style="@style/Widget.Demoapp.Button.Outlined"
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonInAppModalFloating"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Modal (floating)"
+                    style="@style/Widget.Demoapp.Button.Outlined"
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonInAppFullscreen"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Fullscreen"
+                    style="@style/Widget.Demoapp.Button.Outlined"
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonInAppCarousel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Carousel"
+                    style="@style/Widget.Demoapp.Button.Outlined"
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonInAppStories"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Stories"
+                    style="@style/Widget.Demoapp.Button.Outlined" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
     </LinearLayout>
 
 </ScrollView>

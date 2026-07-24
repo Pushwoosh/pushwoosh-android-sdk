@@ -1,0 +1,4 @@
+{
+  "displayType": "modal",
+  "modal": { "showClose": true, "dimBackground": false, "background": "#FFFFFFFF", "buttons": [] }
+}

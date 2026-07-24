@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <meta-data
+            android:name="com.pushwoosh.plugin.inapp_ui"
+            android:value="com.pushwoosh.inapp.ui.InAppUiPlugin" />
+
+        <!-- configChanges keeps the overlay visually intact (no view rebuild) across common
+             changes. Correctness on an actual recreate — an unlisted change like fontScale,
+             or process death — is handled by the Activity's savedInstanceState and
+             isChangingConfigurations guards. -->
+        <activity
+            android:name="com.pushwoosh.inapp.ui.activity.InAppOverlayActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|density|uiMode"
+            android:theme="@style/PwInAppTheme" />
+    </application>
+
+</manifest>

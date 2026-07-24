@@ -15,6 +15,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.demoapp.databinding.FragmentHomeBinding;
 import com.pushwoosh.inapp.InAppManager;
+import com.pushwoosh.inapp.ui.PushwooshInAppUi;
 import com.pushwoosh.tags.TagsBundle;
 
 import java.util.Objects;
@@ -215,7 +216,27 @@ public class HomeFragment extends Fragment {
             showSnackbar("Launch notification cleared");
         });
 
+        /*
+         * Demonstrates the native in-app UI module (pushwoosh-inapp-ui).
+         *
+         * Use case: preview each native in-app layout locally via PushwooshInAppUi.present(),
+         * feeding a raw config JSON — the same shape a push carries in its `u` custom data —
+         * without a server round-trip. See InAppPresets for the configs.
+         */
+        binding.buttonInAppBanner.setOnClickListener(v -> presentInApp("Banner", InAppPresets.BANNER));
+        binding.buttonInAppModal.setOnClickListener(v -> presentInApp("Modal", InAppPresets.MODAL));
+        binding.buttonInAppModalFloating.setOnClickListener(
+                v -> presentInApp("Modal (floating)", InAppPresets.MODAL_FLOATING));
+        binding.buttonInAppFullscreen.setOnClickListener(v -> presentInApp("Fullscreen", InAppPresets.FULLSCREEN));
+        binding.buttonInAppCarousel.setOnClickListener(v -> presentInApp("Carousel", InAppPresets.CAROUSEL));
+        binding.buttonInAppStories.setOnClickListener(v -> presentInApp("Stories", InAppPresets.STORIES));
+
         return root;
+    }
+
+    private void presentInApp(String label, String configJson) {
+        PushwooshInAppUi.present(configJson);
+        showSnackbar("Presenting: " + label);
     }
 
     private void showSnackbar(String message) {

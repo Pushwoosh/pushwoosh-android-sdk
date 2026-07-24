@@ -1,0 +1,13 @@
+{
+  "displayType": "banner",
+  "banner": {
+    "showClose": true,
+    "position": "bottom",
+    "background": "#4B5057FF",
+    "image": "https://example.com/thumb.jpg",
+    "title": { "text": "Alpine A110 just dropped", "color": "#FFFFFFFF" },
+    "message": { "text": "The featherweight icon — tap to see the build", "color": "#FFFFFFFF" },
+    "action": { "type": "url", "url": "pushwoosh://product/x6f" },
+    "autoDismiss": 6
+  }
+}

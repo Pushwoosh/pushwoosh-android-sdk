@@ -38,8 +38,6 @@ import com.pushwoosh.internal.utils.PWLog;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Class helper which map network {@link com.pushwoosh.inapp.network.model.Resource} model to view
@@ -74,67 +72,11 @@ public class ResourceMapper {
         String content = FileUtils.readFile(html);
 
         try {
-
-            content = postProcessHtml(
-                    content,
-                    Pattern.compile("\\{\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|(.[^\\}]*?)\\}\\}", Pattern.DOTALL),
-                    config.parseLocalizedStrings(code));
-
-            // DOTALL is not safe here for it can false-positively match javascript like { if (a|b|c) {} }
-            content = postProcessHtml(
-                    content, Pattern.compile("\\{\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|(.[^\\}]*?)\\}\\}"), tags);
-
-            // support template syntax like {{ Placeholder name | Type }}
-            content = postProcessHtml(
-                    content,
-                    Pattern.compile("\\{\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\}\\}"),
-                    config.parseLocalizedStrings(code));
-
-            // support dynamic content in Rich Medias with no default value
-            content = postProcessHtml(content, Pattern.compile("\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|\\}"), tags);
-
-            // support dynamic content in Rich Medias with a default value
-            content = postProcessHtml(content, Pattern.compile("\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|(.[^\\}]*?)\\}"), tags);
-
+            content = PlaceholderSubstitutor.substitute(content, config.parseLocalizedStrings(code), tags);
         } catch (Exception e) {
             // Not error. Early inapps do not contain pushwoosh.json
             PWLog.warn(TAG, "Failed to process html", e);
         }
-
-        return content;
-    }
-
-    private String postProcessHtml(String content, Pattern pattern, Map<String, String> tags) {
-        Matcher matcher = pattern.matcher(content);
-
-        while (matcher.find()) {
-            if (matcher.groupCount() == 3) {
-                content = processKeyTypeDefaultValuePattern(
-                        content, matcher.group(0), matcher.group(1), matcher.group(2), matcher.group(3), tags);
-            } else if (matcher.groupCount() == 2) {
-                // replace dynamic content placeholder with no default value with empty string
-                if (pattern.toString().equals("\\{(.[^\\}]+?)\\|(.[^\\}]+?)\\|\\}")) {
-                    content = processKeyTypeDefaultValuePattern(
-                            content, matcher.group(0), matcher.group(1), matcher.group(2), "", tags);
-                }
-                content = processKeyTypeDefaultValuePattern(
-                        content, matcher.group(0), matcher.group(1), matcher.group(2), matcher.group(1), tags);
-            } else {
-                PWLog.warn(TAG, "Incorrect matching count");
-            }
-        }
-
-        return content;
-    }
-
-    private String processKeyTypeDefaultValuePattern(
-            String content, String totalKey, String key, String type, String defaultValue, Map<String, String> tags) {
-        String value = defaultValue;
-        if (tags.containsKey(key)) {
-            value = tags.get(key);
-            value = InAppTagFormatModifier.format(value, type);
-        }
-        content = content.replace(totalKey, value);
 
         return content;
     }

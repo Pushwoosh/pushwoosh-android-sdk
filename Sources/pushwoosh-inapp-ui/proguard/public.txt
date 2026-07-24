@@ -1,0 +1,5 @@
+# Public API of pushwoosh-inapp-ui — kept for consumers.
+-keep public class com.pushwoosh.inapp.ui.PushwooshInAppUi { *; }
+-keep public class com.pushwoosh.inapp.ui.InAppUiPlugin { *; }
+-keep public interface com.pushwoosh.inapp.ui.InAppMessageDelegate { *; }
+-keep class * implements com.pushwoosh.inapp.ui.InAppMessageDelegate { *; }

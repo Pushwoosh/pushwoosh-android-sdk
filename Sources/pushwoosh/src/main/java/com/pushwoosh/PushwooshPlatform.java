@@ -3,7 +3,6 @@ package com.pushwoosh;
 import android.app.Activity;
 
 import com.pushwoosh.appevents.PushwooshDefaultEvents;
-import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.inapp.PushwooshInAppServiceImpl;
 import com.pushwoosh.inapp.view.strategy.ResourceViewStrategyFactory;
@@ -117,7 +116,6 @@ public class PushwooshPlatform {
         richMediaController = new RichMediaController(
                 new ResourceViewStrategyFactory(),
                 new RichMediaFactory(),
-                InAppModule.getInAppFolderProvider(),
                 richMediaStyle);
 
         pushwooshDefaultEvents = new PushwooshDefaultEvents();

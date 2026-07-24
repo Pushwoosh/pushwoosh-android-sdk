@@ -71,6 +71,16 @@ public class ContextInAppFolderProvider implements InAppFolderProvider {
     }
 
     @Override
+    public File getNativeConfigFile(String code) {
+        File inAppFolder = getInAppFolder(code);
+        if (inAppFolder == null) {
+            return null;
+        }
+
+        return new File(inAppFolder, "native-config.json");
+    }
+
+    @Override
     public File getCacheDir() {
         if (context == null) {
             return null;

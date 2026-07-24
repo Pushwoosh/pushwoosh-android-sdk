@@ -26,6 +26,8 @@
 
 package com.pushwoosh.inbox.internal.action;
 
+import android.text.TextUtils;
+
 import com.pushwoosh.inbox.data.InboxMessageType;
 import com.pushwoosh.inbox.internal.data.InboxMessageInternal;
 import com.pushwoosh.inbox.notification.InboxPayloadDataProvider;
@@ -36,36 +38,38 @@ import org.json.JSONObject;
 
 public class InboxPerformActionStrategyFactory {
 
-	/**
-	 * Routes Inbox message action to appropriate strategy based on message type.
-	 * Types: PLAIN, RICH_MEDIA, URL, DEEP_LINK.
-	 */
-	public static void onActionPerformed(InboxMessageInternal inboxMessageInternal) {
-		InboxActionStrategy inboxActionStrategy;
-		InboxMessageType inboxType = InboxPayloadDataProvider.getInboxType(inboxMessageInternal.getActionParams());
+    /**
+     * Routes Inbox message action to appropriate strategy based on message type.
+     * Types: PLAIN, RICH_MEDIA, URL, DEEP_LINK.
+     */
+    public static void onActionPerformed(InboxMessageInternal inboxMessageInternal) {
+        InboxActionStrategy inboxActionStrategy;
+        InboxMessageType inboxType = InboxPayloadDataProvider.getInboxType(inboxMessageInternal.getActionParams());
 
-		switch (inboxType) {
-			case PLAIN:
-				inboxActionStrategy = new PlainActionStrategy();
-				break;
-			case RICH_MEDIA:
-				inboxActionStrategy = new RichmediaActionStrategy();
-				break;
-			case URL:
-				inboxActionStrategy = new UrlActionStrategy();
-				break;
-			case DEEP_LINK:
-				inboxActionStrategy = new DeepLinkActionStrategy();
-				break;
-			default:
-				PWLog.error("Unknown inbox message type: " + inboxMessageInternal.getInboxMessageType());
-				return;
-		}
+        switch (inboxType) {
+            case PLAIN:
+                inboxActionStrategy = new PlainActionStrategy();
+                break;
+            case RICH_MEDIA:
+                inboxActionStrategy = new RichmediaActionStrategy();
+                break;
+            case URL:
+                inboxActionStrategy = new UrlActionStrategy();
+                break;
+            case DEEP_LINK:
+                inboxActionStrategy = new DeepLinkActionStrategy();
+                break;
+            default:
+                PWLog.error("Unknown inbox message type: " + inboxMessageInternal.getInboxMessageType());
+                return;
+        }
 
-		try {
-			inboxActionStrategy.performAction(new JSONObject(inboxMessageInternal.getActionParams()));
-		} catch (JSONException e) {
-			PWLog.error("Action params is invalid for inbox: " + inboxMessageInternal.getId(), e);
-		}
-	}
+        String actionParams = inboxMessageInternal.getActionParams();
+        try {
+            JSONObject params = TextUtils.isEmpty(actionParams) ? new JSONObject() : new JSONObject(actionParams);
+            inboxActionStrategy.performAction(params);
+        } catch (JSONException e) {
+            PWLog.error("Action params is invalid for inbox: " + inboxMessageInternal.getId(), e);
+        }
+    }
 }

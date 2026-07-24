@@ -238,6 +238,19 @@
     protected *;
 }
 
+# Cross-module: pushwoosh-inapp-ui subscribes to this foreground event via EventBus.
+# Keep the outer class name (anchors the nested FQN) and the event itself so the
+# minified core AAR keeps the name the separately-built inapp-ui AAR references.
+-keep public class com.pushwoosh.internal.platform.ApplicationOpenDetector {
+    public *;
+    protected *;
+}
+
+-keep public class com.pushwoosh.internal.platform.ApplicationOpenDetector$ApplicationMovedToForegroundEvent {
+    public *;
+    protected *;
+}
+
 -keep public class com.pushwoosh.internal.event.PermissionEvent {
     public *;
     protected *;
@@ -447,3 +460,24 @@
     public <init>(android.content.Context, androidx.work.WorkerParameters);
 }
 
+
+## Native in-app
+
+# Contract implemented and invoked by :pushwoosh-inapp-ui (separately minified AAR).
+-keep public interface com.pushwoosh.inapp.nativeui.NativeInAppPresenter { *; }
+-keep public class com.pushwoosh.inapp.nativeui.NativeInAppPresenterProvider { public *; }
+# Cross the AAR boundary too: Resource travels through the presenter contract, the event
+# is constructed by the module's show analytics (NativeInAppAnalytics).
+-keep public class com.pushwoosh.inapp.network.model.Resource {
+    public *;
+    protected *;
+}
+-keep public class com.pushwoosh.inapp.view.InAppViewEvent { public *; }
+# The module's plugin subscribes to this Activity-resume event (EventBus, by class name) to
+# retry an overlay present deferred while topActivity was null.
+-keep public class com.pushwoosh.inapp.event.ActivityBroughtOnTopEvent { public *; }
+# NativeInAppAnalytics reaches both from the module: RepositoryModule.getNotificationPreferences()
+# and PushwooshPlatform.pushwooshInApp() are kept by name, but their descriptors reference these
+# classes — renamed in the published core AAR, the module's call sites die with NoSuchMethodError.
+-keep public class com.pushwoosh.repository.NotificationPrefs { public *; }
+-keep public class com.pushwoosh.inapp.PushwooshInAppImpl { public *; }

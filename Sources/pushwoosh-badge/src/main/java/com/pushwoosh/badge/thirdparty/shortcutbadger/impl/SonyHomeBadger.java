@@ -26,7 +26,6 @@
 
 package com.pushwoosh.badge.thirdparty.shortcutbadger.impl;
 
-import android.content.AsyncQueryHandler;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
@@ -35,12 +34,12 @@ import android.content.pm.ProviderInfo;
 import android.net.Uri;
 import android.os.Looper;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.pushwoosh.badge.thirdparty.shortcutbadger.Badger;
 import com.pushwoosh.badge.thirdparty.shortcutbadger.ShortcutBadgeException;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Leo Lin
@@ -60,11 +59,9 @@ public class SonyHomeBadger implements Badger {
     private static final String SONY_HOME_PROVIDER_NAME = "com.sonymobile.home.resourceprovider";
     private final Uri BADGE_CONTENT_URI = Uri.parse(PROVIDER_CONTENT_URI);
 
-    private AsyncQueryHandler mQueryHandler;
-
     @Override
-    public void executeBadge(Context context, ComponentName componentName,
-                             int badgeCount) throws ShortcutBadgeException {
+    public void executeBadge(Context context, ComponentName componentName, int badgeCount)
+            throws ShortcutBadgeException {
         if (sonyBadgeContentProviderExists(context)) {
             executeBadgeByContentProvider(context, componentName, badgeCount);
         } else {
@@ -77,8 +74,7 @@ public class SonyHomeBadger implements Badger {
         return Arrays.asList("com.sonyericsson.home", "com.sonymobile.home");
     }
 
-    private static void executeBadgeByBroadcast(Context context, ComponentName componentName,
-                                                int badgeCount) {
+    private static void executeBadgeByBroadcast(Context context, ComponentName componentName, int badgeCount) {
         Intent intent = new Intent(INTENT_ACTION);
         intent.putExtra(INTENT_EXTRA_PACKAGE_NAME, componentName.getPackageName());
         intent.putExtra(INTENT_EXTRA_ACTIVITY_NAME, componentName.getClassName());
@@ -94,37 +90,34 @@ public class SonyHomeBadger implements Badger {
      * @param componentName the componentName to use
      * @param badgeCount    the badge count
      */
-    private void executeBadgeByContentProvider(Context context, ComponentName componentName,
-                                               int badgeCount) {
+    private void executeBadgeByContentProvider(Context context, ComponentName componentName, int badgeCount) {
         if (badgeCount < 0) {
             return;
         }
 
         final ContentValues contentValues = createContentValues(badgeCount, componentName);
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            // We're in the main thread. Let's ensure the badge update happens in a background
-            // thread by using an AsyncQueryHandler and an async update.
-            if (mQueryHandler == null) {
-                mQueryHandler = new AsyncQueryHandler(
-                        context.getApplicationContext().getContentResolver()) {
-                };
-            }
-            insertBadgeAsync(contentValues);
+            // We're in the main thread. Move the badge write off it. Route through the SDK's guarded
+            // background executor, not AsyncQueryHandler: the framework worker runs resolver.insert
+            // without a try/catch, so a Sony-provider rejection there escapes uncaught and kills the
+            // app past applyCountOrThrow's guard. BackgroundExecutor catches Throwable and logs it.
+            insertBadgeAsync(context, contentValues);
         } else {
-            // Already in a background thread. Let's update the badge synchronously. Otherwise,
-            // if we use the AsyncQueryHandler, this thread may already be dead by the time the
-            // async execution finishes, which will lead to an IllegalStateException.
+            // Already in a background thread; update synchronously so applyCountOrThrow's try/catch
+            // sees any rejection.
             insertBadgeSync(context, contentValues);
         }
     }
 
     /**
-     * Asynchronously inserts the badge counter.
+     * Asynchronously inserts the badge counter on the SDK's guarded background executor, so a
+     * provider rejection is caught and logged instead of escaping uncaught to kill the app.
      *
+     * @param context       Caller context
      * @param contentValues Content values containing the badge count, package and activity names
      */
-    private void insertBadgeAsync(final ContentValues contentValues) {
-        mQueryHandler.startInsert(0, null, BADGE_CONTENT_URI, contentValues);
+    private void insertBadgeAsync(final Context context, final ContentValues contentValues) {
+        BackgroundExecutor.execute(() -> insertBadgeSync(context, contentValues));
     }
 
     /**
@@ -134,8 +127,7 @@ public class SonyHomeBadger implements Badger {
      * @param contentValues Content values containing the badge count, package and activity names
      */
     private void insertBadgeSync(final Context context, final ContentValues contentValues) {
-        context.getApplicationContext().getContentResolver()
-                .insert(BADGE_CONTENT_URI, contentValues);
+        context.getApplicationContext().getContentResolver().insert(BADGE_CONTENT_URI, contentValues);
     }
 
     /**
@@ -145,16 +137,16 @@ public class SonyHomeBadger implements Badger {
      * Also, it is not allowed to publish badges on behalf of another client, so the package and
      * activity names must belong to the process from which the insert is made.
      * To be able to insert badges, the app must have the PROVIDER_INSERT_BADGE
-     * permission in the manifest file. In case these conditions are not
-     * fulfilled, or any content values are missing, there will be an unhandled
-     * exception on the background thread.
+     * permission in the manifest file. If these conditions are not fulfilled, or any
+     * content values are missing, the provider rejects the insert: on the main thread the
+     * rejection is caught and logged by the guarded background executor; on a background
+     * thread it propagates to the caller as a ShortcutBadgeException.
      *
      * @param badgeCount    the badge count
      * @param componentName the component name from which package and class name will be extracted
      *
      */
-    private ContentValues createContentValues(final int badgeCount,
-            final ComponentName componentName) {
+    private ContentValues createContentValues(final int badgeCount, final ComponentName componentName) {
         final ContentValues contentValues = new ContentValues();
         contentValues.put(PROVIDER_COLUMNS_BADGE_COUNT, badgeCount);
         contentValues.put(PROVIDER_COLUMNS_PACKAGE_NAME, componentName.getPackageName());

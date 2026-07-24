@@ -61,6 +61,7 @@ def pushwooshModules = [
     'pushwoosh-inbox',
     'pushwoosh-inbox-ui',
     'pushwoosh-liveupdates',
+    'pushwoosh-inapp-ui',
 ]
 
 // In standalone Maven builds, exclude legacy Android Support Library pulled transitively

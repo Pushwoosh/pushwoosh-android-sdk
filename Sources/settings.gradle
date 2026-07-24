@@ -12,3 +12,4 @@ project(':amazon-stub').projectDir = new File('pushwoosh-amazon/amazon-stub')
 include ':demoapp'
 include ':pushwoosh-calls'
 include ':pushwoosh-liveupdates'
+include ':pushwoosh-inapp-ui'

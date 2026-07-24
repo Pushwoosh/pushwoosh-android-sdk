@@ -40,20 +40,28 @@ import java.io.File;
  * Checks that inApp file exists and that it is not out of a date
  */
 class InAppDeployedChecker implements ObjectChecker<Resource> {
-	private final InAppStorage inAppStorage;
-	private final InAppFolderProvider inAppFolderProvider;
+    private final InAppStorage inAppStorage;
+    private final InAppFolderProvider inAppFolderProvider;
 
-	InAppDeployedChecker(InAppStorage inAppStorage, InAppFolderProvider inAppFolderProvider) {
-		this.inAppStorage = inAppStorage;
-		this.inAppFolderProvider = inAppFolderProvider;
-	}
+    InAppDeployedChecker(InAppStorage inAppStorage, InAppFolderProvider inAppFolderProvider) {
+        this.inAppStorage = inAppStorage;
+        this.inAppFolderProvider = inAppFolderProvider;
+    }
 
-	@Override
-	@WorkerThread
-	public boolean check(@NonNull Resource check) {
-		Resource inApp = inAppStorage.getResource(check.getCode());
-		File html = inAppFolderProvider.getInAppHtmlFile(check.getCode());
+    @Override
+    @WorkerThread
+    public boolean check(@NonNull Resource check) {
+        Resource inApp = inAppStorage.getResource(check.getCode());
+        if (inApp == null || inApp.getUpdated() != check.getUpdated()) {
+            return false;
+        }
 
-		return !(inApp == null || inApp.getUpdated() != check.getUpdated() || html == null || !html.exists());
-	}
+        File html = inAppFolderProvider.getInAppHtmlFile(check.getCode());
+        if (html != null && html.exists()) {
+            return true;
+        }
+
+        File nativeConfig = inAppFolderProvider.getNativeConfigFile(check.getCode());
+        return nativeConfig != null && nativeConfig.exists();
+    }
 }

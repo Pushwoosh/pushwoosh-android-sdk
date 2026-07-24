@@ -1,0 +1,4 @@
+{
+  "displayType": "stories",
+  "stories": { "showClose": true, "loop": true, "items": [ { "duration": 3, "buttons": [] } ] }
+}

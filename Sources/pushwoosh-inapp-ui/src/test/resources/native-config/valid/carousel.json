@@ -1,0 +1,20 @@
+{
+  "displayType": "carousel",
+  "carousel": {
+    "showClose": true,
+    "items": [
+      {
+        "image": "https://example.com/card-1.jpg",
+        "title": { "text": "AMG GT R", "color": "#FFFFFFFF" },
+        "message": { "text": "585 hp biturbo V8 — just landed", "color": "#FFFFFFFF" },
+        "action": { "type": "url", "url": "pushwoosh://product/n6fx" }
+      },
+      {
+        "image": "https://example.com/card-2.jpg",
+        "title": { "text": "Alpine A110", "color": "#FFFFFFFF" },
+        "message": { "text": "Featherweight icon — limited allocation", "color": "#FFFFFFFF" },
+        "action": { "type": "url", "url": "pushwoosh://product/x6f" }
+      }
+    ]
+  }
+}

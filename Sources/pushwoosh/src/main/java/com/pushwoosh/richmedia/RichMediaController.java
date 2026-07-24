@@ -26,15 +26,12 @@
 
 package com.pushwoosh.richmedia;
 
-import static com.pushwoosh.inapp.view.strategy.model.ResourceType.IN_APP;
-
 import android.text.TextUtils;
 
 import com.pushwoosh.inapp.event.RichMediaCloseEvent;
 import com.pushwoosh.inapp.event.RichMediaErrorEvent;
 import com.pushwoosh.inapp.event.RichMediaPresentEvent;
 import com.pushwoosh.inapp.network.model.Resource;
-import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.view.strategy.ResourceViewStrategyFactory;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
 import com.pushwoosh.internal.event.EventBus;
@@ -51,18 +48,15 @@ public class RichMediaController {
     private final RichMediaFactory richMediaFactory;
 
     private volatile RichMediaPresentingDelegate delegate;
-    private final InAppFolderProvider inAppFolderProvider;
     private final RichMediaStyle richMediaStyle;
 
     public RichMediaController(
             ResourceViewStrategyFactory resourceViewStrategyFactory,
             RichMediaFactory richMediaFactory,
-            InAppFolderProvider inAppFolderProvider,
             RichMediaStyle richMediaStyle) {
         this.richMediaStyle = richMediaStyle;
         this.resourceViewStrategyFactory = resourceViewStrategyFactory;
         this.richMediaFactory = richMediaFactory;
-        this.inAppFolderProvider = inAppFolderProvider;
 
         EventBus.subscribe(RichMediaCloseEvent.class, this::onCloseRichMedia);
         EventBus.subscribe(RichMediaPresentEvent.class, this::onPresentRichMedia);
@@ -205,8 +199,6 @@ public class RichMediaController {
     }
 
     private void useDelegate(ResourceWrapper resourceWrapper) {
-        if (isCanceled(resourceWrapper)) return;
-
         try {
             boolean isWillShow = delegate.shouldPresent(buildRichMedia(resourceWrapper));
             if (isWillShow) {
@@ -215,21 +207,6 @@ public class RichMediaController {
         } catch (Exception e) {
             PWLog.error(TAG, "Error in delegate.shouldPresent()", e);
         }
-    }
-
-    private boolean isCanceled(ResourceWrapper resourceWrapper) {
-        Resource resource = resourceWrapper.getResource();
-        if (resource == null) {
-            PWLog.error(TAG, "resource is null, abort show RichMedia");
-            return true;
-        }
-        if (resourceWrapper.getResourceType() == IN_APP && !resource.isRequired()) {
-            if (!inAppFolderProvider.isInAppDownloaded(resource.getCode())) {
-                PWLog.error(TAG, "resource is not downloaded, abort show RichMedia");
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean isRemoteUrl(Resource resource) {

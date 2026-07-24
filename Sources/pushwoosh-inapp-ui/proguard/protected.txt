@@ -1,0 +1,8 @@
+# Pin obfuscated classes under the module package. Each SDK module ships as an
+# independently minified AAR; with nothing kept under the module namespace, R8 would
+# flatten these classes to the bare root package (a, b, ...) and collide with another
+# root-flattening module (pushwoosh-calls / pushwoosh-liveupdates) at demoapp merge time
+# (checkReleaseDuplicateClasses: "Duplicate class a.a").
+# InAppUiPlugin is instantiated reflectively (kept in public.txt); InAppOverlayActivity is
+# kept automatically as a manifest-declared component.
+-repackageclasses 'com.pushwoosh.inapp.ui'

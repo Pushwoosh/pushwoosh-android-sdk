@@ -33,7 +33,6 @@ import com.pushwoosh.inapp.event.RichMediaCloseEvent;
 import com.pushwoosh.inapp.event.RichMediaErrorEvent;
 import com.pushwoosh.inapp.event.RichMediaPresentEvent;
 import com.pushwoosh.inapp.network.model.Resource;
-import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.view.strategy.ResourceViewStrategyFactory;
 import com.pushwoosh.inapp.view.strategy.model.ResourceType;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
@@ -52,7 +51,6 @@ import org.robolectric.annotation.LooperMode;
 
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -78,8 +76,6 @@ public class RichMediaControllerTest {
     @Mock
     RichMediaPresentingDelegate richMediaPresentingDelegate;
     @Mock
-    InAppFolderProvider inAppFolderProvider;
-    @Mock
     RichMediaStyle richMediaStyle;
 
 
@@ -95,11 +91,9 @@ public class RichMediaControllerTest {
         when(richMediaFactory.buildRichMedia(resource)).thenReturn(richMedia);
         when(richMedia.getResourceWrapper()).thenReturn(resourceWrapper);
         when(resourceWrapper.getResource()).thenReturn(resource);
-        when(inAppFolderProvider.isInAppDownloaded(anyString())).thenReturn(true);
         richMediaController = new RichMediaController(
                 resourceViewStrategyFactory,
                 richMediaFactory,
-                inAppFolderProvider,
                 richMediaStyle);
     }
 
@@ -116,30 +110,19 @@ public class RichMediaControllerTest {
         verify(resourceViewStrategyFactory).showResource(resourceWrapper);
     }
 
+    // SDK-866 regression guard: the controller no longer gates the delegate on resource type or
+    // download state. An IN_APP resource — the case the removed isCanceled() gate used to swallow —
+    // must now reach shouldPresent(); the content is fetched lazily downstream (mapToHtmlData ->
+    // downloadIfNeeded), not gated here.
     @Test
-    public void cancelByNotDownloadNotRequiredInAppTest() {
+    public void notRequiredInAppReachesDelegateTest() {
         when(resourceWrapper.getResourceType()).thenReturn(ResourceType.IN_APP);
-        when(inAppFolderProvider.isInAppDownloaded(anyString())).thenReturn(false);
 
         richMediaController.setDelegate(richMediaPresentingDelegate);
         richMediaController.showResourceWrapper(resourceWrapper);
 
-        verify(richMediaPresentingDelegate, never()).shouldPresent(any());
-        verify(richMediaPresentingDelegate, never()).onClose(any());
-        verify(richMediaPresentingDelegate, never()).onPresent(any());
-        verify(richMediaPresentingDelegate, never()).onError(any(), any());
+        verify(richMediaPresentingDelegate).shouldPresent(any());
     }
-
-	@Test
-	public void notRequiredInAppTest() {
-		when(resourceWrapper.getResourceType()).thenReturn(ResourceType.IN_APP);
-		when(inAppFolderProvider.isInAppDownloaded(anyString())).thenReturn(true);
-
-		richMediaController.setDelegate(richMediaPresentingDelegate);
-		richMediaController.showResourceWrapper(resourceWrapper);
-
-		verify(richMediaPresentingDelegate).shouldPresent(any());
-	}
 
     @Test
     public void shouldPresentOnlyTest() {

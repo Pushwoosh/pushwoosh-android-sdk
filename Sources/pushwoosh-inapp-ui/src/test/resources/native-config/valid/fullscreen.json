@@ -1,0 +1,23 @@
+{
+  "displayType": "fullscreen",
+  "fullscreen": {
+    "showClose": true,
+    "cover": { "image": "https://example.com/hero.jpg", "background": "#1A1A1EFF" },
+    "title": { "text": "Pure Maranello", "color": "#FFFFFFFF" },
+    "message": { "text": "The prancing horse, reimagined.", "color": "#EBEBEBFF" },
+    "buttons": [
+      {
+        "text": { "text": "Reserve now", "color": "#FFFFFFFF" },
+        "background": "#0E72E5FF",
+        "border": { "color": "#0E72E5FF", "radius": 8 },
+        "action": { "type": "url", "url": "pushwoosh://sale" }
+      },
+      {
+        "text": { "text": "Not now", "color": "#FFFFFFFF" },
+        "background": "#00000000",
+        "border": { "color": "#FFFFFF99", "radius": 8 },
+        "action": { "type": "close" }
+      }
+    ]
+  }
+}

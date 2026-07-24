@@ -1,0 +1,9 @@
+{
+  "displayType": "banner",
+  "banner": {
+    "showClose": true,
+    "position": "top",
+    "background": "#4B5057FF",
+    "action": { "type": "close" }
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "displayType": "fullscreen",
+  "fullscreen": { "showClose": false, "cover": { "background": "#1A1A1EFF" }, "buttons": [] }
+}

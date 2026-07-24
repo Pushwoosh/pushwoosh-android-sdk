@@ -1,0 +1,25 @@
+{
+  "displayType": "modal",
+  "modal": {
+    "showClose": true,
+    "dimBackground": true,
+    "background": "#FFFFFFFF",
+    "image": "https://example.com/cover.jpg",
+    "title": { "text": "The GT R has landed", "color": "#4B5057FF" },
+    "message": { "text": "585 hp — now in the showroom.", "color": "#4B5057FF" },
+    "buttons": [
+      {
+        "text": { "text": "Book a test drive", "color": "#FFFFFFFF" },
+        "background": "#0E72E5FF",
+        "border": { "color": "#0E72E5FF", "radius": 12 },
+        "action": { "type": "url", "url": "pushwoosh://sale" }
+      },
+      {
+        "text": { "text": "Not now", "color": "#4B5057FF" },
+        "background": "#FFFFFFFF",
+        "border": { "color": "#4B5057FF", "radius": 12 },
+        "action": { "type": "close" }
+      }
+    ]
+  }
+}

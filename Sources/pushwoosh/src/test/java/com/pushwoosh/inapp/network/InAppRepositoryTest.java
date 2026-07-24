@@ -297,6 +297,157 @@ public class InAppRepositoryTest {
         Assert.assertNull(result.getException());
     }
 
+    // ensureResolvedAndDeployed: deployed resource short-circuits — no network, no downloader.
+    @Test
+    public void ensureResolvedAndDeployed_alreadyDeployed_fastPathWithoutNetwork() {
+        Resource resource =
+                new Resource("1", "http://example.com/inapp", null, 0L, InAppLayout.FULLSCREEN, null, true, -1);
+        when(inAppDeployedCheckerMock.check(resource)).thenReturn(true);
+
+        Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(resource);
+
+        Assert.assertTrue(result.isSuccess());
+        Assert.assertSame(resource, result.getData());
+        verify(inAppDownloaderMock, never()).downloadAndDeploy(anyList());
+        verify(requestManagerMock, never()).sendRequestSync(any());
+    }
+
+    // ensureResolvedAndDeployed: not deployed -> downloadIfNeeded path is taken.
+    @Test
+    public void ensureResolvedAndDeployed_notDeployed_downloads() {
+        Resource resource =
+                new Resource("1", "http://example.com/inapp", null, 0L, InAppLayout.FULLSCREEN, null, true, -1);
+        when(inAppDeployedCheckerMock.check(resource)).thenReturn(false);
+        when(inAppDownloaderMock.isDownloading(resource)).thenReturn(false);
+        when(inAppDownloaderMock.downloadAndDeploy(anyList()))
+                .thenReturn(DownloadResult.success(Collections.singletonList(resource)));
+
+        Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(resource);
+
+        Assert.assertTrue(result.isSuccess());
+        verify(inAppDownloaderMock).downloadAndDeploy(Collections.singletonList(resource));
+    }
+
+    // ensureResolvedAndDeployed: code-only in-app resolves the full Resource from storage.
+    @Test
+    public void ensureResolvedAndDeployed_inAppByCode_resolvesFromStorage() {
+        Result<Object, NetworkException> emptyResult = Result.fromData(Collections.emptyList());
+        when(requestManagerMock.sendRequestSync(any())).thenReturn(emptyResult);
+        inAppRepository.loadInApps(); // sets inAppLoaded=true
+
+        Resource stub = new Resource("code1", false);
+        Resource full =
+                new Resource("code1", "http://example.com/z.zip", "h", 5L, InAppLayout.FULLSCREEN, null, false, 0);
+        when(inAppStorageMock.getResource("code1")).thenReturn(full);
+        when(inAppDeployedCheckerMock.check(full)).thenReturn(true);
+
+        Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(stub);
+
+        Assert.assertTrue(result.isSuccess());
+        Assert.assertSame(full, result.getData());
+    }
+
+    // ensureResolvedAndDeployed: unknown code -> error Result, message carries the code.
+    @Test
+    public void ensureResolvedAndDeployed_missingFromStorage_returnsError() {
+        Result<Object, NetworkException> emptyResult = Result.fromData(Collections.emptyList());
+        when(requestManagerMock.sendRequestSync(any())).thenReturn(emptyResult);
+        inAppRepository.loadInApps();
+
+        when(inAppStorageMock.getResource("missing")).thenReturn(null);
+
+        Result<Resource, ResourceParseException> result =
+                inAppRepository.ensureResolvedAndDeployed(new Resource("missing", false));
+
+        Assert.assertFalse(result.isSuccess());
+        Assert.assertTrue(result.getException().getMessage().contains("missing"));
+    }
+
+    // ensureResolvedAndDeployed: storage throws during resolve -> wrapped ResourceParseException.
+    @Test
+    public void ensureResolvedAndDeployed_resolveThrows_returnsWrappedError() {
+        Result<Object, NetworkException> emptyResult = Result.fromData(Collections.emptyList());
+        when(requestManagerMock.sendRequestSync(any())).thenReturn(emptyResult);
+        inAppRepository.loadInApps();
+
+        when(inAppStorageMock.getResource("boom")).thenThrow(new RuntimeException("storage failure"));
+
+        Result<Resource, ResourceParseException> result =
+                inAppRepository.ensureResolvedAndDeployed(new Resource("boom", false));
+
+        Assert.assertFalse(result.isSuccess());
+        Assert.assertTrue(result.getException().getMessage().contains("Can't download or update"));
+    }
+
+    // ensureResolvedAndDeployed: download failure -> error Result.
+    @Test
+    public void ensureResolvedAndDeployed_downloadFails_returnsError() {
+        Resource resource =
+                new Resource("1", "http://example.com/inapp", null, 0L, InAppLayout.FULLSCREEN, null, true, -1);
+        when(inAppDeployedCheckerMock.check(resource)).thenReturn(false);
+        when(inAppDownloaderMock.isDownloading(resource)).thenReturn(false);
+        when(inAppDownloaderMock.downloadAndDeploy(anyList())).thenReturn(DownloadResult.empty());
+
+        Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(resource);
+
+        Assert.assertFalse(result.isSuccess());
+        Assert.assertTrue(result.getException().getMessage().contains("Can't download or update"));
+    }
+
+    // Verifies that a required code-only in-app arriving before getInApps finishes blocks in
+    // waitUntilObtainInApps and resolves from storage once the list is loaded.
+    // Kills L497 mutant that silences the isRequired()/waitUntilObtainInApps branch: with the mutant
+    // the stub skips the wait, is never resolved from storage and leaks downstream as a code-only stub.
+    @Test
+    public void ensureResolvedAndDeployed_requiredInAppWaitsForListAndResolves() throws Exception {
+        Resource stub = new Resource("code1", true);
+        Resource full =
+                new Resource("code1", "http://example.com/z.zip", "h", 5L, InAppLayout.FULLSCREEN, null, true, 0);
+        when(inAppStorageMock.getResource("code1")).thenReturn(full);
+        when(inAppDeployedCheckerMock.check(full)).thenReturn(true);
+        Result<Object, NetworkException> emptyResult = Result.fromData(Collections.emptyList());
+        when(requestManagerMock.sendRequestSync(any())).thenReturn(emptyResult);
+
+        Thread listLoader = new Thread(() -> {
+            try {
+                Thread.sleep(400);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            inAppRepository.loadInApps();
+        });
+        listLoader.start();
+
+        Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(stub);
+        listLoader.join();
+
+        Assert.assertTrue(result.isSuccess());
+        Assert.assertSame(full, result.getData());
+    }
+
+    // Verifies that a non-required code-only in-app does not resolve from storage while the in-app
+    // list is not loaded yet and goes straight to the download path with the stub.
+    // Kills L497 mutant that makes inAppLoaded.get() always true: the mutant enters the resolve
+    // block immediately and "successfully" resolves the baited full resource from storage.
+    @Test
+    public void ensureResolvedAndDeployed_notRequiredListNotLoaded_skipsStorageResolve() {
+        Resource stub = new Resource("code1", false);
+        Resource full =
+                new Resource("code1", "http://example.com/z.zip", "h", 5L, InAppLayout.FULLSCREEN, null, false, 0);
+        when(inAppStorageMock.getResource("code1")).thenReturn(full);
+        when(inAppDeployedCheckerMock.check(full)).thenReturn(true);
+        when(inAppDeployedCheckerMock.check(stub)).thenReturn(false);
+        when(inAppDownloaderMock.isDownloading(stub)).thenReturn(false);
+        when(inAppDownloaderMock.downloadAndDeploy(anyList())).thenReturn(DownloadResult.empty());
+
+        Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(stub);
+
+        verify(inAppStorageMock, never()).getResource(Mockito.anyString());
+        Assert.assertFalse(result.isSuccess());
+        Assert.assertTrue(result.getException().getMessage().contains("Can't download or update"));
+        verify(inAppDownloaderMock).downloadAndDeploy(anyList());
+    }
+
     // Verifies that loadInApps sets inAppLoaded flag and skips downloads when server returns empty list.
     @Test
     public void loadInApps_inAppListEmpty_setsInAppLoadedFlagAndReturnsNullData() {

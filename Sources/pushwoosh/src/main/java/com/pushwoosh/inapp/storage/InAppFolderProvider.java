@@ -32,17 +32,15 @@ import java.io.File;
 
 public interface InAppFolderProvider {
 
-	@Nullable
-	File getInAppFolder(String code);
+    @Nullable File getInAppFolder(String code);
 
-	@Nullable
-	File getConfigFile(String code);
+    @Nullable File getConfigFile(String code);
 
-	@Nullable
-	File getInAppHtmlFile(String code);
+    @Nullable File getInAppHtmlFile(String code);
 
-	@Nullable
-	File getCacheDir();
+    @Nullable File getNativeConfigFile(String code);
 
-	boolean isInAppDownloaded(String code);
+    @Nullable File getCacheDir();
+
+    boolean isInAppDownloaded(String code);
 }

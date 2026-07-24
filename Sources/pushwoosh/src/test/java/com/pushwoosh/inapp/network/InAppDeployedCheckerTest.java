@@ -30,6 +30,9 @@ public class InAppDeployedCheckerTest {
     @Mock
     private File htmlFile;
 
+    @Mock
+    private File nativeConfigFile;
+
     private AutoCloseable mocks;
 
     private InAppDeployedChecker checker;
@@ -89,5 +92,45 @@ public class InAppDeployedCheckerTest {
         when(inAppFolderProvider.getInAppHtmlFile(CODE)).thenReturn(htmlFile);
         when(htmlFile.exists()).thenReturn(false);
         assertFalse("htmlMissing", checker.check(input4));
+    }
+
+    // Native-only ZIP (no index.html) counts as deployed — the payload discriminator is
+    // file content, not resource type.
+    @Test
+    public void check_nativeConfigOnlyWithoutHtml_returnsTrue() {
+        Resource input = resource(CODE, 100L);
+        when(inAppStorage.getResource(CODE)).thenReturn(resource(CODE, 100L));
+        when(inAppFolderProvider.getInAppHtmlFile(CODE)).thenReturn(htmlFile);
+        when(htmlFile.exists()).thenReturn(false);
+        when(inAppFolderProvider.getNativeConfigFile(CODE)).thenReturn(nativeConfigFile);
+        when(nativeConfigFile.exists()).thenReturn(true);
+
+        assertTrue(checker.check(input));
+    }
+
+    // Neither payload file present -> not deployed.
+    @Test
+    public void check_noPayloadFiles_returnsFalse() {
+        Resource input = resource(CODE, 100L);
+        when(inAppStorage.getResource(CODE)).thenReturn(resource(CODE, 100L));
+        when(inAppFolderProvider.getInAppHtmlFile(CODE)).thenReturn(htmlFile);
+        when(htmlFile.exists()).thenReturn(false);
+        when(inAppFolderProvider.getNativeConfigFile(CODE)).thenReturn(nativeConfigFile);
+        when(nativeConfigFile.exists()).thenReturn(false);
+
+        assertFalse(checker.check(input));
+    }
+
+    // Stale DB record loses even when native-config.json exists on disk.
+    @Test
+    public void check_nativeConfigButUpdatedMismatch_returnsFalse() {
+        Resource input = resource(CODE, 200L);
+        when(inAppStorage.getResource(CODE)).thenReturn(resource(CODE, 100L));
+        when(inAppFolderProvider.getInAppHtmlFile(CODE)).thenReturn(htmlFile);
+        when(htmlFile.exists()).thenReturn(false);
+        when(inAppFolderProvider.getNativeConfigFile(CODE)).thenReturn(nativeConfigFile);
+        when(nativeConfigFile.exists()).thenReturn(true);
+
+        assertFalse(checker.check(input));
     }
 }

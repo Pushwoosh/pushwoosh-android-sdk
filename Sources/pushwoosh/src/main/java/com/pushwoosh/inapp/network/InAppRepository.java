@@ -481,10 +481,17 @@ public class InAppRepository {
         }
     }
 
+    /**
+     * Blocking: resolves a code-only Resource to the full one and guarantees the ZIP is
+     * downloaded and deployed. Single source of truth for both the HTML path
+     * (mapToHtmlData) and the native detect path (ResourceViewStrategyFactory).
+     */
     @WorkerThread
-    public Result<HtmlData, ResourceParseException> mapToHtmlData(Resource inapp) {
+    @NonNull public Result<Resource, ResourceParseException> ensureResolvedAndDeployed(Resource inapp) {
         PWLog.noise(
-                TAG, String.format("mapToHtmlData: code=%s, inAppListReady=%s", inapp.getCode(), inAppLoaded.get()));
+                TAG,
+                String.format(
+                        "ensureResolvedAndDeployed: code=%s, inAppListReady=%s", inapp.getCode(), inAppLoaded.get()));
         if (inapp.isNotDownload()) {
             try {
                 if (inAppLoaded.get() || (inapp.isRequired() && waitUntilObtainInApps())) {
@@ -510,11 +517,22 @@ public class InAppRepository {
             }
         }
 
+        return Result.fromData(inapp);
+    }
+
+    @WorkerThread
+    public Result<HtmlData, ResourceParseException> mapToHtmlData(Resource inapp) {
+        Result<Resource, ResourceParseException> ensured = ensureResolvedAndDeployed(inapp);
+        if (!ensured.isSuccess()) {
+            return Result.fromException(ensured.getException());
+        }
+
+        Resource resolved = ensured.getData();
         try {
-            return Result.fromData(resourceMapper.map(inapp));
+            return Result.fromData(resourceMapper.map(resolved));
         } catch (IOException e) {
             return Result.fromException(new ResourceParseException(
-                    String.format("Can't mapping resource %s to htmlData", inapp.getCode()), e));
+                    String.format("Can't mapping resource %s to htmlData", resolved.getCode()), e));
         }
     }
 

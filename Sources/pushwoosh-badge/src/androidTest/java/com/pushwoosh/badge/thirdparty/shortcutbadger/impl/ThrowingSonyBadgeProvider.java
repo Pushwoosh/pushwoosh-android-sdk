@@ -31,6 +31,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Stand-in for the real Sony home badge content provider
  * ({@code content://com.sonymobile.home.resourceprovider/badge}), which is absent on a non-Sony
@@ -48,6 +50,9 @@ public class ThrowingSonyBadgeProvider extends ContentProvider {
 
     public static final String REJECT_MARKER = "SONY_REPRO_INSERT_REJECTED";
 
+    /** Counts how many times {@code insert} was actually reached — used for non-vacuity assertions. */
+    public static final AtomicInteger INSERT_ATTEMPTS = new AtomicInteger();
+
     @Override
     public boolean onCreate() {
         return true;
@@ -55,6 +60,7 @@ public class ThrowingSonyBadgeProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
+        INSERT_ATTEMPTS.incrementAndGet();
         throw new SecurityException(REJECT_MARKER + " uri=" + uri);
     }
 

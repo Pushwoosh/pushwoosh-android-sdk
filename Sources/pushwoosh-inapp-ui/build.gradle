@@ -1,0 +1,74 @@
+ext {
+    targetArtefactIdDev = "pushwoosh-inapp-ui-dev"
+    targetArtefactId = "pushwoosh-inapp-ui"
+    targetName = "Pushwoosh InApp UI"
+    targetDescription = "Pushwoosh Native In-App Messages UI"
+}
+
+apply plugin: 'com.android.library'
+apply from: '../scripts/buildSdk/publish.gradle'
+apply from: '../scripts/prepareAar/build.gradle'
+apply from: '../scripts/quality/quality.gradle'
+
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion global_compileSdkVersion
+    namespace "com.pushwoosh.inapp.ui"
+    testNamespace "com.pushwoosh.inapp.ui.test"
+
+    defaultConfig {
+        minSdkVersion global_minSdkVersion
+        targetSdkVersion global_targetVersion
+        versionCode 1
+        versionName global_versionName
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles '../proguard-android-optimize-no-access-modification.txt', '../proguard-common.txt',
+                    'proguard/public.txt', 'proguard/protected.txt'
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlin {
+        jvmToolchain(17)
+    }
+    publishing {
+        singleVariant("release")
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    implementation libs.core.ktx
+    implementation libs.appcompat
+    implementation "com.google.android.material:material:${material}"
+    implementation "androidx.constraintlayout:constraintlayout:${constraint}"
+    implementation "androidx.viewpager2:viewpager2:1.0.0"
+    implementation "com.github.bumptech.glide:glide:${glide}"
+
+    api project(':pushwoosh')
+
+    testImplementation libs.junit
+    testImplementation 'org.robolectric:robolectric:4.14.1'
+    testImplementation "org.mockito:mockito-core:${mockito}"
+}
+
+// Dokka documentation configuration
+apply from: '../scripts/dokka-config.gradle'
+
+// Custom Javadoc generation for Maven publication
+apply from: '../scripts/buildSdk/javadoc.gradle'

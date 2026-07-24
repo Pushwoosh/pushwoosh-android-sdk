@@ -41,18 +41,19 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.pushwoosh.badge.thirdparty.shortcutbadger.ShortcutBadgeException;
 import com.pushwoosh.badge.thirdparty.shortcutbadger.ShortcutBadger;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Instrumented reproduction of crash candidate #22 (crash-sonyhomebadger-async-insert-escape).
+ * Regression guard for crash candidate #22 (crash-sonyhomebadger-async-insert-escape), inverted from
+ * its instrumented reproduction: it now asserts the fixed graceful behavior (provider rejection
+ * swallowed by the guarded background executor) instead of the pre-fix uncaught escape.
  *
  * <p><b>Why on a device, not Robolectric.</b> The escape lives in the real
  * {@code AsyncQueryHandler}: on the main thread {@code SonyHomeBadger.executeBadgeByContentProvider}
@@ -81,29 +82,40 @@ public class SonyHomeBadgerAsyncInsertEscapeCrashTest {
 
     private static void injectSonyBadger(Context ctx) throws Exception {
         ComponentName cn = new ComponentName(ctx.getPackageName(), ctx.getPackageName() + ".Dummy");
-        Field badger = ShortcutBadger.class.getDeclaredField("sShortcutBadger");
-        badger.setAccessible(true);
-        badger.set(null, new SonyHomeBadger());
-        Field comp = ShortcutBadger.class.getDeclaredField("sComponentName");
-        comp.setAccessible(true);
-        comp.set(null, cn);
+        setStatic("sShortcutBadger", new SonyHomeBadger());
+        setStatic("sComponentName", cn);
     }
 
-    private static String stackToString(Throwable t) {
-        StringWriter sw = new StringWriter();
-        t.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
+    private static void setStatic(String field, Object value) throws Exception {
+        Field f = ShortcutBadger.class.getDeclaredField(field);
+        f.setAccessible(true);
+        f.set(null, value);
     }
 
     /**
-     * Main-thread call — the async (deferred) branch. {@code applyCountOrThrow} returns WITHOUT
-     * throwing (its try/catch wraps only the synchronous {@code executeBadge}, which merely enqueued),
-     * and the {@code resolver.insert} throw escapes uncaught on the AsyncQueryWorker thread.
+     * Restore {@code ShortcutBadger}'s global lazy-init state so the injected Sony badger does not
+     * leak into any androidTest class added to this module later (applyCountOrThrow only re-selects a
+     * badger when {@code sShortcutBadger} is null).
+     */
+    @After
+    public void resetBadgerStatics() throws Exception {
+        setStatic("sShortcutBadger", null);
+        setStatic("sComponentName", null);
+    }
+
+    /**
+     * Regression guard (inverted from the pre-fix repro). Main-thread call — the deferred branch. The
+     * fix routes the write through {@code BackgroundExecutor.execute}, whose {@code catch(Throwable)}
+     * barrier swallows a provider rejection and logs it instead of letting it escape uncaught. So:
+     * {@code applyCountOrThrow} still returns without throwing, the rejecting insert IS actually reached
+     * (non-vacuity), and NO uncaught escape occurs — the opposite of the old AsyncQueryHandler path,
+     * which killed the app on the "AsyncQueryWorker" thread.
      */
     @Test
-    public void insertOnMainThread_uncaughtEscapesOnAsyncQueryWorker() throws Exception {
+    public void insertOnMainThread_providerRejectionSwallowedNotEscaped() throws Exception {
         Context ctx = ApplicationProvider.getApplicationContext();
         injectSonyBadger(ctx);
+        ThrowingSonyBadgeProvider.INSERT_ATTEMPTS.set(0);
 
         assertNotNull(
                 "Sony provider stand-in must be resolvable, else executeBadge takes the broadcast path",
@@ -111,12 +123,12 @@ public class SonyHomeBadgerAsyncInsertEscapeCrashTest {
 
         CountDownLatch escaped = new CountDownLatch(1);
         AtomicReference<Throwable> captured = new AtomicReference<>();
-        AtomicReference<String> workerThreadName = new AtomicReference<>();
+        AtomicReference<String> escapedThreadName = new AtomicReference<>();
         AtomicReference<Throwable> mainThrew = new AtomicReference<>();
 
         Thread.UncaughtExceptionHandler original = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-            workerThreadName.set(t.getName());
+            escapedThreadName.set(t.getName());
             captured.set(e);
             escaped.countDown();
         });
@@ -129,33 +141,27 @@ public class SonyHomeBadgerAsyncInsertEscapeCrashTest {
                 }
             });
 
-            boolean fired = escaped.await(10, TimeUnit.SECONDS);
+            // Non-vacuity: wait for the deferred insert to actually reach the rejecting provider on
+            // the guarded background thread. Without this, "no escape" could just mean the write never
+            // ran.
+            long deadline = System.currentTimeMillis() + 10_000;
+            while (ThrowingSonyBadgeProvider.INSERT_ATTEMPTS.get() == 0 && System.currentTimeMillis() < deadline) {
+                Thread.sleep(20);
+            }
 
             assertNull(
-                    "applyCountOrThrow on the main thread must return WITHOUT throwing: the insert is "
-                            + "deferred to the worker, so its try/catch has nothing to catch. Got: " + mainThrew.get(),
+                    "applyCountOrThrow on the main thread must return without throwing: the write is "
+                            + "deferred off the main thread. Got: " + mainThrew.get(),
                     mainThrew.get());
-            assertTrue("the deferred resolver.insert must throw uncaught on the worker thread", fired);
-
-            Throwable esc = captured.get();
-            assertNotNull(esc);
             assertTrue(
-                    "escaped throwable must be the provider's SecurityException, got: " + esc,
-                    esc instanceof SecurityException
-                            && esc.getMessage() != null
-                            && esc.getMessage().contains(ThrowingSonyBadgeProvider.REJECT_MARKER));
-            assertTrue(
-                    "must escape on the AsyncQueryHandler worker thread, not the main thread: "
-                            + workerThreadName.get(),
-                    workerThreadName.get() != null && workerThreadName.get().contains("AsyncQueryWorker"));
-
-            String stack = stackToString(esc);
-            assertTrue(
-                    "escaped stack must run through AsyncQueryHandler's un-try/catch'd handleMessage:\n" + stack,
-                    stack.contains("AsyncQueryHandler"));
+                    "the deferred insert must actually reach the rejecting provider (non-vacuous): " + "attempts="
+                            + ThrowingSonyBadgeProvider.INSERT_ATTEMPTS.get(),
+                    ThrowingSonyBadgeProvider.INSERT_ATTEMPTS.get() >= 1);
             assertFalse(
-                    "SonyHomeBadger must NOT be on the escaped stack — executeBadge already returned:\n" + stack,
-                    stack.contains("SonyHomeBadger"));
+                    "the provider rejection must be swallowed by the guarded executor, not escape "
+                            + "uncaught (the pre-fix AsyncQueryHandler crash). Escaped: " + captured.get()
+                            + " on thread " + escapedThreadName.get(),
+                    escaped.await(2, TimeUnit.SECONDS));
         } finally {
             Thread.setDefaultUncaughtExceptionHandler(original);
         }

@@ -26,7 +26,6 @@
 
 package com.pushwoosh.inbox.internal.action;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -58,8 +57,8 @@ class DeepLinkActionStrategy implements InboxActionStrategy {
         intent.setData(Uri.parse(deepLink));
         try {
             context.startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            PWLog.error("Can't find activity for deep link: " + deepLink, e);
+        } catch (Exception e) {
+            PWLog.error("Failed to start activity for deep link: " + deepLink, e);
         }
     }
 }
