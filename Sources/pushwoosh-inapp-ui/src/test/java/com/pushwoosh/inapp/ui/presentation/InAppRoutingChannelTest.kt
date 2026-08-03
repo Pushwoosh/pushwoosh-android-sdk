@@ -10,6 +10,7 @@ import com.pushwoosh.inapp.ui.model.InAppAction
 import com.pushwoosh.inapp.ui.model.InAppLayout
 import com.pushwoosh.inapp.ui.model.InAppMessage
 import com.pushwoosh.inapp.ui.model.ModalContent
+import com.pushwoosh.inapp.ui.model.SheetContent
 import com.pushwoosh.inapp.ui.model.StoriesContent
 import com.pushwoosh.inapp.ui.model.StoryItem
 import org.junit.Assert.assertEquals
@@ -47,6 +48,9 @@ class InAppRoutingChannelTest {
     private fun modal(dim: Boolean) =
         InAppLayout.Modal(ModalContent(Color.WHITE, null, null, null, true, emptyList(), dim))
 
+    private fun sheet(dim: Boolean) =
+        InAppLayout.Sheet(SheetContent(Color.WHITE, null, null, null, true, emptyList(), dim))
+
     private fun banner() =
         InAppLayout.Banner(BannerContent(BannerPosition.BOTTOM, null, null, null, Color.BLACK, InAppAction.Close, 0L, true))
 
@@ -77,6 +81,22 @@ class InAppRoutingChannelTest {
     fun blockingModalRoutesToActivity() {
         routing.present(message("m", modal(dim = true)))
         assertEquals(listOf("m"), activityIds)
+        assertEquals(emptyList<String?>(), overlayIds)
+    }
+
+    @Test
+    fun floatingSheetRoutesToOverlay() {
+        routing.present(message("fsh", sheet(dim = false)))
+        assertEquals(listOf("fsh"), overlayIds)
+        assertEquals(emptyList<String?>(), activityIds)
+    }
+
+    // Android gives dimBackground the semantics the contract describes and the modal already
+    // implements (iOS leaves the field dead — its backdrop is transparent and non-interactive).
+    @Test
+    fun dimmedSheetRoutesToActivity() {
+        routing.present(message("sh", sheet(dim = true)))
+        assertEquals(listOf("sh"), activityIds)
         assertEquals(emptyList<String?>(), overlayIds)
     }
 

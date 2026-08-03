@@ -2,9 +2,11 @@ package com.pushwoosh.inapp.ui.view
 
 import android.app.Activity
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import com.pushwoosh.inapp.ui.model.InAppAction
 import com.pushwoosh.inapp.ui.model.InAppButton
@@ -12,6 +14,7 @@ import com.pushwoosh.inapp.ui.model.InAppText
 import com.pushwoosh.inapp.ui.model.StoriesContent
 import com.pushwoosh.inapp.ui.model.StoryItem
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
@@ -178,5 +181,68 @@ class StoriesInAppViewTest {
         }
         findCloseButton(view)!!.performClick()
         assertTrue("tapping the ✕ must close the stories", closed)
+    }
+
+    // Child order once the scrim is attached: image(0), topBar(1), scrim(2), bottomBar(3).
+    private fun scrim(view: StoriesInAppView): View = view.getChildAt(2)
+
+    private fun bottomBar(view: StoriesInAppView): LinearLayout = view.getChildAt(3) as LinearLayout
+
+    private fun dp(value: Float) = InAppViewUtils.dp(activity, value)
+
+    // forceLayout: the scrim's height comes from the bottom bar's layout callback, and a plain
+    // measure/layout on an already-laid-out tree is a no-op.
+    private fun layOut(view: View, width: Int = 1080, height: Int = 1920) {
+        view.forceLayout()
+        view.measure(
+            View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+        )
+        view.layout(0, 0, width, height)
+    }
+
+    @Test
+    fun scrimSitsBetweenTheImageAndTheBottomBar() {
+        val view = showStories(storyItem())
+
+        assertTrue(
+            "stories needs the same readability band as fullscreen",
+            scrim(view).background is GradientDrawable
+        )
+        assertFalse("tap zones and CTAs must keep receiving touches", scrim(view).isClickable)
+        assertTrue("the band stays under the text it protects", view.getChildAt(3) is LinearLayout)
+    }
+
+    @Test
+    fun scrimRisesFortyFourDpAboveTheStoriesText() {
+        val view = showStories(storyItem(button("Shop", InAppAction.Url("app://sale"))))
+
+        layOut(view)
+
+        val bar = bottomBar(view)
+        assertTrue("an unlaid-out column would make this assertion meaningless", bar.height > 0)
+        assertEquals(
+            "iOS: scrim.top = bottomStack.top − 44 (PWStoriesInAppView.swift:119)",
+            bar.height - bar.paddingTop + dp(44f),
+            scrim(view).layoutParams.height
+        )
+    }
+
+    @Test
+    fun scrimFollowsTheSlideWithFewerButtons() {
+        val view = showStories(
+            storyItem(button("Shop", InAppAction.Url("app://sale")), button("Later", InAppAction.Close)),
+            storyItem()
+        )
+        layOut(view)
+        val tall = scrim(view).layoutParams.height
+
+        tapForward(view)
+        layOut(view)
+        val short = scrim(view).layoutParams.height
+
+        assertTrue("a slide without buttons has a shorter column — the band must shrink ($tall → $short)", short < tall)
+        val bar = bottomBar(view)
+        assertEquals(bar.height - bar.paddingTop + dp(44f), short)
     }
 }

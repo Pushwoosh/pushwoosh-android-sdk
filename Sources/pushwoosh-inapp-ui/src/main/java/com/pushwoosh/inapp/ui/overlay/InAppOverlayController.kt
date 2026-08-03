@@ -15,9 +15,10 @@ import com.pushwoosh.inapp.ui.model.InAppMessage
 import com.pushwoosh.inapp.ui.view.BannerInAppView
 import com.pushwoosh.inapp.ui.view.InAppTemplateView
 import com.pushwoosh.inapp.ui.view.ModalInAppView
+import com.pushwoosh.inapp.ui.view.SheetInAppView
 
 /**
- * Presents non-blocking templates (banner, floating modal) by attaching the view directly
+ * Presents non-blocking templates (banner, floating modal, floating sheet) by attaching the view directly
  * to the foreground Activity's decorView — no extra Activity, no focus theft, no overlay
  * permission. Driven by the FIFO queue through
  * [com.pushwoosh.inapp.ui.presentation.InAppOverlayChannel], so it shares the single
@@ -51,8 +52,8 @@ internal object InAppOverlayController {
      * a time across all templates), so there is no same-id guard and no eviction here.
      *
      * Returns `false` without side effects when there is no host Activity yet. Otherwise it
-     * builds the view for the layout type (banner pinned top/bottom, or centered floating
-     * modal), attaches it, and fires the present side effects in order: delegate
+     * builds the view for the layout type (banner pinned top/bottom, centered floating modal, or
+     * bottom-pinned floating sheet), attaches it, and fires the present side effects in order: delegate
      * `willPresent`, animate in, delegate `didPresent`, analytics `onShown`. A banner with a
      * positive `autoDismissMs` schedules its own dismissal.
      *
@@ -86,6 +87,15 @@ internal object InAppOverlayController {
                 view = ModalInAppView(activity, layout.content)
                 height = FrameLayout.LayoutParams.MATCH_PARENT
                 gravity = Gravity.CENTER
+            }
+            // MATCH_PARENT: the root spans the screen, so its transparent, non-clickable area
+            // passes taps to the host; the card is pinned to the bottom edge inside the view.
+            // The gravity is inert at this height and kept only for symmetry with the branches
+            // above.
+            is InAppLayout.Sheet -> {
+                view = SheetInAppView(activity, layout.content)
+                height = FrameLayout.LayoutParams.MATCH_PARENT
+                gravity = Gravity.BOTTOM
             }
             // Routing (InAppRoutingChannel.isNonBlocking) must only send layouts this when()
             // can build. A future non-blocking layout added there but not here is a contract
@@ -155,9 +165,6 @@ internal object InAppOverlayController {
             throw e
         }
 
-        if (view is BannerInAppView && view.autoDismissMs > 0) {
-            view.postDelayed({ dismiss(view, message) }, view.autoDismissMs)
-        }
         return true
     }
 

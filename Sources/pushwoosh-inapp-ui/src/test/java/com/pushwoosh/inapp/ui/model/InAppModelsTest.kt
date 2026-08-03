@@ -63,6 +63,17 @@ class InAppModelsTest {
     }
 
     @Test
+    fun collectsSheetImageUrlDroppingNullAndBlank() {
+        fun sheet(imageUrl: String?) = InAppLayout.Sheet(
+            SheetContent(Color.WHITE, null, null, imageUrl, false, emptyList(), dimsBackground = true)
+        )
+
+        assertEquals(listOf("https://a/s.png"), msg(sheet("https://a/s.png")).imageURLs())
+        assertEquals(emptyList<String>(), msg(sheet(null)).imageURLs())
+        assertEquals("a blank url is an absence, not a load", emptyList<String>(), msg(sheet("")).imageURLs())
+    }
+
+    @Test
     fun returnsEmptyWhenNoImage() {
         val modal = InAppLayout.Modal(
             ModalContent(Color.WHITE, null, null, null, false, emptyList(), dimsBackground = true)

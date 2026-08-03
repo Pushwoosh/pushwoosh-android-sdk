@@ -4,11 +4,17 @@ import android.app.Activity
 import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.pushwoosh.inapp.ui.model.InAppAction
 import com.pushwoosh.inapp.ui.model.InAppButton
 import com.pushwoosh.inapp.ui.model.InAppText
 import com.pushwoosh.inapp.ui.model.ModalContent
+import kotlin.math.abs
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
@@ -18,6 +24,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
 
 @RunWith(RobolectricTestRunner::class)
@@ -125,5 +132,73 @@ class ModalInAppViewTest {
     fun closeButtonShownWhenFlagSetDespiteButtons() {
         val view = ModalInAppView(activity, modalContent(showCloseButton = true, buttons = listOf(button())))
         assertNotNull("explicit showCloseButton=true must win even when buttons exist", findCloseButton(view))
+    }
+
+    private fun dp(value: Float) = InAppViewUtils.dp(activity, value)
+
+    private fun card(view: ModalInAppView) = view.getChildAt(view.childCount - 1) as FrameLayout
+
+    // The card carries the modal's screen margins, so the insets land on it: the ✕ and the buttons
+    // live inside and stay clear of a landscape cutout with no inset logic of their own (unlike the
+    // edge-to-edge sheet/fullscreen, whose ✕ takes the END inset itself). Same symmetric-max rule
+    // as the carousel. SDK 34, not the module's Robolectric default of 21, or the bottom/side
+    // insets reach the listener zeroed.
+    @Test
+    @Config(sdk = [34])
+    fun insetsPadTheCardAndLeaveTheCloseButtonAlone() {
+        val view = ModalInAppView(activity, modalContent(showCloseButton = true))
+        activity.setContentView(view)
+
+        ViewCompat.dispatchApplyWindowInsets(
+            view,
+            WindowInsetsCompat.Builder()
+                .setInsets(WindowInsetsCompat.Type.systemBars(), Insets.of(11, 22, 33, 44))
+                .build()
+        )
+
+        val lp = card(view).layoutParams as FrameLayout.LayoutParams
+        assertEquals(dp(28f) + 33, lp.leftMargin)
+        assertEquals(dp(28f) + 33, lp.rightMargin)
+        assertEquals(44, lp.topMargin)
+        assertEquals(44, lp.bottomMargin)
+
+        val closeLp = findCloseButton(view)!!.layoutParams as FrameLayout.LayoutParams
+        assertEquals("the ✕ rides the card and has no inset logic of its own", dp(13f), closeLp.marginEnd)
+        assertEquals(dp(13f), closeLp.topMargin)
+    }
+
+    // Margins alone are not the contract — where the card ends up is: a centered FrameLayout child
+    // is offset by the *whole* leftMargin − rightMargin, so an asymmetric inset would slide the card
+    // toward the uninset edge (its ✕ was partially inside a landscape cutout before the card took
+    // the insets at all).
+    @Test
+    @Config(sdk = [34])
+    fun cardStaysCenteredAndClearOfAOneSidedCutout() {
+        val view = ModalInAppView(activity, modalContent(showCloseButton = true))
+        activity.setContentView(view)
+        val width = 1000
+        val height = 600
+        val cutout = 120
+
+        ViewCompat.dispatchApplyWindowInsets(
+            view,
+            WindowInsetsCompat.Builder()
+                .setInsets(WindowInsetsCompat.Type.displayCutout(), Insets.of(0, 0, cutout, 0))
+                .build()
+        )
+        view.measure(
+            View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+        )
+        view.layout(0, 0, width, height)
+
+        // ±1px: FrameLayout halves the leftover space with integer division.
+        val card = card(view)
+        assertTrue(
+            "the card must stay centered horizontally, got ${card.left}..${card.right} of $width",
+            abs((width - card.right) - card.left) <= 1
+        )
+        assertTrue("its trailing edge must clear the cutout", card.right <= width - cutout)
+        assertTrue("and it must keep its own margin on the uninset edge", card.left >= dp(28f))
     }
 }

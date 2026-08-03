@@ -11,6 +11,7 @@ import com.pushwoosh.inapp.ui.model.InAppLayout
 import com.pushwoosh.inapp.ui.model.InAppMessage
 import com.pushwoosh.inapp.ui.model.InAppText
 import com.pushwoosh.inapp.ui.model.ModalContent
+import com.pushwoosh.inapp.ui.model.SheetContent
 import com.pushwoosh.inapp.ui.model.StoriesContent
 import com.pushwoosh.inapp.ui.model.StoryItem
 import com.pushwoosh.internal.utils.PWLog
@@ -62,6 +63,7 @@ object InAppConfigParser {
         "carousel" -> root.optJSONObject("carousel")?.let { parseCarousel(it) }?.let { InAppLayout.Carousel(it) }
         "fullscreen" -> root.optJSONObject("fullscreen")?.let { parseFullscreen(it) }?.let { InAppLayout.Fullscreen(it) }
         "modal" -> root.optJSONObject("modal")?.let { parseModal(it) }?.let { InAppLayout.Modal(it) }
+        "sheet" -> root.optJSONObject("sheet")?.let { parseSheet(it) }?.let { InAppLayout.Sheet(it) }
         "stories" -> root.optJSONObject("stories")?.let { parseStories(it) }?.let { InAppLayout.Stories(it) }
         else -> null
     }
@@ -140,6 +142,25 @@ object InAppConfigParser {
         val title = dict.ifPresent("title") { parseText(it.optJSONObject("title")) ?: return null }
         val message = dict.ifPresent("message") { parseText(it.optJSONObject("message")) ?: return null }
         return ModalContent(
+            backgroundColor = background,
+            title = title,
+            message = message,
+            imageUrl = image,
+            showCloseButton = showClose,
+            buttons = buttons,
+            dimsBackground = dim
+        )
+    }
+
+    private fun parseSheet(dict: JSONObject): SheetContent? {
+        val showClose = dict.strictBool("showClose") ?: return null
+        val dim = dict.strictBool("dimBackground") ?: return null
+        val background = dict.color("background") ?: return null
+        val buttons = parseButtons(dict) ?: return null
+        val image = dict.ifPresent("image") { it.strictString("image") ?: return null }
+        val title = dict.ifPresent("title") { parseText(it.optJSONObject("title")) ?: return null }
+        val message = dict.ifPresent("message") { parseText(it.optJSONObject("message")) ?: return null }
+        return SheetContent(
             backgroundColor = background,
             title = title,
             message = message,

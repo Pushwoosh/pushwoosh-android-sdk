@@ -14,6 +14,7 @@ internal object InAppViewFactory {
     ): InAppTemplateView? {
         val view: InAppTemplateView = when (layout) {
             is InAppLayout.Modal -> ModalInAppView(context, layout.content)
+            is InAppLayout.Sheet -> SheetInAppView(context, layout.content)
             is InAppLayout.Fullscreen -> FullscreenInAppView(context, layout.content)
             is InAppLayout.Carousel -> CarouselInAppView(context, layout.content)
             is InAppLayout.Stories -> StoriesInAppView(context, layout.content)

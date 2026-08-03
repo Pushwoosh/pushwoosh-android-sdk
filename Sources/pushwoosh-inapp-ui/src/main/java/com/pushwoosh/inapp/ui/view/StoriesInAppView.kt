@@ -62,6 +62,8 @@ internal class StoriesInAppView(context: Context, private val content: StoriesCo
         bottomBar.addView(titleView)
         bottomBar.addView(subtitleView)
         addView(bottomBar, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM))
+        // 44dp is this template's iOS constant (PWStoriesInAppView.swift:119).
+        InAppViewUtils.attachBottomScrim(bottomBar, 44f)
 
         if (content.showCloseButton) {
             // Row under the progress bar: the ✕ is positioned by the bar (iOS anchor) and the

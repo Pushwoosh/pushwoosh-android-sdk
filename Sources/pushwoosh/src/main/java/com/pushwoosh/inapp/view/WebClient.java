@@ -161,7 +161,11 @@ public class WebClient extends WebViewClient implements JsCallback {
     @Override
     public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
         super.onReceivedError(view, request, error);
-        PWLog.error(TAG, String.format("onReceivedError(request: %s, error: %s)", request, error));
+        PWLog.error(
+                TAG,
+                String.format(
+                        "onReceivedError(url: %s, code: %d, description: %s)",
+                        request.getUrl(), error.getErrorCode(), error.getDescription()));
     }
 
     @SuppressWarnings("deprecation")

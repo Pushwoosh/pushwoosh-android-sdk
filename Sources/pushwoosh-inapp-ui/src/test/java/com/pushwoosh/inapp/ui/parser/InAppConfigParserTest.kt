@@ -70,6 +70,49 @@ class InAppConfigParserTest {
     }
 
     @Test
+    fun parsesSheet() {
+        val json = """
+            {"displayType":"sheet","inAppId":"quote","sheet":{
+              "showClose":true,"dimBackground":false,"background":"#FFFFFFFF",
+              "image":"https://x/cover.png",
+              "title":{"text":"Your quote is ready","color":"#000000FF"},
+              "message":{"text":"Guaranteed buyout","color":"#111111FF"},
+              "buttons":[{
+                "text":{"text":"Open","color":"#FFFFFFFF"},
+                "background":"#0E72E5FF",
+                "border":{"color":"#0E72E5FF","radius":12},
+                "action":{"type":"url","url":"app://q"}
+              }]}}
+        """.trimIndent()
+        val msg = InAppConfigParser.parse(json)
+        assertNotNull(msg)
+        assertEquals("quote", msg!!.id)
+        val sheet = msg.layout as InAppLayout.Sheet
+        assertEquals("https://x/cover.png", sheet.content.imageUrl)
+        assertEquals("Your quote is ready", sheet.content.title?.text)
+        assertEquals("Guaranteed buyout", sheet.content.message?.text)
+        assertEquals(0xFFFFFFFF.toInt(), sheet.content.backgroundColor)
+        assertTrue(sheet.content.showCloseButton)
+        assertFalse("dimBackground reaches the model — it picks the transport", sheet.content.dimsBackground)
+        assertEquals(1, sheet.content.buttons.size)
+        assertEquals(InAppAction.Url("app://q"), sheet.content.buttons[0].action)
+    }
+
+    @Test
+    fun rejectsSheetMissingRequiredFields() {
+        assertNull("showClose is required", InAppConfigParser.parse(
+            """{"displayType":"sheet","sheet":{"dimBackground":true,"background":"#FFFFFFFF","buttons":[]}}"""))
+        assertNull("dimBackground is required", InAppConfigParser.parse(
+            """{"displayType":"sheet","sheet":{"showClose":true,"background":"#FFFFFFFF","buttons":[]}}"""))
+        assertNull("background is required", InAppConfigParser.parse(
+            """{"displayType":"sheet","sheet":{"showClose":true,"dimBackground":true,"buttons":[]}}"""))
+        assertNull("buttons is required (may be empty)", InAppConfigParser.parse(
+            """{"displayType":"sheet","sheet":{"showClose":true,"dimBackground":true,"background":"#FFFFFFFF"}}"""))
+        assertNull("no string coercion for showClose", InAppConfigParser.parse(
+            """{"displayType":"sheet","sheet":{"showClose":"true","dimBackground":true,"background":"#FFFFFFFF","buttons":[]}}"""))
+    }
+
+    @Test
     fun parsesBannerPositionAndAction() {
         val banner = InAppConfigParser.parse("""
             {"displayType":"banner","banner":{

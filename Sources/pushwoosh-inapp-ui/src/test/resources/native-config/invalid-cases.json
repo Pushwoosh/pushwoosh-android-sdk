@@ -43,5 +43,11 @@
   { "base": "modal.json", "op": "set", "path": "modal.image", "value": 123, "reason": "present optional modal image must be a string" },
   { "base": "carousel.json", "op": "delete", "path": "carousel.items.0.message.color", "reason": "present optional message missing color fails closed" },
   { "base": "fullscreen.json", "op": "delete", "path": "fullscreen.title.text", "reason": "present optional fullscreen title missing text fails closed" },
-  { "base": "stories.json", "op": "delete", "path": "stories.items.0.message.color", "reason": "present optional story message missing color fails closed" }
+  { "base": "stories.json", "op": "delete", "path": "stories.items.0.message.color", "reason": "present optional story message missing color fails closed" },
+  { "base": "sheet.json", "op": "delete", "path": "sheet.showClose", "reason": "sheet.showClose required" },
+  { "base": "sheet.json", "op": "set", "path": "sheet.showClose", "value": "true", "reason": "sheet showClose no string coercion" },
+  { "base": "sheet.json", "op": "delete", "path": "sheet.dimBackground", "reason": "sheet.dimBackground required" },
+  { "base": "sheet.json", "op": "delete", "path": "sheet.background", "reason": "sheet.background required" },
+  { "base": "sheet.json", "op": "delete", "path": "sheet.buttons", "reason": "sheet.buttons required (may be empty)" },
+  { "base": "sheet.json", "op": "set", "path": "sheet.image", "value": 123, "reason": "present optional sheet image must be a string" }
 ]

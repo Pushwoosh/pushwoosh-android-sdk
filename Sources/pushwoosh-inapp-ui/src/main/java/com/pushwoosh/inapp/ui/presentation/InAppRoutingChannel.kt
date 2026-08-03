@@ -6,7 +6,7 @@ import com.pushwoosh.inapp.ui.model.InAppMessage
 /**
  * The queue's single [InAppPresentationChannel]: it keeps the queue UI-free by dispatching
  * each claimed message to the mechanism its layout needs. Non-blocking templates (banner,
- * floating modal) go to the decorView overlay; every blocking template goes to the shared
+ * floating modal, floating sheet) go to the decorView overlay; every blocking template goes to the shared
  * Activity. The blocking/non-blocking decision ([isNonBlocking]) lives here, not in
  * `PushwooshInAppUi`, because it is a presentation concern.
  */
@@ -26,6 +26,7 @@ internal class InAppRoutingChannel(
     private fun isNonBlocking(message: InAppMessage): Boolean = when (val layout = message.layout) {
         is InAppLayout.Banner -> true
         is InAppLayout.Modal -> !layout.content.dimsBackground
+        is InAppLayout.Sheet -> !layout.content.dimsBackground
         else -> false
     }
 }

@@ -31,6 +31,8 @@ internal class FullscreenInAppView(context: Context, content: FullscreenContent)
             setPadding(basePad, basePad, basePad, basePad)
         }
         addView(column, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM))
+        // 48dp is this template's iOS constant (PWFullscreenInAppView.swift:86).
+        InAppViewUtils.attachBottomScrim(column, 48f)
 
         content.title?.let {
             column.addView(InAppViewUtils.makeText(context, it.text, it.color, 26f, true), columnLp())
@@ -60,13 +62,8 @@ internal class FullscreenInAppView(context: Context, content: FullscreenContent)
     override fun onInsetsApplied(insets: Insets) {
         column.setPadding(basePad + insets.left, basePad, basePad + insets.right, basePad + insets.bottom)
         closeButton?.let {
-            // marginEnd is logical while Insets are physical: in RTL the END edge is insets.left.
-            val endInset = if (layoutDirection == View.LAYOUT_DIRECTION_RTL) insets.left else insets.right
-            (it.layoutParams as LayoutParams).apply {
-                topMargin = closeTopMargin + insets.top
-                marginEnd = closeEndMargin + endInset
-            }
-            it.requestLayout()
+            // The screen is the card here, so the ✕ pays the status bar as well as the END edge.
+            InAppViewUtils.applyCloseButtonInsets(it, layoutDirection, insets, closeTopMargin + insets.top, closeEndMargin)
         }
     }
 

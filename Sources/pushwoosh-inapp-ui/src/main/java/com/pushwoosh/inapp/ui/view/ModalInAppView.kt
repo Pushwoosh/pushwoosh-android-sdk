@@ -9,6 +9,7 @@ import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.core.graphics.Insets
 import com.pushwoosh.inapp.ui.animation.InAppAnimations
 import com.pushwoosh.inapp.ui.animation.ReduceMotionUtil
 import com.pushwoosh.inapp.ui.image.InAppImageLoader
@@ -19,6 +20,7 @@ import com.pushwoosh.inapp.ui.model.ModalContent
 internal class ModalInAppView(context: Context, content: ModalContent) : InAppTemplateView(context) {
 
     private val card: FrameLayout
+    private val cardMargin = dp(28f)
     private val reduceMotion = ReduceMotionUtil.isReduceMotionEnabled(context)
 
     init {
@@ -40,9 +42,8 @@ internal class ModalInAppView(context: Context, content: ModalContent) : InAppTe
             isClickable = true
         }
         addView(card, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER).apply {
-            val m = dp(28f)
-            leftMargin = m
-            rightMargin = m
+            leftMargin = cardMargin
+            rightMargin = cardMargin
         })
 
         // iOS media geometry: the image sits 14dp from the card edge (text keeps 20dp) and has
@@ -104,6 +105,23 @@ internal class ModalInAppView(context: Context, content: ModalContent) : InAppTe
                     marginEnd = dp(13f)
                 })
         }
+    }
+
+    override fun onInsetsApplied(insets: Insets) {
+        // Insets land on the card: the ✕ and the buttons live inside it and stay clear of a
+        // landscape cutout with no inset logic of their own. The bigger inset of each axis goes on
+        // both sides — a centered FrameLayout child is offset by the *whole* leftMargin − rightMargin
+        // (see CarouselInAppView.onInsetsApplied), so asymmetric margins would shift the card toward
+        // the uninset edge instead of insetting it.
+        val horizontal = cardMargin + maxOf(insets.left, insets.right)
+        val vertical = maxOf(insets.top, insets.bottom)
+        (card.layoutParams as LayoutParams).apply {
+            leftMargin = horizontal
+            rightMargin = horizontal
+            topMargin = vertical
+            bottomMargin = vertical
+        }
+        card.requestLayout()
     }
 
     private fun dp(value: Float) = InAppViewUtils.dp(context, value)

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import com.pushwoosh.PushwooshPlatform
 import com.pushwoosh.inapp.PushwooshInAppImpl
 import com.pushwoosh.inapp.event.RichMediaCloseEvent
@@ -19,10 +20,13 @@ import com.pushwoosh.inapp.ui.model.InAppAction
 import com.pushwoosh.inapp.ui.model.InAppLayout
 import com.pushwoosh.inapp.ui.model.InAppMessage
 import com.pushwoosh.inapp.ui.model.InAppText
+import com.pushwoosh.inapp.ui.model.SheetContent
 import com.pushwoosh.inapp.ui.view.InAppTemplateView
+import com.pushwoosh.inapp.ui.view.SheetInAppView
 import com.pushwoosh.internal.event.EventBus
 import com.pushwoosh.internal.platform.AndroidPlatformModule
 import com.pushwoosh.internal.utils.BackgroundExecutor
+import java.util.concurrent.TimeUnit
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -83,16 +87,65 @@ class InAppOverlayControllerTest {
         NativeInAppAnalytics.reset()
     }
 
-    private fun banner(id: String, rawJson: String = """{"displayType":"banner","id":"$id"}""") = InAppMessage(
+    private fun banner(
+        id: String,
+        rawJson: String = """{"displayType":"banner","id":"$id"}""",
+        autoDismissMs: Long = 0L
+    ) = InAppMessage(
         id,
         InAppLayout.Banner(
-            BannerContent(BannerPosition.BOTTOM, null, InAppText(id, Color.WHITE), null, Color.BLACK, InAppAction.Close, 0L, true)
+            BannerContent(
+                BannerPosition.BOTTOM, null, InAppText(id, Color.WHITE), null,
+                Color.BLACK, InAppAction.Close, autoDismissMs, true
+            )
         ),
         null,
         null,
         null,
         rawJson
     )
+
+    private fun sheet(id: String) = InAppMessage(
+        id,
+        InAppLayout.Sheet(
+            SheetContent(Color.WHITE, InAppText(id, Color.BLACK), null, null, true, emptyList(), dimsBackground = false)
+        ),
+        null,
+        null,
+        null,
+        """{"displayType":"sheet","id":"$id"}"""
+    )
+
+    /// Routing sends a floating sheet here, so show() must be able to build it: the branch is in
+    /// manual lockstep with InAppRoutingChannel.isNonBlocking, and a layout routed but not built
+    /// throws instead of returning a retryable false. The height is what carries the behaviour:
+    /// MATCH_PARENT spans the root over the whole screen, so its transparent, non-clickable area
+    /// passes taps to the host. Pinning the card to the bottom edge is the view's own business
+    /// (SheetInAppViewTest covers it) — the root's gravity is inert at this height.
+    @Test
+    fun floatingSheetSpansTheDecorView() {
+        assertTrue(InAppOverlayController.show(sheet("sheet"), {}))
+
+        val root = activity.window.decorView as ViewGroup
+        val overlay = root.getChildAt(root.childCount - 1)
+        assertTrue("a floating sheet must be built as SheetInAppView", overlay is SheetInAppView)
+        val lp = overlay.layoutParams as FrameLayout.LayoutParams
+        assertEquals(FrameLayout.LayoutParams.MATCH_PARENT, lp.height)
+    }
+
+    /// B1 end-to-end guard for the move: the controller schedules nothing itself, the shown banner
+    /// arms its own timer from the entrance animation — so an elapsed autoDismiss must still take
+    /// the overlay off screen. Deleting the controller branch without the view-side timer (or the
+    /// other way round) fails right here.
+    @Test
+    fun shownBannerClosesItselfWhenAutoDismissElapses() {
+        assertTrue(InAppOverlayController.show(banner("auto", autoDismissMs = 1000L), {}))
+        assertTrue(InAppOverlayController.isActive)
+
+        Robolectric.getForegroundThreadScheduler().advanceBy(1500, TimeUnit.MILLISECONDS)
+
+        assertFalse("an elapsed autoDismiss must dismiss the overlay", InAppOverlayController.isActive)
+    }
 
     /// A host-Activity death (view detached without a dismiss) reports the dismissal to the queue:
     /// the queue — the single source — fires didClose exactly once (the show was confirmed) and

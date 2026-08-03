@@ -41,14 +41,18 @@ internal object InAppAnimations {
         animator.setListener(endListener(onEnd)).start()
     }
 
-    fun slideIn(view: View, fromTranslationY: Float, reduceMotion: Boolean) {
+    /** [onEnd] fires when the entrance finishes and — by the `withEndAction` contract — **not**
+     *  when the animation is cancelled. The banner arms its autoDismiss timer there, so a
+     *  cancelled entrance (✕ tapped mid-slide) leaves no pending close behind; that is why this is
+     *  `withEndAction` and not `setListener`, whose onAnimationEnd also runs on cancel. */
+    fun slideIn(view: View, fromTranslationY: Float, reduceMotion: Boolean, onEnd: () -> Unit) {
         view.alpha = 0f
         if (reduceMotion) {
-            view.animate().alpha(1f).setDuration(IN_MS).start()
+            view.animate().alpha(1f).setDuration(IN_MS).withEndAction { onEnd() }.start()
             return
         }
         view.translationY = fromTranslationY
-        view.animate().alpha(1f).translationY(0f).setDuration(IN_MS).start()
+        view.animate().alpha(1f).translationY(0f).setDuration(IN_MS).withEndAction { onEnd() }.start()
     }
 
     fun slideOut(view: View, toTranslationY: Float, reduceMotion: Boolean, onEnd: () -> Unit) {

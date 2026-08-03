@@ -12,6 +12,7 @@ import androidx.annotation.ColorInt
  */
 sealed class InAppLayout {
     data class Modal(val content: ModalContent) : InAppLayout()
+    data class Sheet(val content: SheetContent) : InAppLayout()
     data class Carousel(val content: CarouselContent) : InAppLayout()
     data class Stories(val content: StoriesContent) : InAppLayout()
     data class Banner(val content: BannerContent) : InAppLayout()
@@ -54,6 +55,21 @@ data class InAppButton(
 )
 
 data class ModalContent(
+    @ColorInt val backgroundColor: Int,
+    val title: InAppText?,
+    val message: InAppText?,
+    val imageUrl: String?,
+    val showCloseButton: Boolean,
+    val buttons: List<InAppButton>,
+    /** `true` dims + blocks the host until dismissed; `false` floats a non-blocking card. */
+    val dimsBackground: Boolean
+)
+
+/**
+ * Same field-for-field shape as [ModalContent]: the contract's `sheet` and `modal` blocks differ
+ * only in how the card is laid out (bottom-pinned with a grabber vs. centered).
+ */
+data class SheetContent(
     @ColorInt val backgroundColor: Int,
     val title: InAppText?,
     val message: InAppText?,
@@ -124,6 +140,7 @@ data class FullscreenContent(
  */
 fun InAppMessage.imageURLs(): List<String> = when (val layout = layout) {
     is InAppLayout.Modal -> listOfNotNull(layout.content.imageUrl)
+    is InAppLayout.Sheet -> listOfNotNull(layout.content.imageUrl)
     is InAppLayout.Carousel -> layout.content.items.mapNotNull { it.imageUrl }
     is InAppLayout.Stories -> layout.content.items.mapNotNull { it.imageUrl }
     is InAppLayout.Banner -> listOfNotNull(layout.content.imageUrl)

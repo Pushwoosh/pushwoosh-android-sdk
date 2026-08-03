@@ -18,6 +18,7 @@ import com.pushwoosh.inapp.InAppManager;
 import com.pushwoosh.inapp.ui.PushwooshInAppUi;
 import com.pushwoosh.tags.TagsBundle;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -220,13 +221,16 @@ public class HomeFragment extends Fragment {
          * Demonstrates the native in-app UI module (pushwoosh-inapp-ui).
          *
          * Use case: preview each native in-app layout locally via PushwooshInAppUi.present(),
-         * feeding a raw config JSON — the same shape a push carries in its `u` custom data —
+         * feeding a config map — the same shape a push carries in its `u` custom data —
          * without a server round-trip. See InAppPresets for the configs.
          */
         binding.buttonInAppBanner.setOnClickListener(v -> presentInApp("Banner", InAppPresets.BANNER));
         binding.buttonInAppModal.setOnClickListener(v -> presentInApp("Modal", InAppPresets.MODAL));
         binding.buttonInAppModalFloating.setOnClickListener(
                 v -> presentInApp("Modal (floating)", InAppPresets.MODAL_FLOATING));
+        binding.buttonInAppSheet.setOnClickListener(v -> presentInApp("Sheet", InAppPresets.SHEET));
+        binding.buttonInAppSheetFloating.setOnClickListener(
+                v -> presentInApp("Sheet (floating)", InAppPresets.SHEET_FLOATING));
         binding.buttonInAppFullscreen.setOnClickListener(v -> presentInApp("Fullscreen", InAppPresets.FULLSCREEN));
         binding.buttonInAppCarousel.setOnClickListener(v -> presentInApp("Carousel", InAppPresets.CAROUSEL));
         binding.buttonInAppStories.setOnClickListener(v -> presentInApp("Stories", InAppPresets.STORIES));
@@ -234,8 +238,8 @@ public class HomeFragment extends Fragment {
         return root;
     }
 
-    private void presentInApp(String label, String configJson) {
-        PushwooshInAppUi.present(configJson);
+    private void presentInApp(String label, Map<String, ?> config) {
+        PushwooshInAppUi.present(config);
         showSnackbar("Presenting: " + label);
     }
 

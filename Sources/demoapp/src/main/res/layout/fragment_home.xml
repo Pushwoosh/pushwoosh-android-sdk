@@ -400,6 +400,22 @@
                     android:layout_marginBottom="8dp" />
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonInAppSheet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Sheet"
+                    style="@style/Widget.Demoapp.Button.Outlined"
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonInAppSheetFloating"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Sheet (floating)"
+                    style="@style/Widget.Demoapp.Button.Outlined"
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonInAppFullscreen"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
