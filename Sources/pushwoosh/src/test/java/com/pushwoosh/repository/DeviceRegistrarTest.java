@@ -68,7 +68,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
@@ -80,11 +82,13 @@ public class DeviceRegistrarTest {
     public static final PushwooshException EXCEPTION = new NetworkException(TEST_EXCEPTION);
     private PlatformTestManager platformTestManager;
     Subscription<RegistrationSuccessEvent> subscribe;
+
     @Mock
     private RequestManager requestManager;
 
     @Captor
     ArgumentCaptor<PushRequest> pushRequestArgumentCaptor;
+
     @Captor
     ArgumentCaptor<Callback> callbackArgumentCaptor;
 
@@ -105,43 +109,48 @@ public class DeviceRegistrarTest {
     @After
     public void tearDown() throws Exception {
         platformTestManager.tearDown();
-        if (subscribe != null)
-            subscribe.unsubscribe();
+        if (subscribe != null) subscribe.unsubscribe();
     }
 
     @Test
     public void registerWithServer() throws JSONException {
-        DeviceRegistrar.registerWithServer(TEST_ID, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
-            if (result.isSuccess()) {
-                registrationPrefs.registeredOnServer().set(true);
+        deviceRegistrar.registerWithServer(
+                TEST_ID, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
+                    if (result.isSuccess()) {
+                        registrationPrefs.registeredOnServer().set(true);
 
-                EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(TEST_ID, areNotificationsEnabled())));
-                registrationPrefs.lastPushRegistration().set(new Date().getTime());
-                PWLog.info(TAG, "Registered for push notifications: " + TEST_ID);
-            } else {
-                String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
-                if (TextUtils.isEmpty(errorDescription)) {
-                    errorDescription = "Pushwoosh registration error";
-                }
+                        EventBus.sendEvent(new RegistrationSuccessEvent(
+                                new RegisterForPushNotificationsResultData(TEST_ID, areNotificationsEnabled())));
+                        registrationPrefs.lastPushRegistration().set(new Date().getTime());
+                        PWLog.info(TAG, "Registered for push notifications: " + TEST_ID);
+                    } else {
+                        String errorDescription = result.getException() == null
+                                ? ""
+                                : result.getException().getMessage();
+                        if (TextUtils.isEmpty(errorDescription)) {
+                            errorDescription = "Pushwoosh registration error";
+                        }
 
-                PWLog.error(TAG, "Registration error: " + errorDescription);
-                EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
-            }
-        });
+                        PWLog.error(TAG, "Registration error: " + errorDescription);
+                        EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
+                    }
+                });
 
         checkNormalReg();
     }
 
     private void checkNormalReg() {
         subscribe = EventBus.subscribe(RegistrationSuccessEvent.class, event -> {
-            RegisterForPushNotificationsResultData resultData = (RegisterForPushNotificationsResultData) event.getData();
+            RegisterForPushNotificationsResultData resultData =
+                    (RegisterForPushNotificationsResultData) event.getData();
             Assert.assertEquals(TEST_ID, resultData.getToken());
         });
 
         verify(requestManager).sendRequest(pushRequestArgumentCaptor.capture(), callbackArgumentCaptor.capture());
         callbackArgumentCaptor.getValue().process(Result.fromData(null));
 
-        Assert.assertEquals("registerDevice", pushRequestArgumentCaptor.getValue().getMethod());
+        Assert.assertEquals(
+                "registerDevice", pushRequestArgumentCaptor.getValue().getMethod());
 
         Assert.assertEquals(true, registrationPrefs.registeredOnServer().get());
 
@@ -151,34 +160,38 @@ public class DeviceRegistrarTest {
 
     @Test
     public void registerWithServerError() {
-        DeviceRegistrar.registerWithServer(TEST_ID,null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
-            if (result.isSuccess()) {
-                registrationPrefs.registeredOnServer().set(true);
+        deviceRegistrar.registerWithServer(
+                TEST_ID, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
+                    if (result.isSuccess()) {
+                        registrationPrefs.registeredOnServer().set(true);
 
-                EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(TEST_ID, areNotificationsEnabled())));
-                registrationPrefs.lastPushRegistration().set(new Date().getTime());
-                PWLog.info(TAG, "Registered for push notifications: " + TEST_ID);
-            } else {
-                String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
-                if (TextUtils.isEmpty(errorDescription)) {
-                    errorDescription = "Pushwoosh registration error";
-                }
+                        EventBus.sendEvent(new RegistrationSuccessEvent(
+                                new RegisterForPushNotificationsResultData(TEST_ID, areNotificationsEnabled())));
+                        registrationPrefs.lastPushRegistration().set(new Date().getTime());
+                        PWLog.info(TAG, "Registered for push notifications: " + TEST_ID);
+                    } else {
+                        String errorDescription = result.getException() == null
+                                ? ""
+                                : result.getException().getMessage();
+                        if (TextUtils.isEmpty(errorDescription)) {
+                            errorDescription = "Pushwoosh registration error";
+                        }
 
-                PWLog.error(TAG, "Registration error: " + errorDescription);
-                EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
-            }
-        });
+                        PWLog.error(TAG, "Registration error: " + errorDescription);
+                        EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
+                    }
+                });
         registrationPrefs.lastPushRegistration().set(1000L);
 
         checkFeilReg();
-
     }
 
     private void checkFeilReg() {
-        Subscription<RegistrationErrorEvent> subscribe =
-                EventBus.subscribe(RegistrationErrorEvent.class, event -> Assert.assertEquals(TEST_EXCEPTION, event.getData()));
+        Subscription<RegistrationErrorEvent> subscribe = EventBus.subscribe(
+                RegistrationErrorEvent.class, event -> Assert.assertEquals(TEST_EXCEPTION, event.getData()));
         verify(requestManager).sendRequest(pushRequestArgumentCaptor.capture(), callbackArgumentCaptor.capture());
-        Assert.assertEquals("registerDevice", pushRequestArgumentCaptor.getValue().getMethod());
+        Assert.assertEquals(
+                "registerDevice", pushRequestArgumentCaptor.getValue().getMethod());
         callbackArgumentCaptor.getValue().process(Result.fromException(EXCEPTION));
         subscribe.unsubscribe();
     }
@@ -187,10 +200,11 @@ public class DeviceRegistrarTest {
     public void unregisterWithServer() {
         unregisterServerStart();
 
-        Subscription<DeregistrationSuccessEvent> subscribe =
-                EventBus.subscribe(DeregistrationSuccessEvent.class, event -> Assert.assertEquals(TEST_ID, event.getData()));
+        Subscription<DeregistrationSuccessEvent> subscribe = EventBus.subscribe(
+                DeregistrationSuccessEvent.class, event -> Assert.assertEquals(TEST_ID, event.getData()));
 
-        verify(requestManager).sendRequest(pushRequestArgumentCaptor.capture(), eq(URL), callbackArgumentCaptor.capture());
+        verify(requestManager)
+                .sendRequest(pushRequestArgumentCaptor.capture(), eq(URL), callbackArgumentCaptor.capture());
         callbackArgumentCaptor.getValue().process(Result.fromData(0));
 
         checkOftenResult();
@@ -199,33 +213,33 @@ public class DeviceRegistrarTest {
     }
 
     private void checkOftenResult() {
-        Assert.assertEquals(false, registrationPrefs.registeredOnServer().get());
-        Assert.assertEquals("unregisterDevice", pushRequestArgumentCaptor.getValue().getMethod());
+        Assert.assertEquals(true, registrationPrefs.registeredOnServer().get());
+        Assert.assertEquals(
+                "unregisterDevice", pushRequestArgumentCaptor.getValue().getMethod());
     }
 
     private void unregisterServerStart() {
         registrationPrefs.registeredOnServer().set(true);
         registrationPrefs.lastPushRegistration().set(1000L);
 
-        DeviceRegistrar.unregisterWithServer(TEST_ID, URL);
+        deviceRegistrar.unregisterWithServer(TEST_ID, URL, "APP_CODE");
     }
-
 
     @Test
     public void unregisterWithServerError() {
         unregisterServerStart();
 
-        Subscription<DeregistrationErrorEvent> subscribe =
-                EventBus.subscribe(DeregistrationErrorEvent.class, event -> Assert.assertEquals(TEST_EXCEPTION, event.getData()));
+        Subscription<DeregistrationErrorEvent> subscribe = EventBus.subscribe(
+                DeregistrationErrorEvent.class, event -> Assert.assertEquals(TEST_EXCEPTION, event.getData()));
 
-        verify(requestManager).sendRequest(pushRequestArgumentCaptor.capture(), eq(URL), callbackArgumentCaptor.capture());
+        verify(requestManager)
+                .sendRequest(pushRequestArgumentCaptor.capture(), eq(URL), callbackArgumentCaptor.capture());
         callbackArgumentCaptor.getValue().process(Result.fromException(EXCEPTION));
 
         checkOftenResult();
         Assert.assertEquals(1000L, registrationPrefs.lastPushRegistration().get());
         subscribe.unsubscribe();
     }
-
 
     @Test
     public void updateRegistration() {
@@ -260,55 +274,106 @@ public class DeviceRegistrarTest {
     // Verifies that registerWithServerWithRetries sends a registerDevice request via RequestManager.
     @Test
     public void registerWithServerWithRetriesSendsRequest() {
-        DeviceRegistrar.registerWithServerWithRetries(
+        deviceRegistrar.registerWithServerWithRetries(
                 TEST_ID, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {});
 
         verify(requestManager).sendRequest(pushRequestArgumentCaptor.capture(), callbackArgumentCaptor.capture());
-        Assert.assertEquals("registerDevice", pushRequestArgumentCaptor.getValue().getMethod());
+        Assert.assertEquals(
+                "registerDevice", pushRequestArgumentCaptor.getValue().getMethod());
     }
 
-    // Verifies that registerWithServer publishes a RegistrationErrorEvent when RequestManager is null.
+    // Verifies that registerWithServer delivers a terminal NetworkException to the callback when the
+    // SDK is not initialized — the seam's Null Object manager answers instead of a null check.
     @Test
-    public void registerWithServerNullRequestManagerSendsErrorEvent() {
+    public void registerWithServerSdkNotInitializedDeliversErrorToCallback() {
         NetworkModule.setRequestManager(null);
 
-        final String[] received = new String[1];
-        Subscription<RegistrationErrorEvent> sub = EventBus.subscribe(
-                RegistrationErrorEvent.class, event -> received[0] = event.getData());
+        List<Result<Void, NetworkException>> delivered = new ArrayList<>();
 
-        DeviceRegistrar.registerWithServer(
-                TEST_ID, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {});
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        deviceRegistrar.registerWithServer(
+                TEST_ID, null, DeviceSpecificProvider.getInstance().deviceType(), delivered::add);
 
-        Assert.assertEquals("Request manager is null", received[0]);
+        Assert.assertEquals(1, delivered.size());
+        Assert.assertFalse(delivered.get(0).isSuccess());
+        Assert.assertEquals(
+                "SDK is not initialized", delivered.get(0).getException().getMessage());
         verifyNoInteractions(requestManager);
-        sub.unsubscribe();
     }
 
-    // Verifies that unregisterWithServer publishes a DeregistrationErrorEvent when RequestManager is null.
+    // The never-built-platform state has no RegistrationPrefs either (RepositoryModule.init precedes
+    // NetworkModule.init), so registerDevice must still answer with the seam's terminal error — building
+    // the request must not dereference the prefs.
     @Test
-    public void unregisterWithServerNullRequestManagerSendsErrorEvent() {
+    public void registerWithServerWithoutPrefsDeliversErrorInsteadOfNpe() {
+        RegistrationPrefs saved = RepositoryModule.getRegistrationPreferences();
+        NetworkModule.setRequestManager(null);
+        RepositoryModule.setRegistrationPreferences(null);
+
+        try {
+            List<Result<Void, NetworkException>> delivered = new ArrayList<>();
+
+            deviceRegistrar.registerWithServer(
+                    TEST_ID, null, DeviceSpecificProvider.getInstance().deviceType(), delivered::add);
+
+            Assert.assertEquals(1, delivered.size());
+            Assert.assertFalse(delivered.get(0).isSuccess());
+            Assert.assertEquals(
+                    "SDK is not initialized", delivered.get(0).getException().getMessage());
+        } finally {
+            RepositoryModule.setRegistrationPreferences(saved);
+        }
+    }
+
+    // Verifies that unregisterWithServer publishes a DeregistrationErrorEvent when the SDK is not initialized.
+    @Test
+    public void unregisterWithServerSdkNotInitializedSendsErrorEvent() {
         registrationPrefs.registeredOnServer().set(true);
         NetworkModule.setRequestManager(null);
 
         final String[] received = new String[1];
-        Subscription<DeregistrationErrorEvent> sub = EventBus.subscribe(
-                DeregistrationErrorEvent.class, event -> received[0] = event.getData());
+        Subscription<DeregistrationErrorEvent> sub =
+                EventBus.subscribe(DeregistrationErrorEvent.class, event -> received[0] = event.getData());
 
-        DeviceRegistrar.unregisterWithServer(TEST_ID, URL);
+        deviceRegistrar.unregisterWithServer(TEST_ID, URL, "APP_CODE");
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-        Assert.assertEquals("Request manager is null", received[0]);
-        Assert.assertFalse(registrationPrefs.registeredOnServer().get());
+        Assert.assertEquals("SDK is not initialized", received[0]);
+        Assert.assertTrue(registrationPrefs.registeredOnServer().get());
         sub.unsubscribe();
     }
 
-    // Verifies that single-arg unregisterWithServer delegates to two-arg with null baseUrl.
+    // Verifies that the unregister request carries the explicitly passed app code and not the prefs
+    // value: by the time the change cycle calls unregister, prefs already hold the NEW code, and the
+    // request must still leave with the old one.
+    @Test
+    public void unregisterWithServerRequestCarriesExplicitAppCode() {
+        registrationPrefs.applicationId().set("NEW_CODE");
+        registrationPrefs.userId().set("user-1");
+
+        deviceRegistrar.unregisterWithServer(TEST_ID, URL, "OLD_CODE");
+
+        verify(requestManager)
+                .sendRequest(pushRequestArgumentCaptor.capture(), eq(URL), callbackArgumentCaptor.capture());
+        UnregisterDeviceRequest request = (UnregisterDeviceRequest) pushRequestArgumentCaptor.getValue();
+        Assert.assertEquals("OLD_CODE", request.getApplicationId());
+        Assert.assertEquals("user-1", request.getUserId());
+    }
+
+    // Verifies that single-arg unregisterWithServer clears registeredOnServer and delegates
+    // with null baseUrl and the stored app code.
     @Test
     public void unregisterWithServerSingleArgUsesNullBaseUrl() {
-        DeviceRegistrar.unregisterWithServer(TEST_ID);
+        registrationPrefs.registeredOnServer().set(true);
+        registrationPrefs.applicationId().set("STORED_CODE");
 
-        verify(requestManager).sendRequest(any(PushRequest.class), isNull(String.class), any(Callback.class));
+        deviceRegistrar.unregisterWithServer(TEST_ID);
+
+        Assert.assertFalse(registrationPrefs.registeredOnServer().get());
+        verify(requestManager)
+                .sendRequest(
+                        pushRequestArgumentCaptor.capture(), isNull(String.class), callbackArgumentCaptor.capture());
+        UnregisterDeviceRequest request = (UnregisterDeviceRequest) pushRequestArgumentCaptor.getValue();
+        Assert.assertEquals("STORED_CODE", request.getApplicationId());
     }
 
     // Verifies that unregisterWithServer error with empty message falls back to default error description.
@@ -317,12 +382,13 @@ public class DeviceRegistrarTest {
         registrationPrefs.registeredOnServer().set(true);
 
         final String[] received = new String[1];
-        Subscription<DeregistrationErrorEvent> sub = EventBus.subscribe(
-                DeregistrationErrorEvent.class, event -> received[0] = event.getData());
+        Subscription<DeregistrationErrorEvent> sub =
+                EventBus.subscribe(DeregistrationErrorEvent.class, event -> received[0] = event.getData());
 
-        DeviceRegistrar.unregisterWithServer(TEST_ID, URL);
+        deviceRegistrar.unregisterWithServer(TEST_ID, URL, "APP_CODE");
 
-        verify(requestManager).sendRequest(pushRequestArgumentCaptor.capture(), eq(URL), callbackArgumentCaptor.capture());
+        verify(requestManager)
+                .sendRequest(pushRequestArgumentCaptor.capture(), eq(URL), callbackArgumentCaptor.capture());
         callbackArgumentCaptor.getValue().process(Result.fromException(new NetworkException("")));
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 

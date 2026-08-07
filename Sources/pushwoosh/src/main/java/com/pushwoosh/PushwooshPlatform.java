@@ -99,7 +99,8 @@ public class PushwooshPlatform {
 
         NetworkModule.init(registrationPrefs, serverCommunicationManager, config.isReverseProxyAllowed());
 
-        notificationManager = new PushwooshNotificationManager(builder.pushRegistrar, config);
+        notificationManager =
+                new PushwooshNotificationManager(config, builder.pushRegistrar, registrationPrefs, deviceRegistrar);
         pushwooshInApp = new PushwooshInAppImpl(new PushwooshInAppServiceImpl(), serverCommunicationManager);
         pushMessageFactory = new PushMessageFactory();
 
@@ -113,10 +114,8 @@ public class PushwooshPlatform {
                 new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs);
 
         richMediaStyle = new RichMediaStyle(0, new RichMediaAnimationSlideBottom());
-        richMediaController = new RichMediaController(
-                new ResourceViewStrategyFactory(),
-                new RichMediaFactory(),
-                richMediaStyle);
+        richMediaController =
+                new RichMediaController(new ResourceViewStrategyFactory(), new RichMediaFactory(), richMediaStyle);
 
         pushwooshDefaultEvents = new PushwooshDefaultEvents();
 

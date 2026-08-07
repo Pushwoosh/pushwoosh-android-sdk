@@ -47,6 +47,7 @@ import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.internal.network.NetworkException;
+import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.preference.PreferenceBooleanValue;
 import com.pushwoosh.internal.preference.PreferenceJsonObjectValue;
@@ -54,6 +55,7 @@ import com.pushwoosh.internal.preference.PreferenceStringValue;
 import com.pushwoosh.tags.TagsBundle;
 
 import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,6 +106,17 @@ public class PushwooshRepositoryTest {
 
         pushwooshRepository =
                 new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs);
+    }
+
+    @After
+    public void tearDown() {
+        NetworkModule.setRequestManager(null);
+    }
+
+    private PushwooshRepository repositoryWithoutNetwork() {
+        NetworkModule.setRequestManager(null);
+        return new PushwooshRepository(
+                NetworkModule.getRequestManager(), sendTagsProcessor, registrationPrefs, notificationPrefs);
     }
 
     @Test
@@ -161,9 +174,8 @@ public class PushwooshRepositoryTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void sendAdvertisingId_withNullRequestManager_invokesCallbackWithNetworkException() {
-        PushwooshRepository repoWithoutManager =
-                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs);
+    public void sendAdvertisingId_whenSdkNotInitialized_invokesCallbackWithNetworkException() {
+        PushwooshRepository repoWithoutManager = repositoryWithoutNetwork();
         Callback<Void, NetworkException> callback = mock(Callback.class);
 
         repoWithoutManager.sendAdvertisingId("ad-id-1", callback);
@@ -173,6 +185,7 @@ public class PushwooshRepositoryTest {
         Result<Void, NetworkException> result = resultCaptor.getValue();
         assertFalse(result.isSuccess());
         assertTrue(result.getException() instanceof NetworkException);
+        assertEquals("SDK is not initialized", result.getException().getMessage());
         verify(requestManager, never()).sendRequest(any(SetAdvertisingIdRequest.class), any(), any());
     }
 
@@ -305,9 +318,9 @@ public class PushwooshRepositoryTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void getTags_withNullRequestManager_invokesCallbackWithGetTagsException() {
-        PushwooshRepository repoWithoutManager =
-                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs);
+    public void getTags_whenSdkNotInitialized_invokesCallbackWithGetTagsException() {
+        PushwooshRepository repoWithoutManager = repositoryWithoutNetwork();
+        when(tagsPref.get()).thenReturn(null);
         Callback<TagsBundle, GetTagsException> callback = mock(Callback.class);
 
         repoWithoutManager.getTags(callback);
@@ -317,7 +330,27 @@ public class PushwooshRepositoryTest {
         Result<TagsBundle, GetTagsException> result = captor.getValue();
         assertFalse(result.isSuccess());
         assertTrue(result.getException() instanceof GetTagsException);
+        assertEquals("SDK is not initialized", result.getException().getMessage());
         verify(requestManager, never()).sendRequest(any(GetTagsRequest.class), any());
+    }
+
+    // The stub is treated like the other blocking conditions in PushwooshRequestManager (no base url,
+    // device data removed, communication stopped): a cached bundle still answers the caller.
+    @Test
+    @SuppressWarnings("unchecked")
+    public void getTags_whenSdkNotInitialized_fallsBackToCachedTags() throws Exception {
+        PushwooshRepository repoWithoutManager = repositoryWithoutNetwork();
+        JSONObject cached = new JSONObject().put("k", "v");
+        when(tagsPref.get()).thenReturn(cached);
+        Callback<TagsBundle, GetTagsException> callback = mock(Callback.class);
+
+        repoWithoutManager.getTags(callback);
+
+        ArgumentCaptor<Result<TagsBundle, GetTagsException>> captor = ArgumentCaptor.forClass(Result.class);
+        verify(callback).process(captor.capture());
+        Result<TagsBundle, GetTagsException> result = captor.getValue();
+        assertTrue(result.isSuccess());
+        assertEquals("v", result.getData().getString("k"));
     }
 
     // ---------- sendPushOpenedSync ----------
@@ -346,16 +379,16 @@ public class PushwooshRepositoryTest {
     }
 
     @Test
-    public void sendPushOpenedSync_withNullRequestManager_returnsNetworkException() {
-        PushwooshRepository repoWithoutManager =
-                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs);
+    public void sendPushOpenedSync_whenSdkNotInitialized_returnsNetworkException() {
+        PushwooshRepository repoWithoutManager = repositoryWithoutNetwork();
         when(lastNotificationHashPref.get()).thenReturn(null);
 
         Result<Void, NetworkException> result = repoWithoutManager.sendPushOpenedSync("hash-1", "meta");
 
         assertFalse(result.isSuccess());
         assertTrue(result.getException() instanceof NetworkException);
-        assertEquals("Request manager is null", result.getException().getMessage());
+        assertEquals("SDK is not initialized", result.getException().getMessage());
+        verify(lastNotificationHashPref, never()).set("hash-1");
     }
 
     @Test
@@ -388,15 +421,14 @@ public class PushwooshRepositoryTest {
     // ---------- sendPushDeliveredSync ----------
 
     @Test
-    public void sendPushDeliveredSync_withNullRequestManager_returnsNetworkException() {
-        PushwooshRepository repoWithoutManager =
-                new PushwooshRepository(null, sendTagsProcessor, registrationPrefs, notificationPrefs);
+    public void sendPushDeliveredSync_whenSdkNotInitialized_returnsNetworkException() {
+        PushwooshRepository repoWithoutManager = repositoryWithoutNetwork();
 
         Result<Void, NetworkException> result = repoWithoutManager.sendPushDeliveredSync("hash-1", "meta");
 
         assertFalse(result.isSuccess());
         assertTrue(result.getException() instanceof NetworkException);
-        assertEquals("Request manager is null", result.getException().getMessage());
+        assertEquals("SDK is not initialized", result.getException().getMessage());
     }
 
     @Test

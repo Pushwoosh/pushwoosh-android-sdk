@@ -75,170 +75,163 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class PlatformTestManager {
-	private final RequestManagerMock requestManagerMock;
-	private final PushwooshPlatform pushwooshPlatform;
-	private final PushRegistrar pushRegistrarMock;
-	private PushwooshRepository pushwooshRepositoryMock;
+    private final RequestManagerMock requestManagerMock;
+    private final PushwooshPlatform pushwooshPlatform;
+    private final PushRegistrar pushRegistrarMock;
+    private PushwooshRepository pushwooshRepositoryMock;
 
-	private final RegistrationPrefs registrationPrefs;
+    private final RegistrationPrefs registrationPrefs;
 
-	public PlatformTestManager() {
-		this(MockConfig.createMock(), true);
-	}
+    public PlatformTestManager() {
+        this(MockConfig.createMock(), true);
+    }
 
-	public PlatformTestManager(Config config) {
-		this(config, true);
-	}
+    public PlatformTestManager(Config config) {
+        this(config, true);
+    }
 
-	public PlatformTestManager(Config config, boolean needSpyContext) {
-		ShadowLog.stream = System.out;
+    public PlatformTestManager(Config config, boolean needSpyContext) {
+        ShadowLog.stream = System.out;
 
-		Configuration workConfig = new Configuration.Builder()
-				.setMinimumLoggingLevel(Log.DEBUG)
-				.setExecutor(new SynchronousExecutor())
-				.build();
-		WorkManagerTestInitHelper.initializeTestWorkManager(
-				RuntimeEnvironment.application, workConfig);
+        Configuration workConfig = new Configuration.Builder()
+                .setMinimumLoggingLevel(Log.DEBUG)
+                .setExecutor(new SynchronousExecutor())
+                .build();
+        WorkManagerTestInitHelper.initializeTestWorkManager(RuntimeEnvironment.application, workConfig);
 
-		registrationPrefs = Mockito.mock(RegistrationPrefs.class);
+        registrationPrefs = Mockito.mock(RegistrationPrefs.class);
 
-		when(config.getNotificationFactory()).thenAnswer((invocation) -> NotificationFactoryMock.class);
-		when(config.getNotificationService()).thenAnswer((invocation) -> NotificationServiceMock.class);
+        when(config.getNotificationFactory()).thenAnswer((invocation) -> NotificationFactoryMock.class);
+        when(config.getNotificationService()).thenAnswer((invocation) -> NotificationServiceMock.class);
 
-		pushRegistrarMock = mock(PushRegistrar.class);
+        pushRegistrarMock = mock(PushRegistrar.class);
 
-		new DeviceSpecificProvider.Builder()
-				.setDeviceSpecific(new TestDeviceSpecific(pushRegistrarMock))
-				.build(true);
+        new DeviceSpecificProvider.Builder()
+                .setDeviceSpecific(new TestDeviceSpecific(pushRegistrarMock))
+                .build(true);
 
+        requestManagerMock = Mockito.spy(new RequestManagerMock());
 
-		requestManagerMock = Mockito.spy(new RequestManagerMock());
+        NetworkModule.setRequestManager(requestManagerMock);
+        if (needSpyContext) {
+            Context spyContext = spy(RuntimeEnvironment.application);
+            when(spyContext.getApplicationContext()).thenReturn(spyContext);
+            AndroidPlatformModule.init(spyContext, true);
+        } else {
+            AndroidPlatformModule.init(RuntimeEnvironment.application, true);
+        }
 
-		NetworkModule.setRequestManager(requestManagerMock);
-		if (needSpyContext) {
-			Context spyContext = spy(RuntimeEnvironment.application);
-			when(spyContext.getApplicationContext()).thenReturn(spyContext);
-			AndroidPlatformModule.init(spyContext, true);
-		} else {
-			AndroidPlatformModule.init(RuntimeEnvironment.application, true);
-		}
+        AndroidPlatformModuleTest.changePrefsProvider(new TestPrefsProvider());
 
-		AndroidPlatformModuleTest.changePrefsProvider(new TestPrefsProvider());
+        final InAppStorage inAppStorage = mock(InAppStorage.class);
+        InAppRepository inAppRepository = new InAppRepository(
+                inAppStorage, mock(InAppDownloader.class), mock(ResourceMapper.class), mock(InAppFolderProvider.class));
 
-		final InAppStorage inAppStorage = mock(InAppStorage.class);
-		InAppRepository inAppRepository = new InAppRepository(
-				requestManagerMock,
-				inAppStorage,
-				mock(InAppDownloader.class),
-				mock(ResourceMapper.class),
-				mock(InAppFolderProvider.class),
-				registrationPrefs);
+        InAppModule.setInAppRepository(inAppRepository);
+        InAppModule.setInAppStorage(inAppStorage);
 
-		InAppModule.setInAppRepository(inAppRepository);
-		InAppModule.setInAppStorage(inAppStorage);
+        pushwooshPlatform = new PushwooshPlatform.Builder()
+                .setConfig(config)
+                .setPushRegistrar(pushRegistrarMock)
+                .build();
 
-		pushwooshPlatform = new PushwooshPlatform.Builder()
-				.setConfig(config)
-				.setPushRegistrar(pushRegistrarMock)
-				.build();
+        PushwooshInAppServiceImpl pushwooshInAppServiceMock = Mockito.mock(PushwooshInAppServiceImpl.class);
 
-		PushwooshInAppServiceImpl pushwooshInAppServiceMock = Mockito.mock(PushwooshInAppServiceImpl.class);
+        PushwooshInAppImpl pushwooshInApp =
+                (PushwooshInAppImpl) WhiteboxHelper.getInternalState(pushwooshPlatform, "pushwooshInApp");
+        WhiteboxHelper.setInternalState(pushwooshInApp, "pushwooshInAppService", pushwooshInAppServiceMock);
+    }
 
-		PushwooshInAppImpl pushwooshInApp= (PushwooshInAppImpl)
-				WhiteboxHelper.getInternalState(pushwooshPlatform, "pushwooshInApp");
-		WhiteboxHelper.setInternalState(pushwooshInApp, "pushwooshInAppService", pushwooshInAppServiceMock);
-	}
+    public RequestManagerMock getRequestManager() {
+        return requestManagerMock;
+    }
 
-	public RequestManagerMock getRequestManager() {
-		return requestManagerMock;
-	}
+    public PushwooshRepository getPushwooshRepository() {
+        return pushwooshPlatform.pushwooshRepository();
+    }
 
-	public PushwooshRepository getPushwooshRepository() {
-		return pushwooshPlatform.pushwooshRepository();
-	}
+    public PushwooshRepository getPushwooshRepositoryMock() {
+        PushwooshRepository pushwooshRepository =
+                (PushwooshRepository) WhiteboxHelper.getInternalState(pushwooshPlatform, "pushwooshRepository");
+        pushwooshRepositoryMock = Mockito.spy(pushwooshRepository);
+        WhiteboxHelper.setInternalState(pushwooshPlatform, "pushwooshRepository", pushwooshRepositoryMock);
+        return pushwooshRepositoryMock;
+    }
 
-	public PushwooshRepository getPushwooshRepositoryMock() {
-		PushwooshRepository pushwooshRepository = (PushwooshRepository)
-				WhiteboxHelper.getInternalState(pushwooshPlatform, "pushwooshRepository");
-		pushwooshRepositoryMock = Mockito.spy(pushwooshRepository);
-		WhiteboxHelper.setInternalState(pushwooshPlatform,"pushwooshRepository", pushwooshRepositoryMock);
-		return pushwooshRepositoryMock;
-	}
+    public RegistrationPrefs getRegistrationPrefsMock() {
+        return registrationPrefs;
+    }
 
-	public RegistrationPrefs getRegistrationPrefsMock() {
-		return registrationPrefs;
-	}
+    public PushwooshInAppImpl getPushwooshInApp() {
+        return pushwooshPlatform.pushwooshInApp();
+    }
 
-	public PushwooshInAppImpl getPushwooshInApp() {
-		return pushwooshPlatform.pushwooshInApp();
-	}
+    public NotificationPrefs getNotificationPrefs() {
+        return RepositoryModule.getNotificationPreferences();
+    }
 
-	public NotificationPrefs getNotificationPrefs() {
-		return RepositoryModule.getNotificationPreferences();
-	}
+    public RegistrationPrefs getRegistrationPrefs() {
+        return RepositoryModule.getRegistrationPreferences();
+    }
 
-	public RegistrationPrefs getRegistrationPrefs() {
-		return RepositoryModule.getRegistrationPreferences();
-	}
+    public PushwooshNotificationManager getNotificationManager() {
+        return pushwooshPlatform.notificationManager();
+    }
 
-	public PushwooshNotificationManager getNotificationManager() {
-		return pushwooshPlatform.notificationManager();
-	}
+    public PushRegistrar getPushRegistrar() {
+        return pushRegistrarMock;
+    }
 
-	public PushRegistrar getPushRegistrar() {
-		return pushRegistrarMock;
-	}
+    public NotificationServiceExtension getNotificationService() {
+        return pushwooshPlatform.notificationService();
+    }
 
-	public NotificationServiceExtension getNotificationService() {
-		return pushwooshPlatform.notificationService();
-	}
+    public AudioManager getAudioManager() {
+        return (AudioManager) RuntimeEnvironment.application.getSystemService(Context.AUDIO_SERVICE);
+    }
 
-	public AudioManager getAudioManager() {
-		return (AudioManager) RuntimeEnvironment.application.getSystemService(Context.AUDIO_SERVICE);
-	}
+    public void setUp() {}
 
-	public void setUp() {
-	}
+    public void onApplicationCreated() {
+        try {
+            startUp();
+        } catch (InterruptedException e) {
+            fail("SDK is not initialized");
+        }
+    }
 
-	public void onApplicationCreated(){
-		try {
-			startUp();
-		} catch (InterruptedException e) {
-			fail("SDK is not initialized");
-		}
-	}
+    private void startUp() throws InterruptedException {
+        pushwooshPlatform.onApplicationCreated();
+        // Idle main looper to process setReady() posted from background thread
+        for (int i = 0; i < 20; i++) {
+            ShadowLooper.idleMainLooper();
+            if (SdkStateProvider.getInstance().isReady()) {
+                break;
+            }
+            Thread.sleep(100);
+        }
+        // Wait until SDK is initialized and block for 1 second
+        CountDownLatch latch = new CountDownLatch(1);
+        SdkStateProvider.getInstance().executeOrQueue(latch::countDown);
+        assertTrue("SDK should be initialized", latch.await(1, TimeUnit.SECONDS));
+    }
 
-	private void startUp() throws InterruptedException {
-		pushwooshPlatform.onApplicationCreated();
-		// Idle main looper to process setReady() posted from background thread
-		for (int i = 0; i < 20; i++) {
-			ShadowLooper.idleMainLooper();
-			if (SdkStateProvider.getInstance().isReady()) {
-				break;
-			}
-			Thread.sleep(100);
-		}
-		// Wait until SDK is initialized and block for 1 second
-		CountDownLatch latch = new CountDownLatch(1);
-		SdkStateProvider.getInstance().executeOrQueue(latch::countDown);
-		assertTrue("SDK should be initialized", latch.await(1, TimeUnit.SECONDS));
-	}
+    public InAppRepository getInAppRepository() {
+        return InAppModule.getInAppRepository();
+    }
 
-	public InAppRepository getInAppRepository() {
-		return InAppModule.getInAppRepository();
-	}
+    public InAppRepository getInAppRepositoryMock() {
+        InAppModule.setInAppRepository(mock(InAppRepository.class));
+        return InAppModule.getInAppRepository();
+    }
 
-	public InAppRepository getInAppRepositoryMock() {
-		InAppModule.setInAppRepository(mock(InAppRepository.class));
-		return InAppModule.getInAppRepository();
-	}
+    public InAppStorage getInAppStorage() {
+        return InAppModule.getInAppStorage();
+    }
 
-	public InAppStorage getInAppStorage() {
-		return InAppModule.getInAppStorage();
-	}
-
-	public void tearDown() {
-		PrefsHelper.tearDownPrefs();
-		SdkStateProvider.getInstance().resetForTesting();
-	}
+    public void tearDown() {
+        PrefsHelper.tearDownPrefs();
+        SdkStateProvider.getInstance().resetForTesting();
+        NetworkModule.setRequestManager(null);
+    }
 }

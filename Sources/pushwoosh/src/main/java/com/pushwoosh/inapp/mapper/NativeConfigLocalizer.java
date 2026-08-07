@@ -35,16 +35,21 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Localizes a native-config.json by substituting placeholders inside every string VALUE of the JSON
- * tree; object keys and non-string values are left untouched. Mirrors Rich Media localization: it
- * reuses {@link PlaceholderSubstitutor} with the language dictionary, while the tag passes get an
- * empty map for the MVP — so any nested dynamic-content placeholder collapses to its default.
+ * tree; object keys and non-string values are left untouched. Mirrors Rich Media substitution: it reuses
+ * {@link PlaceholderSubstitutor} with the language dictionary for the localization passes and the device
+ * tag dictionary (built by {@link InAppTags}) for the tag passes.
+ *
+ * <p>Pass order decides what a caller can expect. Pass 1 consumes every {@code {{key|type|default}}} in
+ * the raw config against the LANGUAGE dictionary, so a double-brace placeholder written straight into
+ * native-config.json never reaches the tag passes — it resolves to its translation or its default. Tags
+ * land in the single-brace forms ({@code {key|type|default}}, {@code {key|type|}}) and in double-brace
+ * placeholders nested inside a translated value.
  *
  * <p>Tree-walk (not a raw-text replace over the JSON, as Rich Media does over HTML) is intentional:
  * values are substituted into already-parsed strings, so quotes / newlines in a translation cannot
@@ -55,10 +60,11 @@ public final class NativeConfigLocalizer {
 
     private NativeConfigLocalizer() {}
 
-    @NonNull public static String localize(@NonNull String configJson, @NonNull Map<String, String> strings) {
+    @NonNull public static String localize(
+            @NonNull String configJson, @NonNull Map<String, String> strings, @NonNull Map<String, String> tags) {
         try {
             JSONObject root = new JSONObject(configJson);
-            localizeObject(root, strings);
+            localizeObject(root, strings, tags);
             return root.toString();
         } catch (Throwable t) {
             // Any failure hands the input back untouched, never dropping the show: malformed JSON
@@ -71,7 +77,8 @@ public final class NativeConfigLocalizer {
         }
     }
 
-    private static void localizeObject(JSONObject object, Map<String, String> strings) throws JSONException {
+    private static void localizeObject(JSONObject object, Map<String, String> strings, Map<String, String> tags)
+            throws JSONException {
         List<String> keys = new ArrayList<>();
         Iterator<String> it = object.keys();
         while (it.hasNext()) {
@@ -80,24 +87,25 @@ public final class NativeConfigLocalizer {
         for (String key : keys) {
             Object value = object.get(key);
             if (value instanceof String) {
-                object.put(key, PlaceholderSubstitutor.substitute((String) value, strings, Collections.emptyMap()));
+                object.put(key, PlaceholderSubstitutor.substitute((String) value, strings, tags));
             } else if (value instanceof JSONObject) {
-                localizeObject((JSONObject) value, strings);
+                localizeObject((JSONObject) value, strings, tags);
             } else if (value instanceof JSONArray) {
-                localizeArray((JSONArray) value, strings);
+                localizeArray((JSONArray) value, strings, tags);
             }
         }
     }
 
-    private static void localizeArray(JSONArray array, Map<String, String> strings) throws JSONException {
+    private static void localizeArray(JSONArray array, Map<String, String> strings, Map<String, String> tags)
+            throws JSONException {
         for (int i = 0; i < array.length(); i++) {
             Object value = array.get(i);
             if (value instanceof String) {
-                array.put(i, PlaceholderSubstitutor.substitute((String) value, strings, Collections.emptyMap()));
+                array.put(i, PlaceholderSubstitutor.substitute((String) value, strings, tags));
             } else if (value instanceof JSONObject) {
-                localizeObject((JSONObject) value, strings);
+                localizeObject((JSONObject) value, strings, tags);
             } else if (value instanceof JSONArray) {
-                localizeArray((JSONArray) value, strings);
+                localizeArray((JSONArray) value, strings, tags);
             }
         }
     }

@@ -209,11 +209,10 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
     /**
      * Determines whether a network exception should trigger a retry.
      * <p>
-     * This method implements smart retry logic adapted from RetriableRequestCallback:
-     * - Connection errors (network unavailable): retry with network constraints
-     * - Server errors (5xx, 408, 429): retry with backoff
-     * - Client errors (4xx): don't retry to save battery and server load
-     * - Unknown errors: default to retry (better safe than sorry)
+     * Only a {@link ConnectionException} carries the status codes needed to judge the failure, and
+     * whether that failure is temporary is decided by the exception itself via
+     * {@link ConnectionException#isTransient()}. Anything else — including a null exception — is
+     * treated as permanent, so the worker gives up instead of burning battery and server load.
      *
      * @param exception the NetworkException that occurred
      * @return true if the request should be retried, false otherwise
@@ -223,43 +222,7 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
             return false; // Only retry ConnectionExceptions
         }
 
-        ConnectionException connEx = (ConnectionException) exception;
-        int pushwooshStatus = connEx.getPushwooshStatusCode();
-        int networkStatus = connEx.getStatusCode();
-
-        // Connection errors (no network) - let WorkManager retry with network constraints
-        if (pushwooshStatus == 0 && networkStatus == 0) {
-            return true;
-        }
-
-        // Server errors - should retry (same logic as RetriableRequestCallback)
-        return isRetriableServerError(networkStatus);
-    }
-
-    /**
-     * Determines if an HTTP status code represents a server error that should be retried.
-     * <p>
-     * Based on RetriableRequestCallback.isRetriableStatus(), this method identifies
-     * temporary server issues that are likely to resolve on retry:
-     * - 408 Request Timeout
-     * - 429 Too Many Requests
-     * - 5xx Server Errors (500, 502, 503, 504)
-     *
-     * @param statusCode the HTTP status code
-     * @return true if the status code indicates a retriable server error
-     */
-    private static boolean isRetriableServerError(int statusCode) {
-        switch (statusCode) {
-            case 408: // Request Timeout
-            case 429: // Too Many Requests
-            case 500: // Internal Server Error
-            case 502: // Bad Gateway
-            case 503: // Service Unavailable
-            case 504: // Gateway Timeout
-                return true;
-            default:
-                return false;
-        }
+        return ((ConnectionException) exception).isTransient();
     }
 
     /**

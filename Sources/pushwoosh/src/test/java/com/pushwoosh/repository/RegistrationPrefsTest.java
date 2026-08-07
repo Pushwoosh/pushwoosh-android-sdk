@@ -78,54 +78,13 @@ public class RegistrationPrefsTest {
         return registrationPrefs;
     }
 
-    // Constructor must not write baseUrl even when appId is valid; baseUrl is set via setAppId().
+    // Constructor must not write baseUrl even when appId is valid; baseUrl is set via AppCodeApplier.
     @Test
     public void constructor_validAppId_doesNotPersistBaseUrl() {
         RegistrationPrefs prefs = createWithAppId("APP_ID_VALID");
 
         assertThat(prefs.applicationId().get(), is(equalTo("APP_ID_VALID")));
         assertThat(prefs.baseUrl().get(), is(equalTo("")));
-    }
-
-    // setAppId must persist canonical baseUrl built from appId.
-    @Test
-    public void setAppId_validAppId_persistsBaseUrl() {
-        RegistrationPrefs prefs = createWithAppId(null);
-
-        prefs.setAppId("XXXXX");
-
-        assertThat(prefs.applicationId().get(), is(equalTo("XXXXX")));
-        assertThat(prefs.baseUrl().get(), is(equalTo("https://XXXXX.api.pushwoosh.com/json/1.3/")));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void setAppId_emptyAppId_throwsIllegalArgumentException() {
-        RegistrationPrefs prefs = createWithAppId(null);
-        prefs.setAppId("");
-    }
-
-    // setAppId(same value) preserves a custom baseUrl that was set previously.
-    @Test
-    public void setAppId_preservesCustomBaseUrl_whenAppIdUnchanged() {
-        RegistrationPrefs prefs = createWithAppId("XXXXX");
-        prefs.setAppId("XXXXX");
-        prefs.baseUrl().set("https://custom.example.com/");
-
-        prefs.setAppId("XXXXX");
-
-        assertThat(prefs.baseUrl().get(), is(equalTo("https://custom.example.com/")));
-    }
-
-    // setAppId on real change resets baseUrl to canonical default.
-    @Test
-    public void setAppId_resetsBaseUrl_whenAppIdChanges() {
-        RegistrationPrefs prefs = createWithAppId(null);
-        prefs.setAppId("AAAAA");
-        prefs.baseUrl().set("https://custom.example.com/");
-
-        prefs.setAppId("BBBBB");
-
-        assertThat(prefs.baseUrl().get(), is(equalTo("https://BBBBB.api.pushwoosh.com/json/1.3/")));
     }
 
     @Test
@@ -183,7 +142,8 @@ public class RegistrationPrefsTest {
 
         for (String invalidInput : invalidInputs) {
             RegistrationPrefs prefs = createWithAppId(null);
-            prefs.setAppId("XXXXX");
+            prefs.applicationId().set("XXXXX");
+            prefs.updateBaseUrl("https://XXXXX.api.pushwoosh.com/json/1.3/");
 
             String result = prefs.updateBaseUrl(invalidInput);
 
@@ -388,22 +348,6 @@ public class RegistrationPrefsTest {
             RepositoryTestManager.destroyRegistrationPrefs(registrationPrefs);
             registrationPrefs = null;
         }
-    }
-
-    // removeAppId clears appId, baseUrl, lastPushRegistration and registeredOnServer.
-    @Test
-    public void removeAppId_clearsAppIdBaseUrlLastRegistrationAndRegisteredOnServer() {
-        RegistrationPrefs prefs = createWithAppId(null);
-        prefs.setAppId("AAAAA");
-        prefs.registeredOnServer().set(true);
-        prefs.lastPushRegistration().set(99L);
-
-        prefs.removeAppId();
-
-        assertThat(prefs.applicationId().get(), is(equalTo("")));
-        assertThat(prefs.baseUrl().get(), is(equalTo("")));
-        assertEquals(0L, (long) prefs.lastPushRegistration().get());
-        assertFalse(prefs.registeredOnServer().get());
     }
 
     // clearPushRegistrationInfo resets pushToken and lastPushRegistration only.

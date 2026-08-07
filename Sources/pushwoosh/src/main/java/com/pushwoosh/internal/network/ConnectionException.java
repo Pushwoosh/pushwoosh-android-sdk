@@ -27,19 +27,49 @@
 package com.pushwoosh.internal.network;
 
 public class ConnectionException extends NetworkException {
-	private final int statusCode;
-	private final int pushwooshStatusCode;
-	public ConnectionException(String description, int statusCode, int pushwooshStatusCode) {
-		super(description);
-		this.statusCode = statusCode;
-		this.pushwooshStatusCode = pushwooshStatusCode;
-	}
+    private final int statusCode;
+    private final int pushwooshStatusCode;
 
-	public int getStatusCode() {
-		return statusCode;
-	}
+    public ConnectionException(String description, int statusCode, int pushwooshStatusCode) {
+        super(description);
+        this.statusCode = statusCode;
+        this.pushwooshStatusCode = pushwooshStatusCode;
+    }
 
-	public int getPushwooshStatusCode() {
-		return pushwooshStatusCode;
-	}
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    public int getPushwooshStatusCode() {
+        return pushwooshStatusCode;
+    }
+
+    /**
+     * Answers whether this failure looks temporary — a dropped connection or a server-side hiccup that
+     * an identical later request may survive. The verdict is read off the HTTP status alone;
+     * {@code pushwooshStatusCode} only takes part in the "no status at all" sentinel, so an HTTP 200
+     * carrying an envelope-level error counts as terminal. Whether to actually retry, and how often,
+     * stays the caller's policy.
+     */
+    public boolean isTransient() {
+        // statuses are 0 by default and changed after processing request. If they are both still 0
+        // then request failed due to connection errors
+        boolean noStatusReceived = pushwooshStatusCode == 0 && statusCode == 0;
+
+        return noStatusReceived || isRetriableStatus(statusCode);
+    }
+
+    private static boolean isRetriableStatus(int code) {
+        switch (code) {
+            case 408: // Request Timeout
+            case 429: // Too Many Requests
+            case 500: // Internal Server Error
+            case 502: // Bad Gateway
+            case 503: // Service Unavailable
+            case 504: // Gateway Timeout
+                return true;
+            default:
+                return false;
+        }
+    }
 }

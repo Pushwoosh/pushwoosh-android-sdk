@@ -33,7 +33,6 @@ import com.pushwoosh.inbox.storage.db.InboxDbHelper;
 import com.pushwoosh.internal.Plugin;
 import com.pushwoosh.internal.event.AppIdChangedEvent;
 import com.pushwoosh.internal.event.EventBus;
-import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.prefs.PrefsProvider;
 import com.pushwoosh.internal.platform.prefs.migration.MigrationScheme;
@@ -44,19 +43,21 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class PushwooshInboxPlugin implements Plugin {
-	@Override
-	public void init() {
-		PushwooshInboxModule.init(new InboxDbHelper(AndroidPlatformModule.getApplicationContext()),
-								  NetworkModule.getRequestManager(),
-								  AndroidPlatformModule.getPrefsProvider());
+    @Override
+    public void init() {
+        PushwooshInboxModule.init(
+                new InboxDbHelper(AndroidPlatformModule.getApplicationContext()),
+                AndroidPlatformModule.getPrefsProvider());
 
-		MessageSystemHandleChainProvider.getMessageSystemChain().addItem(new InboxNotificationHandler());
-		NotificationOpenHandlerChainProvider.getNotificationOpenHandlerChain().addItem(new InboxNotificationOpenHandler());
-		EventBus.subscribe(AppIdChangedEvent.class, event -> PushwooshInboxModule.getInboxRepository().clearAllInboxMessages());
-	}
+        MessageSystemHandleChainProvider.getMessageSystemChain().addItem(new InboxNotificationHandler());
+        NotificationOpenHandlerChainProvider.getNotificationOpenHandlerChain()
+                .addItem(new InboxNotificationOpenHandler());
+        EventBus.subscribe(AppIdChangedEvent.class, event -> PushwooshInboxModule.getInboxRepository()
+                .clearAllInboxMessages());
+    }
 
-	@Override
-	public Collection<? extends MigrationScheme> getPrefsMigrationSchemes(PrefsProvider prefsProvider) {
-		return Collections.emptyList();
-	}
+    @Override
+    public Collection<? extends MigrationScheme> getPrefsMigrationSchemes(PrefsProvider prefsProvider) {
+        return Collections.emptyList();
+    }
 }

@@ -37,44 +37,44 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class RegisterDeviceRequest extends AppOpenRequest {
-	private final String deviceId;
-	private final String tagsJson;
-	private final int platform;
-	private final String appCode;
+    private final String deviceId;
+    private final String tagsJson;
+    private final int platform;
 
-	RegisterDeviceRequest(String deviceId, String tagsJson, int platform) {
-		this.deviceId = deviceId;
-		this.tagsJson = tagsJson;
-		this.platform = platform;
-		this.appCode = RepositoryModule.getRegistrationPreferences().applicationId().get();
-	}
+    RegisterDeviceRequest(String deviceId, String tagsJson, int platform) {
+        this.deviceId = deviceId;
+        this.tagsJson = tagsJson;
+        this.platform = platform;
+    }
 
-	@Override
-	public String getMethod() {
-		return "registerDevice";
-	}
+    @Override
+    public String getMethod() {
+        return "registerDevice";
+    }
 
-	@Override
-	protected void buildParams(JSONObject params) throws JSONException {
-		super.buildParams(params);
+    @Override
+    protected void buildParams(JSONObject params) throws JSONException {
+        super.buildParams(params);
 
-		params.put("device_type", platform);
-		params.put("application", appCode);
-		if (platform == DeviceRegistrar.PLATFORM_SMS) {
-			params.put("hwid", deviceId);
-		} else if (platform == DeviceRegistrar.PLATFORM_WHATSAPP) {
-			params.put("hwid", "whatsapp:"+deviceId);
-		}
-		params.put("push_token", deviceId);
-		if (!TextUtils.isEmpty(tagsJson)) {
-			JSONObject tagsObject = new JSONObject(tagsJson);
-			params.put("tags", tagsObject);
-		}
+        params.put("device_type", platform);
+        params.put(
+                "application",
+                RepositoryModule.getRegistrationPreferences().applicationId().get());
+        if (platform == DeviceRegistrar.PLATFORM_SMS) {
+            params.put("hwid", deviceId);
+        } else if (platform == DeviceRegistrar.PLATFORM_WHATSAPP) {
+            params.put("hwid", "whatsapp:" + deviceId);
+        }
+        params.put("push_token", deviceId);
+        if (!TextUtils.isEmpty(tagsJson)) {
+            JSONObject tagsObject = new JSONObject(tagsJson);
+            params.put("tags", tagsObject);
+        }
 
-		ArrayList<String> rawResources = GeneralUtils.getRawResourses();
-		if (rawResources != null) {
-			JSONArray array = new JSONArray(rawResources);
-			params.put("sounds", array);
-		}
-	}
+        ArrayList<String> rawResources = GeneralUtils.getRawResourses();
+        if (rawResources != null) {
+            JSONArray array = new JSONArray(rawResources);
+            params.put("sounds", array);
+        }
+    }
 }

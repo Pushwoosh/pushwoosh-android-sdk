@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.pushwoosh.exception.PostEventException;
 import com.pushwoosh.function.Callback;
@@ -12,6 +13,7 @@ import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.network.NetworkException;
+import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.testutil.PlatformTestManager;
 import com.pushwoosh.testutil.WhiteboxHelper;
@@ -61,14 +63,19 @@ public class PostEventCallbackAsyncEscapeCrashTest {
         WhiteboxHelper.setInternalState(realRepo, "io", InAppExecutorServiceHelper.createExecutorService());
 
         // Capture-only request manager: we drive the network callback ourselves via deliverThroughBarrier.
+        // The seam resolves the manager per call, so this double is global rather than a field on realRepo —
+        // sendRequestSync is stubbed so any other component reaching it gets a Result instead of a @NonNull null.
         requestManagerMock = mock(RequestManager.class);
-        WhiteboxHelper.setInternalState(realRepo, "requestManager", requestManagerMock);
+        when(requestManagerMock.sendRequestSync(any()))
+                .thenReturn(Result.fromException(new NetworkException("sendRequestSync is not exercised here")));
+        NetworkModule.setRequestManager(requestManagerMock);
 
         pushwooshInApp = platformTestManager.getPushwooshInApp();
     }
 
     @After
     public void tearDown() {
+        NetworkModule.setRequestManager(null);
         SdkStateProvider.getInstance().resetForTesting();
         platformTestManager.tearDown();
     }

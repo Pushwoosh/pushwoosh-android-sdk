@@ -35,13 +35,12 @@ import com.pushwoosh.inapp.storage.ContextInAppFolderProvider;
 import com.pushwoosh.inapp.storage.InAppDbHelper;
 import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.storage.InAppStorage;
-import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
-import com.pushwoosh.repository.RepositoryModule;
 
 public class InAppModule {
 
-    private static final InAppFolderProvider inAppFolderProvider = new ContextInAppFolderProvider(AndroidPlatformModule.getApplicationContext());
+    private static final InAppFolderProvider inAppFolderProvider =
+            new ContextInAppFolderProvider(AndroidPlatformModule.getApplicationContext());
     private static final InAppDownloader inAppDownloader = new InAppDownloader(getInAppFolderProvider());
     private static final ResourceMapper resourceMapper = new ResourceMapper(getInAppFolderProvider());
 
@@ -63,8 +62,7 @@ public class InAppModule {
         return resourceMapper;
     }
 
-    @Nullable
-    public static InAppStorage getInAppStorage() {
+    @Nullable public static InAppStorage getInAppStorage() {
         synchronized (inAppStorageMutex) {
             if (inAppStorage == null) {
                 if (AndroidPlatformModule.getApplicationContext() == null) {
@@ -78,20 +76,14 @@ public class InAppModule {
         return inAppStorage;
     }
 
-    @Nullable
-    public static InAppRepository getInAppRepository() {
+    @Nullable public static InAppRepository getInAppRepository() {
         synchronized (inAppRepositoryMutex) {
             if (inAppRepository == null) {
                 if (AndroidPlatformModule.getApplicationContext() == null) {
                     return null;
                 }
                 inAppRepository = new InAppRepository(
-                        NetworkModule.getRequestManager(),
-                        getInAppStorage(),
-                        getInAppDownloader(),
-                        getResourceMapper(),
-                        getInAppFolderProvider(),
-                        RepositoryModule.getRegistrationPreferences());
+                        getInAppStorage(), getInAppDownloader(), getResourceMapper(), getInAppFolderProvider());
             }
         }
 

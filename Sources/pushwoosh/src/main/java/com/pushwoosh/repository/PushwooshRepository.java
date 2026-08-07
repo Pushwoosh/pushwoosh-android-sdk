@@ -65,7 +65,7 @@ public class PushwooshRepository {
     private String currentInAppCode;
 
     public PushwooshRepository(
-            RequestManager requestManager,
+            @NonNull RequestManager requestManager,
             SendTagsProcessor sendTagsProcessor,
             RegistrationPrefs registrationPrefs,
             NotificationPrefs notificationPrefs) {
@@ -123,13 +123,6 @@ public class PushwooshRepository {
     }
 
     public void sendAdvertisingId(@Nullable String advertisingId, @Nullable Callback<Void, NetworkException> callback) {
-        if (requestManager == null) {
-            PWLog.error(TAG, "Request manager is null, can't send advertising ID");
-            if (callback != null) {
-                callback.process(Result.fromException(new NetworkException("Request manager is null")));
-            }
-            return;
-        }
         SetAdvertisingIdRequest request = new SetAdvertisingIdRequest(advertisingId);
         String trackingUrl = registrationPrefs.getTrackingUrl();
         requestManager.sendRequest(request, trackingUrl, callback);
@@ -150,12 +143,6 @@ public class PushwooshRepository {
 
     public void getTags(@Nullable final Callback<TagsBundle, GetTagsException> callback) {
         GetTagsRequest request = new GetTagsRequest();
-        if (requestManager == null) {
-            if (callback != null) {
-                callback.process(Result.fromException(new GetTagsException("Request Manager is null")));
-            }
-            return;
-        }
         requestManager.sendRequest(request, result -> {
             if (callback != null) {
                 if (result.isSuccess()) {
@@ -235,10 +222,6 @@ public class PushwooshRepository {
         notificationPrefs.lastNotificationHash().set(hash);
 
         PushStatRequest request = new PushStatRequest(hash, metadata);
-        if (requestManager == null) {
-            PWLog.error(TAG, "Request manager is null");
-            return;
-        }
         requestManager.sendRequest(request);
     }
 
@@ -265,10 +248,6 @@ public class PushwooshRepository {
     public void sendPushDelivered(String hash, String metaData) {
         PWLog.info(TAG, "Sending MessageDeliveredRequest, hash: " + hash);
         MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData);
-        if (requestManager == null) {
-            PWLog.error(TAG, "Request manager is null");
-            return;
-        }
         requestManager.sendRequest(request);
     }
 
@@ -283,10 +262,6 @@ public class PushwooshRepository {
         }
 
         PushStatRequest request = new PushStatRequest(hash, metadata);
-        if (requestManager == null) {
-            PWLog.error(TAG, "Request manager is null");
-            return Result.fromException(new NetworkException("Request manager is null"));
-        }
 
         try {
             Result<Void, NetworkException> result = requestManager.sendRequestSync(request);
@@ -307,10 +282,6 @@ public class PushwooshRepository {
         PWLog.info(TAG, "Sending MessageDeliveredRequest sync, hash: " + hash);
 
         MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData);
-        if (requestManager == null) {
-            PWLog.error(TAG, "Request manager is null");
-            return Result.fromException(new NetworkException("Request manager is null"));
-        }
 
         try {
             return requestManager.sendRequestSync(request);
@@ -322,10 +293,6 @@ public class PushwooshRepository {
 
     public void prefetchTags() {
         GetTagsRequest request = new GetTagsRequest();
-        if (requestManager == null) {
-            return;
-        }
-
         Result<TagsBundle, NetworkException> result = requestManager.sendRequestSync(request);
         if (result.isSuccess() && result.getData() != null) {
             JSONObject jsonTags = result.getData().toJson();

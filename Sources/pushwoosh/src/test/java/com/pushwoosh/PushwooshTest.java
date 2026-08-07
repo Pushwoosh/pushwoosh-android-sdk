@@ -21,6 +21,10 @@ import androidx.work.testing.WorkManagerTestInitHelper;
 
 import com.pushwoosh.exception.RegisterForPushNotificationsException;
 import com.pushwoosh.function.Callback;
+import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
+import com.pushwoosh.internal.event.Subscription;
+import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.registrar.ExistingTokenRegistrarWorker;
 import com.pushwoosh.internal.utils.Config;
@@ -43,6 +47,7 @@ import org.robolectric.shadows.ShadowLooper;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -62,13 +67,9 @@ public class PushwooshTest {
     private MockedStatic<PushwooshMessagingServiceHelper> messagingServiceHelperMock;
 
     private final WorkerFactory testWorkerFactory = new WorkerFactory() {
-        @Nullable
-        @Override
+        @Nullable @Override
         public ListenableWorker createWorker(
-                @NonNull Context appContext,
-                @NonNull String workerClassName,
-                @NonNull WorkerParameters params
-        ) {
+                @NonNull Context appContext, @NonNull String workerClassName, @NonNull WorkerParameters params) {
             if (workerClassName.equals(ExistingTokenRegistrarWorker.class.getName())) {
                 // Modify ctor to accept deps, or use a Service Locator inside worker.
                 return new ExistingTokenRegistrarWorker(appContext, params);
@@ -132,28 +133,31 @@ public class PushwooshTest {
 
     @Test
     public void shouldSendExistingTokenOnce() throws ExecutionException, InterruptedException {
-            String testToken = "12345";
-            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback =
-                    CallbackWrapper.spy();
+        String testToken = "12345";
+        Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback =
+                CallbackWrapper.spy();
 
-            Pushwoosh.getInstance().registerExistingToken(testToken, callback);
+        Pushwoosh.getInstance().registerExistingToken(testToken, callback);
 
-            List<WorkInfo> infos = workManager.getWorkInfosForUniqueWork(ExistingTokenRegistrarWorker.TAG).get();
-            assertThat(infos, hasSize(1));
-            WorkInfo info = infos.get(0);
-            testDriver.setAllConstraintsMet(info.getId());
+        List<WorkInfo> infos = workManager
+                .getWorkInfosForUniqueWork(ExistingTokenRegistrarWorker.TAG)
+                .get();
+        assertThat(infos, hasSize(1));
+        WorkInfo info = infos.get(0);
+        testDriver.setAllConstraintsMet(info.getId());
 
-            Pushwoosh.getInstance().registerExistingToken(testToken, callback);
+        Pushwoosh.getInstance().registerExistingToken(testToken, callback);
 
-            infos = workManager.getWorkInfosForUniqueWork(ExistingTokenRegistrarWorker.TAG).get();
-            assertThat(infos, hasSize(1));
-            info = infos.get(0);
-            testDriver.setAllConstraintsMet(info.getId());
+        infos = workManager
+                .getWorkInfosForUniqueWork(ExistingTokenRegistrarWorker.TAG)
+                .get();
+        assertThat(infos, hasSize(1));
+        info = infos.get(0);
+        testDriver.setAllConstraintsMet(info.getId());
 
-            Mockito.verify(callback, Mockito.times(2)).process(Mockito.any());
-            Mockito.verify(notificationManagerSpy, Mockito.times(1))
-                    .onExistingTokenReceived(Mockito.any(), Mockito.any());
-            ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        Mockito.verify(callback, Mockito.times(2)).process(Mockito.any());
+        Mockito.verify(notificationManagerSpy, Mockito.times(1)).onExistingTokenReceived(Mockito.any(), Mockito.any());
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
     }
 
     private Pushwoosh spyWith(String appCode, String hwid) {
@@ -191,5 +195,38 @@ public class PushwooshTest {
         Pushwoosh pushwoosh = spyWith(appCode, longHwid);
 
         assertThat(pushwoosh.getSubscriptionAccountId(), equalTo(appCode + ":" + longHwid));
+    }
+
+    // PushwooshStartWorker counts down its startup latch on ReverseProxyReadyEvent and then requires
+    // a configured proxy, so announcing readiness after the URL was dropped blocks all traffic for good.
+    @Test
+    public void setReverseProxy_whenSdkNotInitialized_doesNotAnnounceReadiness() {
+        Mockito.when(PushwooshPlatform.getInstance().getConfig().isReverseProxyAllowed())
+                .thenReturn(true);
+        NetworkModule.setRequestManager(null);
+        List<ReverseProxyReadyEvent> events = new ArrayList<>();
+        Subscription<ReverseProxyReadyEvent> subscription =
+                EventBus.subscribe(ReverseProxyReadyEvent.class, events::add);
+
+        Pushwoosh.getInstance().setReverseProxy("https://proxy.example.com/", null);
+        ShadowLooper.idleMainLooper();
+        subscription.unsubscribe();
+
+        assertThat(events, hasSize(0));
+    }
+
+    @Test
+    public void setReverseProxy_whenInitialized_announcesReadiness() {
+        Mockito.when(PushwooshPlatform.getInstance().getConfig().isReverseProxyAllowed())
+                .thenReturn(true);
+        List<ReverseProxyReadyEvent> events = new ArrayList<>();
+        Subscription<ReverseProxyReadyEvent> subscription =
+                EventBus.subscribe(ReverseProxyReadyEvent.class, events::add);
+
+        Pushwoosh.getInstance().setReverseProxy("https://proxy.example.com/", null);
+        ShadowLooper.idleMainLooper();
+        subscription.unsubscribe();
+
+        assertThat(events, hasSize(1));
     }
 }

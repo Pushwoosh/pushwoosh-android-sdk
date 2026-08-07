@@ -136,9 +136,10 @@ class PushwooshRequestManager implements RequestManager {
      * caller-supplied base URL. Pass {@code null} headers to clear them.
      */
     @Override
-    public void setReverseProxyUrl(String url, Map<String, String> headers) {
+    public boolean setReverseProxyUrl(String url, Map<String, String> headers) {
         reverseProxyUrl = url;
         customHeaders = headers != null ? new HashMap<>(headers) : new HashMap<>();
+        return true;
     }
 
     /**

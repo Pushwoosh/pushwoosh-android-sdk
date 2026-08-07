@@ -31,6 +31,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.prefs.PrefsProvider;
@@ -269,7 +270,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         return normalized;
     }
 
-    @Nullable private static String normalizeBaseUrl(@Nullable String rawUrl) {
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    @Nullable public static String normalizeBaseUrl(@Nullable String rawUrl) {
         if (TextUtils.isEmpty(rawUrl)) {
             PWLog.warn(TAG, "Reject URL: empty value");
             return null;
@@ -310,30 +312,11 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         return normalized != null ? normalized : DEFAULT_TRACKING_URL;
     }
 
-    public void removeAppId() {
+    void removeAppId() {
         applicationId().set("");
         baseUrl().set("");
         lastPushRegistration().set(0);
         registeredOnServer.set(false);
-    }
-
-    public void setAppId(final String appId) {
-        if (TextUtils.isEmpty(appId)) {
-            throw new IllegalArgumentException("Application id is empty");
-        }
-        String oldAppId = applicationId().get();
-        applicationId().set(appId);
-
-        String currentBaseUrl = baseUrl().get();
-        if (!TextUtils.equals(oldAppId, appId) || TextUtils.isEmpty(currentBaseUrl)) {
-            String defaultUrl = getDefaultBaseUrl(appId);
-            if (updateBaseUrl(defaultUrl) == null) {
-                PWLog.error(
-                        TAG,
-                        "Default base URL rejected: " + defaultUrl
-                                + ". Check com.pushwoosh.base_url in AndroidManifest.xml.");
-            }
-        }
     }
 
     public void setLanguage(@Nullable String language) {

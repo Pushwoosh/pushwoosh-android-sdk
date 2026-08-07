@@ -48,7 +48,6 @@ import com.pushwoosh.function.RetriableRequestCallback;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
@@ -62,146 +61,145 @@ import java.util.Date;
 
 /**
  * Register/unregister with the App server.
- * TODO: to improve testablity need to make methods of this class non-static
  */
 public class DeviceRegistrar {
-	public static final int PLATFORM_SMS = 18;
-	public static final int PLATFORM_WHATSAPP = 21;
+    public static final int PLATFORM_SMS = 18;
+    public static final int PLATFORM_WHATSAPP = 21;
 
-	private static final String TAG = "DeviceRegistrar";
-	private static final int COOLDOWN_MINUTES = 10;
+    private static final String TAG = "DeviceRegistrar";
+    private static final int COOLDOWN_MINUTES = 10;
 
-	public static void registerWithServerWithRetries(String token, String tags, int platform,
-													 Callback<Void, NetworkException> callback) {
-		registerWithServerInternal(token, tags, platform, callback, true);
-	}
+    public void registerWithServerWithRetries(
+            String token, String tags, int platform, Callback<Void, NetworkException> callback) {
+        registerWithServerInternal(token, tags, platform, callback, true);
+    }
 
-	public static void registerWithServer(String token, String tags, int platform,
-													 Callback<Void, NetworkException> callback) {
-		registerWithServerInternal(token, tags, platform, callback, false);
-	}
+    public void registerWithServer(String token, String tags, int platform, Callback<Void, NetworkException> callback) {
+        registerWithServerInternal(token, tags, platform, callback, false);
+    }
 
-	private static void registerWithServerInternal(
-			String token, String tags, int platform, Callback<Void, NetworkException> callback,
-			boolean withRetries) {
-		PWLog.noise(TAG, "registerWithServerInternal");
-		RequestManager requestManager = NetworkModule.getRequestManager();
-		//todo: move this not null check in getRequestManager() and throw Exception
-		if (requestManager == null) {
-			//todo: don't send event, call callback instead
-			EventBus.sendEvent(new RegistrationErrorEvent("Request manager is null"));
-			PWLog.error(TAG, "request manager is null");
-			return;
-		}
+    private void registerWithServerInternal(
+            String token, String tags, int platform, Callback<Void, NetworkException> callback, boolean withRetries) {
+        PWLog.noise(TAG, "registerWithServerInternal");
 
-		// Main registration
-		RegisterDeviceRequest request = new RegisterDeviceRequest(token, tags, platform);
-		if (withRetries) {
-			callback = new RetriableRequestCallback<>(callback, request);
-		}
+        // Main registration
+        RegisterDeviceRequest request = new RegisterDeviceRequest(token, tags, platform);
+        if (withRetries) {
+            callback = new RetriableRequestCallback<>(callback, request);
+        }
 
-		requestManager.sendRequest(request, callback);
-	}
+        NetworkModule.getRequestManager().sendRequest(request, callback);
+    }
 
-	public static void unregisterWithServer(final String deviceRegistrationID) {
-		unregisterWithServer(deviceRegistrationID, null);
-	}
+    public void unregisterWithServer(final String deviceRegistrationID) {
+        RegistrationPrefs registrationPrefs = RepositoryModule.getRegistrationPreferences();
+        // Cleared here, not in the snapshot overload: on the app code change path that overload
+        // runs after the new identity is already committed, and clearing there would stomp a
+        // concurrent registration's registeredOnServer=true for the new application.
+        registrationPrefs.registeredOnServer().set(false);
+        unregisterWithServer(
+                deviceRegistrationID, null, registrationPrefs.applicationId().get());
+    }
 
-	public static void unregisterWithServer(final String deviceRegistrationId, String baseUrl) {
-		PWLog.debug(TAG, "Unregistering for pushes...");
+    /**
+     * @param appCode application code to unregister from — passed explicitly because after an
+     *                application code change the prefs already hold the new code by the time this
+     *                is called
+     */
+    public void unregisterWithServer(final String deviceRegistrationId, String baseUrl, String appCode) {
+        PWLog.debug(TAG, "Unregistering for pushes...");
 
-		RegistrationPrefs registrationPrefs = RepositoryModule.getRegistrationPreferences();
-		registrationPrefs.registeredOnServer().set(false);
+        RegistrationPrefs registrationPrefs = RepositoryModule.getRegistrationPreferences();
 
-		UnregisterDeviceRequest request = new UnregisterDeviceRequest();
-		RequestManager requestManager = NetworkModule.getRequestManager();
-		if (requestManager == null) {
-			EventBus.sendEvent(new DeregistrationErrorEvent("Request manager is null"));
-			return;
-		}
-		requestManager.sendRequest(request, baseUrl, result -> {
-			if (result.isSuccess()) {
-				PWLog.info(TAG, "Unregistered for pushes: " + deviceRegistrationId);
+        UnregisterDeviceRequest request = new UnregisterDeviceRequest(appCode);
+        NetworkModule.getRequestManager().sendRequest(request, baseUrl, result -> {
+            if (result.isSuccess()) {
+                PWLog.info(TAG, "Unregistered for pushes: " + deviceRegistrationId);
 
-				EventBus.sendEvent(new DeregistrationSuccessEvent(deviceRegistrationId));
-				registrationPrefs.lastPushRegistration().set(0);
-			} else {
-				String errorDescription = result.getException() == null ? "" : result.getException().getMessage();
-				if (TextUtils.isEmpty(errorDescription)) {
-					errorDescription = "Pushwoosh unregistration error";
-				}
+                EventBus.sendEvent(new DeregistrationSuccessEvent(deviceRegistrationId));
+                registrationPrefs.lastPushRegistration().set(0);
+            } else {
+                String errorDescription = result.getException() == null
+                        ? ""
+                        : result.getException().getMessage();
+                if (TextUtils.isEmpty(errorDescription)) {
+                    errorDescription = "Pushwoosh unregistration error";
+                }
 
-				PWLog.error(TAG, "Unregistration error: " + errorDescription);
-				EventBus.sendEvent(new DeregistrationErrorEvent(errorDescription));
-			}
-		});
-	}
+                PWLog.error(TAG, "Unregistration error: " + errorDescription);
+                EventBus.sendEvent(new DeregistrationErrorEvent(errorDescription));
+            }
+        });
+    }
 
-	public void updateRegistration() {
-		PWLog.noise(TAG, "updateRegistration()");
+    public void updateRegistration() {
+        PWLog.noise(TAG, "updateRegistration()");
 
-		RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
+        RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
 
-		final String pushToken = prefs.pushToken().get();
-		if (pushToken == null || pushToken.isEmpty()) {
-			return;
-		}
+        final String pushToken = prefs.pushToken().get();
+        if (pushToken == null || pushToken.isEmpty()) {
+            return;
+        }
 
-		//if we need to re-register on Pushwoosh because of Pushwoosh App Id change
-		boolean forceRegister = prefs.forceRegister().get();
-		prefs.forceRegister().set(false);
+        // if we need to re-register on Pushwoosh because of Pushwoosh App Id change
+        boolean forceRegister = prefs.forceRegister().get();
+        prefs.forceRegister().set(false);
 
-		if (forceRegister || neededToRequestPushwooshServer()) {
-			registerWithServer(pushToken, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
-				if (result.isSuccess()) {
-					PWLog.info(TAG, "Device has been updated on server: " + pushToken);
+        if (forceRegister || neededToRequestPushwooshServer()) {
+            registerWithServer(
+                    pushToken, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
+                        if (result.isSuccess()) {
+                            PWLog.info(TAG, "Device has been updated on server: " + pushToken);
 
-					prefs.registeredOnServer().set(true);
-					prefs.lastPushRegistration().set(new Date().getTime());
+                            prefs.registeredOnServer().set(true);
+                            prefs.lastPushRegistration().set(new Date().getTime());
 
-					EventBus.sendEvent(new RegistrationSuccessEvent(new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
-				} else {
-					PWLog.error(TAG, "Can't update device on server: " + result.getException());
-					EventBus.sendEvent(new RegistrationErrorEvent("Can't update device on server"));
-				}
-			});
-		}
-	}
+                            EventBus.sendEvent(new RegistrationSuccessEvent(
+                                    new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
+                        } else {
+                            PWLog.error(TAG, "Can't update device on server: " + result.getException());
+                            EventBus.sendEvent(new RegistrationErrorEvent("Can't update device on server"));
+                        }
+                    });
+        }
+    }
 
-	private static boolean neededToRequestPushwooshServer() {
-		RegistrationPrefs registrationPrefs = RepositoryModule.getRegistrationPreferences();
-		Calendar nowTime = Calendar.getInstance();
-		Calendar tenMinutesBefore = Calendar.getInstance();
-		tenMinutesBefore.add(Calendar.MINUTE, -COOLDOWN_MINUTES);
+    private static boolean neededToRequestPushwooshServer() {
+        RegistrationPrefs registrationPrefs = RepositoryModule.getRegistrationPreferences();
+        Calendar nowTime = Calendar.getInstance();
+        Calendar tenMinutesBefore = Calendar.getInstance();
+        tenMinutesBefore.add(Calendar.MINUTE, -COOLDOWN_MINUTES);
 
-		Calendar lastPushWooshRegistrationTime = Calendar.getInstance();
-		lastPushWooshRegistrationTime.setTime(new Date(registrationPrefs.lastPushRegistration().get()));
+        Calendar lastPushWooshRegistrationTime = Calendar.getInstance();
+        lastPushWooshRegistrationTime.setTime(
+                new Date(registrationPrefs.lastPushRegistration().get()));
 
-		if (tenMinutesBefore.before(lastPushWooshRegistrationTime) && lastPushWooshRegistrationTime.before(nowTime)) {
-			// tenMinutesBefore <= lastPushWooshRegistrationTime <= nowTime
-			return false;
-		}
-		return true;
-	}
+        if (tenMinutesBefore.before(lastPushWooshRegistrationTime) && lastPushWooshRegistrationTime.before(nowTime)) {
+            // tenMinutesBefore <= lastPushWooshRegistrationTime <= nowTime
+            return false;
+        }
+        return true;
+    }
 
-	public static boolean areNotificationsEnabled() {
-		try {
-			Context context = AndroidPlatformModule.getApplicationContext();
-			if (context == null) {
-				PWLog.warn(TAG, "areNotificationsEnabled: context is null");
-				return true;
-			}
+    public static boolean areNotificationsEnabled() {
+        try {
+            Context context = AndroidPlatformModule.getApplicationContext();
+            if (context == null) {
+                PWLog.warn(TAG, "areNotificationsEnabled: context is null");
+                return true;
+            }
 
-			if (Build.VERSION.SDK_INT >= 33) {
-				return ActivityCompat.checkSelfPermission(context,
-						"android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED;
-			} else {
-				return NotificationManagerCompat.from(context).areNotificationsEnabled();
-			}
+            if (Build.VERSION.SDK_INT >= 33) {
+                return ActivityCompat.checkSelfPermission(context, "android.permission.POST_NOTIFICATIONS")
+                        == PackageManager.PERMISSION_GRANTED;
+            } else {
+                return NotificationManagerCompat.from(context).areNotificationsEnabled();
+            }
 
-		} catch (Exception e) {
-			PWLog.exception(e);
-			return true; // fall back to default behavior
-		}
-	}
+        } catch (Exception e) {
+            PWLog.exception(e);
+            return true; // fall back to default behavior
+        }
+    }
 }

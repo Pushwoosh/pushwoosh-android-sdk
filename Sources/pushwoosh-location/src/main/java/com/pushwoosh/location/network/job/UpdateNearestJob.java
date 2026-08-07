@@ -27,13 +27,13 @@
 package com.pushwoosh.location.network.job;
 
 import android.location.Location;
+
 import androidx.core.util.Pair;
 
 import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.location.data.GeoZone;
@@ -45,45 +45,44 @@ import java.util.List;
 
 public class UpdateNearestJob implements Job<Result<Pair<Location, List<GeoZone>>, PushwooshException>> {
 
-	private Location currentLocation;
+    private Location currentLocation;
 
-	public UpdateNearestJob(final Location currentLocation) {
-		this.currentLocation = currentLocation;
-	}
+    public UpdateNearestJob(final Location currentLocation) {
+        this.currentLocation = currentLocation;
+    }
 
-	private boolean checkParams() {
-		boolean networkAvailable = GeneralUtils.isNetworkAvailable();
+    private boolean checkParams() {
+        boolean networkAvailable = GeneralUtils.isNetworkAvailable();
 
-		PWLog.noise(LocationConfig.TAG, "Try to load nearest geoZones. Network available: " + networkAvailable + "; Current location: " + currentLocation);
-		return currentLocation != null && networkAvailable;
+        PWLog.noise(
+                LocationConfig.TAG,
+                "Try to load nearest geoZones. Network available: " + networkAvailable + "; Current location: "
+                        + currentLocation);
+        return currentLocation != null && networkAvailable;
+    }
 
-	}
+    @Override
+    public Result<Pair<Location, List<GeoZone>>, PushwooshException> apply() {
+        try {
+            if (checkParams()) {
+                GetNearestZoneRequest request = new GetNearestZoneRequest(currentLocation);
 
-	@Override
-	public Result<Pair<Location, List<GeoZone>>, PushwooshException> apply() {
-		try {
-			if (checkParams()) {
-				GetNearestZoneRequest request = new GetNearestZoneRequest(currentLocation);
-				RequestManager requestManager = NetworkModule.getRequestManager();
+                Result<List<GeoZone>, NetworkException> result =
+                        NetworkModule.getRequestManager().sendRequestSync(request);
 
-				Result<List<GeoZone>, NetworkException> result = requestManager == null ?
-						Result.fromException(new NetworkException("Request Manager is null")) :
-						requestManager.sendRequestSync(request);
+                if (result.isSuccess() && result.getData() != null) {
+                    return Result.fromData(new Pair<>(currentLocation, result.getData()));
+                } else {
+                    return Result.fromException(result.getException());
+                }
+            } else {
+                return Result.fromException(new LocationNotAvailableException());
+            }
+        } catch (Exception e) {
+            return Result.fromException(new PushwooshException(e));
+        }
+    }
 
-				if (result.isSuccess() && result.getData() != null) {
-					return Result.fromData(new Pair<>(currentLocation, result.getData()));
-				} else {
-					return Result.fromException(result.getException());
-				}
-			} else {
-				return Result.fromException(new LocationNotAvailableException());
-			}
-		} catch (Exception e) {
-			return Result.fromException(new PushwooshException(e));
-		}
-	}
-
-	@Override
-	public void cancel() {
-	}
+    @Override
+    public void cancel() {}
 }

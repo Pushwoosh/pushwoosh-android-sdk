@@ -8,6 +8,7 @@ import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
@@ -26,7 +27,6 @@ import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.event.NotificationPermissionEvent;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.registrar.ExistingTokenRegistrarWorker;
 import com.pushwoosh.internal.registrar.PushRegistrar;
@@ -41,13 +41,12 @@ import com.pushwoosh.notification.event.RegistrationSuccessEvent;
 import com.pushwoosh.notification.handlers.message.system.MessageSystemHandleChainProvider;
 import com.pushwoosh.notification.handlers.message.user.MessageHandleChainProvider;
 import com.pushwoosh.notification.handlers.notification.NotificationOpenHandlerChainProvider;
+import com.pushwoosh.repository.AppCodeApplier;
 import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.RegistrationPrefs;
-import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.tags.TagsBundle;
 
 import java.util.Date;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PushwooshNotificationManager {
@@ -60,6 +59,8 @@ public class PushwooshNotificationManager {
     }
 
     private final RegistrationPrefs registrationPrefs;
+    private final AppCodeApplier appCodeApplier;
+    private final DeviceRegistrar deviceRegistrar;
     private PushRegistrar pushRegistrar;
     private PushMessage launchNotification;
     private final Config config;
@@ -67,10 +68,16 @@ public class PushwooshNotificationManager {
     private final AtomicBoolean appIdReadyEventSent = new AtomicBoolean(false);
     private static final long EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 14;
 
-    public PushwooshNotificationManager(PushRegistrar pushRegistrar, Config config) {
+    public PushwooshNotificationManager(
+            Config config,
+            PushRegistrar pushRegistrar,
+            @NonNull RegistrationPrefs registrationPrefs,
+            @NonNull DeviceRegistrar deviceRegistrar) {
         this.config = config;
         this.pushRegistrar = pushRegistrar;
-        registrationPrefs = RepositoryModule.getRegistrationPreferences();
+        this.registrationPrefs = registrationPrefs;
+        this.appCodeApplier = new AppCodeApplier(registrationPrefs);
+        this.deviceRegistrar = deviceRegistrar;
     }
 
     public void initialize() {
@@ -95,36 +102,30 @@ public class PushwooshNotificationManager {
     }
 
     public void setAppId(String appId) {
+        setAppId(appId, null);
+    }
+
+    /**
+     * Applies the application code and, when {@code customBaseUrl} is provided, the explicit base URL.
+     * Invalid input (empty application code, malformed URL) is rejected inside
+     * {@link AppCodeApplier#apply} and makes the whole call a logged no-op.
+     */
+    public void setAppId(@NonNull String appId, @Nullable String customBaseUrl) {
         PWLog.noise(TAG, "setAppId()");
-        if (TextUtils.isEmpty(appId)) {
-            throw new IllegalArgumentException("Application id is empty");
+        AppCodeApplier.Result result = appCodeApplier.apply(appId, customBaseUrl);
+        if (result.isRejected()) {
+            return;
         }
 
-        String oldAppId = registrationPrefs.applicationId().get();
-        boolean isAppIdChange = !TextUtils.isEmpty(oldAppId) && !Objects.equals(oldAppId, appId);
+        NetworkModule.getRequestManager().updateBaseUrl(result.getBaseUrl());
 
-        if (isAppIdChange) {
+        AppCodeApplier.PreviousRegistration previous = result.getPreviousRegistration();
+        if (previous != null) {
             appIdReadyEventSent.set(false);
-            if (registrationPrefs.registeredOnServer().get()) {
-                DeviceRegistrar.unregisterWithServer(
-                        registrationPrefs.pushToken().get(),
-                        registrationPrefs.baseUrl().get());
+            if (previous.wasRegisteredOnServer) {
+                deviceRegistrar.unregisterWithServer(previous.pushToken, previous.baseUrl, previous.appCode);
             }
-            registrationPrefs.removeAppId();
-            registrationPrefs
-                    .forceRegister()
-                    .set(registrationPrefs.isRegisteredForPush().get());
-        }
-
-        registrationPrefs.setAppId(appId);
-
-        RequestManager requestManager = NetworkModule.getRequestManager();
-        if (requestManager != null) {
-            requestManager.updateBaseUrl(registrationPrefs.baseUrl().get());
-        }
-
-        if (isAppIdChange) {
-            EventBus.sendEvent(new AppIdChangedEvent(appId, oldAppId));
+            EventBus.sendEvent(new AppIdChangedEvent(appId, previous.appCode));
         }
 
         if (!appIdReadyEventSent.get()) {
@@ -152,7 +153,7 @@ public class PushwooshNotificationManager {
     }
 
     public void registerSMSNumber(String phoneNumber) {
-        DeviceRegistrar.registerWithServer(phoneNumber, null, DeviceRegistrar.PLATFORM_SMS, result -> {
+        deviceRegistrar.registerWithServer(phoneNumber, null, DeviceRegistrar.PLATFORM_SMS, result -> {
             if (result.isSuccess()) {
                 PWLog.info(TAG, "Registered phone number: " + phoneNumber);
             } else {
@@ -169,7 +170,7 @@ public class PushwooshNotificationManager {
     }
 
     public void registerWhatsappNumber(String phoneNumber) {
-        DeviceRegistrar.registerWithServer(phoneNumber, null, DeviceRegistrar.PLATFORM_WHATSAPP, result -> {
+        deviceRegistrar.registerWithServer(phoneNumber, null, DeviceRegistrar.PLATFORM_WHATSAPP, result -> {
             if (result.isSuccess()) {
                 PWLog.info(TAG, "Registered phone number for Whatsapp: " + phoneNumber);
             } else {
@@ -210,10 +211,7 @@ public class PushwooshNotificationManager {
                             AndroidPlatformModule.getApplicationContext(), "android.permission.POST_NOTIFICATIONS")
                     != PackageManager.PERMISSION_GRANTED) {
                 // check if user has manually denied notification permission, if not - request permission
-                if (!RepositoryModule.getRegistrationPreferences()
-                                .hasUserDeniedNotificationPermission()
-                                .get()
-                        && shouldRequestPermission) {
+                if (!registrationPrefs.hasUserDeniedNotificationPermission().get() && shouldRequestPermission) {
                     requestNotificationPermission();
                     // permission denied - register for pushes silently with notificationsAllowed == false
                 } else {
@@ -222,9 +220,7 @@ public class PushwooshNotificationManager {
                 // permission already granted - register silently with notificationsAllowed == true and
                 // set hasUserDeniedNotificationPermission to false in case permission was granted from app settings
             } else {
-                RepositoryModule.getRegistrationPreferences()
-                        .hasUserDeniedNotificationPermission()
-                        .set(false);
+                registrationPrefs.hasUserDeniedNotificationPermission().set(false);
                 registerForPushesInternal(callback, true, tags);
             }
         } catch (Exception e) {
@@ -347,13 +343,13 @@ public class PushwooshNotificationManager {
         registrationPrefs.pushToken().set(pushToken);
         if (DeviceSpecificProvider.getInstance() != null) {
             if (shouldRetryRegistration) {
-                DeviceRegistrar.registerWithServerWithRetries(
+                deviceRegistrar.registerWithServerWithRetries(
                         pushToken,
                         tagsJson,
                         DeviceSpecificProvider.getInstance().deviceType(),
                         provideServerRegistrationCallback(pushToken));
             } else {
-                DeviceRegistrar.registerWithServer(
+                deviceRegistrar.registerWithServer(
                         pushToken,
                         tagsJson,
                         DeviceSpecificProvider.getInstance().deviceType(),
@@ -389,7 +385,7 @@ public class PushwooshNotificationManager {
 
     public void onUnregisteredFromRemoteNotifications(String pushToken) {
         registrationPrefs.clearPushRegistrationInfo();
-        DeviceRegistrar.unregisterWithServer(pushToken);
+        deviceRegistrar.unregisterWithServer(pushToken);
     }
 
     public void onFailedToUnregisterFromRemoteNotifications(String error) {

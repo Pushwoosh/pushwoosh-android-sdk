@@ -32,6 +32,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.pushwoosh.PushwooshPlatform;
@@ -40,6 +41,7 @@ import com.pushwoosh.inapp.InAppConfig;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.event.RichMediaErrorEvent;
 import com.pushwoosh.inapp.exception.ResourceParseException;
+import com.pushwoosh.inapp.mapper.InAppTags;
 import com.pushwoosh.inapp.mapper.NativeConfigLocalizer;
 import com.pushwoosh.inapp.nativeui.NativeInAppPresenter;
 import com.pushwoosh.inapp.nativeui.NativeInAppPresenterProvider;
@@ -54,6 +56,7 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.FileUtils;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.richmedia.RichMediaManager;
 import com.pushwoosh.richmedia.RichMediaType;
 
@@ -124,6 +127,19 @@ public class ResourceViewStrategyFactory {
             return;
         }
 
+        String configJson = buildNativeConfigJson(resource, resolved, nativeConfigFile);
+        if (configJson == null) {
+            return;
+        }
+        mainHandler.postDelayed(() -> presentNative(configJson, resolved), resourceWrapper.getDelay());
+    }
+
+    /**
+     * File -> language dictionary -> tags -> substitution, all on the worker thread. Returns null when the
+     * config could not be read; the error event has already been sent in that case.
+     */
+    @WorkerThread
+    @Nullable private String buildNativeConfigJson(Resource resource, Resource resolved, File nativeConfigFile) {
         String rawConfigJson;
         try {
             rawConfigJson = FileUtils.readFile(nativeConfigFile);
@@ -133,7 +149,7 @@ public class ResourceViewStrategyFactory {
             sendError(
                     resource,
                     new ResourceParseException("Failed to read native-config.json for: " + resolved.getCode(), e));
-            return;
+            return null;
         }
 
         Map<String, String> localizedStrings;
@@ -149,8 +165,8 @@ public class ResourceViewStrategyFactory {
             localizedStrings = Collections.emptyMap();
         }
 
-        String configJson = NativeConfigLocalizer.localize(rawConfigJson, localizedStrings);
-        mainHandler.postDelayed(() -> presentNative(configJson, resolved), resourceWrapper.getDelay());
+        Map<String, String> tags = InAppTags.collect(RepositoryModule.getNotificationPreferences());
+        return NativeConfigLocalizer.localize(rawConfigJson, localizedStrings, tags);
     }
 
     private void sendError(Resource resource, ResourceParseException exception) {

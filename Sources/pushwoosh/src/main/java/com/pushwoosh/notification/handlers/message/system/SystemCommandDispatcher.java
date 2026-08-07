@@ -29,6 +29,7 @@ package com.pushwoosh.notification.handlers.message.system;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushBundleDataProvider;
 
@@ -207,13 +208,7 @@ class SystemCommandDispatcher implements MessageSystemHandler {
                 return false;
             }
 
-            com.pushwoosh.internal.network.RequestManager requestManager =
-                    com.pushwoosh.internal.network.NetworkModule.getRequestManager();
-            if (requestManager == null) {
-                PWLog.error(HANDLER_TAG, "RequestManager is not initialized");
-                return false;
-            }
-            return requestManager.updateBaseUrl(value);
+            return NetworkModule.getRequestManager().updateBaseUrl(value);
         }
     }
 }

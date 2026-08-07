@@ -28,8 +28,8 @@ package com.pushwoosh.inapp.network;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.description;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,9 +52,12 @@ import com.pushwoosh.inapp.network.model.InAppLayout;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.storage.InAppStorage;
+import com.pushwoosh.inapp.view.InAppViewEvent;
+import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
+import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.tags.Tags;
 import com.pushwoosh.testutil.CallbackWrapper;
 import com.pushwoosh.testutil.PlatformTestManager;
@@ -68,11 +71,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.verification.VerificationMode;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,6 +85,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 
 /**
  * Created by aevstefeev on 07/03/2018.
@@ -111,25 +116,23 @@ public class InAppRepositoryTest {
         platformTestManager.setUp();
 
         requestManagerMock = mock(RequestManager.class);
+        NetworkModule.setRequestManager(requestManagerMock);
         inAppStorageMock = mock(InAppStorage.class);
         inAppFolderProviderMock = mock(InAppFolderProvider.class);
         resourceMapperMock = mock(ResourceMapper.class);
         inAppDownloaderMock = mock(InAppDownloader.class);
         inAppDeployedCheckerMock = mock(InAppDeployedChecker.class);
 
-        inAppRepository = new InAppRepository(
-                requestManagerMock,
-                inAppStorageMock,
-                inAppDownloaderMock,
-                resourceMapperMock,
-                inAppFolderProviderMock,
-                platformTestManager.getRegistrationPrefs());
+        inAppRepository =
+                new InAppRepository(inAppStorageMock, inAppDownloaderMock, resourceMapperMock, inAppFolderProviderMock);
 
         WhiteboxHelper.setInternalState(inAppRepository, "inAppDeployedChecker", inAppDeployedCheckerMock);
     }
 
     @After
     public void tearDown() {
+        EventBus.clearSubscribersMap();
+        NetworkModule.setRequestManager(null);
         platformTestManager.tearDown();
     }
 
@@ -479,36 +482,33 @@ public class InAppRepositoryTest {
         Assert.assertTrue(inAppLoaded.get());
     }
 
-    // Verifies that setUserId fetches RequestManager from NetworkModule fallback when local one is null.
+    // Verifies that setUserId pulls the current manager from NetworkModule on every call.
     @Test
-    public void setUserId_requestManagerNull_fetchesFromNetworkModule() {
-        WhiteboxHelper.setInternalState(inAppRepository, "requestManager", null);
+    public void setUserId_usesManagerFromNetworkModule() {
         RequestManager fallbackManager = mock(RequestManager.class);
+        NetworkModule.setRequestManager(fallbackManager);
 
-        try (MockedStatic<NetworkModule> networkModule = mockStatic(NetworkModule.class)) {
-            networkModule.when(NetworkModule::getRequestManager).thenReturn(fallbackManager);
+        inAppRepository.setUserId("user42", null);
 
-            inAppRepository.setUserId("user42", null);
-
-            verify(fallbackManager).sendRequest(any(RegisterUserRequest.class), any(Callback.class));
-            verify(requestManagerMock, never()).sendRequest(any(RegisterUserRequest.class), any(Callback.class));
-        }
+        verify(fallbackManager).sendRequest(any(RegisterUserRequest.class), any(Callback.class));
+        verify(requestManagerMock, never()).sendRequest(any(RegisterUserRequest.class), any(Callback.class));
     }
 
-    // Verifies that setUserId no-ops when both local RequestManager and NetworkModule fallback are null.
+    // Verifies that setUserId reports the seam's terminal error instead of silently dropping the callback.
     @Test
-    public void setUserId_requestManagerNullAndNetworkModuleReturnsNull_noOp() {
-        WhiteboxHelper.setInternalState(inAppRepository, "requestManager", null);
+    public void setUserId_sdkNotInitialized_callbackReceivesSetUserIdException() {
+        NetworkModule.setRequestManager(null);
         Callback<Boolean, SetUserIdException> callback = CallbackWrapper.spy();
 
-        try (MockedStatic<NetworkModule> networkModule = mockStatic(NetworkModule.class)) {
-            networkModule.when(NetworkModule::getRequestManager).thenReturn(null);
+        inAppRepository.setUserId("user42", callback);
 
-            inAppRepository.setUserId("user42", callback);
-
-            verify(requestManagerMock, never()).sendRequest(any(RegisterUserRequest.class), any(Callback.class));
-            verify(callback, never()).process(any());
-        }
+        ArgumentCaptor<Result<Boolean, SetUserIdException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
+        verify(callback).process(resultCaptor.capture());
+        Result<Boolean, SetUserIdException> value = resultCaptor.getValue();
+        Assert.assertFalse(value.isSuccess());
+        Assert.assertTrue(value.getException() instanceof SetUserIdException);
+        Assert.assertEquals("SDK is not initialized", value.getException().getMessage());
+        verify(requestManagerMock, never()).sendRequest(any(RegisterUserRequest.class), any(Callback.class));
     }
 
     // Verifies that loadInApps skips downloads when all resources are already deployed.
@@ -851,64 +851,52 @@ public class InAppRepositoryTest {
         Assert.assertEquals("ra-err", value.getException().getMessage());
     }
 
-    // Verifies that richMediaAction emits RichMediaActionException when both RequestManager and NetworkModule are null.
+    // Verifies that richMediaAction emits RichMediaActionException when the SDK is not initialized.
     @Test
-    public void richMediaAction_requestManagerNull_callbackReceivesRichMediaActionException() {
-        WhiteboxHelper.setInternalState(inAppRepository, "requestManager", null);
+    public void richMediaAction_sdkNotInitialized_callbackReceivesRichMediaActionException() {
+        NetworkModule.setRequestManager(null);
         Callback<Void, RichMediaActionException> callback = CallbackWrapper.spy();
 
-        try (MockedStatic<NetworkModule> networkModule = mockStatic(NetworkModule.class)) {
-            networkModule.when(NetworkModule::getRequestManager).thenReturn(null);
+        inAppRepository.richMediaAction("rich", "inapp", "hash", "{}", 1, callback);
 
-            inAppRepository.richMediaAction("rich", "inapp", "hash", "{}", 1, callback);
-
-            ArgumentCaptor<Result<Void, RichMediaActionException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
-            verify(callback).process(resultCaptor.capture());
-            Result<Void, RichMediaActionException> value = resultCaptor.getValue();
-            Assert.assertFalse(value.isSuccess());
-            Assert.assertTrue(value.getException() instanceof RichMediaActionException);
-            Assert.assertEquals("Request Manager is null", value.getException().getMessage());
-        }
+        ArgumentCaptor<Result<Void, RichMediaActionException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
+        verify(callback).process(resultCaptor.capture());
+        Result<Void, RichMediaActionException> value = resultCaptor.getValue();
+        Assert.assertFalse(value.isSuccess());
+        Assert.assertTrue(value.getException() instanceof RichMediaActionException);
+        Assert.assertEquals("SDK is not initialized", value.getException().getMessage());
     }
 
-    // Verifies that postEvent emits PostEventException when RequestManager is unavailable.
+    // Verifies that postEvent emits PostEventException when the SDK is not initialized.
     @Test
-    public void postEvent_requestManagerNull_callbackReceivesPostEventException() {
-        WhiteboxHelper.setInternalState(inAppRepository, "requestManager", null);
+    public void postEvent_sdkNotInitialized_callbackReceivesPostEventException() {
+        NetworkModule.setRequestManager(null);
         Callback<Resource, PostEventException> callback = CallbackWrapper.spy();
 
-        try (MockedStatic<NetworkModule> networkModule = mockStatic(NetworkModule.class)) {
-            networkModule.when(NetworkModule::getRequestManager).thenReturn(null);
+        inAppRepository.postEvent("e", null, callback);
 
-            inAppRepository.postEvent("e", null, callback);
-
-            ArgumentCaptor<Result<Resource, PostEventException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
-            verify(callback).process(resultCaptor.capture());
-            Result<Resource, PostEventException> value = resultCaptor.getValue();
-            Assert.assertFalse(value.isSuccess());
-            Assert.assertTrue(value.getException() instanceof PostEventException);
-            Assert.assertEquals("Request Manager is null", value.getException().getMessage());
-        }
+        ArgumentCaptor<Result<Resource, PostEventException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
+        verify(callback).process(resultCaptor.capture());
+        Result<Resource, PostEventException> value = resultCaptor.getValue();
+        Assert.assertFalse(value.isSuccess());
+        Assert.assertTrue(value.getException() instanceof PostEventException);
+        Assert.assertEquals("SDK is not initialized", value.getException().getMessage());
     }
 
-    // Verifies that mergeUserId emits MergeUserException when RequestManager is unavailable.
+    // Verifies that mergeUserId emits MergeUserException when the SDK is not initialized.
     @Test
-    public void mergeUserId_requestManagerNull_callbackReceivesMergeUserException() {
-        WhiteboxHelper.setInternalState(inAppRepository, "requestManager", null);
+    public void mergeUserId_sdkNotInitialized_callbackReceivesMergeUserException() {
+        NetworkModule.setRequestManager(null);
         Callback<Void, MergeUserException> callback = CallbackWrapper.spy();
 
-        try (MockedStatic<NetworkModule> networkModule = mockStatic(NetworkModule.class)) {
-            networkModule.when(NetworkModule::getRequestManager).thenReturn(null);
+        inAppRepository.mergeUserId("old", "new", true, callback);
 
-            inAppRepository.mergeUserId("old", "new", true, callback);
-
-            ArgumentCaptor<Result<Void, MergeUserException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
-            verify(callback).process(resultCaptor.capture());
-            Result<Void, MergeUserException> value = resultCaptor.getValue();
-            Assert.assertFalse(value.isSuccess());
-            Assert.assertTrue(value.getException() instanceof MergeUserException);
-            Assert.assertEquals("Request Manager is null", value.getException().getMessage());
-        }
+        ArgumentCaptor<Result<Void, MergeUserException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
+        verify(callback).process(resultCaptor.capture());
+        Result<Void, MergeUserException> value = resultCaptor.getValue();
+        Assert.assertFalse(value.isSuccess());
+        Assert.assertTrue(value.getException() instanceof MergeUserException);
+        Assert.assertEquals("SDK is not initialized", value.getException().getMessage());
     }
 
     // Verifies that mapToHtmlData returns ResourceParseException when resource is not in storage after inApps loaded.
@@ -963,5 +951,146 @@ public class InAppRepositoryTest {
         Assert.assertNotNull(result.getException());
         Assert.assertTrue(result.getException() instanceof ResourceParseException);
         Assert.assertTrue(result.getException().getMessage().contains("Can't download or update"));
+    }
+
+    private static final class EntryPointCase {
+        final String name;
+        final Runnable invoke;
+        final BiConsumer<RequestManager, VerificationMode> verifyRequestSent;
+
+        EntryPointCase(String name, Runnable invoke, BiConsumer<RequestManager, VerificationMode> verifyRequestSent) {
+            this.name = name;
+            this.invoke = invoke;
+            this.verifyRequestSent = verifyRequestSent;
+        }
+    }
+
+    // Verifies that every request entry point re-reads the manager from NetworkModule on each call, so a
+    // repository built before NetworkModule.init() still reaches the real manager installed later.
+    // Each entry point is called once per installed manager: a repository caching the manager — either at
+    // construction or on first use — would send the second round to the first manager and fail.
+    @Test
+    public void requestEntryPoints_managerReplacedBetweenCalls_sendThroughCurrentManagerEachTime() {
+        Result<Object, NetworkException> emptyInApps = Result.fromData(Collections.emptyList());
+        when(requestManagerMock.sendRequestSync(any())).thenReturn(emptyInApps);
+        RequestManager laterManager = mock(RequestManager.class);
+        when(laterManager.sendRequestSync(any())).thenReturn(emptyInApps);
+
+        EntryPointCase[] cases = {
+            new EntryPointCase("loadInApps", () -> inAppRepository.loadInApps(), (m, once) -> verify(m, once)
+                    .sendRequestSync(any(GetInAppsRequest.class))),
+            new EntryPointCase("setEmail", () -> inAppRepository.setEmail("a@x.com", null), (m, once) -> verify(m, once)
+                    .sendRequest(any(RegisterEmailRequest.class), any(Callback.class))),
+            new EntryPointCase(
+                    "postEvent", () -> inAppRepository.postEvent("test_event", null, null), (m, once) -> verify(m, once)
+                            .sendRequest(any(PostEventRequest.class), any(Callback.class))),
+            new EntryPointCase(
+                    "mergeUserId",
+                    () -> inAppRepository.mergeUserId("old", "new", true, null),
+                    (m, once) -> verify(m, once).sendRequest(any(MergeUserRequest.class), any(Callback.class))),
+            new EntryPointCase(
+                    "richMediaAction",
+                    () -> inAppRepository.richMediaAction("rich", "inapp", "hash", "{}", 1, null),
+                    (m, once) -> verify(m, once).sendRequest(any(RichMediaActionRequest.class), any(Callback.class))),
+        };
+
+        for (EntryPointCase c : cases) {
+            c.invoke.run();
+        }
+        NetworkModule.setRequestManager(laterManager);
+        for (EntryPointCase c : cases) {
+            c.invoke.run();
+        }
+
+        for (EntryPointCase c : cases) {
+            c.verifyRequestSent.accept(requestManagerMock, description("case " + c.name + ", manager installed first"));
+            c.verifyRequestSent.accept(laterManager, description("case " + c.name + ", manager installed later"));
+        }
+    }
+
+    // Verifies that the in-app show analytics subscription sends its trigger request through the manager
+    // currently installed in NetworkModule rather than the one present when the repository was built.
+    @Test
+    public void inAppViewEvent_managerReplacedBetweenShows_sendsTriggerRequestThroughCurrentManager() {
+        EventBus.clearSubscribersMap();
+        // the InAppViewEvent subscription made by this constructor is the subject under test
+        new InAppRepository(inAppStorageMock, inAppDownloaderMock, resourceMapperMock, inAppFolderProviderMock);
+        RequestManager laterManager = mock(RequestManager.class);
+
+        EventBus.sendEvent(new InAppViewEvent(new Resource("code1", false)));
+        ShadowLooper.idleMainLooper();
+        NetworkModule.setRequestManager(laterManager);
+        EventBus.sendEvent(new InAppViewEvent(new Resource("code2", false)));
+        ShadowLooper.idleMainLooper();
+
+        verify(requestManagerMock).sendRequest(any(TriggerInAppActionRequest.class));
+        verify(laterManager).sendRequest(any(TriggerInAppActionRequest.class));
+    }
+
+    // Verifies that the show analytics subscription still clears the stored message hash when the SDK is
+    // not initialized: the seam absorbs the dropped request instead of throwing past the hash reset.
+    @Test
+    public void inAppViewEvent_sdkNotInitialized_stillClearsMessageHash() {
+        EventBus.clearSubscribersMap();
+        // the InAppViewEvent subscription made by this constructor is the subject under test
+        new InAppRepository(inAppStorageMock, inAppDownloaderMock, resourceMapperMock, inAppFolderProviderMock);
+        NetworkModule.setRequestManager(null);
+        RepositoryModule.getNotificationPreferences().messageHash().set("hash1");
+
+        EventBus.sendEvent(new InAppViewEvent(new Resource("code1", false)));
+        ShadowLooper.idleMainLooper();
+
+        Assert.assertNull(
+                RepositoryModule.getNotificationPreferences().messageHash().get());
+    }
+
+    // Verifies that setEmail(String) reports the seam error to the caller when the SDK is not initialized
+    // instead of dropping the callback, as the removed request manager guard did.
+    @Test
+    public void setEmailSingle_sdkNotInitialized_callbackReceivesPushwooshException() {
+        NetworkModule.setRequestManager(null);
+        Callback<Boolean, PushwooshException> callback = CallbackWrapper.spy();
+
+        inAppRepository.setEmail("a@x.com", callback);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Result<Boolean, PushwooshException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
+        verify(callback).process(resultCaptor.capture());
+        Result<Boolean, PushwooshException> value = resultCaptor.getValue();
+        Assert.assertFalse(value.isSuccess());
+        Assert.assertEquals("SDK is not initialized", value.getException().getMessage());
+        verify(requestManagerMock, never()).sendRequest(any(), any(Callback.class));
+    }
+
+    // Verifies that setEmail(List) fails every email and never reports overall success when the SDK is not
+    // initialized: the success counter must not be reached by dropped requests.
+    @Test
+    public void setEmailList_sdkNotInitialized_callbackReceivesFailurePerEmailAndNoSuccess() {
+        NetworkModule.setRequestManager(null);
+        Callback<Boolean, SetEmailException> callback = CallbackWrapper.spy();
+
+        inAppRepository.setEmail(Arrays.asList("a@x.com", "b@x.com"), callback);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Result<Boolean, SetEmailException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
+        verify(callback, Mockito.times(2)).process(resultCaptor.capture());
+        for (Result<Boolean, SetEmailException> value : resultCaptor.getAllValues()) {
+            Assert.assertFalse(value.isSuccess());
+            Assert.assertEquals("SDK is not initialized", value.getException().getMessage());
+        }
+    }
+
+    // Verifies that loadInApps degrades to "nothing to load" when the SDK is not initialized: the seam's
+    // failed getInApps result must be handled as an empty list, without storage writes or downloads.
+    @Test
+    public void loadInApps_sdkNotInitialized_returnsNullDataWithoutTouchingStorage() {
+        NetworkModule.setRequestManager(null);
+
+        Result<Void, NetworkException> result = inAppRepository.loadInApps();
+
+        Assert.assertTrue(result.isSuccess());
+        Assert.assertNull(result.getData());
+        verify(inAppStorageMock, never()).saveOrUpdateResources(anyList());
+        verify(inAppDownloaderMock, never()).downloadAndDeploy(anyList());
     }
 }

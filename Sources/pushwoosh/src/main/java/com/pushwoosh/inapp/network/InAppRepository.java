@@ -57,11 +57,9 @@ import com.pushwoosh.internal.event.Subscription;
 import com.pushwoosh.internal.event.UserIdUpdatedEvent;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.preference.PreferenceStringValue;
 import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.PWLog;
-import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.tags.TagsBundle;
 
@@ -81,30 +79,23 @@ public class InAppRepository {
     // Time while wait required inApp
     private static final int REQUIRED_TIMEOUT_SECONDS = 5;
 
-    @Nullable private RequestManager requestManager;
-
     private final InAppStorage inAppStorage;
     private final InAppDownloader inAppDownloader;
     private final InAppDeployedChecker inAppDeployedChecker;
     private final ResourceMapper resourceMapper;
     private final AtomicBoolean inAppLoaded = new AtomicBoolean(false);
-    private final RegistrationPrefs registrationPrefs;
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
 
     public InAppRepository(
-            @Nullable RequestManager requestManager,
             InAppStorage inAppStorage,
             InAppDownloader inAppDownloader,
             ResourceMapper resourceMapper,
-            InAppFolderProvider inAppFolderProvider,
-            RegistrationPrefs registrationPrefs) {
+            InAppFolderProvider inAppFolderProvider) {
 
-        this.requestManager = requestManager;
         this.inAppStorage = inAppStorage;
         this.inAppDownloader = inAppDownloader;
         this.resourceMapper = resourceMapper;
-        this.registrationPrefs = registrationPrefs;
 
         inAppDeployedChecker = new InAppDeployedChecker(inAppStorage, inAppFolderProvider);
         EventBus.subscribe(InAppViewEvent.class, (event) -> {
@@ -119,7 +110,7 @@ public class InAppRepository {
                             event.getResource().getCode()));
             TriggerInAppActionRequest request = new TriggerInAppActionRequest(
                     event.getResource().getCode(), msgHash, event.getResource().getCode());
-            requestManager.sendRequest(request);
+            NetworkModule.getRequestManager().sendRequest(request);
 
             RepositoryModule.getNotificationPreferences().messageHash().set(null);
         });
@@ -143,17 +134,6 @@ public class InAppRepository {
         } finally {
             inAppLoaded.set(true);
         }
-    }
-
-    private boolean updateRequestManagerIfNeeded() {
-        if (requestManager == null) {
-            requestManager = NetworkModule.getRequestManager();
-
-            if (requestManager == null) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @SuppressWarnings("UnusedReturnValue")
@@ -234,11 +214,7 @@ public class InAppRepository {
 
     public void setUserId(String userId, Callback<Boolean, SetUserIdException> callback) {
         RegisterUserRequest request = new RegisterUserRequest(userId);
-        if (!updateRequestManagerIfNeeded() || requestManager == null) {
-            return;
-        }
-
-        requestManager.sendRequest(request, result -> {
+        NetworkModule.getRequestManager().sendRequest(request, result -> {
             if (result.isSuccess()) {
                 PWLog.info("User ID \"" + userId + "\" successfully set");
                 EventBus.sendEvent(new UserIdUpdatedEvent());
@@ -352,10 +328,7 @@ public class InAppRepository {
 
     private void registerEmail(@NonNull String email, @NonNull Callback<Boolean, PushwooshException> callback) {
         RegisterEmailRequest request = new RegisterEmailRequest(email);
-        if (!updateRequestManagerIfNeeded() || requestManager == null) {
-            return;
-        }
-        requestManager.sendRequest(request, result -> {
+        NetworkModule.getRequestManager().sendRequest(request, result -> {
             if (result.isSuccess()) {
                 callback.process(Result.fromData(true));
             } else {
@@ -367,10 +340,7 @@ public class InAppRepository {
     private void registerEmailUser(
             @NonNull String email, String userId, @NonNull Callback<Boolean, PushwooshException> callback) {
         RegisterEmailUserRequest request = new RegisterEmailUserRequest(userId, email);
-        if (!updateRequestManagerIfNeeded() || requestManager == null) {
-            return;
-        }
-        requestManager.sendRequest(request, result -> {
+        NetworkModule.getRequestManager().sendRequest(request, result -> {
             if (result.isSuccess()) {
                 callback.process(Result.fromData(true));
             } else {
@@ -388,13 +358,7 @@ public class InAppRepository {
             Callback<Void, RichMediaActionException> callback) {
         RichMediaActionRequest request =
                 new RichMediaActionRequest(richmediaCode, inappCode, messageHash, actionAttributes, actionType);
-        if (!updateRequestManagerIfNeeded() || requestManager == null) {
-            if (callback != null) {
-                callback.process(Result.fromException(new RichMediaActionException("Request Manager is null")));
-            }
-            return;
-        }
-        requestManager.sendRequest(request, result -> {
+        NetworkModule.getRequestManager().sendRequest(request, result -> {
             if (callback == null) {
                 return;
             }
@@ -420,13 +384,7 @@ public class InAppRepository {
                 PushwooshPlatform.getInstance().pushwooshRepository().getCurrentSessionHash();
 
         PostEventRequest request = new PostEventRequest(event, currentSessionHash, attributes);
-        if (!updateRequestManagerIfNeeded() || requestManager == null) {
-            if (callback != null) {
-                callback.process(Result.fromException(new PostEventException("Request Manager is null")));
-            }
-            return;
-        }
-        requestManager.sendRequest(request, result -> {
+        NetworkModule.getRequestManager().sendRequest(request, result -> {
             handlePostEventResponse(result, callback);
         });
     }
@@ -437,14 +395,7 @@ public class InAppRepository {
             boolean doMerge,
             @Nullable Callback<Void, MergeUserException> callback) {
         MergeUserRequest request = new MergeUserRequest(oldUserId, newUserId, doMerge);
-        if (!updateRequestManagerIfNeeded() || requestManager == null) {
-            if (callback != null) {
-                callback.process(Result.fromException(new MergeUserException("Request Manager is null")));
-            }
-            return;
-        }
-
-        requestManager.sendRequest(request, result -> {
+        NetworkModule.getRequestManager().sendRequest(request, result -> {
             if (callback != null) {
                 if (result.isSuccess()) {
                     callback.process(Result.fromData(null));
@@ -601,12 +552,8 @@ public class InAppRepository {
     @WorkerThread
     List<Resource> getInAppsList() {
         GetInAppsRequest request = new GetInAppsRequest();
-        if (!updateRequestManagerIfNeeded() || requestManager == null) {
-            PWLog.error(TAG, "Failed to get list of inapps: RequestManager is not valid");
-            return Collections.emptyList();
-        }
-
-        Result<List<Resource>, NetworkException> getInAppsResult = requestManager.sendRequestSync(request);
+        Result<List<Resource>, NetworkException> getInAppsResult =
+                NetworkModule.getRequestManager().sendRequestSync(request);
         if (!getInAppsResult.isSuccess()) {
             PWLog.error(TAG, "Failed to get rich media resource: getInApps request failed");
             return Collections.emptyList();

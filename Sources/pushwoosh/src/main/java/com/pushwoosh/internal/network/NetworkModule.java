@@ -26,45 +26,37 @@
 
 package com.pushwoosh.internal.network;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.pushwoosh.internal.utils.BackgroundExecutor;
-import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
 
 /**
  * DI to provide {@link com.pushwoosh.internal.network.RequestManager}
  */
 public class NetworkModule {
-    private static RequestManager requestManager;
+    private static final RequestManager NOT_INITIALIZED = new NotInitializedRequestManager();
 
-    public static void init(
-            RegistrationPrefs registrationPrefs, ServerCommunicationManager serverCommunicationManager,
+    private static volatile RequestManager requestManager = NOT_INITIALIZED;
+
+    public static synchronized void init(
+            RegistrationPrefs registrationPrefs,
+            ServerCommunicationManager serverCommunicationManager,
             boolean reverseProxyRequired) {
-        if (requestManager == null) {
-            requestManager = new PushwooshRequestManager(registrationPrefs, serverCommunicationManager, reverseProxyRequired);
+        if (requestManager == NOT_INITIALIZED) {
+            requestManager =
+                    new PushwooshRequestManager(registrationPrefs, serverCommunicationManager, reverseProxyRequired);
         }
     }
 
-    @Nullable public static RequestManager getRequestManager() {
+    @NonNull public static RequestManager getRequestManager() {
         return requestManager;
     }
 
-    public static void setRequestManager(RequestManager requestManager) {
-        NetworkModule.requestManager = requestManager;
-    }
-
     /**
-     * Execute {@param task} on background thread
-     * @param task - task for executing
+     * Installs a manager, or resets to the not-initialized stub when {@code requestManager} is null.
      */
-    public static void execute(Runnable task) {
-        BackgroundExecutor.executeOnPool(() -> {
-            try {
-                task.run();
-            } catch (Throwable e) {
-                PWLog.error("NetworkModule task failed", e);
-            }
-        });
+    public static synchronized void setRequestManager(@Nullable RequestManager requestManager) {
+        NetworkModule.requestManager = requestManager != null ? requestManager : NOT_INITIALIZED;
     }
 }

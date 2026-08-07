@@ -58,6 +58,7 @@ public class SystemCommandDispatcherTest {
 
     @After
     public void tearDown() throws Exception {
+        NetworkModule.setRequestManager(null);
         mocks.close();
     }
 
@@ -123,15 +124,13 @@ public class SystemCommandDispatcherTest {
         bundle.putString("pw_command", "set_base_url");
         bundle.putString("value", "https://new.example.com");
 
-        try (MockedStatic<NetworkModule> netMock = mockStatic(NetworkModule.class)) {
-            netMock.when(NetworkModule::getRequestManager).thenReturn(requestManager);
-            when(requestManager.updateBaseUrl("https://new.example.com")).thenReturn(true);
+        NetworkModule.setRequestManager(requestManager);
+        when(requestManager.updateBaseUrl("https://new.example.com")).thenReturn(true);
 
-            boolean result = dispatcher.preHandleMessage(bundle);
+        boolean result = dispatcher.preHandleMessage(bundle);
 
-            assertTrue(result);
-            verify(requestManager, times(1)).updateBaseUrl("https://new.example.com");
-        }
+        assertTrue(result);
+        verify(requestManager, times(1)).updateBaseUrl("https://new.example.com");
     }
 
     // Verifies that legacy setLogLevel without value short-circuits handler to false.
@@ -169,21 +168,19 @@ public class SystemCommandDispatcherTest {
         }
     }
 
-    // Verifies that set_base_url returns false when RequestManager is not initialized.
+    // Verifies that set_base_url returns false when the SDK is not initialized.
     @Test
-    public void preHandleMessage_legacySetBaseUrlNullRequestManager_returnsFalse() {
+    public void preHandleMessage_legacySetBaseUrlSdkNotInitialized_returnsFalse() {
         Bundle bundle = systemPushBundle();
         bundle.putString("pw_command", "set_base_url");
         bundle.putString("value", "https://x");
 
-        try (MockedStatic<NetworkModule> netMock = mockStatic(NetworkModule.class)) {
-            netMock.when(NetworkModule::getRequestManager).thenReturn(null);
+        NetworkModule.setRequestManager(null);
 
-            boolean result = dispatcher.preHandleMessage(bundle);
+        boolean result = dispatcher.preHandleMessage(bundle);
 
-            assertFalse(result);
-            verifyNoInteractions(requestManager);
-        }
+        assertFalse(result);
+        verifyNoInteractions(requestManager);
     }
 
     // Verifies that a pw_commands array with two valid commands executes both and returns true.
@@ -195,11 +192,11 @@ public class SystemCommandDispatcherTest {
                 "[{\"command\":\"setLogLevel\",\"value\":\"DEBUG\"},"
                         + "{\"command\":\"set_base_url\",\"value\":\"https://m.example.com\"}]");
 
+        NetworkModule.setRequestManager(requestManager);
+
         try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class);
-                MockedStatic<NetworkModule> netMock = mockStatic(NetworkModule.class);
                 MockedStatic<PWLog> pwLogMock = mockStatic(PWLog.class)) {
             repoMock.when(RepositoryModule::getRegistrationPreferences).thenReturn(registrationPrefs);
-            netMock.when(NetworkModule::getRequestManager).thenReturn(requestManager);
             when(requestManager.updateBaseUrl("https://m.example.com")).thenReturn(true);
 
             boolean result = dispatcher.preHandleMessage(bundle);

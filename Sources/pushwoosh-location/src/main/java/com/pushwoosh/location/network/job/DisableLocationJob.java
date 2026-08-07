@@ -29,21 +29,14 @@ package com.pushwoosh.location.network.job;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.location.network.data.DisableLocationRequest;
 
 public class DisableLocationJob implements Job<Result<Void, NetworkException>> {
-	@Override
-	public Result<Void, NetworkException> apply() {
-		RequestManager requestManager = NetworkModule.getRequestManager();
-		if(requestManager == null){
-			return Result.fromException(new NetworkException("Request Manager is null"));
-		}
-		return requestManager.sendRequestSync(new DisableLocationRequest());
-	}
+    @Override
+    public Result<Void, NetworkException> apply() {
+        return NetworkModule.getRequestManager().sendRequestSync(new DisableLocationRequest());
+    }
 
-	@Override
-	public void cancel() {
-
-	}
+    @Override
+    public void cancel() {}
 }

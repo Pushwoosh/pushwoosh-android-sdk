@@ -30,27 +30,26 @@ import com.pushwoosh.internal.network.PushRequest;
 
 class UnregisterDeviceRequest extends PushRequest<Void> {
 
-	private final String appId;
-	private final String userId;
+    private final String appId;
+    private final String userId;
 
-	UnregisterDeviceRequest() {
-		appId = RepositoryModule.getRegistrationPreferences().applicationId().get();
-		userId = RepositoryModule.getRegistrationPreferences().userId().get();
-	}
+    UnregisterDeviceRequest(String appId) {
+        this.appId = appId;
+        userId = RepositoryModule.getRegistrationPreferences().userId().get();
+    }
 
-	@Override
-	protected String getApplicationId() {
-		return appId;
-	}
+    @Override
+    protected String getApplicationId() {
+        return appId;
+    }
 
-	@Override
-	public String getUserId() {
-		return userId;
-	}
+    @Override
+    public String getUserId() {
+        return userId;
+    }
 
-	@Override
-	public String getMethod() {
-		return "unregisterDevice";
-	}
-
+    @Override
+    public String getMethod() {
+        return "unregisterDevice";
+    }
 }

@@ -33,71 +33,61 @@ import com.pushwoosh.inbox.repository.InboxRepository;
 import com.pushwoosh.inbox.storage.InboxStorage;
 import com.pushwoosh.inbox.storage.db.DbInboxStorage;
 import com.pushwoosh.inbox.storage.db.InboxDbHelper;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.prefs.PrefsProvider;
 
 public class PushwooshInboxModule {
-	private static final String TAG = "pwInbox";
-	private static final String APP_ID = "appId";
+    private static final String TAG = "pwInbox";
+    private static final String APP_ID = "appId";
 
-	private static volatile InboxRepository sInboxRepository;
-	private static final Object sRepositoryMutex = new Object();
+    private static volatile InboxRepository sInboxRepository;
+    private static final Object sRepositoryMutex = new Object();
 
-	private static volatile InboxStorage sInboxStorage;
-	private static final Object sStorageMutex = new Object();
-	private static InboxDbHelper sInboxDbHelper;
-	private static RequestManager sRequestManager;
+    private static volatile InboxStorage sInboxStorage;
+    private static final Object sStorageMutex = new Object();
+    private static InboxDbHelper sInboxDbHelper;
 
-	public static InboxRepository getInboxRepository() {
-		if (sInboxRepository == null) {
-			synchronized (sRepositoryMutex) {
-				if (sInboxRepository == null) {
-					if (sRequestManager == null) {
-						throw new IllegalArgumentException("Incorrect state.");
-					}
+    public static InboxRepository getInboxRepository() {
+        if (sInboxRepository == null) {
+            synchronized (sRepositoryMutex) {
+                if (sInboxRepository == null) {
+                    sInboxRepository = new InboxRepository(getInboxStorage());
+                }
+            }
+        }
 
-					sInboxRepository = new InboxRepository(sRequestManager, getInboxStorage());
-					sRequestManager = null;
-				}
-			}
-		}
+        return sInboxRepository;
+    }
 
-		return sInboxRepository;
-	}
+    private static InboxStorage getInboxStorage() {
+        if (sInboxStorage == null) {
+            synchronized (sStorageMutex) {
+                if (sInboxStorage == null) {
+                    if (sInboxDbHelper == null) {
+                        throw new IllegalArgumentException("Incorrect state.");
+                    }
+                    sInboxStorage = new DbInboxStorage(sInboxDbHelper);
+                    sInboxDbHelper = null;
+                }
+            }
+        }
 
-	private static InboxStorage getInboxStorage() {
-		if (sInboxStorage == null) {
-			synchronized (sStorageMutex) {
-				if (sInboxStorage == null) {
-					if (sInboxDbHelper == null) {
-						throw new IllegalArgumentException("Incorrect state.");
-					}
-					sInboxStorage = new DbInboxStorage(sInboxDbHelper);
-					sInboxDbHelper = null;
-				}
-			}
-		}
+        return sInboxStorage;
+    }
 
-		return sInboxStorage;
-	}
+    public static void init(InboxDbHelper inboxDbHelper, PrefsProvider prefsProvider) {
+        sInboxDbHelper = inboxDbHelper;
 
-	public static void init(InboxDbHelper inboxDbHelper, RequestManager requestManager, PrefsProvider prefsProvider) {
-		sInboxDbHelper = inboxDbHelper;
-		sRequestManager = requestManager;
+        SharedPreferences sharedPreferences = prefsProvider.providePrefs(TAG);
 
-		SharedPreferences sharedPreferences = prefsProvider.providePrefs(TAG);
+        String currentAppId = Pushwoosh.getInstance().getApplicationCode();
+        String prevAppId = sharedPreferences == null ? currentAppId : sharedPreferences.getString(APP_ID, currentAppId);
 
-		String currentAppId = Pushwoosh.getInstance().getApplicationCode();
-		String prevAppId = sharedPreferences == null ? currentAppId : sharedPreferences.getString(APP_ID, currentAppId);
+        if (sharedPreferences != null) {
+            sharedPreferences.edit().putString(APP_ID, currentAppId).apply();
+        }
 
-		if (sharedPreferences != null) {
-			sharedPreferences.edit()
-					.putString(APP_ID, currentAppId)
-					.apply();
-		}
-
-		if (!prevAppId.equals(currentAppId)) {
-			sInboxDbHelper.dropDb();
-		}
-	}
+        if (!prevAppId.equals(currentAppId)) {
+            sInboxDbHelper.dropDb();
+        }
+    }
 }

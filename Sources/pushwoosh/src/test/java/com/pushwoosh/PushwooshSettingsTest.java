@@ -1,31 +1,20 @@
 package com.pushwoosh;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
-import com.pushwoosh.internal.event.AppIdChangedEvent;
-import com.pushwoosh.internal.event.EventBus;
-import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.notification.PushwooshNotificationManager;
-import com.pushwoosh.notification.PushwooshNotificationManager.ApplicationIdReadyEvent;
-import com.pushwoosh.repository.DeviceRegistrar;
-import com.pushwoosh.repository.RegistrationPrefs;
-import com.pushwoosh.testutil.EventListenerWrapper;
 import com.pushwoosh.testutil.PlatformTestManager;
+import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
@@ -34,193 +23,107 @@ import org.robolectric.annotation.LooperMode;
 @LooperMode(LooperMode.Mode.LEGACY)
 @org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class PushwooshSettingsTest {
+    private static final String FIELD_MANAGER = "notificationManager";
+
     private PlatformTestManager platformTestManager;
+    private PushwooshNotificationManager originalNotificationManager;
 
     @Before
     public void setUp() throws Exception {}
 
     @After
     public void tearDown() throws Exception {
+        if (originalNotificationManager != null) {
+            WhiteboxHelper.setInternalState(Pushwoosh.getInstance(), FIELD_MANAGER, originalNotificationManager);
+            originalNotificationManager = null;
+        }
         platformTestManager.tearDown();
     }
 
     //
-    // ApplicationId part
+    // Facade validation part
     // -----------------------------------------------------------------------
 
-    @Test
-    public void setMetaAppIDTest() throws Exception {
-        // Preconditions:
-        String appIDTest = "Test_AppID";
-        String appIDTestMeta = "Test_AppID_Meta";
-
-        Config config = MockConfig.createMock(appIDTestMeta);
-
-        // Steps:
-        platformTestManager = new PlatformTestManager(config);
-        platformTestManager.setUp();
-        platformTestManager.getNotificationManager().setAppId(appIDTest);
-
-        // Postconditions:
-        RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
-        assertThat(registrationPrefs.applicationId().get(), is(appIDTest));
+    // Pushwoosh.INSTANCE captures PushwooshPlatform at first touch; every facade test builds the
+    // platform first, then swaps in its own manager mock so facade validation is observed directly.
+    // The mock MUST be restored in tearDown: INSTANCE is static and outlives the test class in a
+    // shared Robolectric sandbox, so a leaked mock silently disarms Pushwoosh in later test classes.
+    private PushwooshNotificationManager injectNotificationManagerMock() {
+        PushwooshNotificationManager managerMock = Mockito.mock(PushwooshNotificationManager.class);
+        originalNotificationManager =
+                (PushwooshNotificationManager) WhiteboxHelper.getInternalState(Pushwoosh.getInstance(), FIELD_MANAGER);
+        WhiteboxHelper.setInternalState(Pushwoosh.getInstance(), FIELD_MANAGER, managerMock);
+        return managerMock;
     }
 
-    // Tests appID value from setAppId method set in registrationPrefs when AndroidManifest AppId value is not presented
+    // A valid pair reaches the manager as one call, the app code trimmed and the url passed raw —
+    // normalization and validation happen once, in RegistrationPrefs.applyAppCode.
     @Test
-    public void setAppIDTest() throws Exception {
-        // Preconditions:
-        String appIDTest = "Test_AppID";
-        String appIDTestMeta = null;
-
-        Config config = MockConfig.createMock(appIDTestMeta);
-
-        // Steps:
-        platformTestManager = new PlatformTestManager(config);
-        platformTestManager.setUp();
-        platformTestManager.getNotificationManager().setAppId(appIDTest);
-
-        // Postconditions:
-        RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
-        assertThat(registrationPrefs.applicationId().get(), is(appIDTest));
-    }
-
-    // Tests application throws IllegalArgumentException and empty string set in registrationPrefs as AppID value
-    // when AndroidManifest AppId = "" and setAppID method called with empty string value
-    @Test(expected = IllegalArgumentException.class)
-    public void setEmptyAppIDTest() throws Exception {
-        // Preconditions:
-        String appIDTest = "";
-        String appIDTestMeta = null;
-
-        Config config = MockConfig.createMock(appIDTestMeta);
-
-        // Steps:
-        platformTestManager = new PlatformTestManager(config);
-        platformTestManager.setUp();
-        platformTestManager.getNotificationManager().setAppId(appIDTest);
-    }
-
-    // First-time setAppId after empty manifest must NOT fire AppIdChangedEvent —
-    // a fresh install with appCode arriving via runtime API is not a "change".
-    @Test
-    public void setAppId_firstTimeAfterEmptyManifest_doesNotFireAppIdChangedEvent() throws Exception {
+    public void setAppId_validPair_passesTrimmedCodeAndRawUrlToManager() throws Exception {
         Config config = MockConfig.createMock(null);
         platformTestManager = new PlatformTestManager(config);
         platformTestManager.setUp();
+        PushwooshNotificationManager managerMock = injectNotificationManagerMock();
 
-        EventListener<AppIdChangedEvent> listener = EventListenerWrapper.spy();
-        EventBus.subscribe(AppIdChangedEvent.class, listener);
+        Pushwoosh.getInstance().setAppId("  XXXXX-XXXXX  ", "https://api.example.com/json/1.3");
 
-        platformTestManager.getNotificationManager().setAppId("XXXXX-XXXXX");
-
-        verify(listener, never()).onReceive(any(AppIdChangedEvent.class));
-        RegistrationPrefs prefs = platformTestManager.getRegistrationPrefs();
-        assertEquals("XXXXX-XXXXX", prefs.applicationId().get());
-        assertEquals(
-                "https://XXXXX-XXXXX.api.pushwoosh.com/json/1.3/",
-                prefs.baseUrl().get());
+        verify(managerMock).setAppId("XXXXX-XXXXX", "https://api.example.com/json/1.3");
     }
 
-    // First-time setAppId must NOT trigger unregister: nothing has been registered yet.
+    // An invalid url is not filtered by the facade: it goes through to the manager and is rejected
+    // at the single validation point (applyAppCode), which cancels the whole call there.
     @Test
-    public void setAppId_firstTimeAfterEmptyManifest_doesNotUnregister() throws Exception {
+    public void setAppId_invalidBaseUrl_passedThroughToManager() throws Exception {
         Config config = MockConfig.createMock(null);
         platformTestManager = new PlatformTestManager(config);
         platformTestManager.setUp();
+        PushwooshNotificationManager managerMock = injectNotificationManagerMock();
 
-        try (MockedStatic<DeviceRegistrar> mocked = Mockito.mockStatic(DeviceRegistrar.class)) {
-            platformTestManager.getNotificationManager().setAppId("XXXXX-XXXXX");
-            mocked.verify(() -> DeviceRegistrar.unregisterWithServer(anyString(), anyString()), never());
-        }
+        Pushwoosh.getInstance().setAppId("XXXXX-XXXXX", "not-a-url");
+
+        verify(managerMock).setAppId("XXXXX-XXXXX", "not-a-url");
     }
 
-    // Real change of appId must fire AppIdChangedEvent and reset baseUrl to new app's domain.
+    // Invalid app code cancels the whole call: the url must not be applied either.
     @Test
-    public void setAppId_realChange_firesAppIdChangedEventAndClears() throws Exception {
-        Config config = MockConfig.createMock("OLDAPP-OLDAPP");
-        platformTestManager = new PlatformTestManager(config);
-        platformTestManager.setUp();
-        // ensure the constructor-bootstrap appId reaches setAppId path
-        platformTestManager.getNotificationManager().setAppId("OLDAPP-OLDAPP");
-
-        EventListener<AppIdChangedEvent> listener = EventListenerWrapper.spy();
-        EventBus.subscribe(AppIdChangedEvent.class, listener);
-
-        platformTestManager.getNotificationManager().setAppId("NEWAPP-NEWAPP");
-
-        verify(listener, timeout(500).times(1)).onReceive(any(AppIdChangedEvent.class));
-        RegistrationPrefs prefs = platformTestManager.getRegistrationPrefs();
-        assertEquals("NEWAPP-NEWAPP", prefs.applicationId().get());
-        assertEquals(
-                "https://NEWAPP-NEWAPP.api.pushwoosh.com/json/1.3/",
-                prefs.baseUrl().get());
-    }
-
-    // Idempotent setAppId(same value) must not fire AppIdChangedEvent.
-    @Test
-    public void setAppId_idempotentSameValue_noSideEffects() throws Exception {
-        Config config = MockConfig.createMock("SAME_APP");
-        platformTestManager = new PlatformTestManager(config);
-        platformTestManager.setUp();
-        PushwooshNotificationManager notificationManager = platformTestManager.getNotificationManager();
-        notificationManager.setAppId("SAME_APP");
-
-        EventListener<AppIdChangedEvent> listener = EventListenerWrapper.spy();
-        EventBus.subscribe(AppIdChangedEvent.class, listener);
-
-        notificationManager.setAppId("SAME_APP");
-
-        verify(listener, never()).onReceive(any(AppIdChangedEvent.class));
-    }
-
-    // First setAppId must fire ApplicationIdReadyEvent exactly once.
-    @Test
-    public void setAppId_firstTime_firesApplicationIdReadyEvent() throws Exception {
+    public void setAppId_emptyAppIdWithBaseUrl_ignoresWholeCall() throws Exception {
         Config config = MockConfig.createMock(null);
         platformTestManager = new PlatformTestManager(config);
         platformTestManager.setUp();
+        PushwooshNotificationManager managerMock = injectNotificationManagerMock();
 
-        EventListener<ApplicationIdReadyEvent> listener = EventListenerWrapper.spy();
-        EventBus.subscribe(ApplicationIdReadyEvent.class, listener);
+        Pushwoosh.getInstance().setAppId("   ", "https://api.example.com/json/1.3/");
 
-        platformTestManager.getNotificationManager().setAppId("XXXXX-XXXXX");
-
-        verify(listener, timeout(500).times(1)).onReceive(any(ApplicationIdReadyEvent.class));
+        Mockito.verifyNoInteractions(managerMock);
     }
 
-    // Idempotent setAppId(same value) must NOT refire ApplicationIdReadyEvent —
-    // the appIdReadyEventSent flag gates duplicate emissions.
+    // A null url means "no explicit url", not an invalid one: a wrapper bridge that passes an absent
+    // optional argument straight through must still apply the application code.
     @Test
-    public void setAppId_idempotentSameValue_doesNotRefireApplicationIdReadyEvent() throws Exception {
-        Config config = MockConfig.createMock("SAME_APP");
+    public void setAppId_nullBaseUrl_appliesAppIdWithDerivedUrl() throws Exception {
+        Config config = MockConfig.createMock(null);
         platformTestManager = new PlatformTestManager(config);
         platformTestManager.setUp();
-        PushwooshNotificationManager notificationManager = platformTestManager.getNotificationManager();
-        notificationManager.setAppId("SAME_APP"); // first call fires the event
+        PushwooshNotificationManager managerMock = injectNotificationManagerMock();
 
-        EventListener<ApplicationIdReadyEvent> listener = EventListenerWrapper.spy();
-        EventBus.subscribe(ApplicationIdReadyEvent.class, listener);
+        Pushwoosh.getInstance().setAppId("  XXXXX-XXXXX  ", null);
 
-        notificationManager.setAppId("SAME_APP"); // idempotent — must not refire
-
-        verify(listener, never()).onReceive(any(ApplicationIdReadyEvent.class));
+        verify(managerMock).setAppId("XXXXX-XXXXX");
+        verify(managerMock, never()).setAppId(anyString(), any());
     }
 
-    // Real appId change must refire ApplicationIdReadyEvent — the flag is reset in the change branch.
+    // An empty url is the other shape of "no explicit url": bridges pass "" when the optional
+    // argument is omitted, and the application code must not be dropped because of it.
     @Test
-    public void setAppId_realChange_refiresApplicationIdReadyEvent() throws Exception {
-        Config config = MockConfig.createMock("OLDAPP-OLDAPP");
+    public void setAppId_emptyBaseUrl_appliesAppIdWithDerivedUrl() throws Exception {
+        Config config = MockConfig.createMock(null);
         platformTestManager = new PlatformTestManager(config);
         platformTestManager.setUp();
-        PushwooshNotificationManager notificationManager = platformTestManager.getNotificationManager();
-        notificationManager.setAppId("OLDAPP-OLDAPP"); // first call fires the event
+        PushwooshNotificationManager managerMock = injectNotificationManagerMock();
 
-        EventListener<ApplicationIdReadyEvent> listener = EventListenerWrapper.spy();
-        EventBus.subscribe(ApplicationIdReadyEvent.class, listener);
+        Pushwoosh.getInstance().setAppId("  XXXXX-XXXXX  ", "");
 
-        notificationManager.setAppId("NEWAPP-NEWAPP"); // real change — must refire
-
-        verify(listener, timeout(500).times(1)).onReceive(any(ApplicationIdReadyEvent.class));
+        verify(managerMock).setAppId("XXXXX-XXXXX");
+        verify(managerMock, never()).setAppId(anyString(), any());
     }
 }

@@ -61,7 +61,6 @@ import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.UserIdUpdatedEvent;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.notification.builder.NotificationBuilderManager;
 
@@ -73,8 +72,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class InboxRepository {
-
-    private final RequestManager requestManager;
 
     private final InboxStorage inboxStorage;
 
@@ -91,8 +88,7 @@ public class InboxRepository {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    public InboxRepository(RequestManager requestManager, InboxStorage inboxStorage) {
-        this.requestManager = requestManager;
+    public InboxRepository(InboxStorage inboxStorage) {
         this.inboxStorage = inboxStorage;
 
         initListenerHelpers();
@@ -161,7 +157,7 @@ public class InboxRepository {
             Map<String, InboxMessageStatus> map,
             boolean pushStatAllowed,
             @Nullable Callback<InboxMessage, InboxMessagesException> callback) {
-        NetworkModule.execute(() -> {
+        BackgroundExecutor.executeOnPool(() -> {
             boolean isChanged = false;
             for (Map.Entry<String, InboxMessageStatus> statusEntry : map.entrySet()) {
                 Collection<String> ids = inboxStorage.updateStatus(statusEntry.getKey(), statusEntry.getValue());
@@ -294,7 +290,7 @@ public class InboxRepository {
             return;
         }
 
-        NetworkModule.execute(() -> {
+        BackgroundExecutor.executeOnPool(() -> {
             if (!needUpdateMessages.check() && !forced) {
                 notifyListeners(Result.fromData(LoadResult.EMPTY));
                 if (callback != null) {
@@ -312,7 +308,7 @@ public class InboxRepository {
 
                 GetInboxMessagesRequest request = new GetInboxMessagesRequest();
                 final Result<GetInboxMessagesResponse, NetworkException> networkResult =
-                        requestManager.sendRequestSync(request);
+                        NetworkModule.getRequestManager().sendRequestSync(request);
 
                 GetInboxMessagesResponse response;
                 if (networkResult.isSuccess() && (response = networkResult.getData()) != null) {
@@ -397,7 +393,7 @@ public class InboxRepository {
         if (actualInboxMessage != null && actualInboxMessage.getSource() == InboxMessageSource.SERVICE) {
             UpdateInboxMessageStatusRequest request = new UpdateInboxMessageStatusRequest(
                     actualInboxMessage.getOrder(), status, actualInboxMessage.getHash());
-            requestManager.sendRequest(request);
+            NetworkModule.getRequestManager().sendRequest(request);
         }
 
         if (actualInboxMessage != null && pushStatAllowed && status == InboxMessageStatus.OPEN) {

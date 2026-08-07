@@ -28,10 +28,13 @@ import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.Subscription;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.preference.PreferenceBooleanValue;
+import com.pushwoosh.internal.preference.PreferenceJsonObjectValue;
 import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.FileUtils;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.repository.DeviceRegistrar;
+import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
@@ -74,6 +77,9 @@ public class ResourceViewStrategyFactoryTest {
     private MockedStatic<InAppModule> inAppModule;
     private File nativeConfigDir;
     private RegistrationPrefs registrationPrefs;
+    private NotificationPrefs notificationPrefs;
+    private PreferenceJsonObjectValue tagsPref;
+    private NotificationPrefs originalNotificationPrefs;
 
     @Mock
     private Context mockContext;
@@ -122,10 +128,21 @@ public class ResourceViewStrategyFactoryTest {
                 .thenAnswer(invocation -> Result.fromData(invocation.getArgument(0)));
         when(mockFolderProvider.getNativeConfigFile(any()))
                 .thenReturn(new File(nativeConfigDir, "absent/native-config.json"));
+
+        // RepositoryModule prefs are process-global; snapshot and restore so this class neither inherits
+        // nor leaks a tag cache across tests in the same JVM fork.
+        originalNotificationPrefs = RepositoryModule.getNotificationPreferences();
+        notificationPrefs = mock(NotificationPrefs.class);
+        tagsPref = mock(PreferenceJsonObjectValue.class);
+        when(notificationPrefs.tags()).thenReturn(tagsPref);
+        when(notificationPrefs.isCollectingDeviceOsVersionAllowed()).thenReturn(mock(PreferenceBooleanValue.class));
+        when(notificationPrefs.isCollectingDeviceModelAllowed()).thenReturn(mock(PreferenceBooleanValue.class));
+        RepositoryModule.setNotificationPreferences(notificationPrefs);
     }
 
     @After
     public void tearDown() throws Exception {
+        RepositoryModule.setNotificationPreferences(originalNotificationPrefs);
         NativeInAppPresenterProvider.set(null);
         inAppModule.close();
         backgroundExecutor.close();
@@ -273,6 +290,10 @@ public class ResourceViewStrategyFactoryTest {
         File configFile = new File(nativeConfigDir, "pushwoosh.json");
         FileUtils.writeFile(configFile, json);
         when(mockFolderProvider.getConfigFile(code)).thenReturn(configFile);
+    }
+
+    private void givenCachedTags(String json) throws Exception {
+        when(tagsPref.get()).thenReturn(json == null ? null : new JSONObject(json));
     }
 
     // In-memory registration prefs so InAppConfig.parseLocalizedStrings can resolve the device language
@@ -730,6 +751,39 @@ public class ResourceViewStrategyFactoryTest {
             factory.showResource(wrapper);
 
             modalWindow.verify(() -> ModalRichMediaWindow.showModalRichMediaWindow(resource));
+        }
+    }
+
+    // The whole feature end to end: cached tag -> translated value -> present() gets the personalized JSON.
+    @Test
+    public void showResource_cachedTagInTranslation_presenterGetsTagValue() throws Exception {
+        givenDeviceLanguagePrefs();
+        givenCachedTags("{\"UserName\":\"alexey\"}");
+        Resource resource = new Resource("code1", "http://example.com", "", 0, null, null, false, 0);
+        ResourceWrapper wrapper =
+                new ResourceWrapper.Builder().setResource(resource).build();
+        givenNativeConfigOnDisk(
+                "code1", "{\"displayType\":\"modal\",\"modal\":{\"title\":{\"text\":\"{{t3.text|text}}\"}}}");
+        givenPushwooshJsonOnDisk(
+                "code1",
+                "{\"default_language\":\"en\",\"localization\":{\"en\":"
+                        + "{\"t3.text\":\"Button {UserName|CapitalizeAllFirst|pes}\"}}}");
+
+        NativeInAppPresenter presenter = mock(NativeInAppPresenter.class);
+        when(presenter.present(any(), any())).thenReturn(true);
+        NativeInAppPresenterProvider.set(presenter);
+
+        try (MockedStatic<AndroidPlatformModule> platformModule = Mockito.mockStatic(AndroidPlatformModule.class)) {
+            platformModule.when(AndroidPlatformModule::getApplicationContext).thenReturn(mockContext);
+
+            factory.showResource(wrapper);
+
+            ArgumentCaptor<String> configCaptor = ArgumentCaptor.forClass(String.class);
+            verify(presenter).present(configCaptor.capture(), eq(resource));
+            JSONObject captured = new JSONObject(configCaptor.getValue());
+            assertEquals(
+                    "Button Alexey",
+                    captured.getJSONObject("modal").getJSONObject("title").getString("text"));
         }
     }
 }

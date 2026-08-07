@@ -44,13 +44,13 @@ public class RegistrationPrefsTrackingUrlTest {
 
     @Test
     public void returnsCustomUrlWithTrailingSlash() {
-        when(configMock.getTrackingUrl()).thenReturn("https://tracking.api.wavesend.ru/json/1.3");
-        assertEquals("https://tracking.api.wavesend.ru/json/1.3/", registrationPrefs.getTrackingUrl());
+        when(configMock.getTrackingUrl()).thenReturn("https://tracking.api.example.com/json/1.3");
+        assertEquals("https://tracking.api.example.com/json/1.3/", registrationPrefs.getTrackingUrl());
     }
 
     @Test
     public void fallsBackToDefaultForMissingScheme() {
-        when(configMock.getTrackingUrl()).thenReturn("tracking.api.wavesend.ru/json/1.3");
+        when(configMock.getTrackingUrl()).thenReturn("tracking.api.example.com/json/1.3");
         assertEquals("https://tracking.svc-nue.pushwoosh.com/api/v2/device-api/", registrationPrefs.getTrackingUrl());
     }
 

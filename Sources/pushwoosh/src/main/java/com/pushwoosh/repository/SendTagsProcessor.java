@@ -33,7 +33,6 @@ import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.utils.Accumulator;
 import com.pushwoosh.internal.utils.JsonUtils;
 import com.pushwoosh.internal.utils.PWLog;
@@ -44,71 +43,63 @@ import java.util.List;
 
 public class SendTagsProcessor implements Accumulator.Completion<SendTagsProcessor.SendTagsInvocation> {
 
-	public static class SendTagsInvocation {
-		private final JSONObject tags;
-		private final Callback<Void, PushwooshException> handler;
+    public static class SendTagsInvocation {
+        private final JSONObject tags;
+        private final Callback<Void, PushwooshException> handler;
 
-		SendTagsInvocation(JSONObject tags, Callback<Void, PushwooshException> handler) {
-			this.tags = tags;
-			this.handler = handler;
-		}
+        SendTagsInvocation(JSONObject tags, Callback<Void, PushwooshException> handler) {
+            this.tags = tags;
+            this.handler = handler;
+        }
 
-		@NonNull
-		public JSONObject getTags() {
-			return tags;
-		}
+        @NonNull public JSONObject getTags() {
+            return tags;
+        }
 
-		public Callback<Void, PushwooshException> getHandler() {
-			return handler;
-		}
-	}
+        public Callback<Void, PushwooshException> getHandler() {
+            return handler;
+        }
+    }
 
+    private static final int TAG_ACCUMULATION_DELAY = 1000;
 
-	private static final int TAG_ACCUMULATION_DELAY = 1000;
+    private Accumulator<SendTagsInvocation> accumulator;
 
-	private Accumulator<SendTagsInvocation> accumulator;
+    public SendTagsProcessor() {
+        accumulator = new Accumulator<>(this, TAG_ACCUMULATION_DELAY);
+    }
 
-	public SendTagsProcessor() {
-		accumulator = new Accumulator<>(this, TAG_ACCUMULATION_DELAY);
-	}
+    public void sendTags(@NonNull JSONObject tags, Callback<Void, PushwooshException> listener) {
+        accumulator.accumulate(new SendTagsInvocation(tags, listener));
+    }
 
-	public void sendTags(@NonNull JSONObject tags, Callback<Void, PushwooshException> listener) {
-		accumulator.accumulate(new SendTagsInvocation(tags, listener));
-	}
+    @Override
+    public void onAccumulated(List<SendTagsProcessor.SendTagsInvocation> data) {
+        JSONObject tags = new JSONObject();
 
-	@Override
-	public void onAccumulated(List<SendTagsProcessor.SendTagsInvocation> data) {
-		JSONObject tags = new JSONObject();
+        for (SendTagsInvocation sendTagsInvocation : data) {
+            JsonUtils.mergeJson(sendTagsInvocation.getTags(), tags);
+        }
 
-		for (SendTagsInvocation sendTagsInvocation : data) {
-			JsonUtils.mergeJson(sendTagsInvocation.getTags(), tags);
-		}
+        NetworkModule.getRequestManager().sendRequest(new SetTagsRequest(tags), result -> {
+            if (result.isSuccess()) {
+                for (SendTagsInvocation sendTagsInvocation : data) {
+                    if (sendTagsInvocation.getHandler() != null) {
+                        sendTagsInvocation.getHandler().process(Result.fromData(null));
+                    }
+                }
+                PWLog.info("Tags successfully sent to Pushwoosh");
+            } else {
+                failedAccumulatedData(data, result.getException());
+            }
+        });
+    }
 
-		RequestManager requestManager = NetworkModule.getRequestManager();
-		if(requestManager == null){
-			NetworkException exception = new NetworkException("Request manager is null");
-			failedAccumulatedData(data, exception);
-			return;
-		}
-		requestManager.sendRequest(new SetTagsRequest(tags), result -> {
-			if (result.isSuccess()) {
-				for (SendTagsInvocation sendTagsInvocation : data) {
-					if (sendTagsInvocation.getHandler() != null) {
-						sendTagsInvocation.getHandler().process(Result.fromData(null));
-					}
-				}
-				PWLog.info("Tags successfully sent to Pushwoosh");
-			} else {
-				failedAccumulatedData(data, result.getException());
-			}
-		});
-	}
-
-	private void failedAccumulatedData(List<SendTagsInvocation> data, NetworkException exception) {
-		for (SendTagsInvocation sendTagsInvocation : data) {
-			if (sendTagsInvocation.getHandler() != null) {
-				sendTagsInvocation.getHandler().process(Result.fromException(exception));
-			}
-		}
-	}
+    private void failedAccumulatedData(List<SendTagsInvocation> data, NetworkException exception) {
+        for (SendTagsInvocation sendTagsInvocation : data) {
+            if (sendTagsInvocation.getHandler() != null) {
+                sendTagsInvocation.getHandler().process(Result.fromException(exception));
+            }
+        }
+    }
 }

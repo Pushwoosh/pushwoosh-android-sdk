@@ -119,7 +119,9 @@ public class RequestManagerMock implements RequestManager {
     }
 
     @Override
-    public void setReverseProxyUrl(String url, Map<String, String> headers) {}
+    public boolean setReverseProxyUrl(String url, Map<String, String> headers) {
+        return true;
+    }
 
     public void setResponse(JSONObject response, Class<? extends PushRequest> requestClass) {
         responseMap.put(requestClass, response);

@@ -24,7 +24,6 @@ import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
 import com.pushwoosh.internal.event.Subscription;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.utils.NotificationUtils;
 import com.pushwoosh.internal.utils.PWLog;
@@ -289,22 +288,93 @@ public class Pushwoosh {
             if (!ensureInitialized()) {
                 return;
             }
-            String trimmed = appId.trim();
-            if (TextUtils.isEmpty(trimmed)) {
-                PWLog.warn("Pushwoosh", "setAppId() ignored: empty or whitespace-only value");
-                return;
-            }
-            if (trimmed.contains(".")) {
-                PWLog.error(
-                        "Pushwoosh",
-                        "setAppId() ignored: application id format with '.' is deprecated. "
-                                + "Please contact Pushwoosh support.");
+            String trimmed = validateAppId(appId);
+            if (trimmed == null) {
                 return;
             }
             notificationManager.setAppId(trimmed);
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set application code", e);
         }
+    }
+
+    /**
+     * Associates current application with the given Pushwoosh application code and API base URL.
+     * <p>
+     * Use this overload when the app talks to more than one Pushwoosh backend (for example one
+     * region per country) and the user can switch between them at runtime. The pair is applied
+     * atomically: the SDK never registers the device against the base URL computed from the
+     * application code while the explicit URL is still on its way.
+     * <br><br>
+     * The URL is used as-is and must be the full API endpoint, including the API version path:
+     * <pre>
+     * {@code
+     *   Pushwoosh.getInstance().setAppId("XXXXX-XXXXX", "https://api.example.com/json/1.3/");
+     * }
+     * </pre>
+     * Behaviour notes:
+     * <ul>
+     *   <li>changing the application code unregisters the device from the previous application and
+     *       re-registers it against the new one; the local inbox is cleared as well;</li>
+     *   <li>changing only the base URL never triggers that cycle: requests are simply re-pointed to
+     *       the new address (server-migration semantics), exactly like a server-side rotation or the
+     *       {@code set_base_url} command — the device keeps its registration and its local inbox.
+     *       This call does not force a re-registration; the device is registered against the new
+     *       address by the regular registration update on a later app start, no sooner than 10
+     *       minutes after the last successful registration;</li>
+     *   <li>calling it again with the same pair is a no-op, so it is safe to call on every app start;</li>
+     *   <li>the URL is persisted and survives an app restart; background requests use it too;</li>
+     *   <li>the server may still override it later (base URL rotation in a response, or the
+     *       {@code set_base_url} push command);</li>
+     *   <li>if either argument is invalid the whole call is ignored and an error is logged — neither
+     *       the application code nor the URL is applied;</li>
+     *   <li>a {@code null} or empty URL means "no explicit URL" rather than an invalid one: the call
+     *       behaves exactly like {@link #setAppId(String)} and the URL is derived from the application
+     *       code. This keeps wrapper bridges (Flutter, React Native) that pass an optional argument
+     *       straight through from dropping the application code;</li>
+     *   <li>to return to the default URL, switch the application code with {@link #setAppId(String)}
+     *       or pass the default URL explicitly.</li>
+     * </ul>
+     *
+     * @param appId Pushwoosh application code
+     * @param baseUrl full Pushwoosh API endpoint, e.g. {@code https://api.example.com/json/1.3/}, or
+     *                {@code null}/empty to use the URL derived from the application code
+     * @see #setAppId(String)
+     */
+    public void setAppId(@NonNull String appId, @Nullable String baseUrl) {
+        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setAppId(appId, baseUrl)");
+        if (TextUtils.isEmpty(baseUrl)) {
+            setAppId(appId);
+            return;
+        }
+        try {
+            if (!ensureInitialized()) {
+                return;
+            }
+            String trimmed = validateAppId(appId);
+            if (trimmed == null) {
+                return;
+            }
+            notificationManager.setAppId(trimmed, baseUrl);
+        } catch (Exception e) {
+            PWLog.error("Pushwoosh", "can't set application code", e);
+        }
+    }
+
+    @Nullable private String validateAppId(@NonNull String appId) {
+        String trimmed = appId.trim();
+        if (TextUtils.isEmpty(trimmed)) {
+            PWLog.warn("Pushwoosh", "setAppId() ignored: empty or whitespace-only value");
+            return null;
+        }
+        if (trimmed.contains(".")) {
+            PWLog.error(
+                    "Pushwoosh",
+                    "setAppId() ignored: application id format with '.' is deprecated. "
+                            + "Please contact Pushwoosh support.");
+            return null;
+        }
+        return trimmed;
     }
 
     /**
@@ -387,7 +457,9 @@ public class Pushwoosh {
         }
         String accountId = appCode + ":" + hwid;
         if (accountId.length() > 64) {
-            PWLog.warn("Pushwoosh", "subscription account id exceeds Google's 64-character limit (" + accountId.length() + " chars)");
+            PWLog.warn(
+                    "Pushwoosh",
+                    "subscription account id exceeds Google's 64-character limit (" + accountId.length() + " chars)");
         }
         return accountId;
     }
@@ -2325,12 +2397,10 @@ public class Pushwoosh {
             if (!url.endsWith("/")) {
                 url = url + "/";
             }
-            RequestManager requestManager = NetworkModule.getRequestManager();
-            if (requestManager == null) {
+            if (!NetworkModule.getRequestManager().setReverseProxyUrl(url, headers)) {
                 PWLog.warn("Pushwoosh", "setReverseProxy() ignored: SDK is not initialized yet");
                 return;
             }
-            requestManager.setReverseProxyUrl(url, headers);
             EventBus.sendEvent(new ReverseProxyReadyEvent());
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set reverse proxy", e);

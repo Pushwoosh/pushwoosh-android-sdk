@@ -7,7 +7,6 @@ import android.content.Context;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.network.CreateTestDeviceRequest;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.platform.utils.DeviceUtils;
 import com.pushwoosh.internal.utils.BackgroundExecutor;
@@ -136,12 +135,7 @@ public class KnockPatternDetector {
                 ? DeviceUtils.getDeviceName()
                 : "Android Device";
         CreateTestDeviceRequest request = new CreateTestDeviceRequest(name, buildDescription(), true);
-        RequestManager requestManager = NetworkModule.getRequestManager();
-        if (requestManager == null) {
-            PWLog.warn(TAG, "RequestManager is null");
-            return;
-        }
-        requestManager.sendRequest(request, result -> {
+        NetworkModule.getRequestManager().sendRequest(request, result -> {
             if (!result.isSuccess()) {
                 PWLog.warn(TAG, "createTestDevice failed: " + result.getException());
             }

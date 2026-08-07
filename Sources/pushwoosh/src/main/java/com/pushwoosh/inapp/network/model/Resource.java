@@ -116,8 +116,8 @@ public class Resource implements Serializable, Comparable<Resource> {
 		this.priority = priority;
 	}
 
-	public void setTags(Map<String, Object> tags) {
-		mTags = convertTags(tags);
+	public void setTags(@NonNull Map<String, String> tags) {
+		mTags = new HashMap<>(tags);
 	}
 
 	public String getCode() {
