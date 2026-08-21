@@ -24,6 +24,14 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+plugins {
+    id 'com.android.library'
+    id 'pushwoosh.android-library'
+    id 'pushwoosh.android-minified'
+    id 'pushwoosh.lint'
+    id 'pushwoosh.dokka'
+}
+
 ext {
     targetArtefactIdDev = "pushwoosh-inbox-ui-dev"
     targetArtefactId = "pushwoosh-inbox-ui"
@@ -32,39 +40,14 @@ ext {
 }
 
 
-apply plugin: 'com.android.library'
 apply from: '../scripts/buildSdk/publish.gradle'
 apply from: '../scripts/prepareAar/build.gradle'
-apply from: '../scripts/quality/quality.gradle'
 
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion global_compileSdkVersion
     namespace "com.pushwoosh.inbox.ui"
     testNamespace "com.pushwoosh.inbox.ui.test"
-
-    defaultConfig {
-        minSdkVersion global_minSdkVersion
-        targetSdkVersion global_targetVersion
-        versionCode 1
-        versionName global_versionName
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles '../proguard-android-optimize-no-access-modification.txt', '../proguard-common.txt',
-                    'proguard/public.txt', 'proguard/protected.txt'
-        }
-        debug {
-            minifyEnabled false
-        }
-    }
-
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -79,10 +62,6 @@ android {
         unitTests {
             includeAndroidResources = true
         }
-    }
-
-    publishing {
-        singleVariant("release")
     }
 }
 
@@ -108,9 +87,6 @@ dependencies {
     testImplementation libs.junit
     testImplementation 'org.robolectric:robolectric:4.14.1'
 }
-
-// Dokka documentation configuration
-apply from: '../scripts/dokka-config.gradle'
 
 // Custom Javadoc generation for Maven publication
 apply from: '../scripts/buildSdk/javadoc.gradle'

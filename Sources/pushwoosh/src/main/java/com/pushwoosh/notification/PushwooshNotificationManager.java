@@ -64,7 +64,6 @@ public class PushwooshNotificationManager {
     private PushRegistrar pushRegistrar;
     private PushMessage launchNotification;
     private final Config config;
-    private final AtomicBoolean pushesRescheduled = new AtomicBoolean(false);
     private final AtomicBoolean appIdReadyEventSent = new AtomicBoolean(false);
     private static final long EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 14;
 
@@ -153,36 +152,27 @@ public class PushwooshNotificationManager {
     }
 
     public void registerSMSNumber(String phoneNumber) {
-        deviceRegistrar.registerWithServer(phoneNumber, null, DeviceRegistrar.PLATFORM_SMS, result -> {
-            if (result.isSuccess()) {
-                PWLog.info(TAG, "Registered phone number: " + phoneNumber);
-            } else {
-                String errorDescription = result.getException() == null
-                        ? ""
-                        : result.getException().getMessage();
-                if (TextUtils.isEmpty(errorDescription)) {
-                    errorDescription = "Pushwoosh registration error";
-                }
-
-                PWLog.error(TAG, "Phone number registration error: " + errorDescription);
-            }
-        });
+        registerChannelNumber(phoneNumber, DeviceRegistrar.PLATFORM_SMS);
     }
 
     public void registerWhatsappNumber(String phoneNumber) {
-        deviceRegistrar.registerWithServer(phoneNumber, null, DeviceRegistrar.PLATFORM_WHATSAPP, result -> {
-            if (result.isSuccess()) {
-                PWLog.info(TAG, "Registered phone number for Whatsapp: " + phoneNumber);
-            } else {
-                String errorDescription = result.getException() == null
-                        ? ""
-                        : result.getException().getMessage();
-                if (TextUtils.isEmpty(errorDescription)) {
-                    errorDescription = "Pushwoosh registration error";
-                }
+        registerChannelNumber(phoneNumber, DeviceRegistrar.PLATFORM_WHATSAPP);
+    }
 
-                PWLog.error(TAG, "Whatsapp registration error: " + errorDescription);
+    private void registerChannelNumber(String phoneNumber, int platform) {
+        deviceRegistrar.registerWithServer(phoneNumber, null, platform, result -> {
+            if (result.isSuccess()) {
+                PWLog.info(TAG, "Registered phone number");
+                return;
             }
+
+            String errorDescription =
+                    result.getException() == null ? "" : result.getException().getMessage();
+            if (TextUtils.isEmpty(errorDescription)) {
+                errorDescription = "Pushwoosh registration error";
+            }
+
+            PWLog.error(TAG, "Phone number registration error: " + errorDescription);
         });
     }
 
@@ -307,25 +297,6 @@ public class PushwooshNotificationManager {
     @SuppressWarnings("WeakerAccess")
     public void setLaunchNotification(PushMessage launchNotification) {
         this.launchNotification = launchNotification;
-    }
-
-    public LocalNotificationRequest scheduleLocalNotification(LocalNotification notification) {
-        int requestId =
-                LocalNotificationReceiver.scheduleNotification(notification.getExtras(), notification.getDelay());
-        return new LocalNotificationRequest(requestId);
-    }
-
-    public void rescheduleLocalNotifications() {
-        if (pushesRescheduled.get()) {
-            PWLog.warn(TAG, "Local pushes already rescheduled");
-            return;
-        }
-        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(RescheduleNotificationsWorker.class).build();
-
-        PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                request, RescheduleNotificationsWorker.TAG, ExistingWorkPolicy.KEEP);
-
-        pushesRescheduled.set(true);
     }
 
     public void onExistingTokenReceived(String pushToken, String tagsJson) {

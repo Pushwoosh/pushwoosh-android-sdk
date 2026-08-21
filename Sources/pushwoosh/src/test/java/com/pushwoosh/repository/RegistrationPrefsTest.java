@@ -137,7 +137,13 @@ public class RegistrationPrefsTest {
     @Test
     public void updateBaseUrl_invalidInput_rejectsAndKeepsCurrent() {
         String[] invalidInputs = new String[] {
-            "", null, "   ", "not-a-url", "file:///data/data/com.example/", "https://server example.com/"
+            "",
+            null,
+            "   ",
+            "not-a-url",
+            "file:///data/data/com.example/",
+            "https://server example.com/",
+            "https://[bad"
         };
 
         for (String invalidInput : invalidInputs) {

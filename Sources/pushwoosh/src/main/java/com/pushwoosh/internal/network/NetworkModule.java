@@ -44,8 +44,8 @@ public class NetworkModule {
             ServerCommunicationManager serverCommunicationManager,
             boolean reverseProxyRequired) {
         if (requestManager == NOT_INITIALIZED) {
-            requestManager =
-                    new PushwooshRequestManager(registrationPrefs, serverCommunicationManager, reverseProxyRequired);
+            requestManager = new PushwooshRequestManager(
+                    registrationPrefs, serverCommunicationManager, reverseProxyRequired, new HttpTransport());
         }
     }
 

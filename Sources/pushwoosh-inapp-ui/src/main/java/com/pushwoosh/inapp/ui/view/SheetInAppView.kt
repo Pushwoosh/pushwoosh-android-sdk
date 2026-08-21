@@ -198,7 +198,7 @@ internal class SheetInAppView(context: Context, content: SheetContent) : InAppTe
             // The card is edge-to-edge, so the ✕ needs the side inset itself — otherwise a landscape
             // nav bar or cutout on the END edge sits on top of it and eats the tap. The top margin
             // stays at rest: the card never reaches the status bar (capped above).
-            InAppViewUtils.applyCloseButtonInsets(it, layoutDirection, insets, closeMargin, closeMargin)
+            InAppViewUtils.applyChipInsets(it, layoutDirection, insets, closeMargin, closeMargin)
         }
     }
 

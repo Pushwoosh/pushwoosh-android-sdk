@@ -68,6 +68,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -101,7 +102,8 @@ public class InAppRepository {
         EventBus.subscribe(InAppViewEvent.class, (event) -> {
             PreferenceStringValue preferenceValue =
                     RepositoryModule.getNotificationPreferences().messageHash();
-            String msgHash = preferenceValue.get();
+            String slotHash = preferenceValue.get();
+            String msgHash = event.hasOwnMessageHash() ? event.getMessageHash() : slotHash;
 
             PWLog.noise(
                     TAG,
@@ -112,7 +114,10 @@ public class InAppRepository {
                     event.getResource().getCode(), msgHash, event.getResource().getCode());
             NetworkModule.getRequestManager().sendRequest(request);
 
-            RepositoryModule.getNotificationPreferences().messageHash().set(null);
+            // Consume only our own hash: a message still waiting to be shown must keep its attribution.
+            if (!event.hasOwnMessageHash() || Objects.equals(preferenceValue.get(), msgHash)) {
+                RepositoryModule.getNotificationPreferences().messageHash().set(null);
+            }
         });
     }
 

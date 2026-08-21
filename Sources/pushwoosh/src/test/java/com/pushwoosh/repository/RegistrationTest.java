@@ -31,6 +31,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -42,6 +43,7 @@ import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.utils.Config;
@@ -51,9 +53,7 @@ import com.pushwoosh.notification.event.DeregistrationErrorEvent;
 import com.pushwoosh.notification.event.DeregistrationSuccessEvent;
 import com.pushwoosh.testutil.CallbackWrapper;
 import com.pushwoosh.testutil.EventListenerWrapper;
-import com.pushwoosh.testutil.Expectation;
 import com.pushwoosh.testutil.PlatformTestManager;
-import com.pushwoosh.testutil.RequestManagerMock;
 
 import org.json.JSONObject;
 import org.junit.After;
@@ -73,7 +73,7 @@ public class RegistrationTest {
 
     private PlatformTestManager platformTestManager;
 
-    private RequestManagerMock requestManagerMock;
+    private FakeRequestManager fake;
     private RegistrationPrefs registrationPrefs;
     private PushRegistrar pushRegistrarMock;
     private PushwooshNotificationManager notificationManager;
@@ -85,7 +85,7 @@ public class RegistrationTest {
         platformTestManager = new PlatformTestManager(configMock);
         platformTestManager.setUp();
 
-        requestManagerMock = platformTestManager.getRequestManager();
+        fake = platformTestManager.getRequestManager();
         registrationPrefs = platformTestManager.getRegistrationPrefs();
         pushRegistrarMock = platformTestManager.getPushRegistrar();
         notificationManager = platformTestManager.getNotificationManager();
@@ -111,7 +111,6 @@ public class RegistrationTest {
                 ArgumentCaptor.forClass(Result.class);
         Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback =
                 CallbackWrapper.spy();
-        Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
 
         registrationPrefs.pushToken().set(PUSH_TOKEN);
 
@@ -133,7 +132,7 @@ public class RegistrationTest {
         RegisterForPushNotificationsResultData resultData = (RegisterForPushNotificationsResultData) result.getData();
         assertThat(resultData.getToken(), is(equalTo(PUSH_TOKEN)));
 
-        verify(expectation, timeout(100).times(0)).fulfilled(any());
+        assertEquals(0, fake.count("registerDevice"));
     }
 
     // Tests registration sends correct request and callBack.onRegistered called when requestFinished without exception
@@ -144,10 +143,11 @@ public class RegistrationTest {
     public void registerWithSuccessRequestTest() throws Exception {
         ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
                 ArgumentCaptor.forClass(Result.class);
-        ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
         Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback =
                 CallbackWrapper.spy();
-        Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
+        // Unscripted requests fail by default; the flow's success is gated on this request's result
+        // (DeviceRegistrar's callback), so it must be scripted for isSuccess() to hold below.
+        fake.respondWith("registerDevice", new JSONObject());
 
         // Steps:
         notificationManager.registerForPushNotifications(callback, true, null);
@@ -168,11 +168,11 @@ public class RegistrationTest {
         RegisterForPushNotificationsResultData resultData = (RegisterForPushNotificationsResultData) result.getData();
         assertThat(resultData.getToken(), is(equalTo(PUSH_TOKEN)));
 
-        verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-        JSONObject params = requestCaptor.getValue();
+        JSONObject params = fake.awaitLast("registerDevice").params;
 
         assertThat(params.getString("application"), is(equalTo(APP_ID)));
         assertThat(params.getString("push_token"), is(equalTo(PUSH_TOKEN)));
+        fake.assertAllScripted();
     }
 
     // Tests registration sends correct request when there is no callBack set
@@ -181,8 +181,8 @@ public class RegistrationTest {
     @Test
     @org.robolectric.annotation.Config(sdk = 23)
     public void registerWithSuccessRequestNullCallbackTest() throws Exception {
-        ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-        Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
+        // Unscripted requests fail by default; script a success so the flow completes as before.
+        fake.respondWith("registerDevice", new JSONObject());
 
         // Steps:
         notificationManager.registerForPushNotifications(null, true, null);
@@ -192,11 +192,11 @@ public class RegistrationTest {
         // Postcondition:
         verify(pushRegistrarMock, timeout(100)).registerPW(null);
 
-        verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-        JSONObject params = requestCaptor.getValue();
+        JSONObject params = fake.awaitLast("registerDevice").params;
 
         assertThat(params.getString("application"), is(equalTo(APP_ID)));
         assertThat(params.getString("push_token"), is(equalTo(PUSH_TOKEN)));
+        fake.assertAllScripted();
     }
 
     // Tests registration fails and onFailedToRegisterForRemoteNotifications method called
@@ -229,7 +229,7 @@ public class RegistrationTest {
                 ArgumentCaptor.forClass(Result.class);
         Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback =
                 CallbackWrapper.spy();
-        requestManagerMock.setException(new NetworkException("test network fail"), RegisterDeviceRequest.class);
+        fake.alwaysFailWith("registerDevice", new NetworkException("test network fail"));
 
         // Steps:
         notificationManager.registerForPushNotifications(callback, true, null);
@@ -242,12 +242,13 @@ public class RegistrationTest {
                 captor.getValue();
 
         assertThat(result.isSuccess(), is(false));
+        fake.assertAllScripted();
     }
 
     // Tests registration when requestFinished with exception and there is no callBack set
     @Test
     public void registerWithErrorRequestNullCallbackTest() throws Exception {
-        requestManagerMock.setException(new NetworkException("test network fail"), RegisterDeviceRequest.class);
+        fake.alwaysFailWith("registerDevice", new NetworkException("test network fail"));
 
         // Steps:
         notificationManager.registerForPushNotifications(null, true, null);
@@ -256,6 +257,7 @@ public class RegistrationTest {
 
         // Postcondition:
         // no exception
+        fake.assertAllScripted();
     }
 
     //
@@ -266,8 +268,8 @@ public class RegistrationTest {
     @Test
     public void unregisterTest() throws Exception {
         EventListener<DeregistrationSuccessEvent> successEventListener = EventListenerWrapper.spy();
-        ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-        Expectation<JSONObject> expectation = requestManagerMock.expect(UnregisterDeviceRequest.class);
+        // DeregistrationSuccessEvent is gated on this request's result (DeviceRegistrar's callback).
+        fake.respondWith("unregisterDevice", new JSONObject());
 
         registrationPrefs.pushToken().set(PUSH_TOKEN);
         registrationPrefs.lastPushRegistration().set(System.currentTimeMillis());
@@ -282,13 +284,13 @@ public class RegistrationTest {
         // Postcondition:
         verify(pushRegistrarMock, timeout(100)).unregisterPW();
         verify(successEventListener, timeout(100)).onReceive(any());
-        verify(expectation, timeout(1000)).fulfilled(requestCaptor.capture());
-        JSONObject params = requestCaptor.getValue();
+        JSONObject params = fake.awaitLast("unregisterDevice").params;
 
         assertThat(params.getString("application"), is(equalTo(APP_ID)));
 
         assertThat(notificationManager.getPushToken(), is(nullValue()));
         assertThat(registrationPrefs.lastPushRegistration().get(), is(equalTo(0L)));
+        fake.assertAllScripted();
     }
 
     // Tests unregister request throws exception
@@ -300,7 +302,7 @@ public class RegistrationTest {
         EventBus.subscribe(DeregistrationSuccessEvent.class, successEventListener);
         EventBus.subscribe(DeregistrationErrorEvent.class, errorEventListener);
 
-        requestManagerMock.setException(new NetworkException("test network fail"), UnregisterDeviceRequest.class);
+        fake.alwaysFailWith("unregisterDevice", new NetworkException("test network fail"));
 
         registrationPrefs.pushToken().set(PUSH_TOKEN);
         registrationPrefs.lastPushRegistration().set(System.currentTimeMillis());
@@ -318,6 +320,7 @@ public class RegistrationTest {
 
         assertThat(notificationManager.getPushToken(), is(nullValue()));
         assertThat(registrationPrefs.lastPushRegistration().get(), is(equalTo(0L)));
+        fake.assertAllScripted();
     }
 
     // Tests deleteToken method throws exception and onFailedToUnregisterFromRemoteNotifications called

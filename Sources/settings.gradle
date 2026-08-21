@@ -1,3 +1,7 @@
+pluginManagement {
+    includeBuild('build-logic')
+}
+
 // Enable automatic JDK provisioning via Foojay Toolchains Plugin
 // This allows Gradle to auto-download JDK 8 for javadoc generation if not present
 plugins {

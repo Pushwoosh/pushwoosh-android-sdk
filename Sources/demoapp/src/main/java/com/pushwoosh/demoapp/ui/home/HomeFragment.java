@@ -234,6 +234,7 @@ public class HomeFragment extends Fragment {
         binding.buttonInAppFullscreen.setOnClickListener(v -> presentInApp("Fullscreen", InAppPresets.FULLSCREEN));
         binding.buttonInAppCarousel.setOnClickListener(v -> presentInApp("Carousel", InAppPresets.CAROUSEL));
         binding.buttonInAppStories.setOnClickListener(v -> presentInApp("Stories", InAppPresets.STORIES));
+        binding.buttonInAppVideo.setOnClickListener(v -> presentInApp("Video", InAppPresets.VIDEO));
 
         return root;
     }

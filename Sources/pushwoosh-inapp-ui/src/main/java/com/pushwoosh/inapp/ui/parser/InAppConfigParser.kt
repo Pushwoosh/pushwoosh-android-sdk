@@ -14,6 +14,7 @@ import com.pushwoosh.inapp.ui.model.ModalContent
 import com.pushwoosh.inapp.ui.model.SheetContent
 import com.pushwoosh.inapp.ui.model.StoriesContent
 import com.pushwoosh.inapp.ui.model.StoryItem
+import com.pushwoosh.inapp.ui.model.VideoContent
 import com.pushwoosh.internal.utils.PWLog
 import java.util.Locale
 import org.json.JSONArray
@@ -65,6 +66,7 @@ object InAppConfigParser {
         "modal" -> root.optJSONObject("modal")?.let { parseModal(it) }?.let { InAppLayout.Modal(it) }
         "sheet" -> root.optJSONObject("sheet")?.let { parseSheet(it) }?.let { InAppLayout.Sheet(it) }
         "stories" -> root.optJSONObject("stories")?.let { parseStories(it) }?.let { InAppLayout.Stories(it) }
+        "video" -> root.optJSONObject("video")?.let { parseVideo(it) }?.let { InAppLayout.Video(it) }
         else -> null
     }
 
@@ -186,6 +188,29 @@ object InAppConfigParser {
         val title = dict.ifPresent("title") { parseText(it.optJSONObject("title")) ?: return null }
         val message = dict.ifPresent("message") { parseText(it.optJSONObject("message")) ?: return null }
         return StoryItem(image, title, message, buttons, durationMs)
+    }
+
+    private fun parseVideo(dict: JSONObject): VideoContent? {
+        val showClose = dict.strictBool("showClose") ?: return null
+        val loop = dict.strictBool("loop") ?: return null
+        val muted = dict.strictBool("muted") ?: return null
+        val url = dict.strictString("url") ?: return null
+        val buttons = parseButtons(dict) ?: return null
+        val poster = dict.ifPresent("poster") { it.strictString("poster") ?: return null }
+        val fallback = dict.ifPresent("fallback") { it.strictString("fallback") ?: return null }
+        val title = dict.ifPresent("title") { parseText(it.optJSONObject("title")) ?: return null }
+        val message = dict.ifPresent("message") { parseText(it.optJSONObject("message")) ?: return null }
+        return VideoContent(
+            videoUrl = url,
+            posterUrl = poster,
+            fallbackImageUrl = fallback,
+            title = title,
+            message = message,
+            buttons = buttons,
+            loops = loop,
+            muted = muted,
+            showCloseButton = showClose
+        )
     }
 
     // MARK: - Sub-types

@@ -1,0 +1,31 @@
+// Release minification. Modules that legitimately skip it are the opt-out list in
+// pushwoosh.android-library.gradle, which fails the build for anyone else missing this convention.
+pluginManager.withPlugin('com.android.library') {
+    // One list for both the existence check and R8, so the two can't drift apart.
+    def keepRules = [
+            rootProject.file('proguard-android-optimize-no-access-modification.txt'),
+            rootProject.file('proguard-common.txt'),
+            project.file('proguard/public.txt'),
+            project.file('proguard/protected.txt'),
+    ]
+
+    // R8 only logs "Supplied proguard configuration does not exist" and still succeeds —
+    // without this a module would ship minified with fewer keep rules than declared here.
+    keepRules.each {
+        if (!it.exists()) {
+            throw new GradleException("${project.path}: pushwoosh.android-minified requires ${it}")
+        }
+    }
+
+    android {
+        buildTypes {
+            release {
+                minifyEnabled true
+                proguardFiles(*keepRules)
+            }
+            debug {
+                minifyEnabled false
+            }
+        }
+    }
+}

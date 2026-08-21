@@ -13,8 +13,10 @@ class NativeConfigFixtureTest {
 
     private val validFixtures = listOf(
         "banner.json", "carousel.json", "fullscreen.json", "modal.json", "sheet.json", "stories.json",
+        "video.json",
         "banner-no-autodismiss.json", "modal-empty-buttons.json", "fullscreen-empty-buttons.json",
-        "stories-single-empty-buttons.json", "carousel-minimal.json", "sheet-empty-buttons.json"
+        "stories-single-empty-buttons.json", "carousel-minimal.json", "sheet-empty-buttons.json",
+        "video-empty-buttons.json"
     )
 
     @Test

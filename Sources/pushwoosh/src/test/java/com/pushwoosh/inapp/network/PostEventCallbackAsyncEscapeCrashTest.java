@@ -1,10 +1,6 @@
 package com.pushwoosh.inapp.network;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.pushwoosh.exception.PostEventException;
 import com.pushwoosh.function.Callback;
@@ -12,9 +8,9 @@ import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.internal.SdkStateProvider;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.testutil.PlatformTestManager;
 import com.pushwoosh.testutil.WhiteboxHelper;
 
@@ -24,7 +20,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
@@ -39,6 +34,10 @@ import org.robolectric.shadows.ShadowLooper;
  * throw on the error path was swallowed. The fix routes the success delivery through
  * {@code BackgroundExecutor.main} (Throwable-catch), matching the error path. Both tests now assert the
  * host throw is swallowed on both paths — the escape is closed, the asymmetry is gone.
+ *
+ * <p>The network callback is delivered through the production barrier
+ * ({@code PushwooshRequestManager.deliverOnMain}, reached via {@code FakeRequestManager.deliver}), so a
+ * regression in the barrier itself breaks these tests instead of being masked by a hand-written copy.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
@@ -48,7 +47,7 @@ public class PostEventCallbackAsyncEscapeCrashTest {
     private PlatformTestManager platformTestManager;
     private InAppRepository realRepo;
     private PushwooshInAppImpl pushwooshInApp;
-    private RequestManager requestManagerMock;
+    private FakeRequestManager fake;
 
     @Before
     public void setUp() {
@@ -62,13 +61,10 @@ public class PostEventCallbackAsyncEscapeCrashTest {
         // inline on the test thread, so delivery is deterministic instead of racing a real background thread.
         WhiteboxHelper.setInternalState(realRepo, "io", InAppExecutorServiceHelper.createExecutorService());
 
-        // Capture-only request manager: we drive the network callback ourselves via deliverThroughBarrier.
-        // The seam resolves the manager per call, so this double is global rather than a field on realRepo —
-        // sendRequestSync is stubbed so any other component reaching it gets a Result instead of a @NonNull null.
-        requestManagerMock = mock(RequestManager.class);
-        when(requestManagerMock.sendRequestSync(any()))
-                .thenReturn(Result.fromException(new NetworkException("sendRequestSync is not exercised here")));
-        NetworkModule.setRequestManager(requestManagerMock);
+        // Capture-only: we drive the network callback ourselves through the production barrier.
+        // The seam resolves the manager per call, so the double is global rather than a field on realRepo.
+        fake = FakeRequestManager.install();
+        fake.captureOnly("postEvent");
 
         pushwooshInApp = platformTestManager.getPushwooshInApp();
     }
@@ -80,30 +76,10 @@ public class PostEventCallbackAsyncEscapeCrashTest {
         platformTestManager.tearDown();
     }
 
-    /**
-     * Faithful stand-in for the production barrier. In prod PushwooshRequestManager delivers the
-     * network callback via {@code BackgroundExecutor.main(() -> safeProcessCallback(cb, result))} —
-     * wrapWithErrorHandling catches Throwable, safeProcessCallback catches Exception. The essence is
-     * "the network callback runs inside a try/catch(Throwable) on the main thread"; modeled here.
-     */
-    private static void deliverThroughBarrier(
-            Callback<PostEventResponse, NetworkException> networkCallback,
-            Result<PostEventResponse, NetworkException> result) {
-        try {
-            networkCallback.process(result);
-        } catch (Throwable t) {
-            // swallowed — exactly what safeProcessCallback + wrapWithErrorHandling do in prod
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private Callback<PostEventResponse, NetworkException> triggerAndCaptureNetworkCallback(
-            Callback<Void, PostEventException> hostCallback) {
+    private FakeRequestManager.Sent triggerAndCaptureSend(Callback<Void, PostEventException> hostCallback) {
         pushwooshInApp.postEvent("CrashEvent", null, hostCallback);
-        ArgumentCaptor<Callback<PostEventResponse, NetworkException>> cbCaptor =
-                ArgumentCaptor.forClass(Callback.class);
-        verify(requestManagerMock).sendRequest(any(PostEventRequest.class), cbCaptor.capture());
-        return cbCaptor.getValue();
+        fake.awaitCount("postEvent", 1);
+        return fake.last("postEvent");
     }
 
     private static PostEventResponse successResponse() throws JSONException {
@@ -127,30 +103,33 @@ public class PostEventCallbackAsyncEscapeCrashTest {
         ShadowLooper.pauseMainLooper();
 
         ThrowingHostCallback host = new ThrowingHostCallback();
-        Callback<PostEventResponse, NetworkException> networkCallback = triggerAndCaptureNetworkCallback(host);
+        FakeRequestManager.Sent sent = triggerAndCaptureSend(host);
 
         // success delivered: io.submit runs inline, the deferred main hop enqueues (looper paused).
-        deliverThroughBarrier(networkCallback, Result.fromData(successResponse()));
+        fake.deliver(sent, Result.fromData(successResponse()));
 
-        // the deferred body now runs through BackgroundExecutor.main's Throwable barrier, so the host
-        // throw is absorbed on the main Looper instead of escaping the drain -> graceful, no crash.
+        // Two hops queue here (the barrier itself, then handlePostEventResponse's), but one drain is
+        // enough: the scheduler keeps running same-time tasks queued during the drain. Do not add a second.
         ShadowLooper.idleMainLooper();
 
         // non-vacuous: the callback WAS delivered on the success path (and its throw swallowed), not
         // silently dropped -- the success path now matches the error path's guarded outcome.
         assertEquals(1, host.invocations);
+        fake.assertAllScripted();
     }
 
     @Test
     public void postEventError_hostCallbackThrows_swallowedByBarrier() {
         ThrowingHostCallback host = new ThrowingHostCallback();
-        Callback<PostEventResponse, NetworkException> networkCallback = triggerAndCaptureNetworkCallback(host);
+        FakeRequestManager.Sent sent = triggerAndCaptureSend(host);
 
-        // error delivered through the barrier: host throw happens synchronously inside -> caught, no escape.
-        deliverThroughBarrier(networkCallback, Result.fromException(new NetworkException("server error")));
+        fake.deliver(sent, Result.fromException(new NetworkException("server error")));
+
+        // Delivery is now a main-thread post through the production barrier, not an inline call, so
+        // the assert must come after the drain.
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         assertEquals("host callback must have been invoked (and its throw swallowed)", 1, host.invocations);
-        // nothing was deferred to main -> draining must not throw.
-        ShadowLooper.idleMainLooper();
+        fake.assertAllScripted();
     }
 }

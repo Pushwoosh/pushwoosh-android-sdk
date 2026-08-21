@@ -10,4 +10,12 @@ class HttpResponse {
         this.statusMessage = statusMessage;
         this.body = body;
     }
+
+    static boolean isErrorCode(int code) {
+        return code >= 400 && code < 600;
+    }
+
+    boolean isError() {
+        return isErrorCode(statusCode);
+    }
 }

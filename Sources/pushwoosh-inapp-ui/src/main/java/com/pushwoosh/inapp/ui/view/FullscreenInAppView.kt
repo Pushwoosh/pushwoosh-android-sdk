@@ -63,7 +63,7 @@ internal class FullscreenInAppView(context: Context, content: FullscreenContent)
         column.setPadding(basePad + insets.left, basePad, basePad + insets.right, basePad + insets.bottom)
         closeButton?.let {
             // The screen is the card here, so the ✕ pays the status bar as well as the END edge.
-            InAppViewUtils.applyCloseButtonInsets(it, layoutDirection, insets, closeTopMargin + insets.top, closeEndMargin)
+            InAppViewUtils.applyChipInsets(it, layoutDirection, insets, closeTopMargin + insets.top, closeEndMargin)
         }
     }
 

@@ -1,0 +1,10 @@
+{
+  "displayType": "video",
+  "video": {
+    "showClose": false,
+    "loop": false,
+    "muted": false,
+    "url": "https://example.com/clip.mp4",
+    "buttons": []
+  }
+}

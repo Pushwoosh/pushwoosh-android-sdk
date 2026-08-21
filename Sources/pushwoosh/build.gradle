@@ -1,3 +1,12 @@
+plugins {
+    id 'com.android.library'
+    id 'pushwoosh.android-library'
+    id 'pushwoosh.android-minified'
+    id 'pushwoosh.lint'
+    id 'pushwoosh.dokka'
+    id 'pushwoosh.pitest'
+}
+
 ext{
     targetArtefactIdDev = "pushwoosh-dev"
     targetArtefactId = "pushwoosh"
@@ -5,49 +14,30 @@ ext{
     targetDescription = "Pushwoosh push notifications SDK for Android"
 }
 
-apply plugin: 'com.android.library'
-apply from: '../scripts/quality/quality.gradle'
 apply from: '../scripts/buildSdk/publish.gradle'
 apply from: '../scripts/prepareAar/build.gradle'
 
 android {
-    compileSdkVersion global_compileSdkVersion
-
     namespace "com.pushwoosh"
     testNamespace "com.pushwoosh.test"
 
     defaultConfig {
-        versionName global_versionName
-        minSdkVersion global_minSdkVersion
-        targetSdkVersion global_targetVersion
         buildConfigField("String","VERSION_NAME","\"${defaultConfig.versionName}\"")
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'proguard/consumer.txt'
     }
     buildTypes {
-        release {
-            minifyEnabled true
-            proguardFiles '../proguard-android-optimize-no-access-modification.txt', '../proguard-common.txt',
-                    'proguard/public.txt', 'proguard/protected.txt'
-        }
         debug {
-            minifyEnabled false
             testCoverageEnabled true
         }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     testOptions {
         unitTests {
             includeAndroidResources = true
+            // HttpTransport encodes payloads with the platform default charset; JDK 17 derives it
+            // from the locale, so an ASCII-locale CI would fail the non-ASCII tests, not the code.
             all {
-                jacoco {
-                    includeNoLocationClasses = true
-                    excludes = ['jdk.internal.*']
-                }
+                it.defaultCharacterEncoding = 'UTF-8'
             }
         }
     }
@@ -55,10 +45,6 @@ android {
     useLibrary 'android.test.runner'
     useLibrary 'android.test.base'
     useLibrary 'android.test.mock'
-
-    publishing {
-        singleVariant("release")
-    }
 }
 
 dependencies {
@@ -100,104 +86,5 @@ dependencies {
     testImplementation project(':pushwoosh-inbox')
 }
 
-// Dokka documentation configuration
-apply from: '../scripts/dokka-config.gradle'
-
 // Custom Javadoc generation for Maven publication
 apply from: '../scripts/buildSdk/javadoc.gradle'
-
-// ============================================
-// Pitest (mutation testing) - experimental
-// ============================================
-// info.solidsoft.pitest plugin registers its task only inside
-// `plugins.withType(JavaPlugin)`, and JavaPlugin is incompatible with AGP.
-// Workaround: create the PitestTask directly (it extends JavaExec) and wire the
-// CLI classpath through a dedicated configuration. We never touch the plugin's
-// auto-config, so AGP stays clean.
-
-import info.solidsoft.gradle.pitest.PitestTask
-
-configurations {
-    pitestRuntime
-}
-
-dependencies {
-    pitestRuntime 'org.pitest:pitest-command-line:1.15.0'
-    pitestRuntime 'org.pitest:pitest:1.15.0'
-    pitestRuntime 'org.pitest:pitest-entry:1.15.0'
-}
-
-afterEvaluate {
-    def debugVariant = android.libraryVariants.find { it.name == 'debug' }
-    if (debugVariant == null) {
-        logger.warn("pitest: debug variant not found, skipping configuration")
-        return
-    }
-
-    def mainCompileTask = debugVariant.javaCompileProvider.get()
-    def mainClassesDir = mainCompileTask.destinationDirectory
-
-    def testCompileTask = tasks.named('compileDebugUnitTestJavaWithJavac').get()
-    def testClassesDir = testCompileTask.destinationDirectory
-
-    def unitTestTask = tasks.named('testDebugUnitTest').get()
-
-    tasks.register('pitest', PitestTask) {
-        group = 'verification'
-        description = 'Run pitest mutation testing on pushwoosh module (experimental)'
-
-        dependsOn mainCompileTask
-        dependsOn testCompileTask
-
-        launchClasspath.from(configurations.pitestRuntime)
-
-        reportDir.set(file("$buildDir/reports/pitest"))
-
-        // Allow narrowing via -PpitestTargets=... and -PpitestTests=... for smoke runs.
-        def targetsProp = project.findProperty('pitestTargets') ?: 'com.pushwoosh.*'
-        def testsProp = project.findProperty('pitestTests') ?: 'com.pushwoosh.*'
-        targetClasses.set(targetsProp.toString().split(',').toList())
-        targetTests.set(testsProp.toString().split(',').toList())
-
-        excludedClasses.set([
-                '**.R',
-                '**.R$*',
-                '**.BuildConfig',
-                '**.Manifest*',
-                '**.*Test',
-                '**.*Test$*',
-                '**.*Tests',
-                '**.testutil.*',
-                'org.robolectric.*'
-        ])
-
-        threads.set(2)
-        outputFormats.set(['HTML', 'XML'])
-        timeoutConstInMillis.set(45000)
-        timeoutFactor.set(new BigDecimal('2.5'))
-        mutators.set(['DEFAULTS'])
-        useClasspathJar.set(true)
-        timestampedReports.set(false)
-        verbosity.set('DEFAULT')
-
-        // PitestTask always reads these — provide explicit values even if unused.
-        useAdditionalClasspathFile.set(false)
-        additionalClasspathFile.set(file("$buildDir/tmp/pitest/additionalClasspath.txt"))
-        // Incremental analysis: first run is full, subsequent runs only re-test changed code.
-        enableDefaultIncrementalAnalysis.set(true)
-        defaultFileForHistoryData.set(file("$buildDir/tmp/pitest/history.bin"))
-
-        mainProcessJvmArgs.set(['-Xmx4g'])
-
-        // Main code to mutate
-        mutableCodePaths.from(mainClassesDir)
-
-        // Source dirs for line numbers in the report
-        sourceDirs.from(android.sourceSets.main.java.srcDirs)
-
-        // Full unit test runtime classpath + compiled test classes + main classes
-        additionalClasspath.from(unitTestTask.classpath)
-        additionalClasspath.from(testClassesDir)
-        additionalClasspath.from(mainClassesDir)
-    }
-}

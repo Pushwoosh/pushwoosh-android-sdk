@@ -45,6 +45,13 @@ abstract class InAppTemplateView @JvmOverloads constructor(
     /** Called whenever the system insets change; templates pad their controls/content here. */
     protected open fun onInsetsApplied(insets: Insets) {}
 
+    /** The host Activity went to the background. Templates owning a running resource — so far only
+     *  the video engine — stop it here; every other template has nothing to stop. */
+    open fun onHostPaused() {}
+
+    /** The host Activity came back. Only what was actually running before [onHostPaused] resumes. */
+    open fun onHostResumed() {}
+
     /** Plays the entrance animation (the view is already attached). */
     abstract fun animateIn()
 

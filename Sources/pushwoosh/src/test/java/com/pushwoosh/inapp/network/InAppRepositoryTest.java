@@ -1044,6 +1044,104 @@ public class InAppRepositoryTest {
                 RepositoryModule.getNotificationPreferences().messageHash().get());
     }
 
+    /** Captures the single show request the InAppViewEvent subscriber sent and returns its payload. */
+    private JSONObject capturedShowParams() throws JSONException {
+        ArgumentCaptor<TriggerInAppActionRequest> captor = ArgumentCaptor.forClass(TriggerInAppActionRequest.class);
+        verify(requestManagerMock).sendRequest(captor.capture());
+        JSONObject params = new JSONObject();
+        captor.getValue().buildParams(params);
+        return params;
+    }
+
+    // Verifies that an event carrying its own per-message hash is attributed with that hash and leaves a
+    // foreign hash sitting in the global slot untouched: the neighbour message must keep its attribution.
+    @Test
+    public void inAppViewEvent_eventWithOwnHash_sendsOwnHashAndKeepsForeignSlot() throws JSONException {
+        EventBus.clearSubscribersMap();
+        // the InAppViewEvent subscription made by this constructor is the subject under test
+        new InAppRepository(inAppStorageMock, inAppDownloaderMock, resourceMapperMock, inAppFolderProviderMock);
+        RepositoryModule.getNotificationPreferences().messageHash().set("hash-neighbour");
+
+        EventBus.sendEvent(new InAppViewEvent(new Resource("code1", false), "hash-own"));
+        ShadowLooper.idleMainLooper();
+
+        JSONObject params = capturedShowParams();
+        Assert.assertEquals("hash-own", params.getString("messageHash"));
+        Assert.assertEquals(
+                "hash-neighbour",
+                RepositoryModule.getNotificationPreferences().messageHash().get());
+    }
+
+    // Verifies that the slot is consumed when it holds this very message's hash, so a later show cannot
+    // read the same hash a second time.
+    @Test
+    public void inAppViewEvent_eventHashMatchesSlot_clearsSlot() {
+        EventBus.clearSubscribersMap();
+        // the InAppViewEvent subscription made by this constructor is the subject under test
+        new InAppRepository(inAppStorageMock, inAppDownloaderMock, resourceMapperMock, inAppFolderProviderMock);
+        RepositoryModule.getNotificationPreferences().messageHash().set("hash-own");
+
+        EventBus.sendEvent(new InAppViewEvent(new Resource("code1", false), "hash-own"));
+        ShadowLooper.idleMainLooper();
+
+        Assert.assertNull(
+                RepositoryModule.getNotificationPreferences().messageHash().get());
+    }
+
+    // Verifies that the own hash is sent even when the global slot is already empty: this is the second
+    // in-app of a pair, whose show went out with no hash at all before the fix because the first show had
+    // consumed the slot.
+    @Test
+    public void inAppViewEvent_eventWithOwnHashAndEmptySlot_sendsOwnHash() throws JSONException {
+        EventBus.clearSubscribersMap();
+        // the InAppViewEvent subscription made by this constructor is the subject under test
+        new InAppRepository(inAppStorageMock, inAppDownloaderMock, resourceMapperMock, inAppFolderProviderMock);
+        RepositoryModule.getNotificationPreferences().messageHash().set(null);
+
+        EventBus.sendEvent(new InAppViewEvent(new Resource("code1", false), "hash-own"));
+        ShadowLooper.idleMainLooper();
+
+        JSONObject params = capturedShowParams();
+        Assert.assertEquals("hash-own", params.getString("messageHash"));
+    }
+
+    // Verifies that a sender which captured no hash sends no hash at all instead of falling back to the
+    // slot: that fallback is exactly the hash-stealing bug being fixed.
+    @Test
+    public void inAppViewEvent_eventWithOwnNullHash_sendsNoHashAndKeepsSlot() throws JSONException {
+        EventBus.clearSubscribersMap();
+        // the InAppViewEvent subscription made by this constructor is the subject under test
+        new InAppRepository(inAppStorageMock, inAppDownloaderMock, resourceMapperMock, inAppFolderProviderMock);
+        RepositoryModule.getNotificationPreferences().messageHash().set("hash-neighbour");
+
+        EventBus.sendEvent(new InAppViewEvent(new Resource("code1", false), null));
+        ShadowLooper.idleMainLooper();
+
+        JSONObject params = capturedShowParams();
+        Assert.assertFalse(params.has("messageHash"));
+        Assert.assertEquals(
+                "hash-neighbour",
+                RepositoryModule.getNotificationPreferences().messageHash().get());
+    }
+
+    // Verifies the HTML rich media path is unchanged: an event without a hash of its own still reads the
+    // global slot and still clears it.
+    @Test
+    public void inAppViewEvent_legacyEvent_readsSlotAndClearsIt() throws JSONException {
+        EventBus.clearSubscribersMap();
+        // the InAppViewEvent subscription made by this constructor is the subject under test
+        new InAppRepository(inAppStorageMock, inAppDownloaderMock, resourceMapperMock, inAppFolderProviderMock);
+        RepositoryModule.getNotificationPreferences().messageHash().set("hash-slot");
+
+        EventBus.sendEvent(new InAppViewEvent(new Resource("code1", false)));
+        ShadowLooper.idleMainLooper();
+
+        JSONObject params = capturedShowParams();
+        Assert.assertEquals("hash-slot", params.getString("messageHash"));
+        Assert.assertNull(
+                RepositoryModule.getNotificationPreferences().messageHash().get());
+    }
+
     // Verifies that setEmail(String) reports the seam error to the caller when the SDK is not initialized
     // instead of dropping the callback, as the removed request manager guard did.
     @Test

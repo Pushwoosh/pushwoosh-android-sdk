@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
 import android.text.TextUtils
@@ -98,12 +99,21 @@ internal object InAppViewUtils {
      *  the oval is inset 7dp on every side, so templates position it "by the visible circle" —
      *  margin = iOS inset − 7dp. */
     const val CLOSE_BUTTON_SIZE_DP = 48f
-    private const val CLOSE_CHIP_INSET_DP = 7f
+    private const val CHIP_INSET_DP = 7f
+
+    /** The translucent oval every over-image chip sits on — the ✕ and the video's mute toggle — so
+     *  the two read as one pair of controls instead of two accidents. */
+    fun chipBackground(context: Context): Drawable =
+        InsetDrawable(
+            GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.parseColor("#66000000"))
+            },
+            dp(context, CHIP_INSET_DP)
+        )
 
     fun makeCardCloseButton(context: Context, onClick: () -> Unit): TextView =
-        makeCloseButton(context, onClick).apply {
-            background = InsetDrawable(background, dp(context, CLOSE_CHIP_INSET_DP))
-        }
+        makeCloseButton(context, onClick).apply { background = chipBackground(context) }
 
     /** The banner's ✕: iOS draws it bare at 60% white, letting the row spacing carry the touch
      *  area. The 48dp touch box stays the caller's job (see [CLOSE_BUTTON_SIZE_DP]) — the chip
@@ -114,23 +124,34 @@ internal object InAppViewUtils {
             setTextColor(Color.parseColor("#99FFFFFF"))
         }
 
-    /** Re-anchors an edge-to-edge template's ✕ clear of the system bar or cutout on its END edge;
+    /** Re-anchors an edge-to-edge template's chip (the ✕, or the video's mute toggle) clear of the
+     *  system bar or cutout on its own edge — END by default, START when [atStart];
      *  [topMargin] stays the caller's arithmetic (the fullscreen pays the status bar, the sheet's
      *  card never reaches it). Templates whose card carries its own screen margins inset the card
      *  instead and skip this (see ModalInAppView / CarouselInAppView). Two traps live here, in one
-     *  place — the second one shipped silently broken in one template after being found in another:
-     *  - `marginEnd` is logical while [Insets] are physical: in RTL the END edge is `insets.left`,
-     *    and [layoutDirection] must be the template's *resolved* direction;
+     *  place — the second one shipped silently broken in one template after being found in another,
+     *  which is also why the START edge is a parameter and not a copy of this function:
+     *  - the margin is logical while [Insets] are physical: in RTL the END edge is `insets.left`
+     *    and the START edge is `insets.right`, and [layoutDirection] must be the template's
+     *    *resolved* direction;
      *  - re-assigning `layoutParams`, not `requestLayout()`: `setMarginEnd` only re-arms the
      *    relative margin for resolution, and nothing re-resolves it on a plain layout pass — the ✕
      *    would keep the `rightMargin` it resolved at attach time and stay under the bar (verified
      *    on device, with the ✕ unreachable under a 141px landscape cutout inset). setLayoutParams
      *    re-resolves the direction and requests the layout in one go. */
-    fun applyCloseButtonInsets(button: View, layoutDirection: Int, insets: Insets, topMargin: Int, baseEndMargin: Int) {
-        val endInset = if (layoutDirection == View.LAYOUT_DIRECTION_RTL) insets.left else insets.right
+    fun applyChipInsets(
+        button: View,
+        layoutDirection: Int,
+        insets: Insets,
+        topMargin: Int,
+        baseSideMargin: Int,
+        atStart: Boolean = false
+    ) {
+        val rtl = layoutDirection == View.LAYOUT_DIRECTION_RTL
+        val sideInset = if (rtl == atStart) insets.right else insets.left
         button.layoutParams = (button.layoutParams as FrameLayout.LayoutParams).apply {
             this.topMargin = topMargin
-            marginEnd = baseEndMargin + endInset
+            if (atStart) marginStart = baseSideMargin + sideInset else marginEnd = baseSideMargin + sideInset
         }
     }
 

@@ -98,4 +98,16 @@
     <style name="Widget.Demoapp.BottomNavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <item name="android:color">@color/md_theme_primaryContainer</item>
     </style>
+
+    <!-- Inbox cell (see res/layout/pw_item_inbox.xml, which overrides the SDK cell layout) -->
+    <style name="ShapeAppearance.Demoapp.InboxAvatar" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- Only fontFamily/lineSpacing survive here: color and size come from PushwooshInboxStyle -->
+    <style name="TextAppearance.Demoapp.InboxDescription" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+    </style>
 </resources>

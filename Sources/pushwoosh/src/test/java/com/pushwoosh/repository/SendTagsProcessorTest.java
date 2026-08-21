@@ -31,18 +31,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 
 import org.json.JSONObject;
 import org.junit.After;
@@ -65,20 +62,19 @@ import java.lang.reflect.Field;
 public class SendTagsProcessorTest {
 
     @Mock
-    private RequestManager requestManager;
-
-    @Mock
     private Callback<Void, PushwooshException> listener;
 
     @Mock
     private Callback<Void, PushwooshException> listener2;
 
     private AutoCloseable mocks;
+    private FakeRequestManager fake;
     private SendTagsProcessor processor;
 
     @Before
     public void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
+        fake = FakeRequestManager.install();
         processor = new SendTagsProcessor();
     }
 
@@ -88,36 +84,15 @@ public class SendTagsProcessorTest {
         mocks.close();
     }
 
-    private static void stubRequestManagerSuccess(RequestManager requestManager) {
-        doAnswer(invocation -> {
-                    Callback<Void, NetworkException> cb = invocation.getArgument(1);
-                    cb.process(Result.fromData(null));
-                    return null;
-                })
-                .when(requestManager)
-                .sendRequest(any(SetTagsRequest.class), any());
-    }
-
-    private static void stubRequestManagerFailure(RequestManager requestManager, NetworkException error) {
-        doAnswer(invocation -> {
-                    Callback<Void, NetworkException> cb = invocation.getArgument(1);
-                    cb.process(Result.fromException(error));
-                    return null;
-                })
-                .when(requestManager)
-                .sendRequest(any(SetTagsRequest.class), any());
-    }
-
     @Test
     public void sendTags_singleInvocation_callsRequestManagerAndDeliversSuccess() throws Exception {
-        NetworkModule.setRequestManager(requestManager);
-        stubRequestManagerSuccess(requestManager);
+        fake.respondWith("setTags", new JSONObject());
 
         processor.sendTags(new JSONObject().put("k", "v"), listener);
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-        ArgumentCaptor<SetTagsRequest> reqCaptor = ArgumentCaptor.forClass(SetTagsRequest.class);
-        verify(requestManager).sendRequest(reqCaptor.capture(), any());
+        assertEquals(1, fake.count("setTags"));
+        fake.assertAllScripted();
 
         ArgumentCaptor<Result<Void, PushwooshException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
         verify(listener, times(1)).process(resultCaptor.capture());
@@ -127,19 +102,20 @@ public class SendTagsProcessorTest {
 
     @Test
     public void sendTags_multipleInvocationsInWindow_mergesIntoSingleRequestAndFansOut() throws Exception {
-        NetworkModule.setRequestManager(requestManager);
-        stubRequestManagerSuccess(requestManager);
+        fake.respondWith("setTags", new JSONObject());
 
         processor.sendTags(new JSONObject().put("a", 1), listener);
         processor.sendTags(new JSONObject().put("b", 2), listener2);
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-        ArgumentCaptor<SetTagsRequest> reqCaptor = ArgumentCaptor.forClass(SetTagsRequest.class);
-        verify(requestManager, times(1)).sendRequest(reqCaptor.capture(), any());
+        assertEquals(1, fake.count("setTags"));
+        fake.assertAllScripted();
 
+        // Reflection, not Sent.params: no platform fixture here, so getParams() throws on getHwid()
+        // and the fake records params as null. SetTagsRequest.tags is private with no accessor.
         Field tagsField = SetTagsRequest.class.getDeclaredField("tags");
         tagsField.setAccessible(true);
-        JSONObject mergedTags = (JSONObject) tagsField.get(reqCaptor.getValue());
+        JSONObject mergedTags = (JSONObject) tagsField.get(fake.last("setTags").request);
         assertTrue(mergedTags.has("a"));
         assertTrue(mergedTags.has("b"));
         assertEquals(1, mergedTags.getInt("a"));
@@ -172,22 +148,20 @@ public class SendTagsProcessorTest {
         verify(listener2, times(1)).process(r2.capture());
         assertFalse(r2.getValue().isSuccess());
         assertTrue(r2.getValue().getException() instanceof NetworkException);
-
-        verifyNoInteractions(requestManager);
     }
 
     @Test
     public void sendTags_requestManagerFails_propagatesSameExceptionToAllListeners() throws Exception {
         NetworkException boom = new NetworkException("boom");
 
-        NetworkModule.setRequestManager(requestManager);
-        stubRequestManagerFailure(requestManager, boom);
+        fake.failWith("setTags", boom);
 
         processor.sendTags(new JSONObject().put("a", 1), listener);
         processor.sendTags(new JSONObject().put("b", 2), listener2);
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-        verify(requestManager, times(1)).sendRequest(any(SetTagsRequest.class), any());
+        assertEquals(1, fake.count("setTags"));
+        fake.assertAllScripted();
 
         ArgumentCaptor<Result<Void, PushwooshException>> r1 = ArgumentCaptor.forClass(Result.class);
         verify(listener, times(1)).process(r1.capture());

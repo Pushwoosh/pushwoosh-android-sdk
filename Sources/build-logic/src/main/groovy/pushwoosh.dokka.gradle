@@ -1,8 +1,22 @@
-// ============================================
-// Dokka Configuration for SDK Modules
-// ============================================
-// This file contains shared Dokka configuration
-// Applied to all SDK modules via: apply from: '../scripts/dokka-config.gradle'
+// Dokka must resolve through the project classpath (same classloader as AGP): given
+// build-logic's own loader it silently loses the Android extension. Hence apply-by-id
+// and Class.forName via the project's buildscript classloader instead of a compile dep.
+pluginManager.apply('org.jetbrains.dokka')
+
+import groovy.transform.Field
+
+// @Field: configureDokkaSourceSet() below is a separate script method, not a closure, so it
+// can't see plain top-level defs (those are locals of the implicit run() method only). The
+// fields stay uninitialized here and get assigned below — a field initializer runs in the
+// generated script's constructor, before Gradle wires up the project delegate.
+@Field def dokkaVisibilityPublic
+@Field def dokkaVisibilityProtected
+
+def visibilityModifier = Class.forName(
+        'org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier',
+        true, project.buildscript.classLoader)
+dokkaVisibilityPublic = java.lang.Enum.valueOf(visibilityModifier, 'Public')
+dokkaVisibilityProtected = java.lang.Enum.valueOf(visibilityModifier, 'Protected')
 
 // ============================================
 // YAML and Source File Resolution Functions
@@ -194,10 +208,10 @@ def configureDokkaSourceSet(sourceSet) {
     sourceSet.skipDeprecated.set(true)
 
     // Configure visibility modifiers (Dokka 2.0) - include PUBLIC and PROTECTED
-    // Reference visibility enums from project extension properties set in root build.gradle
+    // Enums are resolved via Class.forName at the top of this file — see the @Field note there.
     sourceSet.documentedVisibilities.set([
-        project.ext.dokkaVisibilityPublic,
-        project.ext.dokkaVisibilityProtected
+        dokkaVisibilityPublic,
+        dokkaVisibilityProtected
     ])
 
     sourceSet.perPackageOption {
@@ -222,15 +236,21 @@ def isDokkaTask = gradle.startParameter.taskNames.any { it.toLowerCase().contain
 // Only configure Dokka if actually running dokka tasks
 if (isDokkaTask) {
     logger.lifecycle("🔧 Configuring Dokka for ${project.name}")
-    dokka {
-        dokkaSourceSets {
-            main {
-                configureDokkaSourceSet(it)
+    // Deferred: applied via plugins{} (top of the module file), this runs before the module's
+    // own 'org.jetbrains.kotlin.android' apply further down. Configuring dokka{} that early
+    // races Dokka's own KotlinAdapter, which registers the 'main' source set on Kotlin plugin
+    // apply and throws if one already exists. afterEvaluate runs after the whole module script.
+    project.afterEvaluate {
+        dokka {
+            dokkaSourceSets {
+                main {
+                    configureDokkaSourceSet(it)
+                }
             }
-        }
 
-        dokkaPublications.html {
-            outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}/${project.name}"))
+            dokkaPublications.html {
+                outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}/${project.name}"))
+            }
         }
     }
 } else {

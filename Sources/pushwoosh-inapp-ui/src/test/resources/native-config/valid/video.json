@@ -1,0 +1,21 @@
+{
+  "displayType": "video",
+  "video": {
+    "showClose": true,
+    "loop": true,
+    "muted": true,
+    "url": "https://example.com/reveal.mp4",
+    "poster": "https://example.com/poster.jpg",
+    "fallback": "https://example.com/fallback.jpg",
+    "title": { "text": "The reveal", "color": "#FFFFFFFF" },
+    "message": { "text": "Watch it move before anyone else.", "color": "#EBEBEBFF" },
+    "buttons": [
+      {
+        "text": { "text": "Shop the lineup", "color": "#FFFFFFFF" },
+        "background": "#0E72E5FF",
+        "border": { "color": "#0E72E5FF", "radius": 14 },
+        "action": { "type": "url", "url": "pushwoosh://sale" }
+      }
+    ]
+  }
+}

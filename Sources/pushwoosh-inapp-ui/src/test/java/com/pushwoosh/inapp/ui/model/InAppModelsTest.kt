@@ -73,6 +73,25 @@ class InAppModelsTest {
         assertEquals("a blank url is an absence, not a load", emptyList<String>(), msg(sheet("")).imageURLs())
     }
 
+    // The fallback is not a prefetch nicety: it is needed exactly when the video fails, and
+    // downloading it at that moment is too late.
+    @Test
+    fun collectsVideoPosterAndFallbackDroppingBlank() {
+        fun video(poster: String?, fallback: String?) = InAppLayout.Video(
+            VideoContent(
+                "https://a/v.mp4", poster, fallback, null, null, emptyList(),
+                loops = true, muted = true, showCloseButton = true
+            )
+        )
+
+        assertEquals(
+            listOf("https://a/p.jpg", "https://a/f.jpg"),
+            msg(video("https://a/p.jpg", "https://a/f.jpg")).imageURLs()
+        )
+        assertEquals(listOf("https://a/f.jpg"), msg(video(null, "https://a/f.jpg")).imageURLs())
+        assertEquals("the video url itself is not an image", emptyList<String>(), msg(video(null, "")).imageURLs())
+    }
+
     @Test
     fun returnsEmptyWhenNoImage() {
         val modal = InAppLayout.Modal(

@@ -90,6 +90,16 @@ class InAppOverlayActivity : Activity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        templateView?.onHostPaused()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        templateView?.onHostResumed()
+    }
+
     /**
      * Animates the template out and finishes; the dismissal side effects (queue advance,
      * analytics) run in [onDestroy], not here. Reached from a close tap, an action tap, or

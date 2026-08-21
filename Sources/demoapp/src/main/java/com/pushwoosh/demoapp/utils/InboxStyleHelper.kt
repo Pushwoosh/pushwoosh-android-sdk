@@ -27,6 +27,7 @@
 package com.pushwoosh.demoapp.utils
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
 import androidx.core.content.ContextCompat
 import com.pushwoosh.demoapp.R
@@ -52,11 +53,11 @@ class InboxStyleHelper {
             PushwooshInboxStyle.accentColor =
                 ContextCompat.getColor(context, R.color.md_theme_primary)
 
-            // Background colors
-            PushwooshInboxStyle.backgroundColor =
-                ContextCompat.getColor(context, R.color.md_theme_surface)
+            // The row itself is a tinted plate drawn inside res/layout/pw_item_inbox.xml, so the
+            // cell background stays transparent and the app surface shows through the list.
+            PushwooshInboxStyle.backgroundColor = Color.TRANSPARENT
             PushwooshInboxStyle.highlightColor =
-                ContextCompat.getColor(context, R.color.md_theme_surfaceContainerHigh)
+                ContextCompat.getColor(context, R.color.md_theme_inbox_ripple)
 
             // Unread message colors
             PushwooshInboxStyle.titleColor =
@@ -64,23 +65,23 @@ class InboxStyleHelper {
             PushwooshInboxStyle.descriptionColor =
                 ContextCompat.getColor(context, R.color.md_theme_onSurfaceVariant)
             PushwooshInboxStyle.dateColor =
-                ContextCompat.getColor(context, R.color.md_theme_outline)
-            PushwooshInboxStyle.imageTypeColor =
                 ContextCompat.getColor(context, R.color.md_theme_primary)
+            // Sits on the filled stamp of bg_inbox_state.xml
+            PushwooshInboxStyle.imageTypeColor =
+                ContextCompat.getColor(context, R.color.md_theme_onPrimary)
 
             // Read message colors - use muted variants
             PushwooshInboxStyle.readTitleColor =
-                ContextCompat.getColor(context, R.color.md_theme_outline)
+                ContextCompat.getColor(context, R.color.md_theme_onSurfaceVariant)
             PushwooshInboxStyle.readDescriptionColor =
                 ContextCompat.getColor(context, R.color.md_theme_outline)
             PushwooshInboxStyle.readDateColor =
-                ContextCompat.getColor(context, R.color.md_theme_outlineVariant)
+                ContextCompat.getColor(context, R.color.md_theme_outline)
             PushwooshInboxStyle.readImageTypeColor =
-                ContextCompat.getColor(context, R.color.md_theme_outlineVariant)
+                ContextCompat.getColor(context, R.color.md_theme_outline)
 
-            // Divider and bar colors
-            PushwooshInboxStyle.dividerColor =
-                ContextCompat.getColor(context, R.color.md_theme_outlineVariant)
+            // Rows carry the separation themselves — a divider on top of them only adds noise
+            PushwooshInboxStyle.dividerColor = Color.TRANSPARENT
             PushwooshInboxStyle.barBackgroundColor =
                 ContextCompat.getColor(context, R.color.md_theme_surface)
             PushwooshInboxStyle.barAccentColor =
@@ -90,8 +91,14 @@ class InboxStyleHelper {
         }
 
         private fun setupTexts() {
-            // Toolbar title (used in standalone InboxActivity — embedded mode hides toolbar via lifecycle)
+            // Toolbar title (used in standalone InboxActivity — embedded mode hides toolbar via
+            // lifecycle)
             PushwooshInboxStyle.barTitle = "Inbox"
+
+            PushwooshInboxStyle.listEmptyText =
+                "You're all caught up.\nNew messages will appear here."
+            PushwooshInboxStyle.listErrorMessage =
+                "Couldn't load your messages.\nPull down to try again."
 
             // Text sizes (in SP)
             PushwooshInboxStyle.titleTextSize = 16f
@@ -108,7 +115,8 @@ class InboxStyleHelper {
         }
 
         private fun setupFonts() {
-            PushwooshInboxStyle.setTitleFont(Typeface.SERIF)
+            // The SDK maps a Typeface to its style only, so bold is what actually reaches the cell
+            PushwooshInboxStyle.setTitleFont(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD))
             PushwooshInboxStyle.setDescriptionFont(Typeface.DEFAULT)
             PushwooshInboxStyle.setDateFont(Typeface.DEFAULT)
         }

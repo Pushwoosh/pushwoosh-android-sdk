@@ -95,10 +95,10 @@ import java.util.Map;
  */
 public class PushwooshHmsHelper {
     private static final String TAG = "HmsHelper";
-    private static final String APP_ID_MISSING_ERROR = "Missing client/app_id key in " +
-            "agconnect-services.json. Make sure you have finished setting up your " +
-            "application in Huawei AppGallery Connect and client/app_id key is present in " +
-            "agconnect-services.json";
+    private static final String APP_ID_MISSING_ERROR =
+            "Missing client/app_id key in " + "agconnect-services.json. Make sure you have finished setting up your "
+                    + "application in Huawei AppGallery Connect and client/app_id key is present in "
+                    + "agconnect-services.json";
 
     /**
      * Notifies Pushwoosh when Huawei Mobile Services push token is refreshed.
@@ -127,7 +127,9 @@ public class PushwooshHmsHelper {
         PWLog.noise(TAG, "onTokenRefresh()");
 
         try {
-            if (TextUtils.equals(token, RepositoryModule.getRegistrationPreferences().pushToken().get())) {
+            if (TextUtils.equals(
+                    token,
+                    RepositoryModule.getRegistrationPreferences().pushToken().get())) {
                 return;
             }
             if (DeviceSpecificProvider.getInstance().pushRegistrar() instanceof HuaweiPushRegistrar) {
@@ -172,8 +174,9 @@ public class PushwooshHmsHelper {
         PWLog.noise(TAG, "onMessageReceived()");
 
         try {
-            if (!isPushwooshMessage(remoteMessage) || !DeviceSpecificProvider.isInited() ||
-                    !DeviceSpecificProvider.getInstance().isHuawei()) {
+            if (!isPushwooshMessage(remoteMessage)
+                    || !DeviceSpecificProvider.isInited()
+                    || !DeviceSpecificProvider.getInstance().isHuawei()) {
                 return false;
             }
 
@@ -264,11 +267,15 @@ public class PushwooshHmsHelper {
                 if (TextUtils.isEmpty(appId)) {
                     return new GetTokenAsyncResult(null, APP_ID_MISSING_ERROR);
                 } else {
-                    return new GetTokenAsyncResult(HmsInstanceId.getInstance(context).getToken(appId, "HCM"), null);
+                    return new GetTokenAsyncResult(
+                            HmsInstanceId.getInstance(context).getToken(appId, "HCM"), null);
                 }
             } catch (ApiException e) {
                 String error = "Status code: " + e.getStatusCode() + ". Message: " + e.getMessage();
                 return new GetTokenAsyncResult(null, "HCM registration error:" + error);
+            } catch (Throwable t) {
+                // anything escaping doInBackground is rethrown on the main thread and crashes the app
+                return new GetTokenAsyncResult(null, "HCM registration error: " + t);
             }
         }
 

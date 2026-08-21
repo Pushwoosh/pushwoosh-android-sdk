@@ -2,7 +2,7 @@
 <html class="no-js">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
-    <title>enableHuaweiPushNotifications</title>
+    <title>onHostPaused</title>
 <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
     <script>document.documentElement.classList.replace("no-js","js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
@@ -46,7 +46,7 @@
         </div>
         <div class="navigation-controls">
         <div class="filter-section filter-section_loading" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh/main">jvm</button>
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh-inapp-ui/release">androidJvm</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
                 <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
@@ -57,9 +57,9 @@
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":pushwoosh/main" data-filter=":pushwoosh/main">
+                                <input type="checkbox" class="checkbox--input" id=":pushwoosh-inapp-ui/release" data-filter=":pushwoosh-inapp-ui/release">
                                 <span class="checkbox--icon"></span>
-                                jvm
+                                androidJvm
                             </label>
                         </li>
                 </ul>
@@ -91,16 +91,12 @@
                 </div>
             </div>
             <div id="main">
-<div class="main-content" data-page-type="member" id="content" pageids="pushwoosh::com.pushwoosh/Pushwoosh/enableHuaweiPushNotifications/#/PointingToDeclaration//-816828224">
-  <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh</a><span class="delimiter">/</span><a href="index.html">Pushwoosh</a><span class="delimiter">/</span><span class="current">enableHuaweiPushNotifications</span></div>
+<div class="main-content" data-page-type="member" id="content" pageids="pushwoosh-inapp-ui::com.pushwoosh.inapp.ui.view/InAppTemplateView/onHostPaused/#/PointingToDeclaration//372850891">
+  <div class="breadcrumbs"><a href="../../index.html">pushwoosh-inapp-ui</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.inapp.ui.view</a><span class="delimiter">/</span><a href="index.html">InAppTemplateView</a><span class="delimiter">/</span><span class="current">onHostPaused</span></div>
   <div class="cover ">
-    <h1 class="cover"><span>enable</span><wbr><span>Huawei</span><wbr><span>Push</span><wbr><span><span>Notifications</span></span></h1>
+    <h1 class="cover"><span>on</span><wbr><span>Host</span><wbr><span><span>Paused</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="enable-huawei-push-notifications.html"><span class="token function">enableHuaweiPushNotifications</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><p class="paragraph">Enables Huawei Push Kit for push notifications on Huawei devices. </p><p class="paragraph"> This method is specifically designed for plugin-based applications (Cordova, React Native, etc.) to enable Huawei Push Kit support on Huawei devices without Google Mobile Services. This method has no effect when called in native Android applications.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-  // Enable Huawei Push in plugin-based applications
-  Pushwoosh.getInstance().enableHuaweiPushNotifications();
-  Pushwoosh.getInstance().registerForPushNotifications();
-</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-inapp-ui/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-host-paused.html"><span class="token function">onHostPaused</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><p class="paragraph">The host Activity went to the background. Templates owning a running resource — so far only the video engine — stop it here; every other template has nothing to stop.</p></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

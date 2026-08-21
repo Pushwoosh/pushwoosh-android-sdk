@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Sample-side override of the pushwoosh-inbox-ui fragment layout (res/layout/pw_fragment_inbox.xml).
+  ~ Same purpose as the pw_item_inbox.xml override: restyle the inbox from the app, not the SDK.
+  ~ Adds breathing room around the card list and a calmer empty/error state.
+  ~
+  ~ Every id here is resolved by InboxFragment via lateinit findViewById — keep all of them,
+  ~ and keep inboxEmpty/inboxError as LinearLayout.
+  -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/inboxAppBarLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        app:elevation="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/inboxToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Inbox"
+            app:titleTextAppearance="?attr/textAppearanceTitleLarge" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ProgressBar
+        android:id="@+id/inboxTotalProgressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="@color/md_theme_primary"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/inboxAppBarLayout" />
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/inboxSwipeRefreshLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/inboxAppBarLayout">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/inboxRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingTop="2dp"
+                android:paddingBottom="24dp"
+                android:scrollbars="none" />
+
+            <LinearLayout
+                android:id="@+id/inboxEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingHorizontal="48dp"
+                android:paddingBottom="48dp"
+                android:visibility="gone"
+                tools:ignore="UseCompoundDrawables">
+
+                <ImageView
+                    android:id="@+id/inboxEmptyImageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/pw_empty_image"
+                    android:adjustViewBounds="true"
+                    android:alpha="0.35"
+                    android:contentDescription="@null"
+                    android:src="@drawable/inbox_ic_empty" />
+
+                <TextView
+                    android:id="@+id/inboxEmptyTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center"
+                    android:lineSpacingExtra="4dp"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    tools:text="You're all caught up." />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/inboxError"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingHorizontal="48dp"
+                android:paddingBottom="48dp"
+                android:visibility="gone"
+                tools:ignore="UseCompoundDrawables">
+
+                <ImageView
+                    android:id="@+id/inboxErrorImageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/pw_error_image"
+                    android:adjustViewBounds="true"
+                    android:alpha="0.35"
+                    android:contentDescription="@null"
+                    android:src="@drawable/inbox_ic_error" />
+
+                <TextView
+                    android:id="@+id/inboxErrorTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center"
+                    android:lineSpacingExtra="4dp"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    tools:text="Couldn't load your messages." />
+            </LinearLayout>
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

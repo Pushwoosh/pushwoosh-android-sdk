@@ -95,6 +95,17 @@ public class LocalNotificationReceiver extends BroadcastReceiver {
         return -1;
     }
 
+    /**
+     * Create notification from {@link LocalNotification} which will be appeared after its delay
+     *
+     * @param notification local notification to schedule
+     * @return request handle; its request id is -1 if scheduling failed
+     */
+    @NonNull public static LocalNotificationRequest scheduleNotification(@NonNull LocalNotification notification) {
+        int requestId = scheduleNotification(notification.getExtras(), notification.getDelay());
+        return new LocalNotificationRequest(requestId);
+    }
+
     public static void rescheduleNotification(DbLocalNotification localNotification, long currentTime) {
         try {
             Context context = AndroidPlatformModule.getApplicationContext();

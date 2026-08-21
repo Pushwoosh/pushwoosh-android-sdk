@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Sample-side override of the pushwoosh-inbox-ui cell layout (res/layout/pw_item_inbox.xml).
+  ~ An app layout with the same name replaces the library one, so the demo restyles the inbox row
+  ~ with zero changes in the SDK.
+  ~
+  ~ Two things drive the structure:
+  ~  - InboxViewHolder looks up the five ids below; dropping any of them crashes the adapter.
+  ~  - the SDK owns the root view background (cell colour + ripple), so the tinted row is a child.
+  -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_inbox_row"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="14dp">
+
+        <!--
+          ~ Leading disc: the message icon, with the attachment preview stacked on top of it.
+          ~ The SDK hides inboxBannerImage when a message carries no attachment, which uncovers
+          ~ the icon underneath — so a message with an image shows the image in the circle.
+          -->
+        <FrameLayout
+            android:layout_width="@dimen/pw_image_icon"
+            android:layout_height="@dimen/pw_image_icon">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/inboxImageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Demoapp.InboxAvatar"
+                app:srcCompat="@drawable/ic_inbox_message_icon" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/inboxBannerImage"
+                android:layout_width="@dimen/pw_attachment_preview"
+                android:layout_height="@dimen/pw_attachment_preview"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Demoapp.InboxAvatar"
+                tools:src="@drawable/ic_launcher_foreground" />
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Title and date share this view: the SDK builds them as one spannable -->
+            <TextView
+                android:id="@+id/inboxLabelTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif"
+                android:maxLines="2"
+                tools:text="Order shipped   14:20" />
+
+            <TextView
+                android:id="@+id/inboxDescriptionTextView"
+                style="@style/TextAppearance.Demoapp.InboxDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                tools:text="Your parcel left the warehouse and arrives tomorrow." />
+        </LinearLayout>
+
+        <!-- Filled stamp while unread, hollow once read — see bg_inbox_state.xml -->
+        <ImageView
+            android:id="@+id/inboxStatusImageView"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_inbox_state"
+            android:contentDescription="@null"
+            android:padding="7dp"
+            android:src="@drawable/inbox_ic_rich_media" />
+
+    </LinearLayout>
+
+</FrameLayout>

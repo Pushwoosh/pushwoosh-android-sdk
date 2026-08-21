@@ -24,6 +24,14 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+plugins {
+    id 'com.android.library'
+    id 'pushwoosh.android-library'
+    id 'pushwoosh.android-minified'
+    id 'pushwoosh.lint'
+    id 'pushwoosh.dokka'
+}
+
 ext {
     targetArtefactIdDev = "pushwoosh-badge-dev"
     targetArtefactId = "pushwoosh-badge"
@@ -31,42 +39,13 @@ ext {
     targetDescription = "Pushwoosh Badge"
 }
 
-apply plugin: 'com.android.library'
 apply from: '../scripts/buildSdk/publish.gradle'
 apply from: '../scripts/prepareAar/build.gradle'
-apply from: '../scripts/quality/quality.gradle'
 
 
 android {
-    compileSdkVersion global_compileSdkVersion
     namespace "com.pushwoosh.badge"
     testNamespace "com.pushwoosh.badge.test"
-
-    defaultConfig {
-        versionName global_versionName
-        minSdkVersion global_minSdkVersion
-        targetSdkVersion global_targetVersion
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-    }
-    buildTypes {
-        release {
-            minifyEnabled true
-            proguardFiles '../proguard-android-optimize-no-access-modification.txt', '../proguard-common.txt',
-                    'proguard/public.txt', 'proguard/protected.txt'
-        }
-        debug {
-            minifyEnabled false
-        }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-    publishing {
-        singleVariant("release")
-    }
 }
 
 dependencies {
@@ -78,9 +57,6 @@ dependencies {
     testImplementation "org.mockito:mockito-core:${mockito}"
     testImplementation 'org.robolectric:robolectric:4.14.1'
 }
-
-// Dokka documentation configuration
-apply from: '../scripts/dokka-config.gradle'
 
 // Custom Javadoc generation for Maven publication
 apply from: '../scripts/buildSdk/javadoc.gradle'

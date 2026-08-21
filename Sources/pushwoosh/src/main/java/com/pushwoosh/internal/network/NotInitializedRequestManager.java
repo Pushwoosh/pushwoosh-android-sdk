@@ -65,7 +65,7 @@ class NotInitializedRequestManager implements RequestManager {
 
     @Override
     public boolean setReverseProxyUrl(String url, Map<String, String> headers) {
-        PWLog.warn(TAG, NOT_INITIALIZED_MSG + ", reverse proxy not set");
+        PWLog.error(TAG, NOT_INITIALIZED_MSG + ", reverse proxy not set");
         return false;
     }
 }

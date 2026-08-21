@@ -6,13 +6,20 @@
             android:name="com.pushwoosh.plugin.inapp_ui"
             android:value="com.pushwoosh.inapp.ui.InAppUiPlugin" />
 
-        <!-- configChanges keeps the overlay visually intact (no view rebuild) across common
+        <!-- hardwareAccelerated is spelled out because an activity otherwise inherits the host's
+             <application> value, and a host that turned acceleration off would take the video
+             template down with it: a TextureView in a software window never reports its
+             SurfaceTexture, so playback waits for a surface that never arrives — no error, no
+             fallback, just a spinner.
+
+             configChanges keeps the overlay visually intact (no view rebuild) across common
              changes. Correctness on an actual recreate — an unlisted change like fontScale,
              or process death — is handled by the Activity's savedInstanceState and
              isChangingConfigurations guards. -->
         <activity
             android:name="com.pushwoosh.inapp.ui.activity.InAppOverlayActivity"
             android:exported="false"
+            android:hardwareAccelerated="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|density|uiMode"
             android:theme="@style/PwInAppTheme" />
     </application>

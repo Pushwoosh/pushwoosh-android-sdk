@@ -11,7 +11,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
@@ -48,30 +47,41 @@ class PushwooshRequestManager implements RequestManager {
 
     @Nullable private volatile String baseRequestUrl;
 
-    @Nullable private volatile String reverseProxyUrl;
+    @Nullable private volatile ReverseProxy reverseProxy;
 
-    private volatile Map<String, String> customHeaders = new HashMap<>();
     private final boolean reverseProxyRequired;
 
-    private final HttpTransport httpTransport = new HttpTransport();
+    private final HttpTransport httpTransport;
 
     PushwooshRequestManager(
             RegistrationPrefs registrationPrefs,
             ServerCommunicationManager serverCommunicationManager,
-            boolean reverseProxyRequired) {
+            boolean reverseProxyRequired,
+            @NonNull HttpTransport httpTransport) {
         this.registrationPrefs = registrationPrefs;
         this.serverCommunicationManager = serverCommunicationManager;
         this.reverseProxyRequired = reverseProxyRequired;
+        this.httpTransport = httpTransport;
     }
 
-    private <Response> void safeProcessCallback(
-            Callback<Response, NetworkException> callback, Result<Response, NetworkException> result) {
-        if (callback == null) return;
-        try {
-            callback.process(result);
-        } catch (Exception e) {
-            PWLog.error(TAG, "Error processing callback", e);
+    /**
+     * Delivers a request outcome on the main thread inside the SDK's error barrier.
+     * <p>
+     * Shared with {@code FakeRequestManager} in tests on purpose: a hand-written copy of this hop
+     * cannot notice a regression in it.
+     */
+    static <R> void deliverOnMain(
+            @Nullable Callback<R, NetworkException> callback, @NonNull Result<R, NetworkException> result) {
+        if (callback == null) {
+            return;
         }
+        BackgroundExecutor.main(() -> {
+            try {
+                callback.process(result);
+            } catch (Exception e) {
+                PWLog.error(TAG, "Error processing callback", e);
+            }
+        });
     }
 
     @Override
@@ -98,9 +108,7 @@ class PushwooshRequestManager implements RequestManager {
             final Callback<Response, NetworkException> callback) {
         BackgroundExecutor.network(() -> {
             Result<Response, NetworkException> result = sendRequestSync(request, baseUrl);
-            if (callback != null) {
-                BackgroundExecutor.main(() -> safeProcessCallback(callback, result));
-            }
+            deliverOnMain(callback, result);
         });
     }
 
@@ -133,12 +141,26 @@ class PushwooshRequestManager implements RequestManager {
      * Configures a reverse proxy URL and the custom headers attached to each request.
      * <p>
      * When set, all outgoing requests are routed through this URL, overriding any
-     * caller-supplied base URL. Pass {@code null} headers to clear them.
+     * caller-supplied base URL. The URL is normalized by {@link RegistrationPrefs#normalizeBaseUrl};
+     * a rejected URL leaves both the proxy and the headers untouched. Pass {@code null} url to route
+     * requests back to the base URL — the custom headers are dropped along with it, as they only
+     * apply to the proxy endpoint; pass {@code null} headers to clear them. The URL and the headers
+     * are published as one value, so a concurrent request never sees a mix of the two configurations.
+     *
+     * @return {@code true} if the settings were applied, {@code false} if the URL was rejected
      */
     @Override
     public boolean setReverseProxyUrl(String url, Map<String, String> headers) {
-        reverseProxyUrl = url;
-        customHeaders = headers != null ? new HashMap<>(headers) : new HashMap<>();
+        if (url == null) {
+            reverseProxy = null;
+            return true;
+        }
+        String normalized = RegistrationPrefs.normalizeBaseUrl(url);
+        if (normalized == null) {
+            PWLog.error(TAG, "Reverse proxy URL rejected: " + url);
+            return false;
+        }
+        reverseProxy = new ReverseProxy(normalized, headers);
         return true;
     }
 
@@ -158,11 +180,12 @@ class PushwooshRequestManager implements RequestManager {
         if (baseUrl == null) {
             baseUrl = baseRequestUrl;
         }
-        if (reverseProxyRequired && reverseProxyUrl == null) {
+        ReverseProxy proxy = reverseProxy;
+        if (reverseProxyRequired && proxy == null) {
             PWLog.error(TAG, "Reverse proxy is required but not configured. Request blocked: " + request.getMethod());
             return Result.fromException(new NetworkException("Reverse proxy is required but not configured"));
         }
-        Endpoint endpoint = resolveEndpoint(baseUrl);
+        Endpoint endpoint = resolveEndpoint(baseUrl, proxy);
         if (endpoint == null) {
             PWLog.error(TAG, "Base URL is not configured. Request blocked: " + request.getMethod());
             return Result.fromException(new NetworkException("Base URL is not configured"));
@@ -222,7 +245,7 @@ class PushwooshRequestManager implements RequestManager {
     @NonNull private static ParsedEnvelope parseEnvelope(HttpResponse httpResponse) {
         JSONObject envelope = new JSONObject();
         int pushwooshStatusCode = 0;
-        if (isErrorResponseCode(httpResponse.statusCode)) {
+        if (httpResponse.isError()) {
             try {
                 envelope.put("status_code", httpResponse.statusCode);
                 envelope.put("status_message", httpResponse.statusMessage);
@@ -274,29 +297,35 @@ class PushwooshRequestManager implements RequestManager {
         return "Token " + registrationPrefs.apiToken().get();
     }
 
-    @VisibleForTesting
-    static boolean isErrorResponseCode(int code) {
-        return code >= 400 && code < 600;
-    }
-
     /**
      * Picks the effective endpoint for the request.
      * <p>
      * Reverse proxy takes precedence; otherwise the caller-supplied base URL is used.
      * Returns {@code null} when nothing is configured. The endpoint is marked rotatable
      * only when its URL matches the currently registered {@code baseRequestUrl}.
+     *
+     * @param proxy the reverse proxy snapshot taken by the caller, {@code null} when not configured
      */
-    @Nullable private Endpoint resolveEndpoint(@Nullable String callerBaseUrl) {
-        String proxy = reverseProxyUrl;
-        Map<String, String> headers = customHeaders;
+    @Nullable private Endpoint resolveEndpoint(@Nullable String callerBaseUrl, @Nullable ReverseProxy proxy) {
         if (proxy != null) {
-            return new Endpoint(proxy, headers, false);
+            return new Endpoint(proxy.url, proxy.headers, false);
         }
         if (TextUtils.isEmpty(callerBaseUrl)) {
             return null;
         }
         boolean rotatable = Objects.equals(callerBaseUrl, baseRequestUrl);
         return new Endpoint(callerBaseUrl, Collections.emptyMap(), rotatable);
+    }
+
+    private static final class ReverseProxy {
+        final String url;
+        final Map<String, String> headers;
+
+        ReverseProxy(String url, @Nullable Map<String, String> headers) {
+            this.url = url;
+            this.headers =
+                    headers != null ? Collections.unmodifiableMap(new HashMap<>(headers)) : Collections.emptyMap();
+        }
     }
 
     private static final class Endpoint {

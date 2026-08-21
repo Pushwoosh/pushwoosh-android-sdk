@@ -91,6 +91,42 @@ class InAppOverlayActivityTest {
         assertFalse(PushwooshInAppUi.isPresenting)
     }
 
+    private class RecordingTemplate(context: Context) : InAppTemplateView(context) {
+        var paused = 0
+        var resumed = 0
+
+        override fun animateIn() {}
+
+        override fun animateOut(onEnd: () -> Unit) = onEnd()
+
+        override fun onHostPaused() {
+            paused++
+        }
+
+        override fun onHostResumed() {
+            resumed++
+        }
+    }
+
+    // Backgrounding the app must reach the template: the Activity stays alive, so a template that
+    // owns a running resource (the video engine) would keep playing over the home screen.
+    @Test
+    fun hostPauseAndResumeReachTheTemplate() {
+        val controller = buildModal("lifecycle")
+        val activity = controller.get()
+        val template = RecordingTemplate(activity)
+        activity.javaClass.getDeclaredField("templateView").apply {
+            isAccessible = true
+            set(activity, template)
+        }
+
+        controller.pause()
+        controller.resume()
+
+        assertEquals(1, template.paused)
+        assertEquals(1, template.resumed)
+    }
+
     /// dismiss() runs the Activity's close path, finishing it.
     @Test
     fun dismissFinishesShownActivity() {

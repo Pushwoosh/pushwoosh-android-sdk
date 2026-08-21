@@ -12,7 +12,6 @@ import android.content.Context;
 import com.pushwoosh.appevents.PushwooshDefaultEvents;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.internal.Plugin;
-import com.pushwoosh.internal.PushRegistrarHelper;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.AppIdChangedEvent;
 import com.pushwoosh.internal.event.EventBus;
@@ -22,9 +21,12 @@ import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.ApplicationOpenDetector;
 import com.pushwoosh.internal.platform.utils.DeviceUuidGetter;
+import com.pushwoosh.internal.specific.DeviceSpecific;
+import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushwooshNotificationManager;
+import com.pushwoosh.notification.RescheduleNotificationsWorker;
 import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
@@ -35,6 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
@@ -43,7 +46,11 @@ import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -76,9 +83,6 @@ public class PushwooshStartWorkerTest {
     private PushwooshDefaultEvents pushwooshDefaultEventsMock;
 
     @Mock
-    private PushRegistrarHelper pushRegistrarHelperMock;
-
-    @Mock
     private RequestManager requestManagerMock;
 
     @Mock
@@ -88,6 +92,8 @@ public class PushwooshStartWorkerTest {
     private Plugin pluginMock2;
 
     private AutoCloseable mocks;
+
+    private DeviceSpecificProvider originalDeviceSpecificProvider;
 
     private void setupConfig() {
         when(configMock.getLogLevel()).thenReturn("NOISE");
@@ -118,6 +124,10 @@ public class PushwooshStartWorkerTest {
         ShadowLog.stream = System.out;
         mocks = MockitoAnnotations.openMocks(this);
 
+        // boot listeners accumulate in the static EventBus map across test methods;
+        // without this, the static enqueue() is called once per previously initialized worker
+        EventBus.clearSubscribersMap();
+
         // setup config
         setupConfig();
 
@@ -132,8 +142,6 @@ public class PushwooshStartWorkerTest {
 
         PWLog.init();
 
-        // Mock PushwooshStartWorker dependencies
-        when(pushRegistrarHelperMock.initDefaultPushRegistrarInPlugin()).thenReturn(false);
         DeviceUuidGetter testGetter = callback -> callback.onGetHwid("test-hwid-12345");
 
         // Create PushwooshStartWorker instance
@@ -145,17 +153,23 @@ public class PushwooshStartWorkerTest {
                 pushwooshInAppMock,
                 deviceRegistrarMock,
                 pushwooshDefaultEventsMock,
-                pushRegistrarHelperMock,
                 testGetter);
 
         // Reset SDK state for clean test
         SdkStateProvider.getInstance().resetForTesting();
+
+        // the transport singleton is static and shared with other test classes
+        originalDeviceSpecificProvider = DeviceSpecificProvider.getInstance();
     }
 
     @After
     public void tearDown() throws Exception {
         pushwooshStartWorker.shutdown();
         SdkStateProvider.getInstance().resetForTesting();
+        // drop this class's subscriptions so a later test class does not dispatch events onto closed mocks
+        EventBus.clearSubscribersMap();
+        PWLog.setLogsUpdateListener(null);
+        setDeviceSpecificProviderInstance(originalDeviceSpecificProvider);
         mocks.close();
     }
 
@@ -243,7 +257,6 @@ public class PushwooshStartWorkerTest {
                 pushwooshInAppMock,
                 deviceRegistrarMock,
                 pushwooshDefaultEventsMock,
-                pushRegistrarHelperMock,
                 failingGetter);
 
         ensureInitializingState();
@@ -425,11 +438,7 @@ public class PushwooshStartWorkerTest {
         // Verify SDK state
         ensureReadyState();
 
-        // Verify 4 requests were sent:
-        //  - AppOpen
-        //  - setUserId
-        //  - registerDevice
-        //  - getInApps
+        // Verify 4 requests were sent: AppOpen, setUserId, registerDevice, getInApps
         Mockito.verify(pushwooshRepositoryMock, Mockito.timeout(2000).times(1)).sendAppOpen();
 
         Mockito.verify(pushwooshInAppMock, Mockito.timeout(2000).times(1)).setUserId(Mockito.any());
@@ -440,7 +449,7 @@ public class PushwooshStartWorkerTest {
     }
 
     /**
-     * Verifies that DeviceBootedEvent triggers rescheduling of local notifications.
+     * Verifies that DeviceBootedEvent enqueues the reschedule worker exactly once.
      * Tests device reboot handling to maintain notification functionality.
      */
     @Test
@@ -453,11 +462,39 @@ public class PushwooshStartWorkerTest {
         ensureStarted();
         ensureReadyState();
 
-        // When: Device boots (simulate boot completed event)
-        EventBus.sendEvent(new BootReceiver.DeviceBootedEvent());
+        try (MockedStatic<RescheduleNotificationsWorker> workerMock =
+                Mockito.mockStatic(RescheduleNotificationsWorker.class)) {
+            // When: Device boots (simulate boot completed event)
+            EventBus.sendEvent(new BootReceiver.DeviceBootedEvent());
+            ShadowLooper.idleMainLooper();
 
-        // Verify notification manager reschedule was called
-        Mockito.verify(notificationManagerMock, Mockito.times(1)).rescheduleLocalNotifications();
+            workerMock.verify(RescheduleNotificationsWorker::enqueue, Mockito.times(1));
+        }
+    }
+
+    /**
+     * Verifies that a repeated DeviceBootedEvent does not enqueue the reschedule worker twice.
+     * Tests the once-only guard that used to live in PushwooshNotificationManager.
+     */
+    @Test
+    public void testDeviceBootedEventTwiceReschedulesOnce() throws InterruptedException {
+
+        ensureInitializingState();
+
+        initializeAndRunPushwooshStartWorker();
+
+        ensureStarted();
+        ensureReadyState();
+
+        try (MockedStatic<RescheduleNotificationsWorker> workerMock =
+                Mockito.mockStatic(RescheduleNotificationsWorker.class)) {
+            EventBus.sendEvent(new BootReceiver.DeviceBootedEvent());
+            ShadowLooper.idleMainLooper();
+            EventBus.sendEvent(new BootReceiver.DeviceBootedEvent());
+            ShadowLooper.idleMainLooper();
+
+            workerMock.verify(RescheduleNotificationsWorker::enqueue, Mockito.times(1));
+        }
     }
 
     /**
@@ -546,31 +583,10 @@ public class PushwooshStartWorkerTest {
         Mockito.verify(pushwooshInAppMock, Mockito.never()).setUserId(Mockito.anyString());
     }
 
-    /**
-     * Verifies that when a plugin provides the default push registrar
-     * (pushRegistrarHelper.initDefaultPushRegistrarInPlugin() returns true),
-     * notificationManager.initPushRegistrar() is NOT called, but initialize() still is.
-     */
+    // Replaces the deleted plugin-rollback pair: with PushRegistrarHelper gone,
+    // the registrar is initialized unconditionally — plugin or native alike.
     @Test
-    public void testInitPushRegistrarSkippedWhenPluginProvidesIt() throws InterruptedException {
-        when(pushRegistrarHelperMock.initDefaultPushRegistrarInPlugin()).thenReturn(true);
-
-        ensureInitializingState();
-        initializeAndRunPushwooshStartWorker();
-        ensureStarted();
-        ensureReadyState();
-
-        Mockito.verify(notificationManagerMock, Mockito.never()).initPushRegistrar();
-        Mockito.verify(notificationManagerMock, Mockito.times(1)).initialize();
-    }
-
-    // Pair of the test above: when no plugin provides the registrar, notificationManager.initPushRegistrar()
-    // must be invoked. Without explicit verify, mutating the `!helper.initDefaultPushRegistrarInPlugin()` guard
-    // or removing the initPushRegistrar() call survives — default-mock coverage is not enough.
-    @Test
-    public void testInitPushRegistrarCalledWhenPluginDoesNotProvideIt() throws InterruptedException {
-        when(pushRegistrarHelperMock.initDefaultPushRegistrarInPlugin()).thenReturn(false);
-
+    public void testInitPushRegistrarCalledUnconditionally() throws InterruptedException {
         ensureInitializingState();
         initializeAndRunPushwooshStartWorker();
         ensureStarted();
@@ -622,7 +638,6 @@ public class PushwooshStartWorkerTest {
                 pushwooshInAppMock,
                 deviceRegistrarMock,
                 pushwooshDefaultEventsMock,
-                pushRegistrarHelperMock,
                 customGetter);
 
         ensureInitializingState();
@@ -649,5 +664,110 @@ public class PushwooshStartWorkerTest {
             String actual = pushwooshStartWorker.prettyApiToken(input);
             assertEquals("for input=" + input, expected, actual);
         }
+    }
+
+    private static void setDeviceSpecificProviderInstance(DeviceSpecificProvider provider) throws Exception {
+        Field instanceField = DeviceSpecificProvider.class.getDeclaredField("instance");
+        instanceField.setAccessible(true);
+        instanceField.set(null, provider);
+    }
+
+    private void installPushTransport(String type, int deviceType) {
+        DeviceSpecific deviceSpecific = Mockito.mock(DeviceSpecific.class);
+        when(deviceSpecific.type()).thenReturn(type);
+        when(deviceSpecific.deviceType()).thenReturn(deviceType);
+        new DeviceSpecificProvider.Builder().setDeviceSpecific(deviceSpecific).build(true);
+    }
+
+    private int indexOfLine(List<String> lines, String marker) {
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).contains(marker)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int countLines(List<String> lines, String marker) {
+        int count = 0;
+        for (String line : lines) {
+            if (line.contains(marker)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    // Rows differ in both type() and deviceType(), so a literal hardcoded in place of either call fails here.
+    // The real DeviceSpecific implementations live in transport modules, off this test classpath — hence the mock.
+    @Test
+    public void pushTransportDescription_parameterized() {
+        Object[][] cases = {
+            {"Android FCM", 3, "Android FCM (device type 3)"},
+            {"Huawei", 17, "Huawei (device type 17)"},
+            {"Amazon", 9, "Amazon (device type 9)"},
+        };
+        for (Object[] c : cases) {
+            String type = (String) c[0];
+            installPushTransport(type, (Integer) c[1]);
+
+            assertEquals("for transport=" + type, c[2], pushwooshStartWorker.pushTransportDescription());
+        }
+    }
+
+    // Verifies that pushTransportDescription reports "not detected" when no transport module claimed the slot.
+    @Test
+    public void testPushTransportDescriptionNotDetectedWhenProviderMissing() throws Exception {
+        setDeviceSpecificProviderInstance(null);
+
+        assertEquals("not detected", pushwooshStartWorker.pushTransportDescription());
+    }
+
+    // "unavailable" is a support-facing value of the same documented table as "not detected"
+    // (llm/docs/push-transport-selection.md), so the literal is pinned rather than left to the catch.
+    @Test
+    public void testPushTransportDescriptionUnavailableWhenTransportThrows() {
+        DeviceSpecific deviceSpecific = Mockito.mock(DeviceSpecific.class);
+        when(deviceSpecific.type()).thenThrow(new RuntimeException("type() is broken"));
+        new DeviceSpecificProvider.Builder().setDeviceSpecific(deviceSpecific).build(true);
+
+        assertEquals("unavailable", pushwooshStartWorker.pushTransportDescription());
+    }
+
+    // Verifies that the startup block prints exactly one PUSH TRANSPORT line at info level between HWID and PUSH TOKEN.
+    // Support reads the transport off this block, so both its presence and its place in it are the contract.
+    @Test
+    public void testStartupBlockLogsPushTransportBetweenHwidAndPushToken() throws Exception {
+        installPushTransport("Android FCM", 3);
+
+        List<String> infoLines = Collections.synchronizedList(new ArrayList<>());
+        CountDownLatch blockPrinted = new CountDownLatch(1);
+        PWLog.setLogsUpdateListener((level, message) -> {
+            if (level != PWLog.Level.INFO) {
+                return;
+            }
+            infoLines.add(message);
+            if (message.contains("API TOKEN: ")) {
+                blockPrinted.countDown();
+            }
+        });
+
+        initializeAndRunPushwooshStartWorker();
+        ensureStarted();
+
+        assertTrue("Startup block should be printed", blockPrinted.await(2, TimeUnit.SECONDS));
+
+        PWLog.setLogsUpdateListener(null);
+        List<String> lines = new ArrayList<>(infoLines);
+        int hwidIndex = indexOfLine(lines, "HWID: ");
+        int transportIndex = indexOfLine(lines, "PUSH TRANSPORT: ");
+        int pushTokenIndex = indexOfLine(lines, "PUSH TOKEN: ");
+
+        assertEquals("PUSH TRANSPORT should be logged once", 1, countLines(lines, "PUSH TRANSPORT: "));
+        assertTrue("HWID should be logged, lines=" + lines, hwidIndex >= 0);
+        assertEquals("[PushwooshStartWorker] PUSH TRANSPORT: Android FCM (device type 3)", lines.get(transportIndex));
+        assertTrue("PUSH TRANSPORT should be logged after HWID, lines=" + lines, hwidIndex < transportIndex);
+        assertTrue(
+                "PUSH TRANSPORT should be logged before PUSH TOKEN, lines=" + lines, transportIndex < pushTokenIndex);
     }
 }

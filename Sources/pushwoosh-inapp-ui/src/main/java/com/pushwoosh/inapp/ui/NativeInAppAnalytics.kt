@@ -13,9 +13,9 @@ import com.pushwoosh.repository.RepositoryModule
  * analytics fire on the actual display, not on route acceptance (frequency caps, pause or
  * the host delegate may still suppress the show after present() returned true). Keyed by
  * the raw config JSON — the only identifier that survives the Intent round-trip to
- * InAppOverlayActivity. The push message hash is captured at registration because the
- * InAppRepository show-subscriber nulls the global value right after the show request.
- * Entries of never-shown messages are evicted by size.
+ * InAppOverlayActivity. The push message hash is captured at registration and rides inside every
+ * event sent from here, show included: by display time the global value may hold the next
+ * message's hash or be nulled. Entries of never-shown messages are evicted by size.
  */
 internal object NativeInAppAnalytics {
     private const val TAG = "NativeInAppAnalytics"
@@ -38,7 +38,13 @@ internal object NativeInAppAnalytics {
 
     fun onShown(rawJson: String?) {
         val entry = peek(rawJson) ?: return
-        EventBus.sendEvent(InAppViewEvent(entry.resource))
+        try {
+            EventBus.sendEvent(InAppViewEvent(entry.resource, entry.messageHash))
+        } catch (e: Throwable) {
+            // Throwable, not Exception: the two-arg InAppViewEvent is newer than the core this module
+            // may resolve against, and a linkage Error must not crash the app while showing an in-app.
+            PWLog.error(TAG, "failed to send in-app show event", e)
+        }
     }
 
     fun onClicked(rawJson: String?) {

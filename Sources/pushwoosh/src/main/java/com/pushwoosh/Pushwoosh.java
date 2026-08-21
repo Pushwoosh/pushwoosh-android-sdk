@@ -18,7 +18,6 @@ import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.network.InAppRepository;
-import com.pushwoosh.internal.PushRegistrarHelper;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
@@ -28,6 +27,7 @@ import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.utils.NotificationUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.LocalNotification;
+import com.pushwoosh.notification.LocalNotificationReceiver;
 import com.pushwoosh.notification.LocalNotificationRequest;
 import com.pushwoosh.notification.PushMessage;
 import com.pushwoosh.notification.PushwooshNotificationManager;
@@ -146,7 +146,6 @@ public class Pushwoosh {
     private final PushwooshNotificationManager notificationManager;
     private final PushwooshRepository pushwooshRepository;
     private final InAppRepository inAppRepository;
-    private final PushRegistrarHelper pushRegistrarHelper;
     private final RegistrationPrefs registrationPrefs;
     private final ServerCommunicationManager serverCommunicationManager;
     private Subscription<RegistrationSuccessEvent> subscriberRegister;
@@ -160,14 +159,12 @@ public class Pushwoosh {
             notificationManager = null;
             pushwooshRepository = null;
             inAppRepository = null;
-            pushRegistrarHelper = null;
             registrationPrefs = null;
             serverCommunicationManager = null;
         } else {
             notificationManager = pushwooshPlatform.notificationManager();
             pushwooshRepository = pushwooshPlatform.pushwooshRepository();
             inAppRepository = InAppModule.getInAppRepository();
-            pushRegistrarHelper = pushwooshPlatform.getPushRegistrarHelper();
             registrationPrefs = pushwooshPlatform.getRegistrationPrefs();
             serverCommunicationManager = pushwooshPlatform.getServerCommunicationManager();
             isInitialized = true;
@@ -375,6 +372,41 @@ public class Pushwoosh {
             return null;
         }
         return trimmed;
+    }
+
+    /**
+     * Returns the Pushwoosh API base URL the SDK currently sends requests to.
+     * <p>
+     * This is the <i>effective</i> endpoint, not necessarily the value the app passed: it reflects
+     * an explicit URL from {@link #setAppId(String, String)} or the {@code com.pushwoosh.base_url}
+     * manifest metadata, the default URL derived from the application code, and any later
+     * server-side rotation (a {@code base_url} in a response or the {@code set_base_url} push
+     * command). A configured reverse proxy is deliberately not reflected here: it is a transport
+     * in front of the endpoint, not the endpoint itself.
+     * <br><br>
+     * Example:
+     * <pre>
+     * {@code
+     *   String baseUrl = Pushwoosh.getInstance().getBaseUrl();
+     *   Log.d("App", "Pushwoosh API endpoint: " + baseUrl);
+     * }
+     * </pre>
+     *
+     * @return current Pushwoosh API endpoint, e.g. {@code https://XXXXX-XXXXX.api.pushwoosh.com/json/1.3/},
+     *         or {@code null} if it is not computed yet (no application code configured or SDK
+     *         not initialized)
+     * @see #setAppId(String, String)
+     */
+    @Nullable public String getBaseUrl() {
+        try {
+            if (ensureInitialized()) {
+                String baseUrl = registrationPrefs.baseUrl().get();
+                return TextUtils.isEmpty(baseUrl) ? null : baseUrl;
+            }
+        } catch (Exception e) {
+            PWLog.error("Pushwoosh", "can't get base url", e);
+        }
+        return null;
     }
 
     /**
@@ -1510,7 +1542,7 @@ public class Pushwoosh {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().scheduleLocalNotification()");
         try {
             if (ensureInitialized()) {
-                return notificationManager.scheduleLocalNotification(notification);
+                return LocalNotificationReceiver.scheduleNotification(notification);
             }
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't schedule local notification", e);
@@ -2077,31 +2109,20 @@ public class Pushwoosh {
     }
 
     /**
-     * Enables Huawei Push Kit for push notifications on Huawei devices.
+     * Deprecated: has no effect — the push transport is auto-detected.
      * <p>
-     * This method is specifically designed for plugin-based applications (Cordova, React Native, etc.)
-     * to enable Huawei Push Kit support on Huawei devices without Google Mobile Services.
-     * This method has no effect when called in native Android applications.
-     * <br><br>
-     * Example:
-     * <pre>
-     * {@code
-     *   // Enable Huawei Push in plugin-based applications
-     *   Pushwoosh.getInstance().enableHuaweiPushNotifications();
-     *   Pushwoosh.getInstance().registerForPushNotifications();
-     * }
-     * </pre>
+     * The SDK picks HMS Push Kit on Huawei/Honor HMS-only devices automatically when the app
+     * carries the full HMS setup: {@code com.huawei.hms:push} on the classpath,
+     * {@code agconnect-services.json}, and the Huawei platform configured in the Pushwoosh
+     * Control Panel. To opt out, do not add {@code com.huawei.hms:push} to the classpath.
+     *
+     * @deprecated Push transport is auto-detected; calling this method does nothing.
      */
+    @Deprecated
     public void enableHuaweiPushNotifications() {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().enableHuaweiPushNotifications()");
-        try {
-            if (!ensureInitialized()) {
-                return;
-            }
-            pushRegistrarHelper.enableHuaweiPushNotifications();
-        } catch (Exception e) {
-            PWLog.error("Pushwoosh", "can't enable huawei push notifications", e);
-        }
+        PWLog.warn(
+                "Pushwoosh",
+                "enableHuaweiPushNotifications() is deprecated and has no effect: push transport is auto-detected");
     }
 
     /**
@@ -2367,6 +2388,9 @@ public class Pushwoosh {
      * }
      * </pre>
      *
+     * <p>The URL is validated and normalized before it is applied. A rejected URL is ignored: the
+     * previously configured proxy stays in place and the reason is written to the log.
+     *
      * @param url the reverse proxy URL (must be a valid https:// or http:// URL)
      * @param headers optional map of custom HTTP headers (may be null)
      */
@@ -2380,25 +2404,14 @@ public class Pushwoosh {
                         "setReverseProxy() ignored. Set com.pushwoosh.allow_reverse_proxy to true in AndroidManifest.xml");
                 return;
             }
+            // The request manager reads null as "reset the proxy" and reports success, which would
+            // release the startup latch with no endpoint left to send requests to.
             if (TextUtils.isEmpty(url)) {
                 PWLog.error("Pushwoosh", "setReverseProxy() ignored: URL must not be null or empty");
                 return;
             }
-            if (!url.startsWith("https://") && !url.startsWith("http://")) {
-                PWLog.error("Pushwoosh", "setReverseProxy() ignored: URL must start with https:// or http://");
-                return;
-            }
-            try {
-                new java.net.URL(url);
-            } catch (java.net.MalformedURLException e) {
-                PWLog.error("Pushwoosh", "setReverseProxy() ignored: malformed URL: " + url);
-                return;
-            }
-            if (!url.endsWith("/")) {
-                url = url + "/";
-            }
             if (!NetworkModule.getRequestManager().setReverseProxyUrl(url, headers)) {
-                PWLog.warn("Pushwoosh", "setReverseProxy() ignored: SDK is not initialized yet");
+                PWLog.error("Pushwoosh", "setReverseProxy() ignored, reverse proxy not applied");
                 return;
             }
             EventBus.sendEvent(new ReverseProxyReadyEvent());

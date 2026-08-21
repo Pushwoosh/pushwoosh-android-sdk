@@ -76,7 +76,8 @@ public interface RequestManager {
      * Pass null as url to disable reverse proxy and restore default server URL.
      * @param url - reverse proxy url, or null to disable
      * @param headers - optional map of custom HTTP headers (may be null)
-     * @return - {@code true} if the settings were applied
+     * @return - {@code true} if the settings were applied; {@code false} if the URL was rejected
+     *           or the manager is not initialized
      */
     boolean setReverseProxyUrl(String url, Map<String, String> headers);
 }

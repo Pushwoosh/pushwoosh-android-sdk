@@ -3,6 +3,7 @@ package com.pushwoosh.huawei.utils;
 import android.content.Context;
 import android.os.Build;
 
+import com.huawei.hms.aaid.HmsInstanceId;
 import com.huawei.hms.api.ConnectionResult;
 import com.huawei.hms.api.HuaweiApiAvailability;
 import com.pushwoosh.internal.utils.PWLog;
@@ -11,13 +12,14 @@ import com.pushwoosh.internal.utils.PWLog;
  * Utility class for detecting Huawei/Honor devices that should use HMS Push Kit.
  * <p>
  * Provides device detection logic to determine whether to use HMS Push or FCM.
- * Uses a 3-level validation: manufacturer check, HMS availability, and GMS prioritization.
+ * Uses a 4-level validation: manufacturer check, HMS availability, GMS prioritization,
+ * and Push Kit presence.
  */
 public class HuaweiUtils {
     private static final String TAG = "HuaweiUtils";
-    private static final String LIBRARY_NOT_INTEGRATED_ERROR = "Huawei HMS Core SDK - Push Kit " +
-            "not integrated. Follow the guide to integrate the library " +
-            "to your project https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides-V5/android-integrating-sdk-0000001050040084-V5";
+    private static final String LIBRARY_NOT_INTEGRATED_ERROR =
+            "Huawei HMS Core SDK - Push Kit not integrated. Follow the guide to integrate the library "
+                    + "to your project https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides-V5/android-integrating-sdk-0000001050040084-V5";
 
     /**
      * Determines if the device should use HMS Push Kit for push notifications.
@@ -27,6 +29,7 @@ public class HuaweiUtils {
      *   <li>Device manufacturer/brand contains "huawei" or "honor"</li>
      *   <li>HMS Core is installed and available</li>
      *   <li>Google Play Services is NOT available (GMS takes priority if present)</li>
+     *   <li>HMS Push Kit classes are on the classpath</li>
      * </ul>
      *
      * @param context Application context
@@ -50,6 +53,10 @@ public class HuaweiUtils {
             return false;
         }
 
+        if (!isHmsPushKitAvailable()) {
+            return false;
+        }
+
         PWLog.info(TAG, "Huawei/Honor device with HMS Core only - using HMS Push");
         return true;
     }
@@ -69,10 +76,10 @@ public class HuaweiUtils {
         String manufacturerLower = manufacturer != null ? manufacturer.toLowerCase() : "";
         String brandLower = brand != null ? brand.toLowerCase() : "";
 
-        return manufacturerLower.contains("huawei") ||
-               manufacturerLower.contains("honor") ||
-               brandLower.contains("huawei") ||
-               brandLower.contains("honor");
+        return manufacturerLower.contains("huawei")
+                || manufacturerLower.contains("honor")
+                || brandLower.contains("huawei")
+                || brandLower.contains("honor");
     }
 
     /**
@@ -86,8 +93,7 @@ public class HuaweiUtils {
      */
     private static boolean isHmsCoreAvailable(Context context) {
         try {
-            int result = HuaweiApiAvailability.getInstance()
-                    .isHuaweiMobileServicesAvailable(context);
+            int result = HuaweiApiAvailability.getInstance().isHuaweiMobileServicesAvailable(context);
 
             if (result == ConnectionResult.SUCCESS) {
                 return true;
@@ -105,6 +111,30 @@ public class HuaweiUtils {
     }
 
     /**
+     * Checks that HMS Push Kit classes are on the classpath.
+     * <p>
+     * The other checks key on {@code hms:base} ({@link HuaweiApiAvailability}) — a transitive
+     * dependency of any HMS kit. An app with Huawei Maps/Analytics but without {@code hms:push}
+     * would otherwise claim the push slot with no way to obtain a token.
+     * <p>
+     * Package-private for testing.
+     *
+     * @return {@code true} if {@code com.huawei.hms:push} is on the classpath
+     */
+    static boolean isHmsPushKitAvailable() {
+        try {
+            // direct class touch, not Class.forName: the app's R8 may rename Huawei classes
+            HmsInstanceId.class.getName();
+            return true;
+        } catch (LinkageError error) {
+            // LinkageError, not NoClassDefFoundError: a binary mismatch between hms kits throws
+            // VerifyError/IncompatibleClassChangeError, which would crash the provider on every start
+            PWLog.error(TAG, LIBRARY_NOT_INTEGRATED_ERROR);
+            return false;
+        }
+    }
+
+    /**
      * Checks if Google Play Services is available using reflection.
      * <p>
      * Uses reflection to avoid compile-time dependency on GMS.
@@ -117,10 +147,7 @@ public class HuaweiUtils {
      * @return {@code true} if GMS is available
      */
     static boolean isGooglePlayServicesAvailable(Context context) {
-        return checkPlayServicesAvailability(
-                "com.google.android.gms.common.GoogleApiAvailability",
-                context
-        );
+        return checkPlayServicesAvailability("com.google.android.gms.common.GoogleApiAvailability", context);
     }
 
     /**
@@ -138,9 +165,7 @@ public class HuaweiUtils {
     static boolean checkPlayServicesAvailability(String className, Context context) {
         try {
             Class<?> apiAvailability = Class.forName(className);
-            Object instance = apiAvailability
-                    .getMethod("getInstance")
-                    .invoke(null);
+            Object instance = apiAvailability.getMethod("getInstance").invoke(null);
             Integer result = (Integer) apiAvailability
                     .getMethod("isGooglePlayServicesAvailable", Context.class)
                     .invoke(instance, context);

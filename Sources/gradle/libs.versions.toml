@@ -15,9 +15,11 @@ navigationFragment = "2.7.7"
 navigationUi = "2.7.7"
 coreKtx = "1.10.1"
 playServicesLocation = "21.0.1"
-pushwooshFirebase = "6.10.2"
+pushwooshFirebase = "6.11.0"
 swiperefreshlayout = "1.1.0"
 workRuntime = "2.8.1"
+spotless = "6.25.0"
+pitest = "1.15.0"
 
 [libraries]
 activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
@@ -38,3 +40,5 @@ play-services-location = { module = "com.google.android.gms:play-services-locati
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 work-runtime = { module = "androidx.work:work-runtime", version.ref = "workRuntime" }
+spotless-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
+pitest-plugin = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", version.ref = "pitest" }

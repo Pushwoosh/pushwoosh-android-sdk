@@ -13,6 +13,7 @@ import com.pushwoosh.inapp.ui.model.ModalContent
 import com.pushwoosh.inapp.ui.model.SheetContent
 import com.pushwoosh.inapp.ui.model.StoriesContent
 import com.pushwoosh.inapp.ui.model.StoryItem
+import com.pushwoosh.inapp.ui.model.VideoContent
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -116,5 +117,22 @@ class InAppRoutingChannelTest {
     fun storiesRoutesToActivity() {
         routing.present(message("s", stories()))
         assertEquals(listOf("s"), activityIds)
+    }
+
+    private fun video() =
+        InAppLayout.Video(
+            VideoContent(
+                "https://x/v.mp4", null, null, null, null, emptyList(),
+                loops = true, muted = true, showCloseButton = true
+            )
+        )
+
+    // Full-screen video takes the screen over, so it is blocking by construction and must not slip
+    // into the non-blocking overlay path.
+    @Test
+    fun videoRoutesToActivity() {
+        routing.present(message("v", video()))
+        assertEquals(listOf("v"), activityIds)
+        assertEquals(emptyList<String?>(), overlayIds)
     }
 }

@@ -37,6 +37,8 @@ import com.pushwoosh.internal.utils.PWLog
 
 object InboxRepository {
 
+    private const val TAG = "InboxRepository"
+
     private val callbacks = mutableListOf<(InboxEvent) -> Unit>()
     private var currentInboxEvent: InboxEvent? = null
     private val currentInboxMessages: MutableList<InboxMessage> = ArrayList()
@@ -94,7 +96,7 @@ object InboxRepository {
 
     private fun getLoadMessagesCallback(isLoadingCachedMessages : Boolean) : Callback<Collection<InboxMessage>, InboxMessagesException> {
         return Callback{ result ->
-            PWLog.noise("loadInbox", "result isSuccess: " + result.isSuccess)
+            PWLog.noise(TAG, "loadInbox result isSuccess: " + result.isSuccess)
             updateEvent(InboxEvent.FinishLoading())
             val data = result.data
 
@@ -123,7 +125,7 @@ object InboxRepository {
     }
 
     private fun updateEvent(inboxEvent: InboxEvent) {
-        PWLog.noise("updateEvent", "InboxEvent: " + inboxEvent.javaClass.name)
+        PWLog.noise(TAG, "updateEvent InboxEvent: " + inboxEvent.describe())
         currentInboxEvent = inboxEvent
         callbacks.forEach { it(inboxEvent) }
     }
@@ -145,6 +147,21 @@ sealed class InboxEvent {
                                val updatedInboxMessages: Collection<InboxMessage>,
                                val deleted: Collection<InboxMessage>) : InboxEvent()
     class RestoreState: InboxEvent()
+}
+
+// Literal names, not javaClass.name: R8 in the consumer app renames these classes
+// (InboxMessagesUpdated -> J4.d), which blanks the log exactly where it gets read.
+private fun InboxEvent.describe(): String = when (this) {
+    is InboxEvent.OnCreate -> "OnCreate"
+    is InboxEvent.Loading -> "Loading"
+    is InboxEvent.FinishLoading -> "FinishLoading"
+    is InboxEvent.FailedLoading -> "FailedLoading(${error.message})"
+    is InboxEvent.SuccessLoadingCache -> "SuccessLoadingCache(${inboxMessages.size})"
+    is InboxEvent.SuccessLoading -> "SuccessLoading(${inboxMessages.size})"
+    is InboxEvent.InboxEmpty -> "InboxEmpty"
+    is InboxEvent.InboxMessagesUpdated ->
+        "InboxMessagesUpdated(added=${addedInboxMessages.size}, updated=${updatedInboxMessages.size}, deleted=${deleted.size})"
+    is InboxEvent.RestoreState -> "RestoreState"
 }
 
 fun <T> MutableCollection<T>.remove(filter: (T) -> Boolean): Collection<T> {

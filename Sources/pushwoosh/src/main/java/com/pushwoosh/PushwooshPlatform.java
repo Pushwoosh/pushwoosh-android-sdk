@@ -6,7 +6,6 @@ import com.pushwoosh.appevents.PushwooshDefaultEvents;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.inapp.PushwooshInAppServiceImpl;
 import com.pushwoosh.inapp.view.strategy.ResourceViewStrategyFactory;
-import com.pushwoosh.internal.PushRegistrarHelper;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
@@ -62,7 +61,6 @@ public class PushwooshPlatform {
     private RichMediaStyle richMediaStyle;
     private Activity topActivity;
     private PushwooshDefaultEvents pushwooshDefaultEvents;
-    private PushRegistrarHelper pushRegistrarHelper;
 
     public PushMessageFactory getPushMessageFactory() {
         return pushMessageFactory;
@@ -119,8 +117,6 @@ public class PushwooshPlatform {
 
         pushwooshDefaultEvents = new PushwooshDefaultEvents();
 
-        pushRegistrarHelper = new PushRegistrarHelper(config.getPluginProvider(), notificationManager);
-
         pushwooshStartWorker = new PushwooshStartWorker(
                 config,
                 registrationPrefs,
@@ -129,7 +125,6 @@ public class PushwooshPlatform {
                 pushwooshInApp,
                 deviceRegistrar,
                 pushwooshDefaultEvents,
-                pushRegistrarHelper,
                 DeviceUtils::getDeviceUUID);
     }
 
@@ -193,10 +188,6 @@ public class PushwooshPlatform {
 
     public RegistrationPrefs getRegistrationPrefs() {
         return registrationPrefs;
-    }
-
-    public PushRegistrarHelper getPushRegistrarHelper() {
-        return pushRegistrarHelper;
     }
 
     public ServerCommunicationManager getServerCommunicationManager() {

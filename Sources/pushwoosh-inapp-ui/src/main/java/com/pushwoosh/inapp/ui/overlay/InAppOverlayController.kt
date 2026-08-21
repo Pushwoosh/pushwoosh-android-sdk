@@ -16,6 +16,7 @@ import com.pushwoosh.inapp.ui.view.BannerInAppView
 import com.pushwoosh.inapp.ui.view.InAppTemplateView
 import com.pushwoosh.inapp.ui.view.ModalInAppView
 import com.pushwoosh.inapp.ui.view.SheetInAppView
+import com.pushwoosh.internal.utils.BackgroundExecutor
 
 /**
  * Presents non-blocking templates (banner, floating modal, floating sheet) by attaching the view directly
@@ -31,6 +32,10 @@ internal object InAppOverlayController {
     @Volatile
     private var activeView: InAppTemplateView? = null
     private var activeMessage: InAppMessage? = null
+
+    /** `true` only inside [show]'s present block, where a dismiss must be deferred rather than run
+     *  (see [dismiss]). Main-thread only, like the block it guards. */
+    private var presenting = false
 
     /** `true` while an overlay (banner / floating modal) is attached and on screen. */
     internal val isActive: Boolean
@@ -55,7 +60,8 @@ internal object InAppOverlayController {
      * builds the view for the layout type (banner pinned top/bottom, centered floating modal, or
      * bottom-pinned floating sheet), attaches it, and fires the present side effects in order: delegate
      * `willPresent`, animate in, delegate `didPresent`, analytics `onShown`. A banner with a
-     * positive `autoDismissMs` schedules its own dismissal.
+     * positive `autoDismissMs` schedules its own dismissal. A dismiss reentered from one of those
+     * callbacks is deferred (see [dismiss]), so the block always runs to its end.
      *
      * Show policies (pause, frequency caps, delegate veto) are enforced by the queue before
      * this is reached, not here.
@@ -144,6 +150,7 @@ internal object InAppOverlayController {
         root.addView(view, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, height, gravity))
         activeView = view
         activeMessage = message
+        presenting = true
         try {
             InAppModule.delegate?.willPresent(message.id)
             view.animateIn()
@@ -163,6 +170,8 @@ internal object InAppOverlayController {
             activeMessage = null
             (view.parent as? ViewGroup)?.removeView(view)
             throw e
+        } finally {
+            presenting = false
         }
 
         return true
@@ -175,12 +184,20 @@ internal object InAppOverlayController {
      * lives in one place regardless of how the view leaves the window.
      *
      * No-ops if [view] is no longer the active overlay (a stale dismissal). Clears [activeView]
-     * synchronously so [isActive] flips at once and a second dismiss is rejected. The queue-slot
+     * synchronously so [isActive] flips at once and a second dismiss is rejected — except for a
+     * dismiss reentered from [show]'s present block, which is deferred to the next main-thread
+     * message and leaves [isActive] true until it runs. The queue-slot
      * release does not depend on the exit animation completing: if the host Activity is torn down
      * mid-animation the view still detaches and the listener runs, so the slot is never stranded.
      */
     private fun dismiss(view: InAppTemplateView, message: InAppMessage) {
         if (activeView !== view) return
+        // Deferred, not run: an exit started inside show() is cancelled by the entrance that
+        // follows, and its end callback would remove the view before the queue confirms the show.
+        if (presenting) {
+            BackgroundExecutor.main { dismiss(view, message) }
+            return
+        }
         activeView = null
         activeMessage = null
         view.animateOut { (view.parent as? ViewGroup)?.removeView(view) }

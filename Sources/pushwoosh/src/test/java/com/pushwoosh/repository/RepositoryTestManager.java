@@ -26,36 +26,26 @@
 
 package com.pushwoosh.repository;
 
-import com.pushwoosh.internal.network.PushRequest;
 import com.pushwoosh.internal.platform.AndroidPlatformModuleTest;
 import com.pushwoosh.internal.prefs.TestPrefsProvider;
 import com.pushwoosh.internal.utils.Config;
 
-
 public class RepositoryTestManager {
-	public static Class<? extends PushRequest> getMessageDeliveryClass() {
-		return MessageDeliveredRequest.class;
-	}
+    public static RegistrationPrefs createRegistrationPrefs(Config config, DeviceRegistrar deviceRegistrar) {
+        AndroidPlatformModuleTest.changePrefsProvider(new TestPrefsProvider());
+        return new RegistrationPrefs(config, deviceRegistrar);
+    }
 
-	public static Class<? extends PushRequest> getPushStatClass() {
-		return PushStatRequest.class;
-	}
-
-	public static RegistrationPrefs createRegistrationPrefs(Config config, DeviceRegistrar deviceRegistrar) {
-		AndroidPlatformModuleTest.changePrefsProvider(new TestPrefsProvider());
-		return new RegistrationPrefs(config, deviceRegistrar);
-	}
-
-	public static void destroyRegistrationPrefs(RegistrationPrefs registrationPrefs) {
-		registrationPrefs.pushToken().set(null);
-		registrationPrefs.registeredOnServer().set(false);
-		registrationPrefs.applicationId().set(null);
-		registrationPrefs.lastPushRegistration().set(0);
-		registrationPrefs.forceRegister().set(false);
-		registrationPrefs.userId().set(null);
-		registrationPrefs.deviceId().set(null);
-		registrationPrefs.logLevel().set(null);
-		registrationPrefs.baseUrl().set(null);
-		RepositoryModule.setRegistrationPreferences(null);
-	}
+    public static void destroyRegistrationPrefs(RegistrationPrefs registrationPrefs) {
+        registrationPrefs.pushToken().set(null);
+        registrationPrefs.registeredOnServer().set(false);
+        registrationPrefs.applicationId().set(null);
+        registrationPrefs.lastPushRegistration().set(0);
+        registrationPrefs.forceRegister().set(false);
+        registrationPrefs.userId().set(null);
+        registrationPrefs.deviceId().set(null);
+        registrationPrefs.logLevel().set(null);
+        registrationPrefs.baseUrl().set(null);
+        RepositoryModule.setRegistrationPreferences(null);
+    }
 }

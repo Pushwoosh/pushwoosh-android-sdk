@@ -3,6 +3,7 @@ package com.pushwoosh;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -104,15 +105,12 @@ public class PushwooshTest {
         pushwooshRepository = platformTestManager.getPushwooshRepositoryMock();
         registrationPrefs = platformTestManager.getRegistrationPrefs();
         notificationManagerSpy = Mockito.spy(platformTestManager.getNotificationManager());
-        Field f = PushwooshPlatform.class.getDeclaredField("notificationManager");
-        f.setAccessible(true);
-        f.set(PushwooshPlatform.getInstance(), notificationManagerSpy);
+        setField(PushwooshPlatform.getInstance(), "notificationManager", notificationManagerSpy);
 
-        // Pushwoosh singleton caches registration prefs when first created, PlatformTestManager resets
-        // prefs after every test is ran. Need to manually reset prefs in singleton
-        Field reg = Pushwoosh.class.getDeclaredField("registrationPrefs");
-        reg.setAccessible(true);
-        reg.set(Pushwoosh.getInstance(), platformTestManager.getRegistrationPrefs());
+        // Both singletons cache collaborators when first created, PlatformTestManager resets them
+        // after every test. Re-point the cached fields at the current sandbox instances.
+        setField(Pushwoosh.getInstance(), "registrationPrefs", platformTestManager.getRegistrationPrefs());
+        setField(Pushwoosh.getInstance(), "notificationManager", notificationManagerSpy);
 
         sendPushStat = Pushwoosh.class.getDeclaredMethod("sendPushStat", Bundle.class);
         sendMessageDelivery = Pushwoosh.class.getDeclaredMethod("sendMessageDelivery", Bundle.class);
@@ -121,6 +119,12 @@ public class PushwooshTest {
 
         // Mock PushwooshMessagingServiceHelper static methods
         messagingServiceHelperMock = Mockito.mockStatic(PushwooshMessagingServiceHelper.class);
+    }
+
+    private static void setField(Object target, String name, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 
     @After
@@ -228,5 +232,97 @@ public class PushwooshTest {
         subscription.unsubscribe();
 
         assertThat(events, hasSize(1));
+    }
+
+    @Test
+    public void setReverseProxy_whenNotAllowed_doesNotReachSeam() {
+        Mockito.when(PushwooshPlatform.getInstance().getConfig().isReverseProxyAllowed())
+                .thenReturn(false);
+        List<ReverseProxyReadyEvent> events = new ArrayList<>();
+        Subscription<ReverseProxyReadyEvent> subscription =
+                EventBus.subscribe(ReverseProxyReadyEvent.class, events::add);
+
+        Pushwoosh.getInstance().setReverseProxy("https://proxy.example.com/", null);
+        ShadowLooper.idleMainLooper();
+        subscription.unsubscribe();
+
+        assertThat(platformTestManager.getRequestManager().reverseProxyCalls(), hasSize(0));
+        assertThat(events, hasSize(0));
+    }
+
+    // "no URL given" is the facade's call: the seam reads null as "reset the proxy" and reports
+    // success, which would announce readiness with no endpoint configured.
+    @Test
+    public void setReverseProxy_nullOrEmptyUrl_doesNotReachSeam() {
+        Mockito.when(PushwooshPlatform.getInstance().getConfig().isReverseProxyAllowed())
+                .thenReturn(true);
+        List<ReverseProxyReadyEvent> events = new ArrayList<>();
+        Subscription<ReverseProxyReadyEvent> subscription =
+                EventBus.subscribe(ReverseProxyReadyEvent.class, events::add);
+
+        Pushwoosh.getInstance().setReverseProxy(null, null);
+        Pushwoosh.getInstance().setReverseProxy("", null);
+        ShadowLooper.idleMainLooper();
+        subscription.unsubscribe();
+
+        assertThat(platformTestManager.getRequestManager().reverseProxyCalls(), hasSize(0));
+        assertThat(events, hasSize(0));
+    }
+
+    // The facade used to reject this by shape: startsWith("https://") failed on the leading spaces.
+    // Trimming is now the seam's verdict alone, so the facade must pass the URL through untouched.
+    @Test
+    public void setReverseProxy_urlWithSurroundingWhitespace_announcesReadiness() {
+        Mockito.when(PushwooshPlatform.getInstance().getConfig().isReverseProxyAllowed())
+                .thenReturn(true);
+        List<ReverseProxyReadyEvent> events = new ArrayList<>();
+        Subscription<ReverseProxyReadyEvent> subscription =
+                EventBus.subscribe(ReverseProxyReadyEvent.class, events::add);
+
+        Pushwoosh.getInstance().setReverseProxy("  https://proxy.example.com/  ", null);
+        ShadowLooper.idleMainLooper();
+        subscription.unsubscribe();
+
+        assertThat(events, hasSize(1));
+    }
+
+    @Test
+    public void setReverseProxy_urlRejectedBySeam_doesNotAnnounceReadiness() {
+        Mockito.when(PushwooshPlatform.getInstance().getConfig().isReverseProxyAllowed())
+                .thenReturn(true);
+        platformTestManager.getRequestManager().setReverseProxyUrlReturns(false);
+        List<ReverseProxyReadyEvent> events = new ArrayList<>();
+        Subscription<ReverseProxyReadyEvent> subscription =
+                EventBus.subscribe(ReverseProxyReadyEvent.class, events::add);
+
+        Pushwoosh.getInstance().setReverseProxy("https://proxy.example.com/", null);
+        ShadowLooper.idleMainLooper();
+        subscription.unsubscribe();
+
+        assertThat(events, hasSize(0));
+    }
+
+    // Verifies that getBaseUrl returns the effective endpoint derived from the application code at init.
+    @Test
+    public void getBaseUrl_afterInit_returnsUrlDerivedFromAppCode() {
+        assertThat(
+                Pushwoosh.getInstance().getBaseUrl(),
+                equalTo("https://" + MockConfig.APP_ID + ".api.pushwoosh.com/json/1.3/"));
+    }
+
+    // Verifies that getBaseUrl reflects the custom URL from setAppId, normalized with a trailing slash.
+    @Test
+    public void getBaseUrl_afterSetAppIdWithCustomUrl_returnsNormalizedUrl() {
+        Pushwoosh.getInstance().setAppId(MockConfig.APP_ID, "https://custom.example.com/json/1.3");
+
+        assertThat(Pushwoosh.getInstance().getBaseUrl(), equalTo("https://custom.example.com/json/1.3/"));
+    }
+
+    // Verifies that getBaseUrl returns null, not an empty string, while the base URL is not computed yet.
+    @Test
+    public void getBaseUrl_whenBaseUrlNotComputed_returnsNull() {
+        registrationPrefs.baseUrl().set("");
+
+        assertThat(Pushwoosh.getInstance().getBaseUrl(), nullValue());
     }
 }

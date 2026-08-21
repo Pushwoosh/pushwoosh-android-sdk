@@ -5,8 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -16,8 +14,8 @@ import android.content.Context;
 
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.network.CreateTestDeviceRequest;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.preference.PreferenceBooleanValue;
 import com.pushwoosh.internal.preference.PreferenceLongValue;
@@ -31,7 +29,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -67,9 +64,7 @@ public class KnockPatternDetectorTest {
     @Mock
     private AppInfoProvider appInfoProvider;
 
-    @Mock
-    private RequestManager requestManager;
-
+    private FakeRequestManager fake;
     private AtomicLong fakeClock;
     private KnockPatternDetector detector;
     private AutoCloseable mocks;
@@ -78,6 +73,7 @@ public class KnockPatternDetectorTest {
     public void setUp() {
         ShadowLog.stream = System.out;
         mocks = MockitoAnnotations.openMocks(this);
+        fake = FakeRequestManager.install();
         fakeClock = new AtomicLong(1000);
         detector = new KnockPatternDetector(fakeClock::get);
 
@@ -97,6 +93,7 @@ public class KnockPatternDetectorTest {
     public void tearDown() throws Exception {
         SdkStateProvider.getInstance().resetForTesting();
         PWLog.updateLogLevel(PWLog.Level.INFO.name());
+        NetworkModule.setRequestManager(null);
         mocks.close();
     }
 
@@ -121,7 +118,7 @@ public class KnockPatternDetectorTest {
             }
 
             assertEquals(0, detector.getCount());
-            verify(requestManager).sendRequest(any(), any());
+            assertEquals(1, fake.count("createTestDevice"));
         });
     }
 
@@ -154,7 +151,7 @@ public class KnockPatternDetectorTest {
             }
             assertEquals(0, detector.getCount());
 
-            verify(requestManager, Mockito.times(2)).sendRequest(any(), any());
+            assertEquals(2, fake.count("createTestDevice"));
         });
     }
 
@@ -169,14 +166,14 @@ public class KnockPatternDetectorTest {
                 fakeClock.addAndGet(1000);
                 detector.onForeground();
             }
-            verify(requestManager, Mockito.times(1)).sendRequest(any(), any());
+            assertEquals(1, fake.count("createTestDevice"));
 
             fakeClock.addAndGet(30L * 60L * 1000L);
             for (int i = 0; i < KnockPatternDetector.REQUIRED_KNOCKS; i++) {
                 fakeClock.addAndGet(1000);
                 detector.onForeground();
             }
-            verify(requestManager, Mockito.times(1)).sendRequest(any(), any());
+            assertEquals(1, fake.count("createTestDevice"));
         });
     }
 
@@ -192,7 +189,7 @@ public class KnockPatternDetectorTest {
                 detector.onForeground();
             }
             long lastTriggerTime = fakeClock.get();
-            verify(requestManager, Mockito.times(1)).sendRequest(any(), any());
+            assertEquals(1, fake.count("createTestDevice"));
 
             fakeClock.set(
                     lastTriggerTime + KnockPatternDetector.COOLDOWN_MS - KnockPatternDetector.REQUIRED_KNOCKS * 1000L);
@@ -200,7 +197,7 @@ public class KnockPatternDetectorTest {
                 fakeClock.addAndGet(1000);
                 detector.onForeground();
             }
-            verify(requestManager, Mockito.times(2)).sendRequest(any(), any());
+            assertEquals(2, fake.count("createTestDevice"));
         });
     }
 
@@ -217,14 +214,14 @@ public class KnockPatternDetectorTest {
                 fakeClock.addAndGet(1000);
                 detector.onForeground();
             }
-            verify(requestManager, Mockito.times(1)).sendRequest(any(), any());
+            assertEquals(1, fake.count("createTestDevice"));
 
             fakeClock.addAndGet(60_000);
             for (int i = 0; i < KnockPatternDetector.REQUIRED_KNOCKS; i++) {
                 fakeClock.addAndGet(1000);
                 detector.onForeground();
             }
-            verify(requestManager, Mockito.times(1)).sendRequest(any(), any());
+            assertEquals(1, fake.count("createTestDevice"));
         });
     }
 
@@ -329,7 +326,7 @@ public class KnockPatternDetectorTest {
                 detector.onForeground();
             }
 
-            verify(requestManager).sendRequest(any(), any());
+            assertEquals(1, fake.count("createTestDevice"));
         });
     }
 
@@ -355,7 +352,7 @@ public class KnockPatternDetectorTest {
                 detector.onForeground();
             }
 
-            verify(requestManager).sendRequest(any(), any());
+            assertEquals(1, fake.count("createTestDevice"));
             assertEquals(0, detector.getCount());
         });
     }
@@ -370,7 +367,7 @@ public class KnockPatternDetectorTest {
                 detector.onForeground();
             }
 
-            verify(requestManager, never()).sendRequest(any(), any());
+            assertEquals(0, fake.count("createTestDevice"));
             assertEquals(KnockPatternDetector.REQUIRED_KNOCKS, detector.getCount());
         });
     }
@@ -439,15 +436,10 @@ public class KnockPatternDetectorTest {
 
     private static final class StaticMocks {
         final MockedStatic<RepositoryModule> repo;
-        final MockedStatic<NetworkModule> net;
         final MockedStatic<AndroidPlatformModule> platform;
 
-        StaticMocks(
-                MockedStatic<RepositoryModule> repo,
-                MockedStatic<NetworkModule> net,
-                MockedStatic<AndroidPlatformModule> platform) {
+        StaticMocks(MockedStatic<RepositoryModule> repo, MockedStatic<AndroidPlatformModule> platform) {
             this.repo = repo;
-            this.net = net;
             this.platform = platform;
         }
     }
@@ -459,21 +451,19 @@ public class KnockPatternDetectorTest {
 
     private void withStandardMocks(MockBody body) throws Exception {
         try (MockedStatic<RepositoryModule> repoMock = Mockito.mockStatic(RepositoryModule.class);
-                MockedStatic<NetworkModule> netMock = Mockito.mockStatic(NetworkModule.class);
                 MockedStatic<AndroidPlatformModule> platformMock = Mockito.mockStatic(AndroidPlatformModule.class)) {
             platformMock.when(AndroidPlatformModule::getApplicationContext).thenReturn(RuntimeEnvironment.application);
             platformMock.when(AndroidPlatformModule::getAppInfoProvider).thenReturn(appInfoProvider);
             repoMock.when(RepositoryModule::getRegistrationPreferences).thenReturn(registrationPrefs);
             repoMock.when(RepositoryModule::getNotificationPreferences).thenReturn(notificationPrefs);
-            netMock.when(NetworkModule::getRequestManager).thenReturn(requestManager);
-            body.run(new StaticMocks(repoMock, netMock, platformMock));
+            body.run(new StaticMocks(repoMock, platformMock));
         }
     }
 
     private CreateTestDeviceRequest captureRequest() {
-        ArgumentCaptor<CreateTestDeviceRequest> captor = ArgumentCaptor.forClass(CreateTestDeviceRequest.class);
-        verify(requestManager).sendRequest(captor.capture(), any());
-        return captor.getValue();
+        // The count assertion is not decoration: the verify() this replaced carried an implicit times(1).
+        assertEquals(1, fake.count("createTestDevice"));
+        return (CreateTestDeviceRequest) fake.last("createTestDevice").request;
     }
 
     @SuppressWarnings("unchecked")

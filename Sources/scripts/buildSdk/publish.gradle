@@ -143,6 +143,8 @@ afterEvaluate {
 
                         // Create dependencies node
                         def dependenciesNode = asNode().appendNode('dependencies')
+                        // pushwoosh-huawei has no case by design: hms:push in its POM would make every plugin app
+                        // HMS-capable; the opt-in is the app adding hms:push itself (llm/backlog/huawei-transport-removal.md)
                         switch (project.name) {
                             case 'pushwoosh':
                                 addDependency(dependenciesNode, 'androidx.legacy', 'legacy-support-v4', legacySupportV4Version)

@@ -1,5 +1,12 @@
 package com.pushwoosh.huawei.utils;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+
 import android.content.Context;
 import android.os.Build;
 
@@ -15,27 +22,23 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.util.ReflectionHelpers;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
-
 /**
  * Unit tests for HuaweiUtils device detection logic.
  * <p>
- * Tests cover the 3-level validation approach:
+ * Tests cover the 4-level validation approach:
  * 1. Manufacturer/Brand check (contains "huawei" or "honor")
  * 2. HMS Core availability
  * 3. GMS prioritization (prefer GMS over HMS)
+ * 4. HMS Push Kit presence on the classpath
  * <p>
  * Test scenarios based on expected device behavior:
  * <pre>
- * | Scenario                      | Manufacturer  | HMS | GMS | Result |
- * |-------------------------------|---------------|-----|-----|--------|
- * | Non-Huawei + HMS + GMS        | Samsung       | ✅  | ✅  | false  |
- * | Huawei + HMS + GMS (old)      | Huawei        | ✅  | ✅  | false  |
- * | Huawei + HMS, no GMS (new)    | Huawei|Honor  | ✅  | ❌  | true   |
+ * | Scenario                          | Manufacturer  | HMS | GMS | Result |
+ * |-----------------------------------|---------------|-----|-----|--------|
+ * | Non-Huawei + HMS + GMS            | Samsung       | ✅  | ✅  | false  |
+ * | Huawei + HMS + GMS (old)          | Huawei        | ✅  | ✅  | false  |
+ * | Huawei + HMS, no GMS (new)        | Huawei|Honor  | ✅  | ❌  | true   |
+ * | Huawei + HMS, no GMS, no push kit | Huawei        | ✅  | ❌  | false  |
  * </pre>
  */
 @RunWith(RobolectricTestRunner.class)
@@ -83,8 +86,10 @@ public class HuaweiUtilsTest {
     public void testHuaweiWithHmsAndGms_shouldReturnFalse() throws Exception {
         setManufacturerAndBrand("HUAWEI", "HUAWEI");
 
+        // CALLS_REAL_METHODS: plain mockStatic would intercept the whole chain and return
+        // the default false — the assertion would pass without ever running the real method
         try (MockedStatic<HuaweiApiAvailability> hmsStatic = mockStatic(HuaweiApiAvailability.class);
-             MockedStatic<HuaweiUtils> utilsStatic = mockStatic(HuaweiUtils.class)) {
+                MockedStatic<HuaweiUtils> utilsStatic = mockStatic(HuaweiUtils.class, CALLS_REAL_METHODS)) {
 
             // Mock HMS availability
             hmsStatic.when(HuaweiApiAvailability::getInstance).thenReturn(mockHuaweiApiAvailability);
@@ -92,12 +97,9 @@ public class HuaweiUtilsTest {
                     .thenReturn(ConnectionResult.SUCCESS);
 
             // Mock GMS availability (return true)
-            utilsStatic.when(() -> HuaweiUtils.isGooglePlayServicesAvailable(any(Context.class)))
+            utilsStatic
+                    .when(() -> HuaweiUtils.isGooglePlayServicesAvailable(any(Context.class)))
                     .thenReturn(true);
-
-            // Call the real isHuaweiDevice method
-            utilsStatic.when(() -> HuaweiUtils.isHuaweiDevice(any(Context.class)))
-                    .thenCallRealMethod();
 
             boolean result = HuaweiUtils.isHuaweiDevice(mockContext);
 
@@ -155,12 +157,69 @@ public class HuaweiUtilsTest {
         setManufacturerAndBrand("Huawei", "Huawei");
 
         try (MockedStatic<HuaweiApiAvailability> mockedStatic = mockStatic(HuaweiApiAvailability.class)) {
-            mockedStatic.when(HuaweiApiAvailability::getInstance)
+            mockedStatic
+                    .when(HuaweiApiAvailability::getInstance)
                     .thenThrow(new NoClassDefFoundError("HMS SDK not found"));
 
             boolean result = HuaweiUtils.isHuaweiDevice(mockContext);
 
             assertFalse("Device without HMS SDK integrated should return false", result);
+        }
+    }
+
+    /**
+     * Huawei HMS-only device, but hms:push (HmsInstanceId) is not on the classpath → false.
+     * Paired with the positive twin below — the pair pins the 4th detector condition
+     * (apps with Huawei Maps/Analytics but no push intention must stay on FCM).
+     * <p>
+     * CALLS_REAL_METHODS: a plain mockStatic(HuaweiUtils.class) intercepts the whole chain
+     * (private statics included) and returns defaults, so the real method never runs.
+     */
+    @Test
+    public void testHuaweiHmsOnlyWithoutPushKit_shouldReturnFalse() throws Exception {
+        setManufacturerAndBrand("Huawei", "Huawei");
+
+        try (MockedStatic<HuaweiApiAvailability> hmsStatic = mockStatic(HuaweiApiAvailability.class);
+                MockedStatic<HuaweiUtils> utilsStatic = mockStatic(HuaweiUtils.class, CALLS_REAL_METHODS)) {
+
+            hmsStatic.when(HuaweiApiAvailability::getInstance).thenReturn(mockHuaweiApiAvailability);
+            when(mockHuaweiApiAvailability.isHuaweiMobileServicesAvailable(any(Context.class)))
+                    .thenReturn(ConnectionResult.SUCCESS);
+
+            utilsStatic
+                    .when(() -> HuaweiUtils.isGooglePlayServicesAvailable(any(Context.class)))
+                    .thenReturn(false);
+            utilsStatic.when(HuaweiUtils::isHmsPushKitAvailable).thenReturn(false);
+
+            boolean result = HuaweiUtils.isHuaweiDevice(mockContext);
+
+            assertFalse("HMS-only device without hms:push must stay on FCM", result);
+        }
+    }
+
+    /**
+     * Positive twin: same device, hms:push present → true. Also proves the negative twin
+     * fails for the right reason (the stubbed chain really reaches the 4th condition).
+     */
+    @Test
+    public void testHuaweiHmsOnlyWithPushKit_shouldReturnTrue() throws Exception {
+        setManufacturerAndBrand("Huawei", "Huawei");
+
+        try (MockedStatic<HuaweiApiAvailability> hmsStatic = mockStatic(HuaweiApiAvailability.class);
+                MockedStatic<HuaweiUtils> utilsStatic = mockStatic(HuaweiUtils.class, CALLS_REAL_METHODS)) {
+
+            hmsStatic.when(HuaweiApiAvailability::getInstance).thenReturn(mockHuaweiApiAvailability);
+            when(mockHuaweiApiAvailability.isHuaweiMobileServicesAvailable(any(Context.class)))
+                    .thenReturn(ConnectionResult.SUCCESS);
+
+            utilsStatic
+                    .when(() -> HuaweiUtils.isGooglePlayServicesAvailable(any(Context.class)))
+                    .thenReturn(false);
+            utilsStatic.when(HuaweiUtils::isHmsPushKitAvailable).thenReturn(true);
+
+            boolean result = HuaweiUtils.isHuaweiDevice(mockContext);
+
+            assertTrue("Full HMS setup on HMS-only device must pick HMS", result);
         }
     }
 

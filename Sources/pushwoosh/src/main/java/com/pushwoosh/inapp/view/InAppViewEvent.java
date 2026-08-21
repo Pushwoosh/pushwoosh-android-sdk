@@ -26,22 +26,47 @@
 
 package com.pushwoosh.inapp.view;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.internal.event.Event;
-
 
 /**
  * Created by kai on 22.02.2018.
  */
-
 public class InAppViewEvent implements Event {
-    private Resource resource;
+    private final Resource resource;
+    private final String messageHash;
+    private final boolean hasOwnMessageHash;
 
-    public Resource getResource() {
+    @NonNull public Resource getResource() {
         return resource;
     }
 
-    public InAppViewEvent(Resource resource) {
+    @Nullable public String getMessageHash() {
+        return messageHash;
+    }
+
+    /**
+     * True when the sender captured the hash itself: a captured {@code null} then means "this show has
+     * no hash", not "fall back to the global message hash slot".
+     */
+    public boolean hasOwnMessageHash() {
+        return hasOwnMessageHash;
+    }
+
+    public InAppViewEvent(@NonNull Resource resource) {
+        this(resource, null, false);
+    }
+
+    public InAppViewEvent(@NonNull Resource resource, @Nullable String messageHash) {
+        this(resource, messageHash, true);
+    }
+
+    private InAppViewEvent(@NonNull Resource resource, @Nullable String messageHash, boolean hasOwnMessageHash) {
         this.resource = resource;
+        this.messageHash = messageHash;
+        this.hasOwnMessageHash = hasOwnMessageHash;
     }
 }

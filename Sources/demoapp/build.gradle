@@ -3,10 +3,51 @@ apply plugin: 'org.jetbrains.kotlin.android'
 
 def isLocalBuild = rootProject.findProject(':pushwoosh') != null
 
+// Pushwoosh SDK modules — single list for both local and Maven builds.
+// To add a new module: just append to this list.
+def pushwooshModules = [
+    'pushwoosh',
+    'pushwoosh-firebase',
+    'pushwoosh-badge',
+    'pushwoosh-calls',
+    'pushwoosh-location',
+    'pushwoosh-amazon',
+    'pushwoosh-huawei',
+    'pushwoosh-inbox',
+    'pushwoosh-inbox-ui',
+    'pushwoosh-liveupdates',
+    'pushwoosh-inapp-ui',
+]
+
 if (isLocalBuild) {
     apply from: '../scripts/buildSdk/build.gradle'
     apply from: '../scripts/prepareAar/build.gradle'
-    apply from: '../scripts/buildSdk/configureDependencies.gradle'
+
+    // Release wiring for the SDK modules: build their AARs, then consume them as
+    // local files (build-as-consumed check). Direct task-path dependencies, not a
+    // nested GradleBuild — an included build (Sources/build-logic) can't itself be
+    // included by a build launched via the GradleBuild task type.
+    android.applicationVariants.configureEach { variant ->
+        if (variant.name == "release") {
+            ArrayList<String> assembleReleaseList = new ArrayList<>()
+            ArrayList<String> copyToGlobalList = new ArrayList<>()
+            ArrayList<String> bundleReleaseAarList = new ArrayList<>()
+            for (String projectName in pushwooshModules) {
+                assembleReleaseList.add(String.format(":%s:assembleRelease", projectName))
+                copyToGlobalList.add(String.format(":%s:copyToGlobal", projectName))
+                bundleReleaseAarList.add(String.format(":%s:bundleReleaseAar", projectName))
+                dependencies {
+                    releaseImplementation fileTree(include: ["*.aar"], dir: "../${projectName}/build/outputs/aar")
+                }
+            }
+
+            variant.preBuildProvider.configure {
+                it.dependsOn(assembleReleaseList)
+                it.dependsOn(bundleReleaseAarList)
+            }
+            variant.assembleProvider.configure { it.finalizedBy(copyToGlobalList) }
+        }
+    }
 }
 
 android {
@@ -14,7 +55,7 @@ android {
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.pushwoosh.demoapp"
+        applicationId "com.pushwoosh.sampleapp"
         minSdk 24
         targetSdk 36
         versionCode 2
@@ -47,22 +88,6 @@ android {
         jvmTarget = '1.8'
     }
 }
-
-// Pushwoosh SDK modules — single list for both local and Maven builds.
-// To add a new module: just append to this list.
-def pushwooshModules = [
-    'pushwoosh',
-    'pushwoosh-firebase',
-    'pushwoosh-badge',
-    'pushwoosh-calls',
-    'pushwoosh-location',
-    'pushwoosh-amazon',
-    'pushwoosh-huawei',
-    'pushwoosh-inbox',
-    'pushwoosh-inbox-ui',
-    'pushwoosh-liveupdates',
-    'pushwoosh-inapp-ui',
-]
 
 // In standalone Maven builds, exclude legacy Android Support Library pulled transitively
 // by some SDK modules (e.g. pushwoosh-badge) to avoid duplicate class errors vs androidx.core.
@@ -104,6 +129,9 @@ dependencies {
 }
 
 apply plugin: "com.google.gms.google-services"
+
+// both plugins validate their config's package_name against applicationId, so keep the bundle in sync
+apply plugin: "com.huawei.agconnect"
 
 if (!isLocalBuild) {
     googleServices {

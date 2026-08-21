@@ -16,7 +16,7 @@
   { "base": "modal.json", "op": "set", "path": "modal.buttons.0.action.type", "value": "open", "reason": "action.type out of enum" },
   { "base": "modal.json", "op": "delete", "path": "modal.buttons.0.action.url", "reason": "action type=url requires url" },
   { "base": "modal.json", "op": "set", "path": "displayType", "value": "spinwheel", "reason": "unimplemented display type" },
-  { "base": "modal.json", "op": "set", "path": "displayType", "value": "video", "reason": "unimplemented display type" },
+  { "base": "modal.json", "op": "set", "path": "displayType", "value": "pip", "reason": "unimplemented display type" },
   { "base": "banner.json", "op": "delete", "path": "banner.showClose", "reason": "banner.showClose required" },
   { "base": "banner.json", "op": "delete", "path": "banner.position", "reason": "banner.position required" },
   { "base": "banner.json", "op": "set", "path": "banner.position", "value": "left", "reason": "position out of enum" },
@@ -49,5 +49,15 @@
   { "base": "sheet.json", "op": "delete", "path": "sheet.dimBackground", "reason": "sheet.dimBackground required" },
   { "base": "sheet.json", "op": "delete", "path": "sheet.background", "reason": "sheet.background required" },
   { "base": "sheet.json", "op": "delete", "path": "sheet.buttons", "reason": "sheet.buttons required (may be empty)" },
-  { "base": "sheet.json", "op": "set", "path": "sheet.image", "value": 123, "reason": "present optional sheet image must be a string" }
+  { "base": "sheet.json", "op": "set", "path": "sheet.image", "value": 123, "reason": "present optional sheet image must be a string" },
+  { "base": "video.json", "op": "delete", "path": "video.showClose", "reason": "video.showClose required" },
+  { "base": "video.json", "op": "delete", "path": "video.loop", "reason": "video.loop required" },
+  { "base": "video.json", "op": "delete", "path": "video.muted", "reason": "video.muted required" },
+  { "base": "video.json", "op": "set", "path": "video.muted", "value": "true", "reason": "muted no string coercion" },
+  { "base": "video.json", "op": "delete", "path": "video.url", "reason": "video.url required" },
+  { "base": "video.json", "op": "set", "path": "video.url", "value": "", "reason": "url must be non-empty" },
+  { "base": "video.json", "op": "delete", "path": "video.buttons", "reason": "video.buttons required (may be empty)" },
+  { "base": "video.json", "op": "set", "path": "video.poster", "value": 5, "reason": "present optional poster must be a string" },
+  { "base": "video.json", "op": "set", "path": "video.fallback", "value": "", "reason": "present optional fallback must be non-empty" },
+  { "base": "video.json", "op": "delete", "path": "video.title.color", "reason": "present optional video title missing color fails closed" }
 ]

@@ -1,0 +1,66 @@
+// Spotless code formatting (fmt / fmtCheck).
+//
+// Usage:
+//   ./gradlew fmt                           - format changed files (since origin/master)
+//   ./gradlew fmt -Pfile='**/Foo.java'      - format specific file(s)
+//   ./gradlew fmtCheck -Pfile='**/Foo.java' - check specific file(s)
+
+plugins {
+    id 'com.diffplug.spotless'
+}
+
+// Root-only: the targets below resolve against the applying project's dir,
+// so from a module they would match nothing and pass green.
+if (project != project.rootProject) {
+    throw new GradleException('pushwoosh.spotless is root-only, applied to ' + project.path)
+}
+
+def targetPattern = project.hasProperty('file') ? project.property('file') : null
+
+spotless {
+    if (targetPattern == null) {
+        ratchetFrom 'origin/master'
+    }
+
+    java {
+        if (targetPattern != null) {
+            target targetPattern.endsWith('.java') ? targetPattern : 'nonexistent'
+        } else {
+            target 'pushwoosh*/src/**/*.java', 'demoapp/src/**/*.java'
+        }
+        targetExclude '**/build/**', '**/*-stub/**'
+
+        palantirJavaFormat('2.50.0')
+
+        removeUnusedImports()
+        importOrder('android', 'androidx', 'com', 'junit', 'net', 'org', 'java', 'javax')
+        formatAnnotations()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    kotlin {
+        if (targetPattern != null) {
+            target targetPattern.endsWith('.kt') ? targetPattern : 'nonexistent'
+        } else {
+            target 'demoapp/src/**/*.kt'
+        }
+        targetExclude '**/build/**'
+
+        ktfmt('0.51').kotlinlangStyle()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.register('fmt') {
+    dependsOn 'spotlessApply'
+    description = 'Format code with Spotless'
+    group = 'formatting'
+}
+
+tasks.register('fmtCheck') {
+    dependsOn 'spotlessCheck'
+    description = 'Check code formatting'
+    group = 'formatting'
+}

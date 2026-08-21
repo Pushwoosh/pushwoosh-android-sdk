@@ -50,4 +50,7 @@
     <color name="md_theme_surfaceContainer">#F4EBF3</color>
     <color name="md_theme_surfaceContainerHigh">#EEE6ED</color>
     <color name="md_theme_surfaceContainerHighest">#E8E0E8</color>
+
+    <!-- Inbox row press state (12% primary) -->
+    <color name="md_theme_inbox_ripple">#1F705289</color>
 </resources>

@@ -167,6 +167,58 @@ class InAppConfigParserTest {
     }
 
     @Test
+    fun parsesVideo() {
+        val json = """
+            {"displayType":"video","inAppId":"premiere","video":{
+              "showClose":true,"loop":true,"muted":true,
+              "url":"https://x/reveal.mp4",
+              "poster":"https://x/poster.jpg",
+              "fallback":"https://x/fallback.jpg",
+              "title":{"text":"The reveal","color":"#FFFFFFFF"},
+              "message":{"text":"Watch it move","color":"#EBEBEBFF"},
+              "buttons":[{
+                "text":{"text":"Shop","color":"#FFFFFFFF"},
+                "background":"#0E72E5FF",
+                "border":{"color":"#0E72E5FF","radius":14},
+                "action":{"type":"url","url":"pushwoosh://sale"}
+              }]}}
+        """.trimIndent()
+        val msg = InAppConfigParser.parse(json)
+        assertNotNull(msg)
+        assertEquals("premiere", msg!!.id)
+        val video = (msg.layout as InAppLayout.Video).content
+        assertEquals("https://x/reveal.mp4", video.videoUrl)
+        assertEquals("https://x/poster.jpg", video.posterUrl)
+        assertEquals("https://x/fallback.jpg", video.fallbackImageUrl)
+        assertEquals("The reveal", video.title?.text)
+        assertEquals("Watch it move", video.message?.text)
+        assertTrue(video.loops)
+        assertTrue(video.muted)
+        assertTrue(video.showCloseButton)
+        assertEquals(InAppAction.Url("pushwoosh://sale"), video.buttons[0].action)
+    }
+
+    // The contract makes buttons required but allows it empty, and poster/fallback/title/message
+    // optional — the leanest legal video config must still show.
+    @Test
+    fun parsesVideoWithEmptyButtonsAndNoOptionals() {
+        val json = """
+            {"displayType":"video","video":{
+              "showClose":false,"loop":false,"muted":false,
+              "url":"https://x/clip.mp4","buttons":[]}}
+        """.trimIndent()
+        val video = (InAppConfigParser.parse(json)!!.layout as InAppLayout.Video).content
+        assertEquals(emptyList<Any>(), video.buttons)
+        assertNull(video.posterUrl)
+        assertNull(video.fallbackImageUrl)
+        assertNull(video.title)
+        assertNull(video.message)
+        assertFalse(video.loops)
+        assertFalse(video.muted)
+        assertFalse(video.showCloseButton)
+    }
+
+    @Test
     fun blockWithoutVisibleContentIsValid() {
         // modal with all required fields but no title/message/image and empty buttons — shown as-is.
         assertNotNull(InAppConfigParser.parse("""

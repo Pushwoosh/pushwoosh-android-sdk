@@ -40,15 +40,14 @@ import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.internal.SdkStateProvider;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.tags.Tags;
 import com.pushwoosh.testutil.CallbackWrapper;
-import com.pushwoosh.testutil.Expectation;
 import com.pushwoosh.testutil.PlatformTestManager;
-import com.pushwoosh.testutil.RequestManagerMock;
 import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.json.JSONException;
@@ -76,7 +75,7 @@ import java.util.concurrent.ExecutorService;
 public class InAppTest {
     private PlatformTestManager platformTestManager;
 
-    private RequestManagerMock requestManagerMock;
+    private FakeRequestManager fake;
 
     // class under test
     private PushwooshInAppImpl pushwooshInApp;
@@ -89,7 +88,7 @@ public class InAppTest {
         platformTestManager = new PlatformTestManager(configMock);
         platformTestManager.setUp();
 
-        requestManagerMock = platformTestManager.getRequestManager();
+        fake = platformTestManager.getRequestManager();
         pushwooshInApp = platformTestManager.getPushwooshInApp();
         pushwooshRepository = platformTestManager.getPushwooshRepository();
         SdkStateProvider.getInstance().setReady();
@@ -113,12 +112,10 @@ public class InAppTest {
     public void postEventTest() throws Exception {
         Callback<Void, PostEventException> callback = CallbackWrapper.spy();
         ArgumentCaptor<Result<Void, PostEventException>> captor = ArgumentCaptor.forClass(Result.class);
-        Expectation<JSONObject> expectation = requestManagerMock.expect(PostEventRequest.class);
-        ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-        JSONObject jsonObject = createPostEventResponse();
-        requestManagerMock.setResponse(jsonObject, PostEventRequest.class);
+        fake.respondWith("postEvent", createPostEventResponse());
 
         // Steps:
+        fake.captureOnly("registerUser");
         pushwooshInApp.setUserId("userId");
         pushwooshInApp.postEvent("eventName", Tags.intTag("intTag", 5), callback);
 
@@ -127,13 +124,13 @@ public class InAppTest {
         Result<Void, PostEventException> result = captor.getValue();
         assertThat(result.isSuccess(), is(true));
 
-        verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-        JSONObject params = requestCaptor.getValue();
+        JSONObject params = fake.awaitLast("postEvent").params;
 
         assertThat(params.getString("application"), is(equalTo(APP_ID)));
         assertThat(params.getString("userId"), is(equalTo("userId")));
         assertThat(params.getString("event"), is(equalTo("eventName")));
         JSONAssert.assertEquals(new JSONObject("{\"intTag\" : 5}"), params.getJSONObject("attributes"), true);
+        fake.assertAllScripted();
     }
 
     // Tests postEvent method sends request with exception
@@ -141,7 +138,8 @@ public class InAppTest {
     public void postEventWithExceptionTest() throws Exception {
         Callback<Void, PostEventException> callback = CallbackWrapper.spy();
         ArgumentCaptor<Result<Void, PostEventException>> captor = ArgumentCaptor.forClass(Result.class);
-        requestManagerMock.setException(new NetworkException("test network fail"), PostEventRequest.class);
+        fake.captureOnly("registerUser");
+        fake.failWith("postEvent", new NetworkException("test network fail"));
 
         // Steps:
         pushwooshInApp.setUserId("userId");
@@ -151,26 +149,28 @@ public class InAppTest {
         verify(callback, timeout(100)).process(captor.capture());
         Result<Void, PostEventException> result = captor.getValue();
         assertThat(result.isSuccess(), is(false));
+        fake.assertAllScripted();
     }
 
     // Tests postEvent method sends correct request successfuly without callBack
     @Test
     public void postEventWithoutCallBack() throws Exception {
-        Expectation<JSONObject> expectation = requestManagerMock.expect(PostEventRequest.class);
-        ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
+        fake.captureOnly("registerUser");
+        fake.captureOnly("postEvent");
 
         // Steps:
         pushwooshInApp.setUserId("userId");
         pushwooshInApp.postEvent("eventName", Tags.intTag("intTag", 5), null);
 
         // Postconditions:
-        verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-        JSONObject params = requestCaptor.getValue();
+        fake.awaitCount("postEvent", 1);
+        JSONObject params = fake.last("postEvent").params;
 
         assertThat(params.getString("application"), is(equalTo(APP_ID)));
         assertThat(params.getString("userId"), is(equalTo("userId")));
         assertThat(params.getString("event"), is(equalTo("eventName")));
         JSONAssert.assertEquals(new JSONObject("{\"intTag\" : 5}"), params.getJSONObject("attributes"), true);
+        fake.assertAllScripted();
     }
 
     // Tests postEvent method sends correct request successfuly
@@ -178,12 +178,10 @@ public class InAppTest {
     public void postEventWithNullAttributesTest() throws Exception {
         Callback<Void, PostEventException> callback = CallbackWrapper.spy();
         ArgumentCaptor<Result<Void, PostEventException>> captor = ArgumentCaptor.forClass(Result.class);
-        Expectation<JSONObject> expectation = requestManagerMock.expect(PostEventRequest.class);
-        ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-        JSONObject jsonObject = createPostEventResponse();
-        requestManagerMock.setResponse(jsonObject, PostEventRequest.class);
+        fake.respondWith("postEvent", createPostEventResponse());
 
         // Steps:
+        fake.captureOnly("registerUser");
         pushwooshInApp.setUserId("userId");
         pushwooshInApp.postEvent("eventName", null, callback);
 
@@ -192,12 +190,12 @@ public class InAppTest {
         Result<Void, PostEventException> result = captor.getValue();
         assertThat(result.isSuccess(), is(true));
 
-        verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-        JSONObject params = requestCaptor.getValue();
+        JSONObject params = fake.awaitLast("postEvent").params;
 
         assertThat(params.getString("application"), is(equalTo(APP_ID)));
         assertThat(params.getString("userId"), is(equalTo("userId")));
         assertThat(params.getString("event"), is(equalTo("eventName")));
+        fake.assertAllScripted();
     }
 
     @NonNull private JSONObject createPostEventResponse() throws JSONException {
@@ -212,35 +210,37 @@ public class InAppTest {
     // Tests setUserId method sets new userId value and sends correct request
     @Test
     public void setUserIdTest() throws Exception {
-        Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterUserRequest.class);
-        ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
+        fake.respondWith("registerUser", new JSONObject());
 
         // Steps:
         pushwooshInApp.setUserId("testUserId");
 
         // Postcondition:
-        verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-        JSONObject params = requestCaptor.getValue();
+        fake.awaitCount("registerUser", 1);
+        JSONObject params = fake.last("registerUser").params;
         assertThat(params.getString("application"), is(equalTo(APP_ID)));
         assertThat(params.getString("userId"), is(equalTo("testUserId")));
+        assertThat(platformTestManager.getRegistrationPrefs().userId().get(), is(equalTo("testUserId")));
+        fake.assertAllScripted();
     }
 
     // Tests setUserId method not duplicate request with same id
     @Test
     public void setSameUserIdTest() throws Exception {
-
-        Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterUserRequest.class);
-        ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
+        // setUserId rolls the stored id back on a failed result, so the first call must succeed for
+        // the second one to be the no-op this test is about.
+        fake.respondWith("registerUser", new JSONObject());
 
         // Steps:
         pushwooshInApp.setUserId("testUserId");
         pushwooshInApp.setUserId("testUserId");
 
         // Postcondition:
-        verify(expectation, timeout(100).times(1)).fulfilled(requestCaptor.capture());
-        JSONObject params = requestCaptor.getValue();
+        fake.awaitCount("registerUser", 1);
+        JSONObject params = fake.last("registerUser").params;
         assertThat(params.getString("application"), is(equalTo(APP_ID)));
         assertThat(params.getString("userId"), is(equalTo("testUserId")));
+        fake.assertAllScripted();
     }
 
     //
@@ -250,8 +250,6 @@ public class InAppTest {
     // Tests sendInappPurchase method sends PostEventRequest with correct parameters
     @Test
     public void sendInappPurchaseTest() throws Exception {
-        ArgumentCaptor<JSONObject> captor = ArgumentCaptor.forClass(JSONObject.class);
-        Expectation<JSONObject> expectation = requestManagerMock.expect(PostEventRequest.class);
         Date date = new Date(1010101101010L);
 
         // steps:
@@ -259,8 +257,8 @@ public class InAppTest {
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         // postconditions:
-        verify(expectation, timeout(1000)).fulfilled(captor.capture());
-        JSONObject requestJson = captor.getValue();
+        fake.awaitCount("postEvent", 1);
+        JSONObject requestJson = fake.last("postEvent").params;
         JSONObject params = requestJson.getJSONObject("attributes");
 
         assertThat(params.getString("amount"), is("42"));

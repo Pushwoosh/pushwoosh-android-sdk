@@ -26,25 +26,19 @@
 
 package com.pushwoosh.repository;
 
-
 import static com.pushwoosh.internal.utils.MockConfig.APP_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
 
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.platform.ApplicationOpenDetector;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
-import com.pushwoosh.testutil.Expectation;
 import com.pushwoosh.testutil.PlatformTestManager;
-import com.pushwoosh.testutil.RequestManagerMock;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,7 +46,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
@@ -61,204 +54,181 @@ import org.robolectric.shadows.ShadowLooper;
 @LooperMode(LooperMode.Mode.LEGACY)
 @org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class UpdateRegistrationTest {
-	private static final String PUSH_TOKEN = "test_pushToken";
-	private Config config;
+    private static final String PUSH_TOKEN = "test_pushToken";
+    private Config config;
 
-	private PlatformTestManager platformTestManager;
+    private PlatformTestManager platformTestManager;
 
-	@Before
-	public void setUp() throws Exception {
-		config = MockConfig.createMock();
-	}
+    @Before
+    public void setUp() throws Exception {
+        config = MockConfig.createMock();
+    }
 
-	@After
-	public void tearDown() throws Exception {
-		platformTestManager.tearDown();
-	}
+    @After
+    public void tearDown() throws Exception {
+        platformTestManager.tearDown();
+    }
 
-	//Tests updateRegistration method with testRegId !=null, forceRegister == true, fresh lastPushRegistration
-	@Test
-	public void updateRegistrationTest() throws Exception {
-		platformTestManager = new PlatformTestManager(config);
-		RequestManagerMock requestManagerMock = platformTestManager.getRequestManager();
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
+    // Tests updateRegistration method with testRegId !=null, forceRegister == true, fresh lastPushRegistration
+    @Test
+    public void updateRegistrationTest() throws Exception {
+        platformTestManager = new PlatformTestManager(config);
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+        RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
 
-		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-		Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
+        registrationPrefs.pushToken().set(PUSH_TOKEN);
+        registrationPrefs.forceRegister().set(true);
+        registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 10);
 
+        // Steps:
+        platformTestManager.onApplicationCreated();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-		registrationPrefs.pushToken().set(PUSH_TOKEN);
-		registrationPrefs.forceRegister().set(true);
-		registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 10);
+        EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
 
+        // Postconditions:
+        fake.awaitCount("registerDevice", 1);
+        JSONObject params = fake.last("registerDevice").params;
 
-		// Steps:
-		platformTestManager.onApplicationCreated();
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        assertThat(params.getString("application"), is(equalTo(APP_ID)));
+        assertThat(params.getString("push_token"), is(equalTo(PUSH_TOKEN)));
+    }
 
-		EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
+    @Test
+    public void registerDeviceIfRegisteredBefore_changeAppIdTest() throws JSONException {
+        String newAppId = APP_ID + "new";
 
-		// Postconditions:
-		verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-		JSONObject params = requestCaptor.getValue();
+        // init
+        initForRegistration();
+        FakeRequestManager fake = platformTestManager.getRequestManager();
 
-		assertThat(params.getString("application"), is(equalTo(APP_ID)));
-		assertThat(params.getString("push_token"), is(equalTo(PUSH_TOKEN)));
-	}
+        EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
 
+        // Steps
+        SdkStateProvider.getInstance().executeOrQueue(() -> {
+            platformTestManager.getNotificationManager().setAppId(newAppId);
+        });
 
-	@Test
-	public void registerDeviceIfRegisteredBefore_changeAppIdTest() throws JSONException {
-		String newAppId = APP_ID + "new";
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-		//init
-		initForRegistration();
-		RequestManagerMock requestManagerMock = platformTestManager.getRequestManager();
+        // Postconditions:
+        fake.awaitCount("registerDevice", 2);
+        JSONObject params = fake.last("registerDevice").params;
 
-		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-		Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
+        assertThat(params.getString("application"), is(equalTo(newAppId)));
+        assertThat(params.getString("push_token"), is(equalTo(PUSH_TOKEN)));
+    }
 
-		EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
+    private void initForRegistration() {
+        platformTestManager = new PlatformTestManager(config);
+        RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
 
-		//Steps
-		SdkStateProvider.getInstance().executeOrQueue(() -> {platformTestManager.getNotificationManager().setAppId(newAppId);});
+        registrationPrefs.pushToken().set(PUSH_TOKEN);
+        registrationPrefs.registeredOnServer().set(true);
+        registrationPrefs.forceRegister().set(true);
+        platformTestManager.onApplicationCreated();
+    }
 
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+    @Test
+    public void unregistrationMethodInvoke_changeAppIdTest() throws JSONException {
+        String newAppId = APP_ID + "new";
 
-		// Postconditions:
-		verify(expectation, timeout(100).times(2)).fulfilled(requestCaptor.capture());
-		JSONObject params = requestCaptor.getValue();
+        // init
+        initForRegistration();
+        FakeRequestManager fake = platformTestManager.getRequestManager();
 
-		assertThat(params.getString("application"), is(equalTo(newAppId)));
-		assertThat(params.getString("push_token"), is(equalTo(PUSH_TOKEN)));
-	}
+        // Steps
+        platformTestManager.getNotificationManager().setAppId(newAppId);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-	private void initForRegistration() {
-		platformTestManager = new PlatformTestManager(config);
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
+        // Postconditions:
+        fake.awaitCount("unregisterDevice", 1);
+        JSONObject params = fake.last("unregisterDevice").params;
 
-		registrationPrefs.pushToken().set(PUSH_TOKEN);
-		registrationPrefs.registeredOnServer().set(true);
-		registrationPrefs.forceRegister().set(true);
-		platformTestManager.onApplicationCreated();
-	}
+        assertThat(params.getString("application"), is(equalTo(APP_ID)));
+    }
 
-	@Test
-	public void unregistrationMethodInvoke_changeAppIdTest() throws JSONException {
-		String newAppId = APP_ID + "new";
+    @Test
+    public void unregistrationMethodNotInvokedIfNotRegistered_changeAppIdTest() throws JSONException {
+        String newAppId = APP_ID + "new";
 
-		//init
-		initForRegistration();
-		RequestManagerMock requestManagerMock = platformTestManager.getRequestManager();
+        // init
+        initForRegistration();
+        RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
+        registrationPrefs.registeredOnServer().set(false);
+        FakeRequestManager fake = platformTestManager.getRequestManager();
 
-		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-		Expectation<JSONObject> expectation = requestManagerMock.expect(UnregisterDeviceRequest.class);
+        // Steps
+        platformTestManager.getNotificationManager().setAppId(newAppId);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-		//Steps
-		platformTestManager.getNotificationManager().setAppId(newAppId);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        // Postconditions:
+        assertEquals(0, fake.count("unregisterDevice"));
+    }
 
-		// Postconditions:
-		verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-		JSONObject params = requestCaptor.getValue();
+    // Tests updateRegistration method with testToken == null, forceRegister == true, outdated lastPushRegistration
+    @Test
+    public void nullRegIdUpdateRegistrationTest() throws Exception {
+        platformTestManager = new PlatformTestManager(config);
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+        RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
 
-		assertThat(params.getString("application"), is(equalTo(APP_ID)));
-	}
+        // save same appId for correct behavior
+        registrationPrefs.applicationId().set(APP_ID);
+        registrationPrefs.pushToken().set(null);
+        registrationPrefs.forceRegister().set(true);
+        registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 1000000);
 
-	@Test
-	public void unregistrationMethodNotInvokedIfNotRegistered_changeAppIdTest() throws JSONException {
-		String newAppId = APP_ID + "new";
+        // Steps:
+        platformTestManager.setUp();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-		//init
-		initForRegistration();
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
-		registrationPrefs.registeredOnServer().set(false);
-		RequestManagerMock requestManagerMock = platformTestManager.getRequestManager();
+        // Postconditions:
+        assertEquals(0, fake.count("registerDevice"));
+    }
 
-		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-		Expectation<JSONObject> expectation = requestManagerMock.expect(UnregisterDeviceRequest.class);
+    // Tests updateRegistration method with testRegId != null, forceRegister == false, fresh lastPushRegistration
+    @Test
+    public void falseForceRegisterUpdateRegistrationTest() throws Exception {
+        platformTestManager = new PlatformTestManager(config);
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+        RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
 
-		//Steps
-		platformTestManager.getNotificationManager().setAppId(newAppId);
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        registrationPrefs.applicationId().set(APP_ID);
+        registrationPrefs.pushToken().set(PUSH_TOKEN);
+        registrationPrefs.forceRegister().set(false);
+        registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 10);
 
-		// Postconditions:
-		verify(expectation, never()).fulfilled(requestCaptor.capture());
-	}
+        // Steps:
+        platformTestManager.setUp();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-	//Tests updateRegistration method with testToken == null, forceRegister == true, outdated lastPushRegistration
-	@Test
-	public void nullRegIdUpdateRegistrationTest() throws Exception {
-		platformTestManager = new PlatformTestManager(config);
-		RequestManagerMock requestManagerMock = platformTestManager.getRequestManager();
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
+        // Postconditions:
+        assertEquals(0, fake.count("registerDevice"));
+    }
 
-		Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
+    // Tests updateRegistration method with testRegId != null, forceRegister == false, outdated lastPushRegistration
+    @Test
+    public void outdatedLastPushRegistrationUpdateRegistrationTest() throws Exception {
+        platformTestManager = new PlatformTestManager(config);
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+        RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
 
-		//save same appId for correct behavior
-		registrationPrefs.applicationId().set(APP_ID);
-		registrationPrefs.pushToken().set(null);
-		registrationPrefs.forceRegister().set(true);
-		registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 1000000);
+        registrationPrefs.pushToken().set(PUSH_TOKEN);
+        registrationPrefs.forceRegister().set(false);
+        registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 1000000);
 
+        // Steps:
+        platformTestManager.onApplicationCreated();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-		// Steps:
-		platformTestManager.setUp();
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
 
-		// Postconditions:
-		verify(expectation, timeout(100).times(0)).fulfilled(any());
-	}
+        // Postconditions:
+        fake.awaitCount("registerDevice", 1);
+        JSONObject params = fake.last("registerDevice").params;
 
-	//Tests updateRegistration method with testRegId != null, forceRegister == false, fresh lastPushRegistration
-	@Test
-	public void falseForceRegisterUpdateRegistrationTest() throws Exception {
-		platformTestManager = new PlatformTestManager(config);
-		RequestManagerMock requestManagerMock = platformTestManager.getRequestManager();
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
-
-		Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
-
-		registrationPrefs.applicationId().set(APP_ID);
-		registrationPrefs.pushToken().set(PUSH_TOKEN);
-		registrationPrefs.forceRegister().set(false);
-		registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 10);
-
-
-		// Steps:
-		platformTestManager.setUp();
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		// Postconditions:
-		verify(expectation, timeout(100).times(0)).fulfilled(any());
-	}
-
-	//Tests updateRegistration method with testRegId != null, forceRegister == false, outdated lastPushRegistration
-	@Test
-	public void outdatedLastPushRegistrationUpdateRegistrationTest() throws Exception {
-		platformTestManager = new PlatformTestManager(config);
-		RequestManagerMock requestManagerMock = platformTestManager.getRequestManager();
-		RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
-
-		ArgumentCaptor<JSONObject> requestCaptor = ArgumentCaptor.forClass(JSONObject.class);
-		Expectation<JSONObject> expectation = requestManagerMock.expect(RegisterDeviceRequest.class);
-
-		registrationPrefs.pushToken().set(PUSH_TOKEN);
-		registrationPrefs.forceRegister().set(false);
-		registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 1000000);
-
-
-		// Steps:
-		platformTestManager.onApplicationCreated();
-		ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-		EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
-
-		// Postconditions:
-		verify(expectation, timeout(100)).fulfilled(requestCaptor.capture());
-		JSONObject params = requestCaptor.getValue();
-
-		assertThat(params.getString("application"), is(equalTo(APP_ID)));
-		assertThat(params.getString("push_token"), is(equalTo(PUSH_TOKEN)));
-	}
+        assertThat(params.getString("application"), is(equalTo(APP_ID)));
+        assertThat(params.getString("push_token"), is(equalTo(PUSH_TOKEN)));
+    }
 }

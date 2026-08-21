@@ -24,6 +24,14 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+plugins {
+    id 'com.android.library'
+    id 'pushwoosh.android-library'
+    id 'pushwoosh.android-minified'
+    id 'pushwoosh.lint'
+    id 'pushwoosh.dokka'
+}
+
 ext {
     targetArtefactIdDev = "pushwoosh-huawei-dev"
     targetArtefactId = "pushwoosh-huawei"
@@ -31,42 +39,16 @@ ext {
     targetDescription = "Pushwoosh Huawei"
 }
 
-apply plugin: 'com.android.library'
-apply from: '../scripts/quality/quality.gradle'
 apply from: '../scripts/buildSdk/publish.gradle'
 apply from: '../scripts/prepareAar/build.gradle'
 
 
 android {
-    compileSdkVersion global_compileSdkVersion
     namespace "com.pushwoosh.huawei"
     testNamespace "com.pushwoosh.huawei.test"
 
     defaultConfig {
-        versionName global_versionName
-        minSdkVersion global_minSdkVersion
-        targetSdkVersion global_targetVersion
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
         consumerProguardFiles 'consumer-rules.pro'
-    }
-    buildTypes {
-        release {
-            minifyEnabled true
-            proguardFiles '../proguard-android-optimize-no-access-modification.txt', '../proguard-common.txt',
-                    'proguard/public.txt', 'proguard/protected.txt'
-        }
-        debug {
-            minifyEnabled false
-        }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-    publishing {
-        singleVariant("release")
     }
 }
 
@@ -82,9 +64,6 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:5.8.0'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
 }
-
-// Dokka documentation configuration
-apply from: '../scripts/dokka-config.gradle'
 
 // Custom Javadoc generation for Maven publication
 apply from: '../scripts/buildSdk/javadoc.gradle'

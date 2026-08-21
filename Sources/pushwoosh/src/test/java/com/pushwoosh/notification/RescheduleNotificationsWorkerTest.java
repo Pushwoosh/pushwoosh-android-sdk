@@ -40,9 +40,12 @@ import static org.mockito.Mockito.when;
 import android.content.Context;
 import android.os.Bundle;
 
+import androidx.work.ExistingWorkPolicy;
 import androidx.work.ListenableWorker;
+import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkerParameters;
 
+import com.pushwoosh.PushwooshWorkManagerHelper;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.TimeProvider;
 import com.pushwoosh.repository.DbLocalNotification;
@@ -218,6 +221,26 @@ public class RescheduleNotificationsWorkerTest {
 
             assertEquals(ListenableWorker.Result.success(), result);
             receiverMock.verify(() -> LocalNotificationReceiver.rescheduleNotification(any(), anyLong()), never());
+        }
+    }
+
+    // Verifies that enqueue() schedules the worker as unique work under its TAG with the KEEP policy.
+    @Test
+    public void testEnqueueSchedulesUniqueWorkWithKeepPolicy() {
+        try (MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+            RescheduleNotificationsWorker.enqueue();
+
+            ArgumentCaptor<OneTimeWorkRequest> requestCaptor = ArgumentCaptor.forClass(OneTimeWorkRequest.class);
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                            requestCaptor.capture(),
+                            eq(RescheduleNotificationsWorker.TAG),
+                            eq(ExistingWorkPolicy.KEEP)),
+                    times(1));
+            assertEquals(
+                    RescheduleNotificationsWorker.class.getName(),
+                    requestCaptor.getValue().getWorkSpec().workerClassName);
         }
     }
 }

@@ -13,6 +13,7 @@ import com.pushwoosh.repository.NotificationPrefs
 import com.pushwoosh.repository.RepositoryModule
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -50,6 +51,18 @@ class NativeInAppAnalyticsTest {
         }
     }
 
+    /** Registers [json] while the global message-hash slot reads [hash]. */
+    private fun registerWithHash(json: String, res: Resource, hash: String?) {
+        Mockito.mockStatic(RepositoryModule::class.java).use { repo ->
+            val prefs = Mockito.mock(NotificationPrefs::class.java)
+            val hashValue = Mockito.mock(PreferenceStringValue::class.java)
+            Mockito.`when`(hashValue.get()).thenReturn(hash)
+            Mockito.`when`(prefs.messageHash()).thenReturn(hashValue)
+            repo.`when`<NotificationPrefs>(RepositoryModule::getNotificationPreferences).thenReturn(prefs)
+            NativeInAppAnalytics.register(json, res)
+        }
+    }
+
     @After
     fun tearDown() {
         subscriptions.forEach { it.unsubscribe() }
@@ -69,6 +82,50 @@ class NativeInAppAnalyticsTest {
         assertSame(resource, viewEvents[0].resource)
         assertTrue(presentEvents.isEmpty())
         assertTrue(closeEvents.isEmpty())
+    }
+
+    // The hash captured at register() must ride inside the show event: by show time the global slot may
+    // already hold the next message's hash, or have been nulled by the core show-subscriber.
+    @Test
+    fun onShownCarriesHashCapturedAtRegister() {
+        registerWithHash(rawJson, resource, "hash-1")
+        subscribeAll()
+
+        NativeInAppAnalytics.onShown(rawJson)
+
+        assertEquals(1, viewEvents.size)
+        assertEquals("hash-1", viewEvents[0].messageHash)
+        assertTrue(viewEvents[0].hasOwnMessageHash())
+    }
+
+    // A native in-app registered while no hash existed still owns its (null) hash: otherwise the core
+    // show-subscriber falls back to the global slot and steals a neighbour's hash.
+    @Test
+    fun onShownWithoutCapturedHashOwnsNullHash() {
+        registerWithHash(rawJson, resource, null)
+        subscribeAll()
+
+        NativeInAppAnalytics.onShown(rawJson)
+
+        assertEquals(1, viewEvents.size)
+        assertNull(viewEvents[0].messageHash)
+        assertTrue(viewEvents[0].hasOwnMessageHash())
+    }
+
+    // Acceptance criterion 1: two native in-apps in a row — each show carries its own captured hash,
+    // not the one the global slot happened to hold at show time.
+    @Test
+    fun twoRegistrationsShowWithTheirOwnHashes() {
+        val jsonB = """{"displayType":"modal"}"""
+        val resourceB = Resource("code-b", false)
+        registerWithHash(rawJson, resource, "hash-a")
+        registerWithHash(jsonB, resourceB, "hash-b")
+        subscribeAll()
+
+        NativeInAppAnalytics.onShown(rawJson)
+        NativeInAppAnalytics.onShown(jsonB)
+
+        assertEquals(listOf("hash-a", "hash-b"), viewEvents.map { it.messageHash })
     }
 
     @Test

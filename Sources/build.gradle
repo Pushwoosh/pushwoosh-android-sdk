@@ -5,7 +5,6 @@ buildscript {
     ext.huawei_version = '1.9.1.300'
     ext.gradle_version = '8.9.1'
     ext.dokka_version = '2.0.0'
-    ext.spotless_version = '6.25.0'
     repositories {
         google()
         mavenCentral()
@@ -19,13 +18,17 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.huawei.agconnect:agcp:$huawei_version"
         classpath libs.google.services
+        // Dokka stays here, not in scripts/docs/dokka-html.gradle: loaded by a script's own
+        // classloader it loses sight of AGP ("could not get Android Extension").
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-        classpath "com.diffplug.spotless:spotless-plugin-gradle:$spotless_version"
         classpath 'com.adarshr:gradle-test-logger-plugin:4.0.0'
-        classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.15.0'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
+}
+
+plugins {
+    id 'pushwoosh.spotless'
 }
 
 allprojects {
@@ -39,17 +42,13 @@ allprojects {
 }
 
 subprojects {
-    ext.global_minSdkVersion = 23
-    ext.global_compileSdkVersion = 36
-    ext.global_targetVersion = 36
-    ext.global_versionName = "6.10.2"
+    ext.global_versionName = "6.11.0"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"
     ext.googleLocationServices = "21.0.1"
     ext.firebase = "24.0.0"
     ext.support = "1.0.0"
-    ext.appcompat = "1.6.1"
     ext.legacy_support_v4 = "1.0.0"
     ext.androidx_core = "1.13.1"
     ext.webkit = "1.4.0"
@@ -58,40 +57,12 @@ subprojects {
     ext.material = "1.6.0"
     ext.recyclerview = "1.3.2"
     ext.workManager = "2.9.0"
-    ext.swipe_refresh_layout = "1.1.0"
     ext.huawei = "6.1.0.300"
     ext.mockito = "5.8.0"
 }
 
-// ============================================
-// Dokka Documentation Configuration
-// ============================================
-
-apply plugin: 'org.jetbrains.dokka'
-
-// Dokka output directory (REQUIRED via -PdokkaOutputDir=... only when running dokka tasks)
-// Check if any dokka task is being executed
-def isDokkaTask = gradle.startParameter.taskNames.any { it.toLowerCase().contains('dokka') }
-
-// Validate and set dokkaOutputDir only when running dokka tasks
-if (isDokkaTask) {
-    if (!project.hasProperty('dokkaOutputDir')) {
-        throw new GradleException("❌ dokkaOutputDir property is required. Pass it via -PdokkaOutputDir=...")
-    }
-    ext.dokkaOutputDir = project.property('dokkaOutputDir')
-}
-
-// Apply Dokka plugin to all SDK modules
-subprojects {
-    // Only apply to SDK modules, exclude demoapp and stubs
-    if (project.name != 'demoapp' && !project.name.contains('stub')) {
-        apply plugin: 'org.jetbrains.dokka'
-
-        // Store visibility enum reference for use in applied scripts (Dokka 2.0 VisibilityModifier)
-        ext.dokkaVisibilityPublic = org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Public
-        ext.dokkaVisibilityProtected = org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Protected
-    }
-}
+// Multi-module HTML documentation (dokkaPostProcess) - root project only
+apply from: 'scripts/docs/dokka-html.gradle'
 
 // ============================================
 // Test Logger Configuration
@@ -115,139 +86,4 @@ subprojects {
         showStackTraces true
         slowThreshold 2000
     }
-}
-
-// ============================================
-// Multi-Module HTML Documentation (Dokka 2.0)
-// ============================================
-
-// Only configure Dokka aggregation if actually running dokka tasks
-if (isDokkaTask) {
-    logger.lifecycle("🔧 Configuring root Dokka aggregation")
-
-    dokka {
-        moduleName.set("Pushwoosh Android SDK")
-
-        // Aggregate documentation from subprojects
-        dokkaPublications.html {
-            outputDirectory.set(file("${rootProject.ext.dokkaOutputDir}"))
-        }
-    }
-
-    // Add dokka dependencies for multi-module aggregation
-    dependencies {
-        subprojects.each { subproject ->
-            if (subproject.name != 'demoapp' && !subproject.name.contains('stub')) {
-                dokka(project(":${subproject.name}"))
-            }
-        }
-    }
-    tasks.register("dokkaPostProcess") {
-        dependsOn("dokkaGenerate")
-
-        doLast {
-            def outputDir = project.property("dokkaOutputDir")
-            def indexFile = file("${outputDir}/index.html")
-            def newHeading = '<h2 class="">Pushwoosh Android SDK Documentation</h2>'
-
-            def content = indexFile.text
-            content = content.replace('<title>All modules</title>',
-                                      '<title>Pushwoosh Android SDK Documentation</title>')
-            content = content.replace('<h2 class="">All modules:</h2>', newHeading)
-
-            def descFile = file("docs/index-description.html")
-            if (descFile.exists()) {
-                content = content.replace(newHeading, newHeading + "\n" + descFile.text.strip())
-            }
-
-            indexFile.text = content
-
-            def logo = file("../public/sdk/Documentation/logo-icon.svg")
-            if (logo.exists()) {
-                file("${outputDir}/images/logo-icon.svg").bytes = logo.bytes
-            }
-
-            def customCss = file("docs/pushwoosh-docs.css")
-            if (customCss.exists()) {
-                file("${outputDir}/styles/pushwoosh-docs.css").text = customCss.text
-                def outputPath = file(outputDir).toPath()
-                fileTree(outputDir).matching { include '**/*.html' }.each { htmlFile ->
-                    def html = htmlFile.text
-                    if (!html.contains('pushwoosh-docs.css')) {
-                        def relPath = outputPath.relativize(htmlFile.toPath()).toString()
-                        def depth = relPath.count('/')
-                        def prefix = '../' * depth
-                        def link = "<link href=\"${prefix}styles/pushwoosh-docs.css\" rel=\"Stylesheet\">"
-                        html = html.replace('</head>', link + '\n</head>')
-                        htmlFile.text = html
-                    }
-                }
-                logger.lifecycle("✅ Injected pushwoosh-docs.css into all HTML pages")
-            }
-
-            logger.lifecycle("✅ Dokka post-processing complete")
-        }
-    }
-} else {
-    logger.debug("Skipping root Dokka configuration - not running dokka tasks")
-}
-
-// ============================================
-// Spotless Code Formatting Configuration
-// ============================================
-// Usage:
-//   ./gradlew fmt                           - format changed files (since origin/master)
-//   ./gradlew fmt -Pfile='**/Foo.java'      - format specific file(s)
-//   ./gradlew fmtCheck -Pfile='**/Foo.java' - check specific file(s)
-
-apply plugin: 'com.diffplug.spotless'
-
-def targetPattern = project.hasProperty('file') ? project.property('file') : null
-
-spotless {
-    if (targetPattern == null) {
-        ratchetFrom 'origin/master'
-    }
-
-    java {
-        if (targetPattern != null) {
-            target targetPattern.endsWith('.java') ? targetPattern : 'nonexistent'
-        } else {
-            target 'pushwoosh*/src/**/*.java', 'demoapp/src/**/*.java'
-        }
-        targetExclude '**/build/**', '**/*-stub/**'
-
-        palantirJavaFormat('2.50.0')
-
-        removeUnusedImports()
-        importOrder('android', 'androidx', 'com', 'junit', 'net', 'org', 'java', 'javax')
-        formatAnnotations()
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
-
-    kotlin {
-        if (targetPattern != null) {
-            target targetPattern.endsWith('.kt') ? targetPattern : 'nonexistent'
-        } else {
-            target 'demoapp/src/**/*.kt'
-        }
-        targetExclude '**/build/**'
-
-        ktfmt('0.51').kotlinlangStyle()
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
-}
-
-tasks.register('fmt') {
-    dependsOn 'spotlessApply'
-    description = 'Format code with Spotless'
-    group = 'formatting'
-}
-
-tasks.register('fmtCheck') {
-    dependsOn 'spotlessCheck'
-    description = 'Check code formatting'
-    group = 'formatting'
 }

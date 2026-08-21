@@ -315,6 +315,103 @@ class InAppOverlayControllerTest {
         assertEquals(emptyList<String?>(), closedIds)
     }
 
+    /// A delegate that closes the in-app synchronously from willPresent must not unwind the show it
+    /// is sitting inside. The reentrant dismiss used to start the exit animation right there; the
+    /// entrance that follows runs on the same ViewPropertyAnimator and cancels it, and a cancelled
+    /// exit still runs its end callback (deliberately — SheetInAppView leans on it), so removeView
+    /// fired in the middle of show(): the close reached the queue before the channel confirmed the
+    /// show (no didClose, no recorded display) and advance() stacked the next in-app inside this
+    /// one's present block. The close is deferred to the next main-thread message instead — by then
+    /// show() has returned and the show is confirmed, so it runs as an ordinary dismiss.
+    @Test
+    fun dismissFromWillPresentIsDeferredUntilShowCompletes() {
+        val trace = mutableListOf<String>()
+        val closer = object : InAppMessageDelegate {
+            override fun willPresent(messageId: String?) {
+                trace.add("willPresent")
+                InAppOverlayController.dismissActive()
+            }
+
+            override fun didPresent(messageId: String?) {
+                trace.add("didPresent")
+            }
+        }
+        InAppModule.delegate = closer
+
+        // Captured, not run: BackgroundExecutor.main posts to the main looper, so the deferred
+        // dismiss belongs to the next message — after the channel's onPresentConfirmed().
+        val deferred = mutableListOf<Runnable>()
+        Mockito.mockStatic(BackgroundExecutor::class.java).use { bg ->
+            bg.`when`<Unit> { BackgroundExecutor.main(any()) }.thenAnswer {
+                deferred.add(it.getArgument(0) as Runnable)
+                null
+            }
+            assertTrue(InAppOverlayController.show(banner("reentrant")) { trace.add("onDismissed") })
+        }
+
+        assertEquals("the present block must run to its end untouched", listOf("willPresent", "didPresent"), trace)
+        assertTrue("the overlay must survive its own present block", InAppOverlayController.isActive)
+        val root = activity.window.decorView as ViewGroup
+        val top = root.getChildAt(root.childCount - 1)
+        assertTrue("the view must still be attached when show() returns", top is InAppTemplateView)
+        assertEquals(1, deferred.size)
+
+        // Next main-thread message: the close now runs as a normal dismiss.
+        deferred.single().run()
+
+        assertFalse(InAppOverlayController.isActive)
+    }
+
+    /// The payoff of that deferral, end to end through the queue: because the close lands after the
+    /// channel has confirmed the show, the dismissal is an ordinary one — the delegate still gets
+    /// didClose and the slot is freed for the next in-app. Run inside show() it reached the queue
+    /// as an unconfirmed present instead: didClose silently skipped and the next message shown from
+    /// inside the previous one's present block.
+    @Test
+    fun dismissFromWillPresentStillReportsDidCloseThroughQueue() {
+        resetStatic(InAppModule, "queueManagerInstance")
+        resetStatic(InAppModule, "frequencyStoreInstance")
+        val appContext = RuntimeEnvironment.getApplication()
+
+        Mockito.mockStatic(AndroidPlatformModule::class.java).use { platformModule ->
+            platformModule.`when`<Context> { AndroidPlatformModule.getApplicationContext() }.thenReturn(appContext)
+            platformModule.`when`<Boolean> { AndroidPlatformModule.isApplicationInForeground() }.thenReturn(true)
+
+            val closer = object : InAppMessageDelegate {
+                override fun willPresent(messageId: String?) = InAppOverlayController.dismissActive()
+
+                override fun didClose(messageId: String?) {
+                    closedIds.add(messageId)
+                }
+            }
+            delegate = closer
+            InAppModule.delegate = closer
+
+            val deferred = mutableListOf<Runnable>()
+            Mockito.mockStatic(BackgroundExecutor::class.java).use { bg ->
+                bg.`when`<Unit> { BackgroundExecutor.main(any()) }.thenAnswer {
+                    deferred.add(it.getArgument(0) as Runnable)
+                    null
+                }
+                InAppModule.queueManager(appContext).enqueueForeground(banner("reentrant"))
+            }
+            assertTrue("the show must have been confirmed, not unwound", InAppOverlayController.isActive)
+
+            deferred.single().run()
+            // Robolectric does not drive animateOut to completion; the detach is what finalizes.
+            val root = activity.window.decorView as ViewGroup
+            root.removeView(root.getChildAt(root.childCount - 1))
+
+            assertEquals(listOf<String?>("reentrant"), closedIds)
+
+            // Delegate dropped first: Robolectric's LEGACY looper runs a post inline, so a closer
+            // left in place would re-enter show() through the real BackgroundExecutor forever.
+            InAppModule.delegate = null
+            InAppModule.queueManager(appContext).enqueueForeground(banner("next"))
+            assertTrue("the freed slot must accept the next in-app", InAppOverlayController.isActive)
+        }
+    }
+
     /// A present-side-effect throw (here the integrator's willPresent) must not leave an orphan
     /// view attached to the decorView. show() detaches the view and clears activeView before the
     /// exception propagates, so the channel releasing the slot lands on a clean state and a later

@@ -50,6 +50,7 @@ import com.pushwoosh.inapp.network.downloader.InAppDownloader;
 import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.storage.InAppStorage;
 import com.pushwoosh.internal.SdkStateProvider;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModuleTest;
@@ -75,7 +76,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class PlatformTestManager {
-    private final RequestManagerMock requestManagerMock;
+    private final FakeRequestManager requestManager;
     private final PushwooshPlatform pushwooshPlatform;
     private final PushRegistrar pushRegistrarMock;
     private PushwooshRepository pushwooshRepositoryMock;
@@ -110,9 +111,7 @@ public class PlatformTestManager {
                 .setDeviceSpecific(new TestDeviceSpecific(pushRegistrarMock))
                 .build(true);
 
-        requestManagerMock = Mockito.spy(new RequestManagerMock());
-
-        NetworkModule.setRequestManager(requestManagerMock);
+        requestManager = FakeRequestManager.install();
         if (needSpyContext) {
             Context spyContext = spy(RuntimeEnvironment.application);
             when(spyContext.getApplicationContext()).thenReturn(spyContext);
@@ -142,8 +141,8 @@ public class PlatformTestManager {
         WhiteboxHelper.setInternalState(pushwooshInApp, "pushwooshInAppService", pushwooshInAppServiceMock);
     }
 
-    public RequestManagerMock getRequestManager() {
-        return requestManagerMock;
+    public FakeRequestManager getRequestManager() {
+        return requestManager;
     }
 
     public PushwooshRepository getPushwooshRepository() {

@@ -1,5 +1,6 @@
 package com.pushwoosh.notification.handlers.message.system;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -8,14 +9,13 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import android.os.Bundle;
 
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkModule;
-import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.preference.PreferenceStringValue;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RegistrationPrefs;
@@ -32,6 +32,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 
+import java.util.Collections;
+
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
 @Config(manifest = Config.NONE)
@@ -43,8 +45,7 @@ public class SystemCommandDispatcherTest {
     @Mock
     private PreferenceStringValue logLevelPref;
 
-    @Mock
-    private RequestManager requestManager;
+    private FakeRequestManager fake;
 
     private AutoCloseable mocks;
     private SystemCommandDispatcher dispatcher;
@@ -52,6 +53,7 @@ public class SystemCommandDispatcherTest {
     @Before
     public void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
+        fake = FakeRequestManager.install();
         when(registrationPrefs.logLevel()).thenReturn(logLevelPref);
         dispatcher = new SystemCommandDispatcher();
     }
@@ -73,13 +75,13 @@ public class SystemCommandDispatcherTest {
     public void preHandleMessage_nonSystemPush_returnsFalseWithoutTouchingStatics() {
         Bundle bundle = new Bundle();
 
-        try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class);
-                MockedStatic<NetworkModule> netMock = mockStatic(NetworkModule.class)) {
+        try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class)) {
             boolean result = dispatcher.preHandleMessage(bundle);
 
             assertFalse(result);
             repoMock.verifyNoInteractions();
-            netMock.verifyNoInteractions();
+            fake.assertNoRequests();
+            assertTrue(fake.baseUrlUpdates().isEmpty());
         }
     }
 
@@ -88,13 +90,13 @@ public class SystemCommandDispatcherTest {
     public void preHandleMessage_systemPushWithoutCommand_returnsTrueAndConsumes() {
         Bundle bundle = systemPushBundle();
 
-        try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class);
-                MockedStatic<NetworkModule> netMock = mockStatic(NetworkModule.class)) {
+        try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class)) {
             boolean result = dispatcher.preHandleMessage(bundle);
 
             assertTrue(result);
             repoMock.verifyNoInteractions();
-            netMock.verifyNoInteractions();
+            fake.assertNoRequests();
+            assertTrue(fake.baseUrlUpdates().isEmpty());
         }
     }
 
@@ -124,13 +126,12 @@ public class SystemCommandDispatcherTest {
         bundle.putString("pw_command", "set_base_url");
         bundle.putString("value", "https://new.example.com");
 
-        NetworkModule.setRequestManager(requestManager);
-        when(requestManager.updateBaseUrl("https://new.example.com")).thenReturn(true);
+        fake.updateBaseUrlReturns(true);
 
         boolean result = dispatcher.preHandleMessage(bundle);
 
         assertTrue(result);
-        verify(requestManager, times(1)).updateBaseUrl("https://new.example.com");
+        assertEquals(Collections.singletonList("https://new.example.com"), fake.baseUrlUpdates());
     }
 
     // Verifies that legacy setLogLevel without value short-circuits handler to false.
@@ -158,13 +159,13 @@ public class SystemCommandDispatcherTest {
         bundle.putString("pw_command", "unknownCmd");
         bundle.putString("value", "x");
 
-        try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class);
-                MockedStatic<NetworkModule> netMock = mockStatic(NetworkModule.class)) {
+        try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class)) {
             boolean result = dispatcher.preHandleMessage(bundle);
 
             assertFalse(result);
             repoMock.verifyNoInteractions();
-            netMock.verifyNoInteractions();
+            fake.assertNoRequests();
+            assertTrue(fake.baseUrlUpdates().isEmpty());
         }
     }
 
@@ -180,7 +181,9 @@ public class SystemCommandDispatcherTest {
         boolean result = dispatcher.preHandleMessage(bundle);
 
         assertFalse(result);
-        verifyNoInteractions(requestManager);
+        // The fake installed in setUp is still reachable through this field: proves the dispatcher
+        // resolves the manager per call and does not hold on to the one it saw earlier.
+        assertTrue(fake.baseUrlUpdates().isEmpty());
     }
 
     // Verifies that a pw_commands array with two valid commands executes both and returns true.
@@ -192,19 +195,18 @@ public class SystemCommandDispatcherTest {
                 "[{\"command\":\"setLogLevel\",\"value\":\"DEBUG\"},"
                         + "{\"command\":\"set_base_url\",\"value\":\"https://m.example.com\"}]");
 
-        NetworkModule.setRequestManager(requestManager);
+        fake.updateBaseUrlReturns(true);
 
         try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class);
                 MockedStatic<PWLog> pwLogMock = mockStatic(PWLog.class)) {
             repoMock.when(RepositoryModule::getRegistrationPreferences).thenReturn(registrationPrefs);
-            when(requestManager.updateBaseUrl("https://m.example.com")).thenReturn(true);
 
             boolean result = dispatcher.preHandleMessage(bundle);
 
             assertTrue(result);
             verify(logLevelPref, times(1)).set("DEBUG");
             pwLogMock.verify(() -> PWLog.updateLogLevel("DEBUG"), times(1));
-            verify(requestManager, times(1)).updateBaseUrl("https://m.example.com");
+            assertEquals(Collections.singletonList("https://m.example.com"), fake.baseUrlUpdates());
         }
     }
 
@@ -235,13 +237,13 @@ public class SystemCommandDispatcherTest {
         Bundle bundle = systemPushBundle();
         bundle.putString("pw_commands", "[{\"command\":\"unknownCmd\",\"value\":\"x\"}]");
 
-        try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class);
-                MockedStatic<NetworkModule> netMock = mockStatic(NetworkModule.class)) {
+        try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class)) {
             boolean result = dispatcher.preHandleMessage(bundle);
 
             assertTrue(result);
             repoMock.verifyNoInteractions();
-            netMock.verifyNoInteractions();
+            fake.assertNoRequests();
+            assertTrue(fake.baseUrlUpdates().isEmpty());
         }
     }
 
@@ -267,13 +269,13 @@ public class SystemCommandDispatcherTest {
         Bundle bundle = systemPushBundle();
         bundle.putString("pw_commands", "[]");
 
-        try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class);
-                MockedStatic<NetworkModule> netMock = mockStatic(NetworkModule.class)) {
+        try (MockedStatic<RepositoryModule> repoMock = mockStatic(RepositoryModule.class)) {
             boolean result = dispatcher.preHandleMessage(bundle);
 
             assertFalse(result);
             repoMock.verifyNoInteractions();
-            netMock.verifyNoInteractions();
+            fake.assertNoRequests();
+            assertTrue(fake.baseUrlUpdates().isEmpty());
         }
     }
 

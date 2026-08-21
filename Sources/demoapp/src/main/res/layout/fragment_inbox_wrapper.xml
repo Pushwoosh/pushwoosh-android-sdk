@@ -2,43 +2,74 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
+        android:background="@android:color/transparent"
         app:elevation="0dp">
 
-        <!-- Editorial header — scrolls away with content -->
+        <!-- Header scrolls away with the list -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
-            android:paddingTop="24dp"
-            android:paddingBottom="20dp"
+            android:paddingTop="26dp"
+            android:paddingBottom="18dp"
             app:layout_scrollFlags="scroll|enterAlways">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Messages"
-                android:textAllCaps="true"
-                android:textAppearance="?attr/textAppearanceLabelMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:letterSpacing="0.12"
-                android:fontFamily="sans-serif-medium" />
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="-0.035"
+                android:text="@string/title_inbox"
+                android:textColor="@color/md_theme_onSurface"
+                android:textSize="40sp" />
 
+            <!-- Counts are data, so they get the utility face -->
             <TextView
+                android:id="@+id/inbox_meta"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Inbox"
-                android:textAppearance="?attr/textAppearanceDisplayMedium"
-                android:textColor="?attr/colorOnSurface"
-                android:fontFamily="serif" />
+                android:layout_marginTop="6dp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.12"
+                android:textAllCaps="true"
+                android:textColor="@color/md_theme_outline"
+                android:textSize="11sp"
+                tools:text="12 messages · 3 unread" />
+
+            <!-- Reading rail: filled part is what's already been read -->
+            <LinearLayout
+                android:id="@+id/inbox_rail"
+                android:layout_width="match_parent"
+                android:layout_height="5dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_inbox_rail"
+                android:clipToOutline="true"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <View
+                    android:id="@+id/inbox_rail_read"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="3"
+                    android:background="@color/md_theme_primary" />
+
+                <View
+                    android:id="@+id/inbox_rail_unread"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

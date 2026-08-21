@@ -1,0 +1,34 @@
+// Shared android{} header for SDK modules. Java 11/17 overrides, testOptions and
+// namespace/testNamespace (module identity) stay in the module files.
+//
+// publishing lives here, not in pushwoosh.android-minified: amazon-stub is the only module that
+// skips minification, and it inherits the declaration harmlessly — it never publishes (it doesn't
+// apply publish.gradle), so nothing references the component.
+pluginManager.withPlugin('com.android.library') {
+    android {
+        compileSdkVersion 36
+        defaultConfig {
+            versionName project.global_versionName
+            minSdkVersion 23
+            targetSdkVersion 36
+            testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        }
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
+        publishing {
+            singleVariant('release')
+        }
+    }
+
+    // A forgotten `id 'pushwoosh.android-minified'` still builds and publishes, just unobfuscated;
+    // asserting the flag rather than the plugin also catches a local buildTypes override.
+    afterEvaluate {
+        if (!(project.name in ['amazon-stub']) && !android.buildTypes.release.minifyEnabled) {
+            throw new GradleException("${project.path}: release is not minified — add "
+                    + "`id 'pushwoosh.android-minified'` to its plugins {} block, or list the module as a "
+                    + "deliberate opt-out in pushwoosh.android-library.gradle")
+        }
+    }
+}

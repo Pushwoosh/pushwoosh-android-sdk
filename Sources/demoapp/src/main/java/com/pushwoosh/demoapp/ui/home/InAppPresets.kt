@@ -6,9 +6,9 @@ package com.pushwoosh.demoapp.ui.home
  * Each constant is a config map in the shape [com.pushwoosh.inapp.ui.parser.InAppConfigParser]
  * accepts — feed it straight to `PushwooshInAppUi.present(config)`. Nested blocks are maps, arrays
  * are lists. Together they cover every layout (banner / modal / sheet / fullscreen / carousel /
- * stories), both display paths (blocking queue vs. floating overlay), and the richer optional
- * fields (styled text colors, images, multi-button actions, auto-dismiss, per-story duration). All
- * configs are in the canonical typed-contract form (no legacy aliases).
+ * stories / video), both display paths (blocking queue vs. floating overlay), and the richer
+ * optional fields (styled text colors, images, multi-button actions, auto-dismiss, per-story
+ * duration). All configs are in the canonical typed-contract form (no legacy aliases).
  *
  * `@JvmField` keeps them readable from Java as `InAppPresets.BANNER`.
  *
@@ -319,6 +319,45 @@ object InAppPresets {
                                         )),
                             ),
                         ),
+                ),
+        )
+
+    /**
+     * Video: full-screen autoplaying clip with a poster, looping and muted, title/message and one
+     * CTA over the gradient scrim. Same free Pexels clip as the iOS sample, so the two can be put
+     * side by side. `fallback` is set so a device that cannot decode the clip still shows
+     * something.
+     */
+    @JvmField
+    val VIDEO: Map<String, Any?> =
+        mapOf(
+            "displayType" to "video",
+            "inAppId" to "demo-video",
+            "video" to
+                mapOf(
+                    "showClose" to true,
+                    "loop" to true,
+                    "muted" to true,
+                    "url" to
+                        "https://videos.pexels.com/video-files/854745/854745-hd_1280_720_50fps.mp4",
+                    "poster" to "https://picsum.photos/seed/pwvideo/900/1400",
+                    "fallback" to "https://picsum.photos/seed/pwvideofallback/900/1400",
+                    "title" to mapOf("text" to "The reveal", "color" to "#FFFFFFFF"),
+                    "message" to
+                        mapOf(
+                            "text" to "Watch it move before anyone else.",
+                            "color" to "#EBEBEBFF",
+                        ),
+                    "buttons" to
+                        listOf(
+                            mapOf(
+                                "text" to
+                                    mapOf("text" to "Shop the lineup", "color" to "#FFFFFFFF"),
+                                "background" to "#0E72E5FF",
+                                "border" to mapOf("color" to "#0E72E5FF", "radius" to 14),
+                                "action" to
+                                    mapOf("type" to "url", "url" to "https://pushwoosh.com"),
+                            )),
                 ),
         )
 }

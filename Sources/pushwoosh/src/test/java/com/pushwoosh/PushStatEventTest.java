@@ -1,7 +1,6 @@
 package com.pushwoosh;
 
 import static junit.framework.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
@@ -15,24 +14,22 @@ import androidx.work.testing.TestDriver;
 import androidx.work.testing.WorkManagerTestInitHelper;
 
 import com.pushwoosh.internal.network.ConnectionException;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.repository.PushStatRequest;
 import com.pushwoosh.testutil.PlatformTestManager;
-import com.pushwoosh.testutil.RequestManagerMock;
 
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 
 import java.util.Collections;
-import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -42,7 +39,7 @@ public class PushStatEventTest {
     // Mocked dependencies
     private PlatformTestManager sdk;
     private Config configMock;
-    private RequestManagerMock requestManagerMock;
+    private FakeRequestManager fake;
     private WorkManager workManager;
     private TestDriver testDriver;
 
@@ -62,7 +59,7 @@ public class PushStatEventTest {
         sdk = new PlatformTestManager(configMock);
         sdk.onApplicationCreated();
 
-        requestManagerMock = sdk.getRequestManager();
+        fake = sdk.getRequestManager();
 
         Context context = AndroidPlatformModule.getApplicationContext();
         if (context == null) {
@@ -118,11 +115,11 @@ public class PushStatEventTest {
             // Force execution of enqueued work using TestDriver
             try {
                 // Get all enqueued work and force execution
-                java.util.List<androidx.work.WorkInfo> enqueuedWork = workManager.getWorkInfos(
-                        androidx.work.WorkQuery.Builder
-                                .fromStates(Collections.singletonList(WorkInfo.State.ENQUEUED))
-                                .build()
-                ).get();
+                java.util.List<androidx.work.WorkInfo> enqueuedWork = workManager
+                        .getWorkInfos(androidx.work.WorkQuery.Builder.fromStates(
+                                        Collections.singletonList(WorkInfo.State.ENQUEUED))
+                                .build())
+                        .get();
 
                 System.out.println("Forcing execution of " + enqueuedWork.size() + " enqueued tasks");
                 for (androidx.work.WorkInfo workInfo : enqueuedWork) {
@@ -158,9 +155,7 @@ public class PushStatEventTest {
      */
     @Test
     public void testPushStatEventFlowWillCallRequestManager() {
-
-        // Make captor for checking request
-        ArgumentCaptor<PushStatRequest> c = ArgumentCaptor.forClass(PushStatRequest.class);
+        fake.alwaysRespondWith("pushStat", new JSONObject());
 
         // trigger sendPushStat
         Bundle bundle = createTestPushBundle();
@@ -170,13 +165,13 @@ public class PushStatEventTest {
         waitForTasks();
 
         // Verify PushwooshRequestManager.sendRequestSync was called
-        verify(requestManagerMock, Mockito.times(1)).sendRequestSync(c.capture());
+        assertEquals(1, fake.count("pushStat"));
 
         // Verify arguments = PushStatRequest with correct hash and metadata
-        PushStatRequest request = c.getValue();
-        // Note: PushStatRequest doesn't expose getters, so we can verify the class type
+        PushStatRequest request = (PushStatRequest) fake.last("pushStat").request;
         assertEquals(TEST_HASH, request.getHash());
         assertEquals(TEST_METADATA, request.getMetaData());
+        fake.assertAllScripted();
     }
 
     /**
@@ -187,10 +182,7 @@ public class PushStatEventTest {
     public void testPushStatEventRetryOnServerError() throws Exception {
         // Given: Mock server error (500) - should trigger retry
         ConnectionException exception = new ConnectionException("Internal Server Error ", 500, 0);
-        requestManagerMock.setException(exception, PushStatRequest.class);
-
-        // Make captor for checking request
-        ArgumentCaptor<PushStatRequest> c = ArgumentCaptor.forClass(PushStatRequest.class);
+        fake.alwaysFailWith("pushStat", exception);
 
         // trigger sendPushStat
         Bundle bundle = createTestPushBundle();
@@ -200,23 +192,21 @@ public class PushStatEventTest {
         waitForTasks();
 
         // Verify PushwooshRequestManager.sendRequestSync was called
-        verify(requestManagerMock, Mockito.times(1)).sendRequestSync(Mockito.any());
+        assertEquals(1, fake.count("pushStat"));
 
         // wait work manager schedule and complete tasks
         waitForTasks();
 
         // Check if more attempts were made (WorkManager should retry on 500 error)
-        // Count only sendRequestSync calls, not setException calls
-        verify(requestManagerMock, Mockito.times(2)).sendRequestSync(c.capture());
+        assertEquals("Total requests count mismatch", 2, fake.count("pushStat"));
 
         // Verify we have 2 same requests and the end
-        List<PushStatRequest> requests = c.getAllValues();
-        assertEquals("Total requests count mismatch", 2, requests.size());
-
-        for (PushStatRequest r : requests) {
+        for (FakeRequestManager.Sent s : fake.all("pushStat")) {
+            PushStatRequest r = (PushStatRequest) s.request;
             assertEquals(TEST_HASH, r.getHash());
             assertEquals(TEST_METADATA, r.getMetaData());
         }
+        fake.assertAllScripted();
     }
 
     /**
@@ -227,10 +217,7 @@ public class PushStatEventTest {
     public void testPushStatEventNoRetryOnClientError() throws Exception {
         // Given: Mock client error (400) - should NOT trigger retry
         ConnectionException clientError = new ConnectionException("Bad Request", 400, 0);
-        requestManagerMock.setException(clientError, PushStatRequest.class);
-
-        // Make captor for checking request
-        ArgumentCaptor<PushStatRequest> c = ArgumentCaptor.forClass(PushStatRequest.class);
+        fake.alwaysFailWith("pushStat", clientError);
 
         // trigger sendPushStat
         Bundle pushBundle = createTestPushBundle();
@@ -239,10 +226,10 @@ public class PushStatEventTest {
         // wait work manager schedule and complete tasks
         waitForTasks();
 
-        //Verify first attempt was made
-        verify(requestManagerMock, Mockito.times(1)).sendRequestSync(c.capture());
+        // Verify first attempt was made
+        assertEquals(1, fake.count("pushStat"));
 
-        PushStatRequest request = c.getValue();
+        PushStatRequest request = (PushStatRequest) fake.last("pushStat").request;
         assertEquals(TEST_HASH, request.getHash());
         assertEquals(TEST_METADATA, request.getMetaData());
 
@@ -250,6 +237,7 @@ public class PushStatEventTest {
         waitForTasks();
 
         // Verify no additional attempts were made (should still be exactly 1)
-        verify(requestManagerMock, Mockito.times(1)).sendRequestSync(Mockito.any());
+        assertEquals(1, fake.count("pushStat"));
+        fake.assertAllScripted();
     }
 }

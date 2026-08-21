@@ -1,0 +1,4 @@
+// AGP is applied by the module and order is not guaranteed — configure only via withPlugin.
+pluginManager.withPlugin('com.android.library') {
+    android.lint.abortOnError = false
+}

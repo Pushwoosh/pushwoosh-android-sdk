@@ -4,8 +4,11 @@ import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkerParameters;
 
+import com.pushwoosh.PushwooshWorkManagerHelper;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.TimeProvider;
@@ -18,6 +21,13 @@ public class RescheduleNotificationsWorker extends BasePushwooshWorker {
 
     public RescheduleNotificationsWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
+    }
+
+    public static void enqueue() {
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(RescheduleNotificationsWorker.class).build();
+
+        PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                request, RescheduleNotificationsWorker.TAG, ExistingWorkPolicy.KEEP);
     }
 
     @NonNull @Override

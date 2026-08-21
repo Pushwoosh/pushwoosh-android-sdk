@@ -7,7 +7,6 @@ import androidx.annotation.VisibleForTesting;
 import com.pushwoosh.appevents.PushwooshDefaultEvents;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.internal.Plugin;
-import com.pushwoosh.internal.PushRegistrarHelper;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.AppIdChangedEvent;
 import com.pushwoosh.internal.event.EventBus;
@@ -19,9 +18,11 @@ import com.pushwoosh.internal.platform.ApplicationOpenDetector;
 import com.pushwoosh.internal.platform.KnockPatternDetector;
 import com.pushwoosh.internal.platform.utils.DeviceUuidGetter;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
+import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushwooshNotificationManager;
+import com.pushwoosh.notification.RescheduleNotificationsWorker;
 import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
@@ -56,9 +57,9 @@ public class PushwooshStartWorker {
     private final PushwooshInAppImpl pushwooshInApp;
     private final DeviceRegistrar deviceRegistrar;
     private final PushwooshDefaultEvents pushwooshDefaultEvents;
-    private final PushRegistrarHelper pushRegistrarHelper;
     private final DeviceUuidGetter deviceUuidGetter;
     private final KnockPatternDetector knockPatternDetector = new KnockPatternDetector();
+    private final AtomicBoolean pushesRescheduled = new AtomicBoolean(false);
 
     public PushwooshStartWorker(
             Config config,
@@ -68,7 +69,6 @@ public class PushwooshStartWorker {
             PushwooshInAppImpl pushwooshInApp,
             DeviceRegistrar deviceRegistrar,
             PushwooshDefaultEvents pushwooshDefaultEvents,
-            PushRegistrarHelper pushRegistrarHelper,
             DeviceUuidGetter deviceUuidGetter) {
 
         this.config = config;
@@ -78,7 +78,6 @@ public class PushwooshStartWorker {
         this.pushwooshInApp = pushwooshInApp;
         this.deviceRegistrar = deviceRegistrar;
         this.pushwooshDefaultEvents = pushwooshDefaultEvents;
-        this.pushRegistrarHelper = pushRegistrarHelper;
         this.deviceUuidGetter = deviceUuidGetter;
     }
 
@@ -171,9 +170,7 @@ public class PushwooshStartWorker {
             }
         });
 
-        if (!pushRegistrarHelper.initDefaultPushRegistrarInPlugin()) {
-            notificationManager.initPushRegistrar();
-        }
+        notificationManager.initPushRegistrar();
 
         notificationManager.initialize();
 
@@ -206,7 +203,7 @@ public class PushwooshStartWorker {
         // attach DeviceBootedEvent logic
         EventBus.subscribe(BootReceiver.DeviceBootedEvent.class, event -> {
             PWLog.noise(TAG, "onDeviceBootedEvent()");
-            SdkStateProvider.getInstance().executeOrQueue(notificationManager::rescheduleLocalNotifications);
+            SdkStateProvider.getInstance().executeOrQueue(this::rescheduleLocalNotifications);
         });
 
         // attach AppIdChangedEvent logic (sdk or user call setAppId() with new application code)
@@ -232,6 +229,16 @@ public class PushwooshStartWorker {
                 ApplicationOpenDetector.ApplicationMovedToForegroundEvent.class,
                 event -> knockPatternDetector.onForeground());
     }
+
+    private void rescheduleLocalNotifications() {
+        if (!pushesRescheduled.compareAndSet(false, true)) {
+            PWLog.warn(TAG, "Local pushes already rescheduled");
+            return;
+        }
+
+        RescheduleNotificationsWorker.enqueue();
+    }
+
     /**
      * Asynchronously fetches the device Hardware ID (HWID).
      * <p>
@@ -360,6 +367,7 @@ public class PushwooshStartWorker {
      *   <li>SDK status and version</li>
      *   <li>Base URL configuration</li>
      *   <li>Application code</li>
+     *   <li>Active push transport</li>
      *   <li>Device HWID and push token</li>
      *   <li>Obfuscated API token</li>
      * </ul>
@@ -374,6 +382,7 @@ public class PushwooshStartWorker {
         String apiToken = prettyApiToken(preferences.apiToken().get());
         String pushToken = preferences.pushToken().get();
         String baseURL = preferences.baseUrl().get();
+        String pushTransport = pushTransportDescription();
 
         PWLog.info(TAG, "PUSHWOOSH SDK STATUS: " + sdkState);
         PWLog.info(TAG, "PUSHWOOSH SDK VERSION: " + sdkVersion);
@@ -381,9 +390,35 @@ public class PushwooshStartWorker {
 
         PWLog.info(TAG, "APP CODE: " + applicationCode);
         PWLog.info(TAG, "HWID: " + deviceHwid);
+        PWLog.info(TAG, "PUSH TRANSPORT: " + pushTransport);
         PWLog.info(TAG, "PUSH TOKEN: " + pushToken);
 
         PWLog.info(TAG, "API TOKEN: " + apiToken);
+    }
+
+    /**
+     * Describes the push transport that won the ContentProvider race on this device.
+     * <p>
+     * The transport is fixed before {@code Application.onCreate()} and nothing rewrites the slot
+     * afterwards, so the printed line names the final transport in native and plugin builds alike.
+     *
+     * @return transport name with its device type, "not detected" when no transport module claimed the slot,
+     *         or "unavailable" when the transport module failed to describe itself
+     */
+    @VisibleForTesting
+    String pushTransportDescription() {
+        DeviceSpecificProvider provider = DeviceSpecificProvider.getInstance();
+        if (provider == null) {
+            return "not detected";
+        }
+        try {
+            return provider.describeTransport();
+        } catch (Throwable e) {
+            // the whole block is built before its first line is printed, so a throwing transport module
+            // would otherwise cost every line of it, not just this one
+            PWLog.error(TAG, "can't describe push transport", e);
+            return "unavailable";
+        }
     }
 
     /**

@@ -18,6 +18,7 @@ internal object InAppViewFactory {
             is InAppLayout.Fullscreen -> FullscreenInAppView(context, layout.content)
             is InAppLayout.Carousel -> CarouselInAppView(context, layout.content)
             is InAppLayout.Stories -> StoriesInAppView(context, layout.content)
+            is InAppLayout.Video -> VideoInAppView(context, layout.content)
             is InAppLayout.Banner -> return null
         }
         view.listener = listener

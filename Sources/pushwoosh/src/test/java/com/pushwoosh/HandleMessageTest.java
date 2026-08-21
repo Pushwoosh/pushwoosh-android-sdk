@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -40,6 +41,7 @@ import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Bundle;
 
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.notification.NotificationServiceExtension;
@@ -48,12 +50,9 @@ import com.pushwoosh.notification.SoundType;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
-import com.pushwoosh.repository.RepositoryTestManager;
-import com.pushwoosh.testutil.Expectation;
 import com.pushwoosh.testutil.NotificationFactoryMock;
 import com.pushwoosh.testutil.NotificationServiceMock;
 import com.pushwoosh.testutil.PlatformTestManager;
-import com.pushwoosh.testutil.RequestManagerMock;
 
 import org.json.JSONObject;
 import org.junit.After;
@@ -66,6 +65,7 @@ import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,11 +79,12 @@ public class HandleMessageTest {
 
     private PlatformTestManager platformTestManager;
 
-    private RequestManagerMock requestManagerMock;
+    private FakeRequestManager fake;
     private NotificationPrefs notificationPrefs;
     private NotificationServiceExtension notificationService;
     private RegistrationPrefs registrationPrefs;
     private PushwooshRepository pushwooshRepository;
+    private int bootBaseUrlUpdates;
 
     @Before
     public void setUp() throws Exception {
@@ -92,16 +93,24 @@ public class HandleMessageTest {
         platformTestManager = new PlatformTestManager(configMock);
         platformTestManager.onApplicationCreated();
 
-        requestManagerMock = platformTestManager.getRequestManager();
+        fake = platformTestManager.getRequestManager();
         notificationPrefs = platformTestManager.getNotificationPrefs();
         notificationService = platformTestManager.getNotificationService();
         registrationPrefs = platformTestManager.getRegistrationPrefs();
         pushwooshRepository = platformTestManager.getPushwooshRepository();
+        bootBaseUrlUpdates = fake.baseUrlUpdates().size();
     }
 
     @After
     public void tearDown() throws Exception {
         platformTestManager.tearDown();
+    }
+
+    // Platform boot forwards its own base URL before any test body runs, so only the tail matters.
+    private void assertBaseUrlForwarded(String expected) {
+        List<String> updates = fake.baseUrlUpdates();
+        assertThat(
+                updates.subList(bootBaseUrlUpdates, updates.size()), is(equalTo(Collections.singletonList(expected))));
     }
 
     // Tests preHandleMessage method sets logLevel
@@ -139,15 +148,16 @@ public class HandleMessageTest {
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         // Postconditions:
-        assertThat(registrationPrefs.baseUrl().get(), is(equalTo(testBaseUrl)));
+        assertBaseUrlForwarded(testBaseUrl);
         verify(NotificationServiceMock.callbackMock(), timeout(100).times(0)).onMessageReceived(any());
         verify(NotificationFactoryMock.callbackMock(), timeout(100).times(0)).onGenerateNotification(any());
     }
 
-    // set_base_url push command without trailing slash must be normalized via the unified entry.
+    // The message chain forwards even a bad scheme; the rejection itself is asserted below this seam,
+    // in RegistrationPrefsTest.updateBaseUrl_invalidInput_rejectsAndKeepsCurrent.
     @Test
-    public void setBaseUrlTest_withoutTrailingSlash_isNormalized() throws Exception {
-        String pushedUrl = "https://test.api.pushwoosh.com/json/1.3";
+    public void setBaseUrlTest_nonHttpScheme_isForwardedUnfiltered() throws Exception {
+        String pushedUrl = "file:///data/data/com.example/";
 
         Bundle testBundle = new Bundle();
         testBundle.putString("pw_system_push", "1");
@@ -157,23 +167,7 @@ public class HandleMessageTest {
         notificationService.handleMessage(testBundle);
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-        assertThat(registrationPrefs.baseUrl().get(), is(equalTo(pushedUrl + "/")));
-    }
-
-    // set_base_url push command with non-http(s) scheme must be rejected by the unified entry.
-    @Test
-    public void setBaseUrlTest_nonHttpScheme_isRejected() throws Exception {
-        String previousBaseUrl = registrationPrefs.baseUrl().get();
-
-        Bundle testBundle = new Bundle();
-        testBundle.putString("pw_system_push", "1");
-        testBundle.putString("pw_command", "set_base_url");
-        testBundle.putString("value", "file:///data/data/com.example/");
-
-        notificationService.handleMessage(testBundle);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-        assertThat(registrationPrefs.baseUrl().get(), is(equalTo(previousBaseUrl)));
+        assertBaseUrlForwarded(pushedUrl);
     }
 
     // Tests preHandleMessage with multiple commands (pw_commands array)
@@ -195,7 +189,7 @@ public class HandleMessageTest {
 
         // Postconditions:
         assertThat(registrationPrefs.logLevel().get(), is(equalTo(testLogLevel)));
-        assertThat(registrationPrefs.baseUrl().get(), is(equalTo(testBaseUrl)));
+        assertBaseUrlForwarded(testBaseUrl);
         verify(NotificationServiceMock.callbackMock(), timeout(100).times(0)).onMessageReceived(any());
         verify(NotificationFactoryMock.callbackMock(), timeout(100).times(0)).onGenerateNotification(any());
     }
@@ -238,8 +232,6 @@ public class HandleMessageTest {
     @Test
     public void localMessageTest() throws Exception {
         ArgumentCaptor<PushMessage> messageCaptor = ArgumentCaptor.forClass(PushMessage.class);
-        Expectation<JSONObject> expectation =
-                requestManagerMock.expect(RepositoryTestManager.getMessageDeliveryClass());
 
         // Steps:
         Bundle testBundle = new Bundle();
@@ -254,7 +246,7 @@ public class HandleMessageTest {
         PushMessage message = messageCaptor.getValue();
         assertThat(message.isLocal(), is(true));
 
-        verify(expectation, timeout(100).times(0)).fulfilled(any());
+        assertEquals(0, fake.count("messageDeliveryEvent"));
     }
 
     //

@@ -5,20 +5,28 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+import com.pushwoosh.function.Callback;
+import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.event.AppIdChangedEvent;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
+import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
+import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushwooshNotificationManager.ApplicationIdReadyEvent;
 import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.RegistrationPrefs;
@@ -29,6 +37,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
@@ -59,6 +68,8 @@ public class PushwooshNotificationManagerTest {
             registrationPrefs = null;
         }
         NetworkModule.setRequestManager(null);
+        // static field on PWLog: an unreset listener leaks a dead mock into every later test in the JVM
+        PWLog.setLogsUpdateListener(null);
         EventBus.clearSubscribersMap();
     }
 
@@ -428,5 +439,90 @@ public class PushwooshNotificationManagerTest {
         manager.setAppId("NEWAPP-NEWAPP"); // real change — must refire
 
         verify(listener, timeout(500).times(1)).onReceive(any(ApplicationIdReadyEvent.class));
+    }
+
+    // Raw captor plus one cast is the only shape that compiles over the parameterized Callback.
+    // Every argument is pinned here too, so the capture doubles as the wire-payload assertion.
+    @SuppressWarnings("unchecked")
+    private Callback<Void, NetworkException> captureRegistrationCallback(String number, int platform) {
+        ArgumentCaptor<Callback> captor = ArgumentCaptor.forClass(Callback.class);
+        verify(deviceRegistrar).registerWithServer(eq(number), isNull(), eq(platform), captor.capture());
+        return (Callback<Void, NetworkException>) captor.getValue();
+    }
+
+    // Attach after the manager call so the setup's own log lines stay out of the verification.
+    private PWLog.LogsUpdateListener listenToLogs() {
+        PWLog.LogsUpdateListener logListener = mock(PWLog.LogsUpdateListener.class);
+        PWLog.setLogsUpdateListener(logListener);
+        return logListener;
+    }
+
+    // Verifies that registerSMSNumber sends the number with no tags on the SMS platform.
+    // A crossed constant is the one real risk of sharing a body: SMS is 18, WhatsApp is 21.
+    @Test
+    public void registerSMSNumber_registersNumberOnSmsPlatform() {
+        PushwooshNotificationManager manager = createManager(null);
+
+        manager.registerSMSNumber("+15550001111");
+
+        verify(deviceRegistrar)
+                .registerWithServer(eq("+15550001111"), isNull(), eq(DeviceRegistrar.PLATFORM_SMS), any());
+    }
+
+    // Verifies that registerWhatsappNumber sends the number with no tags on the WhatsApp platform.
+    @Test
+    public void registerWhatsappNumber_registersNumberOnWhatsappPlatform() {
+        PushwooshNotificationManager manager = createManager(null);
+
+        manager.registerWhatsappNumber("+15550002222");
+
+        verify(deviceRegistrar)
+                .registerWithServer(eq("+15550002222"), isNull(), eq(DeviceRegistrar.PLATFORM_WHATSAPP), any());
+    }
+
+    // Verifies that a successful registration takes the info branch and never the error one.
+    // Asserted on the level only: the wording is free to change, the branch taken is not.
+    @Test
+    public void registerSMSNumber_successResult_logsInfoAndNoError() {
+        PushwooshNotificationManager manager = createManager(null);
+        manager.registerSMSNumber("+15550001111");
+        Callback<Void, NetworkException> callback =
+                captureRegistrationCallback("+15550001111", DeviceRegistrar.PLATFORM_SMS);
+        PWLog.LogsUpdateListener logListener = listenToLogs();
+
+        callback.process(Result.fromData(null));
+
+        verify(logListener).logUpdated(eq(PWLog.Level.INFO), anyString());
+        verify(logListener, never()).logUpdated(eq(PWLog.Level.ERROR), anyString());
+    }
+
+    // Verifies that the server's reason survives into the error line. Matched as a substring:
+    // the prefix is prose, the exception message is the payload.
+    @Test
+    public void registerSMSNumber_errorResult_logsExceptionMessage() {
+        PushwooshNotificationManager manager = createManager(null);
+        manager.registerSMSNumber("+15550001111");
+        Callback<Void, NetworkException> callback =
+                captureRegistrationCallback("+15550001111", DeviceRegistrar.PLATFORM_SMS);
+        PWLog.LogsUpdateListener logListener = listenToLogs();
+
+        callback.process(Result.fromException(new NetworkException("boom")));
+
+        verify(logListener).logUpdated(eq(PWLog.Level.ERROR), contains("boom"));
+    }
+
+    // Verifies that an empty exception message falls back to the generic description instead of
+    // a naked "…error: " line — the only branch where TextUtils.isEmpty decides anything.
+    @Test
+    public void registerSMSNumber_errorWithEmptyMessage_logsFallbackDescription() {
+        PushwooshNotificationManager manager = createManager(null);
+        manager.registerSMSNumber("+15550001111");
+        Callback<Void, NetworkException> callback =
+                captureRegistrationCallback("+15550001111", DeviceRegistrar.PLATFORM_SMS);
+        PWLog.LogsUpdateListener logListener = listenToLogs();
+
+        callback.process(Result.fromException(new NetworkException("")));
+
+        verify(logListener).logUpdated(eq(PWLog.Level.ERROR), contains("Pushwoosh registration error"));
     }
 }

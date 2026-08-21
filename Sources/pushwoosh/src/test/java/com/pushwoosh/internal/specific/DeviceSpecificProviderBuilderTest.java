@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider.Builder;
+import com.pushwoosh.internal.utils.PWLog;
 
 import org.junit.After;
 import org.junit.Before;
@@ -44,6 +45,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class DeviceSpecificProviderBuilderTest {
 
@@ -58,14 +62,23 @@ public class DeviceSpecificProviderBuilderTest {
 
     private AutoCloseable mocks;
 
+    private final List<String> transportLines = Collections.synchronizedList(new ArrayList<>());
+
     @Before
     public void setUp() throws Exception {
         mocks = MockitoAnnotations.openMocks(this);
         clearSingleton();
+        transportLines.clear();
+        PWLog.setLogsUpdateListener((level, message) -> {
+            if (level == PWLog.Level.INFO && message.contains("PUSH TRANSPORT")) {
+                transportLines.add(message);
+            }
+        });
     }
 
     @After
     public void tearDown() throws Exception {
+        PWLog.setLogsUpdateListener(null);
         clearSingleton();
         mocks.close();
     }
@@ -135,5 +148,52 @@ public class DeviceSpecificProviderBuilderTest {
         assertNotSame(first, replaced);
         assertSame(replaced, DeviceSpecificProvider.getInstance());
         assertEquals("typeB", replaced.type());
+    }
+
+    // Verifies that the first write into the empty slot is logged as SET with the transport name and its device type.
+    @Test
+    public void build_firstWrite_logsTransportSet() {
+        when(deviceSpecificA.type()).thenReturn("Android FCM");
+        when(deviceSpecificA.deviceType()).thenReturn(3);
+
+        new Builder().setDeviceSpecific(deviceSpecificA).build(true);
+
+        assertEquals(1, transportLines.size());
+        assertEquals("[DeviceSpecificProvider] PUSH TRANSPORT SET: Android FCM (device type 3)", transportLines.get(0));
+    }
+
+    // Verifies that taking the slot over with another transport logs CHANGED naming both the previous and the new one.
+    // This is the only trace of the provider race: FirebaseInitializer writes FCM and Huawei overwrites it silently.
+    @Test
+    public void build_typeChanged_logsTransportChangedWithBothTransports() {
+        when(deviceSpecificA.type()).thenReturn("Android FCM");
+        when(deviceSpecificA.deviceType()).thenReturn(3);
+        when(deviceSpecificB.type()).thenReturn("Huawei");
+        when(deviceSpecificB.deviceType()).thenReturn(17);
+
+        new Builder().setDeviceSpecific(deviceSpecificA).build(true);
+        new Builder().setDeviceSpecific(deviceSpecificB).build(true);
+
+        assertEquals(2, transportLines.size());
+        assertEquals(
+                "[DeviceSpecificProvider] PUSH TRANSPORT CHANGED: Android FCM (device type 3)"
+                        + " -> Huawei (device type 17)",
+                transportLines.get(1));
+    }
+
+    // Verifies that rewriting the slot with the same transport stays silent — the plugin rollback path re-runs
+    // FirebaseInitializer on every start, and logging that would report a change on each launch.
+    @Test
+    public void build_sameTypeWrittenAgain_logsNothingBeyondTheFirstSet() {
+        when(deviceSpecificA.type()).thenReturn("Android FCM");
+        when(deviceSpecificA.deviceType()).thenReturn(3);
+        when(deviceSpecificB.type()).thenReturn("Android FCM");
+        when(deviceSpecificB.deviceType()).thenReturn(3);
+
+        new Builder().setDeviceSpecific(deviceSpecificA).build(true);
+        new Builder().setDeviceSpecific(deviceSpecificB).build(true);
+
+        assertEquals(1, transportLines.size());
+        assertTrue(transportLines.get(0).contains("PUSH TRANSPORT SET"));
     }
 }

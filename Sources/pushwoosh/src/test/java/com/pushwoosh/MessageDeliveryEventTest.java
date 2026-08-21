@@ -1,7 +1,6 @@
 package com.pushwoosh;
 
 import static junit.framework.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
@@ -15,24 +14,22 @@ import androidx.work.testing.TestDriver;
 import androidx.work.testing.WorkManagerTestInitHelper;
 
 import com.pushwoosh.internal.network.ConnectionException;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.repository.MessageDeliveredRequest;
 import com.pushwoosh.testutil.PlatformTestManager;
-import com.pushwoosh.testutil.RequestManagerMock;
 
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 
 import java.util.Collections;
-import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -42,7 +39,7 @@ public class MessageDeliveryEventTest {
     // Mocked dependencies
     private PlatformTestManager sdk;
     private Config configMock;
-    private RequestManagerMock requestManagerMock;
+    private FakeRequestManager fake;
     private WorkManager workManager;
     private TestDriver testDriver;
 
@@ -61,7 +58,7 @@ public class MessageDeliveryEventTest {
         sdk = new PlatformTestManager(configMock);
         sdk.onApplicationCreated();
 
-        requestManagerMock = sdk.getRequestManager();
+        fake = sdk.getRequestManager();
 
         Context context = AndroidPlatformModule.getApplicationContext();
         if (context == null) {
@@ -113,11 +110,11 @@ public class MessageDeliveryEventTest {
             // Force execution of enqueued work using TestDriver
             try {
                 // Get all enqueued work and force execution
-                java.util.List<androidx.work.WorkInfo> enqueuedWork = workManager.getWorkInfos(
-                        androidx.work.WorkQuery.Builder
-                                .fromStates(Collections.singletonList(WorkInfo.State.ENQUEUED))
-                                .build()
-                ).get();
+                java.util.List<androidx.work.WorkInfo> enqueuedWork = workManager
+                        .getWorkInfos(androidx.work.WorkQuery.Builder.fromStates(
+                                        Collections.singletonList(WorkInfo.State.ENQUEUED))
+                                .build())
+                        .get();
 
                 System.out.println("Forcing execution of " + enqueuedWork.size() + " enqueued tasks");
                 for (androidx.work.WorkInfo workInfo : enqueuedWork) {
@@ -153,9 +150,7 @@ public class MessageDeliveryEventTest {
      */
     @Test
     public void testDeliveryEventFlowWillCallRequestManager() {
-
-        // Make captor for checking request
-        ArgumentCaptor<MessageDeliveredRequest> c = ArgumentCaptor.forClass(MessageDeliveredRequest.class);
+        fake.alwaysRespondWith("messageDeliveryEvent", new JSONObject());
 
         // trigger MessageDeliveryEvent
         Bundle bundle = createTestPushBundle();
@@ -165,12 +160,13 @@ public class MessageDeliveryEventTest {
         waitForTasks();
 
         // Verify PushwooshRequestManager.sendRequestSync was called
-        verify(requestManagerMock, Mockito.times(1)).sendRequestSync(c.capture());
+        assertEquals(1, fake.count("messageDeliveryEvent"));
 
         // Verify arguments = MessageDeliveryRequest with correct hash and metadata
-        MessageDeliveredRequest request = c.getValue();
+        MessageDeliveredRequest request = (MessageDeliveredRequest) fake.last("messageDeliveryEvent").request;
         assertEquals(TEST_HASH, request.getHash());
         assertEquals(TEST_METADATA, request.getMetaData());
+        fake.assertAllScripted();
     }
 
     /**
@@ -181,10 +177,7 @@ public class MessageDeliveryEventTest {
     public void testDeliveryEventRetryOnServerError() throws Exception {
         // Given: Mock server error (500) - should trigger retry
         ConnectionException exception = new ConnectionException("Internal Server Error ", 500, 0);
-        requestManagerMock.setException(exception, MessageDeliveredRequest.class);
-
-        // Make captor for checking request
-        ArgumentCaptor<MessageDeliveredRequest> c = ArgumentCaptor.forClass(MessageDeliveredRequest.class);
+        fake.alwaysFailWith("messageDeliveryEvent", exception);
 
         // trigger MessageDeliveryEvent
         Bundle bundle = createTestPushBundle();
@@ -194,23 +187,22 @@ public class MessageDeliveryEventTest {
         waitForTasks();
 
         // Verify PushwooshRequestManager.sendRequestSync was called
-        verify(requestManagerMock, Mockito.times(1)).sendRequestSync(Mockito.any());
+        assertEquals(1, fake.count("messageDeliveryEvent"));
 
         // wait work manager schedule and complete tasks
         waitForTasks();
 
         // Check if more attempts were made (WorkManager should retry on 500 error)
         // Count only sendRequestSync calls, not setException calls
-        verify(requestManagerMock, Mockito.times(2)).sendRequestSync(c.capture());
+        assertEquals("Total requests count mismatch", 2, fake.count("messageDeliveryEvent"));
 
         // Verify we have 2 same requests and the end
-        List<MessageDeliveredRequest> requests = c.getAllValues();
-        assertEquals("Total requests count mismatch", 2, requests.size());
-
-        for (MessageDeliveredRequest r : requests) {
+        for (FakeRequestManager.Sent s : fake.all("messageDeliveryEvent")) {
+            MessageDeliveredRequest r = (MessageDeliveredRequest) s.request;
             assertEquals(TEST_HASH, r.getHash());
             assertEquals(TEST_METADATA, r.getMetaData());
         }
+        fake.assertAllScripted();
     }
 
     /**
@@ -221,10 +213,7 @@ public class MessageDeliveryEventTest {
     public void testDeliveryEventNoRetryOnClientError() throws Exception {
         // Given: Mock client error (400) - should NOT trigger retry
         ConnectionException clientError = new ConnectionException("Bad Request", 400, 0);
-        requestManagerMock.setException(clientError, MessageDeliveredRequest.class);
-
-        // Make captor for checking request
-        ArgumentCaptor<MessageDeliveredRequest> c = ArgumentCaptor.forClass(MessageDeliveredRequest.class);
+        fake.alwaysFailWith("messageDeliveryEvent", clientError);
 
         // trigger MessageDeliveryEvent
         Bundle pushBundle = createTestPushBundle();
@@ -233,10 +222,10 @@ public class MessageDeliveryEventTest {
         // wait work manager schedule and complete tasks
         waitForTasks();
 
-        //Verify first attempt was made
-        verify(requestManagerMock, Mockito.times(1)).sendRequestSync(c.capture());
+        // Verify first attempt was made
+        assertEquals(1, fake.count("messageDeliveryEvent"));
 
-        MessageDeliveredRequest request = c.getValue();
+        MessageDeliveredRequest request = (MessageDeliveredRequest) fake.last("messageDeliveryEvent").request;
         assertEquals(TEST_HASH, request.getHash());
         assertEquals(TEST_METADATA, request.getMetaData());
 
@@ -244,6 +233,7 @@ public class MessageDeliveryEventTest {
         waitForTasks();
 
         // Verify no additional attempts were made (should still be exactly 1)
-        verify(requestManagerMock, Mockito.times(1)).sendRequestSync(Mockito.any());
+        assertEquals(1, fake.count("messageDeliveryEvent"));
+        fake.assertAllScripted();
     }
 }

@@ -73,7 +73,7 @@ class HttpTransport {
     private HttpResponse readResponse(HttpURLConnection connection) throws IOException {
         int status = connection.getResponseCode();
         InputStream inputStream;
-        if (isErrorResponseCode(status)) {
+        if (HttpResponse.isErrorCode(status)) {
             inputStream = new BufferedInputStream(connection.getErrorStream());
         } else {
             inputStream = new BufferedInputStream(connection.getInputStream());
@@ -96,9 +96,5 @@ class HttpTransport {
             inputStream.close();
         }
         return new HttpResponse(status, connection.getResponseMessage(), body);
-    }
-
-    private boolean isErrorResponseCode(int code) {
-        return code >= 400 && code < 600;
     }
 }

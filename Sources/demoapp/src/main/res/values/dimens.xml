@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+      Overrides of pushwoosh-inbox-ui dimensions. An app resource with the same name wins over
+      the library one, so the sample restyles the inbox cell without touching the SDK.
+    -->
+    <dimen name="pw_image_icon" tools:override="true">46dp</dimen>
+    <!-- Attachment preview sits on top of the avatar, so both share one size -->
+    <dimen name="pw_attachment_preview" tools:override="true">46dp</dimen>
+    <dimen name="pw_min_cell_height" tools:override="true">0dp</dimen>
+    <dimen name="pw_divider_size" tools:override="true">0dp</dimen>
+    <dimen name="pw_empty_image" tools:override="true">132dp</dimen>
+</resources>

@@ -27,70 +27,102 @@
 package com.pushwoosh.internal.specific;
 
 import com.pushwoosh.internal.registrar.PushRegistrar;
+import com.pushwoosh.internal.utils.PWLog;
+
+import java.util.Objects;
 
 /**
  * This class provides specific properties depends on device (fcm, gcm or amazon)
  */
 public class DeviceSpecificProvider {
-	public static final String FCM_ANDROID_TYPE = "Android FCM";
-	public static final String HUAWEI_TYPE = "Huawei";
-	private static DeviceSpecificProvider instance;
-	private final DeviceSpecific deviceSpecific;
+    private static final String TAG = "DeviceSpecificProvider";
+    public static final String FCM_ANDROID_TYPE = "Android FCM";
+    public static final String HUAWEI_TYPE = "Huawei";
+    private static DeviceSpecificProvider instance;
+    private final DeviceSpecific deviceSpecific;
 
-	private DeviceSpecificProvider(final DeviceSpecific deviceSpecific) {
-		this.deviceSpecific = deviceSpecific;
-	}
+    private DeviceSpecificProvider(final DeviceSpecific deviceSpecific) {
+        this.deviceSpecific = deviceSpecific;
+    }
 
-	public PushRegistrar pushRegistrar() {
-		return deviceSpecific.pushRegistrar();
-	}
+    public PushRegistrar pushRegistrar() {
+        return deviceSpecific.pushRegistrar();
+    }
 
-	public String permission(final String packageName) {
-		return deviceSpecific.permission(packageName);
-	}
+    public String permission(final String packageName) {
+        return deviceSpecific.permission(packageName);
+    }
 
-	public int deviceType() {
-		return deviceSpecific.deviceType();
-	}
+    public int deviceType() {
+        return deviceSpecific.deviceType();
+    }
 
-	public String type() {
-		return deviceSpecific.type();
-	}
+    public String type() {
+        return deviceSpecific.type();
+    }
 
-	public boolean isFirebase() {
-		return type().equals(FCM_ANDROID_TYPE);
-	}
+    public boolean isFirebase() {
+        return type().equals(FCM_ANDROID_TYPE);
+    }
 
-	public boolean isHuawei() {
-		return type().equals(HUAWEI_TYPE);
-	}
+    public boolean isHuawei() {
+        return type().equals(HUAWEI_TYPE);
+    }
 
-	public static class Builder {
-		private DeviceSpecific deviceSpecific;
+    /**
+     * @return transport name with its device type, e.g. {@code Android FCM (device type 3)}
+     */
+    public String describeTransport() {
+        return type() + " (device type " + deviceType() + ")";
+    }
 
-		public Builder setDeviceSpecific(final DeviceSpecific deviceSpecific) {
-			this.deviceSpecific = deviceSpecific;
-			return this;
-		}
+    public static class Builder {
+        private DeviceSpecific deviceSpecific;
 
-		public DeviceSpecificProvider build(boolean forceReplace) {
-			if (deviceSpecific == null) {
-				throw new IllegalArgumentException("You must setup deviceSpecific");
-			}
+        public Builder setDeviceSpecific(final DeviceSpecific deviceSpecific) {
+            this.deviceSpecific = deviceSpecific;
+            return this;
+        }
 
-			if (instance == null || forceReplace) {
-				instance = new DeviceSpecificProvider(deviceSpecific);
-			}
+        public DeviceSpecificProvider build(boolean forceReplace) {
+            if (deviceSpecific == null) {
+                throw new IllegalArgumentException("You must setup deviceSpecific");
+            }
 
-			return instance;
-		}
-	}
+            if (instance == null || forceReplace) {
+                DeviceSpecificProvider previous = instance;
+                DeviceSpecificProvider current = new DeviceSpecificProvider(deviceSpecific);
+                instance = current;
+                logSlotWrite(previous, current);
+            }
 
-	public static DeviceSpecificProvider getInstance() {
-		return instance;
-	}
+            return instance;
+        }
+    }
 
-	public static boolean isInited() {
-		return instance != null;
-	}
+    private static void logSlotWrite(DeviceSpecificProvider previous, DeviceSpecificProvider current) {
+        try {
+            if (previous == null) {
+                PWLog.info(TAG, "PUSH TRANSPORT SET: " + current.describeTransport());
+                return;
+            }
+            if (!Objects.equals(previous.type(), current.type())) {
+                PWLog.info(
+                        TAG,
+                        "PUSH TRANSPORT CHANGED: " + previous.describeTransport() + " -> "
+                                + current.describeTransport());
+            }
+        } catch (Throwable e) {
+            // DeviceSpecific comes from a transport module, so a diagnostic line must not break initialization
+            PWLog.error(TAG, "can't log push transport slot write", e);
+        }
+    }
+
+    public static DeviceSpecificProvider getInstance() {
+        return instance;
+    }
+
+    public static boolean isInited() {
+        return instance != null;
+    }
 }

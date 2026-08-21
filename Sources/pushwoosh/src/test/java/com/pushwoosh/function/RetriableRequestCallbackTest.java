@@ -3,19 +3,18 @@ package com.pushwoosh.function;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.pushwoosh.internal.network.ConnectionException;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.PushRequest;
 import com.pushwoosh.testutil.CallbackWrapper;
 import com.pushwoosh.testutil.PlatformTestManager;
-import com.pushwoosh.testutil.RequestManagerMock;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,7 +35,7 @@ import org.robolectric.shadows.ShadowLooper;
 public class RetriableRequestCallbackTest {
 
     private PlatformTestManager platformTestManager;
-    private RequestManagerMock requestManagerMock;
+    private FakeRequestManager fake;
     private PushRequest<String> mockRequest;
     private Callback<String, NetworkException> mockCallback;
     private RetriableRequestCallback<String> retriableCallback;
@@ -47,7 +46,7 @@ public class RetriableRequestCallbackTest {
         platformTestManager = new PlatformTestManager();
         platformTestManager.setUp();
 
-        requestManagerMock = platformTestManager.getRequestManager();
+        fake = platformTestManager.getRequestManager();
         mockRequest = Mockito.mock(PushRequest.class);
         when(mockRequest.getMethod()).thenReturn("testMethod");
         mockCallback = CallbackWrapper.spy();
@@ -96,7 +95,7 @@ public class RetriableRequestCallbackTest {
         Result<String, NetworkException> failureResult = Result.fromException(connectionException);
 
         // Mock successful retry response
-        requestManagerMock.setResponse(createSuccessResponse("retry_success"), mockRequest.getClass());
+        fake.respondWith("testMethod", createSuccessResponse("retry_success"));
 
         retriableCallback.process(failureResult);
 
@@ -107,6 +106,7 @@ public class RetriableRequestCallbackTest {
         verify(mockCallback, timeout(2000)).process(captor.capture());
 
         assertThat(captor.getValue().isSuccess(), is(true));
+        fake.assertAllScripted();
     }
 
     @Test
@@ -115,7 +115,7 @@ public class RetriableRequestCallbackTest {
         Result<String, NetworkException> failureResult = Result.fromException(connectionException);
 
         // Mock all retries to fail
-        requestManagerMock.setException(connectionException, mockRequest.getClass());
+        fake.alwaysFailWith("testMethod", connectionException);
 
         retriableCallback.process(failureResult);
 
@@ -128,6 +128,7 @@ public class RetriableRequestCallbackTest {
         verify(mockCallback, timeout(20000)).process(captor.capture());
 
         assertThat(captor.getValue().isSuccess(), is(false));
+        fake.assertAllScripted();
     }
 
     @Test
@@ -149,7 +150,7 @@ public class RetriableRequestCallbackTest {
     public void testRetryStopsWhenErrorBecomesNonRetriable() {
         ConnectionException retriable = new ConnectionException("Bad Gateway", 502, 0);
         ConnectionException nonRetriable = new ConnectionException("Forbidden", 403, 0);
-        requestManagerMock.setException(nonRetriable, mockRequest.getClass());
+        fake.failWith("testMethod", nonRetriable);
 
         retriableCallback.process(Result.fromException(retriable));
 
@@ -157,7 +158,8 @@ public class RetriableRequestCallbackTest {
         verify(mockCallback, timeout(5000)).process(captor.capture());
 
         assertThat(captor.getValue().getException(), is(equalTo(nonRetriable)));
-        verify(requestManagerMock, times(1)).sendRequestSync(any(PushRequest.class));
+        assertEquals(1, fake.count("testMethod"));
+        fake.assertAllScripted();
     }
 
     // A stub handed out mid-ladder is terminal too: no further attempt is scheduled.

@@ -24,21 +24,15 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-apply plugin: 'com.android.library'
+plugins {
+    id 'com.android.library'
+    id 'pushwoosh.android-library'
+}
 
 android {
-    compileSdkVersion global_compileSdkVersion
     namespace "com.pushwoosh.amazon"
     testNamespace "com.pushwoosh.amazon.test"
 
-    defaultConfig {
-        versionName global_versionName
-        minSdkVersion global_minSdkVersion
-        targetSdkVersion global_targetVersion
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-    }
     buildTypes {
         release {
             minifyEnabled false
@@ -47,10 +41,6 @@ android {
             minifyEnabled false
         }
     }
-//    compileOptions {
-//        sourceCompatibility JavaVersion.VERSION_1_8
-//        targetCompatibility JavaVersion.VERSION_1_8
-//    }
 }
 repositories {
     mavenCentral()

@@ -1,7 +1,7 @@
 # Consumer ProGuard rules for pushwoosh-firebase.
 
-# PushRegistrarHelper.java:29,143  Class.forName(FIREBASE_INITIALIZER_CLASS_NAME)
+# PushwooshInitializer.initFirebaseInXamarinPlugin  Class.forName("com.pushwoosh.firebase.FirebaseInitializer")
 -keep class com.pushwoosh.firebase.FirebaseInitializer { *; }
 
-# PushRegistrarHelper.java:30,147  Class.forName(FIREBASE_PUSH_REGISTRAR_CLASS_NAME)
+# orphan: kept until the next major, was PushRegistrarHelper reflection
 -keep class com.pushwoosh.firebase.internal.registrar.FcmRegistrar { *; }

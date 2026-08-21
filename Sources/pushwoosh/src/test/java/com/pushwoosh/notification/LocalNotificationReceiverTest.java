@@ -353,4 +353,51 @@ public class LocalNotificationReceiverTest {
         Mockito.reset(localNotificationStorageMock);
         when(localNotificationStorageMock.getRequestIds()).thenReturn(new HashSet<>());
     }
+
+    // Verifies that the LocalNotification overload returns a request handle carrying the storage request id.
+    @Test
+    public void scheduleNotification_localNotification_returnsRequestWithStorageId() {
+        when(localNotificationStorageMock.nextRequestId()).thenReturn(4321);
+        LocalNotification notification =
+                new LocalNotification.Builder().setMessage("hello").setDelay(10).build();
+
+        LocalNotificationRequest request = LocalNotificationReceiver.scheduleNotification(notification);
+
+        verify(localNotificationStorageMock).saveLocalNotification(eq(4321), any(Bundle.class), anyLong());
+        assertEquals(4321, request.getRequestId());
+    }
+
+    // The sibling test matches the bundle with any() and the trigger time with anyLong(), so dropping
+    // the payload (blank push) or the delay (immediate fire) would still keep it green.
+    @Test
+    public void scheduleNotification_localNotification_forwardsExtrasAndDelay() {
+        when(localNotificationStorageMock.nextRequestId()).thenReturn(99);
+        Bundle customData = new Bundle();
+        customData.putString("screen", "cart");
+        LocalNotification notification = new LocalNotification.Builder()
+                .setMessage("cart is waiting")
+                .setExtras(customData)
+                .setDelay(3600)
+                .build();
+
+        long before = System.currentTimeMillis();
+        LocalNotificationReceiver.scheduleNotification(notification);
+        long after = System.currentTimeMillis();
+
+        ArgumentCaptor<Bundle> bundleCaptor = ArgumentCaptor.forClass(Bundle.class);
+        ArgumentCaptor<Long> triggerCaptor = ArgumentCaptor.forClass(Long.class);
+        verify(localNotificationStorageMock)
+                .saveLocalNotification(eq(99), bundleCaptor.capture(), triggerCaptor.capture());
+        assertEquals("message", "cart is waiting", PushBundleDataProvider.getMessage(bundleCaptor.getValue()));
+        assertEquals("custom data", "cart", bundleCaptor.getValue().getString("screen"));
+
+        long captured = triggerCaptor.getValue();
+        long delayMillis = 3600L * 1000L;
+        assertTrue(
+                "triggerAtMillis " + captured + " should be >= " + (before + delayMillis),
+                captured >= before + delayMillis);
+        assertTrue(
+                "triggerAtMillis " + captured + " should be <= " + (after + delayMillis),
+                captured <= after + delayMillis);
+    }
 }
