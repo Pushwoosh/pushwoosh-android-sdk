@@ -7,7 +7,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.Navigation.findNavController
 import androidx.navigation.ui.NavigationUI.setupWithNavController
-import com.pushwoosh.demoapp.databinding.ActivityMainBinding
+import com.pushwoosh.sampleapp.R
+import com.pushwoosh.sampleapp.databinding.ActivityMainBinding
 import com.pushwoosh.demoapp.utils.InboxStyleHelper
 import com.pushwoosh.inapp.view.config.ModalRichmediaConfig
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaDismissAnimationType

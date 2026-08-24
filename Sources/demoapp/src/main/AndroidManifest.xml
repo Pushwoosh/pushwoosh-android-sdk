@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application
-        android:name=".DemoApplication"
+        android:name="com.pushwoosh.demoapp.DemoApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -39,7 +39,7 @@
             android:value="com.pushwoosh.demoapp.liveupdate.DemoLiveUpdateStyleProvider" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.pushwoosh.demoapp.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -49,7 +49,7 @@
         </activity>
 
         <activity
-            android:name=".ui.CallCancelledActivity"
+            android:name="com.pushwoosh.demoapp.ui.CallCancelledActivity"
             android:theme="@style/Theme.Demoapp"
             android:excludeFromRecents="true"
             android:exported="false" />

@@ -51,7 +51,7 @@ if (isLocalBuild) {
 }
 
 android {
-    namespace 'com.pushwoosh.demoapp'
+    namespace 'com.pushwoosh.sampleapp'
     compileSdk 36
 
     defaultConfig {

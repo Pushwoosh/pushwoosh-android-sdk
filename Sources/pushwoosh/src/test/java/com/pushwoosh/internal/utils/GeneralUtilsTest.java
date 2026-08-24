@@ -3,7 +3,16 @@ package com.pushwoosh.internal.utils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.intThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import android.app.Activity;
@@ -11,14 +20,20 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.TypedValue;
+
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.platform.manager.ManagerProvider;
+import com.pushwoosh.internal.platform.resource.ResourceProvider;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 
 import org.junit.After;
@@ -31,6 +46,8 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
+
+import java.util.Collections;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
@@ -59,6 +76,11 @@ public class GeneralUtilsTest {
 
     @Mock
     private Activity activity;
+
+    @Mock
+    private ResourceProvider resourceProvider;
+
+    private int nextResourceId = 0x7f0e0001;
 
     @Before
     public void setUp() {
@@ -230,5 +252,284 @@ public class GeneralUtilsTest {
                 .thenThrow(new PackageManager.NameNotFoundException("not found"));
 
         assertTrue(GeneralUtils.isMainActivity(activity));
+    }
+
+    // Verifies that the R$raw class is found in the applicationId package itself.
+    @Test
+    public void testGetRawResourses_ApplicationIdHoldsRawClass_ReturnsItsSounds() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class)) {
+            givenCandidateSources(
+                    platform, "com.pwsoundfixture", "com.nosuchpkg.SampleApplication", "com.nosuchpkg.MainActivity");
+            givenResourceTable("parent_package_sound");
+
+            assertEquals(Collections.singletonList("parent_package_sound"), GeneralUtils.getRawResourses());
+        }
+    }
+
+    // Verifies that an applicationId with a suffix (".debug") still finds the R$raw class of a parent package.
+    @Test
+    public void testGetRawResourses_ApplicationIdSuffix_WalksUpToParentPackage() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class)) {
+            givenCandidateSources(platform, "com.pwsoundfixture.app.debug", null, null);
+            givenResourceTable("parent_package_sound");
+
+            assertEquals(Collections.singletonList("parent_package_sound"), GeneralUtils.getRawResourses());
+        }
+    }
+
+    // Verifies that the package of a custom Application class is probed when applicationId holds no R$raw class.
+    @Test
+    public void testGetRawResourses_ApplicationClassPackage_WinsWhenApplicationIdHasNoRawClass() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class)) {
+            givenCandidateSources(platform, "com.nosuchpkg.app", "com.pwsoundfixture.other.SampleApplication", null);
+            givenResourceTable("application_class_sound", "parent_package_sound");
+
+            assertEquals(Collections.singletonList("application_class_sound"), GeneralUtils.getRawResourses());
+        }
+    }
+
+    // Verifies that the launcher activity package is probed when neither applicationId nor Application class helps.
+    @Test
+    public void testGetRawResourses_LauncherActivityPackage_WinsWhenEarlierCandidatesHaveNoRawClass() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class)) {
+            givenCandidateSources(platform, "com.nosuchpkg.app", null, "com.pwsoundfixture.launcher.MainActivity");
+            givenResourceTable("launcher_activity_sound", "parent_package_sound");
+
+            assertEquals(Collections.singletonList("launcher_activity_sound"), GeneralUtils.getRawResourses());
+        }
+    }
+
+    // Verifies that the parent-package walk stops above a single-segment package and never probes it.
+    @Test
+    public void testGetRawResourses_SingleSegmentPackage_NeverProbed() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class)) {
+            givenCandidateSources(platform, "pwsoundroot.app", null, null);
+            // The name would resolve if the walk reached "pwsoundroot", so an empty list is the floor working.
+            givenResourceTable("too_shallow_sound");
+
+            assertEquals(Collections.emptyList(), GeneralUtils.getRawResourses());
+        }
+    }
+
+    // Verifies that no R$raw class in any candidate yields an empty list and one plain log line.
+    @Test
+    public void testGetRawResourses_NoCandidateFound_ReturnsEmptyListAndLogsOnce() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class);
+                MockedStatic<PWLog> pwLog = mockStatic(PWLog.class)) {
+            givenCandidateSources(platform, "com.nosuchpkg.app", null, null);
+
+            assertEquals(Collections.emptyList(), GeneralUtils.getRawResourses());
+
+            pwLog.verify(() -> PWLog.debug(anyString(), anyString()));
+            pwLog.verifyNoMoreInteractions();
+        }
+    }
+
+    // Verifies that a field name absent from our resource table is skipped without aborting the enumeration.
+    @Test
+    public void testGetRawResourses_FieldMissingFromResourceTable_SkippedWithoutError() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class);
+                MockedStatic<PWLog> pwLog = mockStatic(PWLog.class)) {
+            givenCandidateSources(platform, "com.pwsoundfixture.mixed", null, null);
+            givenResourceTable("mixed_known_sound");
+
+            assertEquals(Collections.singletonList("mixed_known_sound"), GeneralUtils.getRawResourses());
+
+            pwLog.verify(() -> PWLog.noise(anyString(), anyString(), any(Throwable.class)), never());
+        }
+    }
+
+    // Verifies that a PackageManager failure on one candidate leaves the earlier candidates in the queue.
+    // Resolving a candidate is binder-IPC and dies on its own; the sounds of a healthy app must survive that.
+    @Test
+    public void testGetRawResourses_LauncherCandidateThrows_EarlierCandidateStillWins() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class);
+                MockedStatic<PWLog> pwLog = mockStatic(PWLog.class)) {
+            givenCandidateSources(platform, "com.pwsoundfixture", null, null);
+            givenResourceTable("parent_package_sound");
+            when(packageManager.getLaunchIntentForPackage("com.pwsoundfixture"))
+                    .thenThrow(new RuntimeException("Package manager has died"));
+
+            assertEquals(Collections.singletonList("parent_package_sound"), GeneralUtils.getRawResourses());
+
+            pwLog.verify(() -> PWLog.noise(anyString(), anyString(), any(Throwable.class)));
+        }
+    }
+
+    // Verifies that a failure outside the per-candidate guards still stays inside getRawResourses.
+    // Enumeration feeds registerDevice, so an escaping exception used to break device registration itself.
+    @Test
+    public void testGetRawResourses_ApplicationIdLookupThrows_ReturnsEmptyListWithoutPropagating() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class);
+                MockedStatic<PWLog> pwLog = mockStatic(PWLog.class)) {
+            givenCandidateSources(platform, "com.pwsoundfixture", null, null);
+            when(appInfoProvider.getPackageName()).thenThrow(new RuntimeException("Context has died"));
+
+            assertEquals(Collections.emptyList(), GeneralUtils.getRawResourses());
+
+            pwLog.verify(() -> PWLog.noise(anyString(), anyString(), any(Throwable.class)));
+        }
+    }
+
+    // Verifies that the deepest parent package is probed first, whichever source it came from.
+    // A two-segment parent of the applicationId is the likelier library namespace, so it must not win.
+    @Test
+    public void testGetRawResourses_DeeperParentPackage_BeatsShallowerParentOfAnotherSource() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class)) {
+            givenCandidateSources(platform, "com.pwsoundfixture.app", null, "com.pwsoundfixture.deep.ui.MainActivity");
+            givenResourceTable("deep_package_sound", "parent_package_sound");
+
+            assertEquals(Collections.singletonList("deep_package_sound"), GeneralUtils.getRawResourses());
+        }
+    }
+
+    // Verifies that every exact candidate package is probed before any parent package.
+    // A parent of applicationId may belong to a library that ships its own res/raw.
+    @Test
+    public void testGetRawResourses_ExactApplicationClassPackage_BeatsApplicationIdParent() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class)) {
+            givenCandidateSources(
+                    platform, "com.pwsoundfixture.app", "com.pwsoundfixture.other.SampleApplication", null);
+            givenResourceTable("application_class_sound", "parent_package_sound");
+
+            assertEquals(Collections.singletonList("application_class_sound"), GeneralUtils.getRawResourses());
+        }
+    }
+
+    // Verifies that a raw resource pointing at a non-audio file is not reported as a sound.
+    @Test
+    public void testGetRawResourses_NonAudioResource_NotReported() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class)) {
+            givenCandidateSources(platform, "com.pwsoundfixture", null, null);
+            givenResourceTable();
+            // res/raw holds non-audio files too: keep.xml and firebase resources land there in a real APK.
+            givenResourceFile("parent_package_sound", "res/raw/keep.xml");
+
+            assertEquals(Collections.emptyList(), GeneralUtils.getRawResourses());
+        }
+    }
+
+    // Verifies that an <activity-alias> launcher resolves to the package of its targetActivity.
+    @Test
+    public void testGetRawResourses_LauncherActivityAlias_ResolvesTargetActivityPackage() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class)) {
+            givenCandidateSources(
+                    platform,
+                    "com.nosuchpkg.app",
+                    null,
+                    "com.brandingpkg.LauncherAlias",
+                    "com.pwsoundfixture.launcher.MainActivity");
+            givenResourceTable("launcher_activity_sound", "parent_package_sound");
+
+            assertEquals(Collections.singletonList("launcher_activity_sound"), GeneralUtils.getRawResourses());
+        }
+    }
+
+    // Verifies that a field failing to resolve does not truncate the sounds of the whole app.
+    // Both unreadable fields must be reported: a single log line would mean the loop died on the first one.
+    @Test
+    public void testGetRawResourses_FieldResolutionThrows_RestOfListSurvives() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class);
+                MockedStatic<PWLog> pwLog = mockStatic(PWLog.class)) {
+            givenCandidateSources(platform, "com.pwsoundfixture.mixed", null, null);
+            givenResourceTable("mixed_known_sound");
+            givenUnreadableResource("mixed_foreign_sound");
+            givenUnreadableResource("mixed_broken_sound");
+
+            assertEquals(Collections.singletonList("mixed_known_sound"), GeneralUtils.getRawResourses());
+
+            pwLog.verify(() -> PWLog.noise(anyString(), anyString(), any(Throwable.class)), times(2));
+        }
+    }
+
+    // Verifies that a negative identifier skips the field instead of resolving it.
+    // ContextResourceProvider answers -1 once its WeakReference<Context> has been cleared.
+    @Test
+    public void testGetRawResourses_IdentifierNegative_FieldSkippedWithoutError() throws Exception {
+        try (MockedStatic<AndroidPlatformModule> platform = mockStatic(AndroidPlatformModule.class);
+                MockedStatic<PWLog> pwLog = mockStatic(PWLog.class)) {
+            givenCandidateSources(platform, "com.pwsoundfixture", null, null);
+            givenResourceTable();
+            when(resourceProvider.getIdentifier(anyString(), eq("raw"))).thenReturn(-1);
+
+            assertEquals(Collections.emptyList(), GeneralUtils.getRawResourses());
+
+            pwLog.verify(() -> PWLog.noise(anyString(), anyString(), any(Throwable.class)), never());
+        }
+    }
+
+    private void givenCandidateSources(
+            MockedStatic<AndroidPlatformModule> platform,
+            String applicationId,
+            @Nullable String applicationClassName,
+            @Nullable String launcherActivityClassName)
+            throws PackageManager.NameNotFoundException {
+        givenCandidateSources(platform, applicationId, applicationClassName, launcherActivityClassName, null);
+    }
+
+    private void givenCandidateSources(
+            MockedStatic<AndroidPlatformModule> platform,
+            String applicationId,
+            @Nullable String applicationClassName,
+            @Nullable String launcherComponentClassName,
+            @Nullable String launcherTargetActivity)
+            throws PackageManager.NameNotFoundException {
+        platform.when(AndroidPlatformModule::getAppInfoProvider).thenReturn(appInfoProvider);
+        platform.when(AndroidPlatformModule::getManagerProvider).thenReturn(managerProvider);
+        platform.when(AndroidPlatformModule::getResourceProvider).thenReturn(resourceProvider);
+
+        when(appInfoProvider.getPackageName()).thenReturn(applicationId);
+
+        ApplicationInfo applicationInfo = new ApplicationInfo();
+        applicationInfo.className = applicationClassName;
+        when(appInfoProvider.getApplicationInfo()).thenReturn(applicationInfo);
+
+        when(managerProvider.getPackageManager()).thenReturn(packageManager);
+        if (launcherComponentClassName == null) {
+            when(packageManager.getLaunchIntentForPackage(applicationId)).thenReturn(null);
+        } else {
+            ComponentName component = new ComponentName(applicationId, launcherComponentClassName);
+            when(packageManager.getLaunchIntentForPackage(applicationId))
+                    .thenReturn(new Intent().setComponent(component));
+            // Real PackageManager never answers null here, it throws NameNotFoundException instead.
+            ActivityInfo activityInfo = new ActivityInfo();
+            activityInfo.targetActivity = launcherTargetActivity;
+            when(packageManager.getActivityInfo(component, 0)).thenReturn(activityInfo);
+        }
+
+        // The www/res assets branch is out of scope: a null AssetManager ends getRawResourses.
+        when(managerProvider.getAssets()).thenReturn(null);
+    }
+
+    private void givenResourceTable(String... soundFieldNames) {
+        for (String fieldName : soundFieldNames) {
+            givenResourceFile(fieldName, fieldName + ".mp3");
+        }
+
+        // Names outside the table resolve to a non-positive id, and real Resources throws for such an id.
+        // Keeping that throw here is what stops a lost "res <= 0" guard from passing silently.
+        doThrow(new Resources.NotFoundException("non-positive resource id"))
+                .when(resourceProvider)
+                .getValue(intThat(id -> id <= 0), any(TypedValue.class), anyBoolean());
+    }
+
+    private void givenUnreadableResource(String fieldName) {
+        int id = nextResourceId++;
+        when(resourceProvider.getIdentifier(fieldName, "raw")).thenReturn(id);
+        doThrow(new Resources.NotFoundException(fieldName))
+                .when(resourceProvider)
+                .getValue(eq(id), any(TypedValue.class), anyBoolean());
+    }
+
+    private void givenResourceFile(String fieldName, String resourceFileName) {
+        int id = nextResourceId++;
+        when(resourceProvider.getIdentifier(fieldName, "raw")).thenReturn(id);
+        doAnswer(invocation -> {
+                    TypedValue value = invocation.getArgument(1);
+                    value.string = resourceFileName;
+                    return null;
+                })
+                .when(resourceProvider)
+                .getValue(eq(id), any(TypedValue.class), anyBoolean());
     }
 }

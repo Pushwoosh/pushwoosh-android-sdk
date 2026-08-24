@@ -42,7 +42,7 @@ allprojects {
 }
 
 subprojects {
-    ext.global_versionName = "6.11.0"
+    ext.global_versionName = "6.11.1"
     ext.global_targetGroupId = "com.pushwoosh"
 
     ext.googlePlayService = "18.4.0"

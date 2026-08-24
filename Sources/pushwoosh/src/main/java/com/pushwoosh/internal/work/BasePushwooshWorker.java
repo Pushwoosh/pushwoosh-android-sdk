@@ -36,10 +36,25 @@ public abstract class BasePushwooshWorker extends Worker {
         String tag = getLogTag();
         int attempt = getRunAttemptCount();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PWLog.warn(tag, "Worker stopped, reason=" + stopReasonToString(getStopReason()) + ", attempt=" + attempt);
-        } else {
-            PWLog.warn(tag, "Worker stopped, attempt=" + attempt);
+            try {
+                PWLog.warn(
+                        tag,
+                        "Worker stopped, reason=" + stopReasonToString(fetchStopReason()) + ", attempt=" + attempt);
+                return;
+            } catch (NoSuchMethodError e) {
+                // host app may pin work-runtime <2.9.0 where getStopReason() doesn't exist (SDK-926)
+            }
         }
+        PWLog.warn(tag, "Worker stopped, attempt=" + attempt);
+    }
+
+    /**
+     * Wraps the final {@link #getStopReason()} so tests can substitute a work-runtime
+     * build where the method does not exist.
+     */
+    @VisibleForTesting
+    int fetchStopReason() {
+        return getStopReason();
     }
 
     @VisibleForTesting

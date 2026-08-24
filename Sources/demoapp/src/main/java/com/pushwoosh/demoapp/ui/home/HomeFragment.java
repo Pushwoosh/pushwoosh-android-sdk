@@ -13,7 +13,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.pushwoosh.Pushwoosh;
-import com.pushwoosh.demoapp.databinding.FragmentHomeBinding;
+import com.pushwoosh.sampleapp.databinding.FragmentHomeBinding;
 import com.pushwoosh.inapp.InAppManager;
 import com.pushwoosh.inapp.ui.PushwooshInAppUi;
 import com.pushwoosh.tags.TagsBundle;

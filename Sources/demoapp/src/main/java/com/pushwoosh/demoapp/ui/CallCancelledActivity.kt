@@ -7,7 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
-import com.pushwoosh.demoapp.R
+import com.pushwoosh.sampleapp.R
 import com.pushwoosh.internal.utils.PWLog
 
 class CallCancelledActivity : AppCompatActivity() {

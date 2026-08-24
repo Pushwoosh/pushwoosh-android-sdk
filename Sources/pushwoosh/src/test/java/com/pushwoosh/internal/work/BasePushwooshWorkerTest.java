@@ -3,11 +3,88 @@ package com.pushwoosh.internal.work;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.work.ListenableWorker;
 import androidx.work.WorkInfo;
+import androidx.work.WorkerParameters;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE, sdk = 34)
 public class BasePushwooshWorkerTest {
+
+    private Context context;
+    private WorkerParameters workerParameters;
+
+    @Before
+    public void setUp() {
+        ShadowLog.stream = System.out;
+        context = RuntimeEnvironment.application;
+        workerParameters = Mockito.mock(WorkerParameters.class);
+    }
+
+    private static class TestWorker extends BasePushwooshWorker {
+        TestWorker(@NonNull Context context, @NonNull WorkerParameters params) {
+            super(context, params);
+        }
+
+        @NonNull @Override
+        protected String getLogTag() {
+            return "TestWorker";
+        }
+
+        @NonNull @Override
+        public ListenableWorker.Result doWork() {
+            return ListenableWorker.Result.success();
+        }
+    }
+
+    @Test
+    public void onStoppedLogsStopReason() {
+        BasePushwooshWorker worker = new TestWorker(context, workerParameters) {
+            @Override
+            int fetchStopReason() {
+                return WorkInfo.STOP_REASON_TIMEOUT;
+            }
+        };
+
+        worker.onStopped();
+
+        assertTrue(logged("reason=TIMEOUT, attempt=0"));
+    }
+
+    @Test
+    public void onStoppedFallsBackWhenStopReasonApiMissing() {
+        BasePushwooshWorker worker = new TestWorker(context, workerParameters) {
+            @Override
+            int fetchStopReason() {
+                throw new NoSuchMethodError("androidx.work.ListenableWorker.getStopReason");
+            }
+        };
+
+        worker.onStopped();
+
+        assertTrue(logged("Worker stopped, attempt=0"));
+    }
+
+    private static boolean logged(String fragment) {
+        for (ShadowLog.LogItem item : ShadowLog.getLogs()) {
+            if (item.msg != null && item.msg.contains(fragment)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Test
     public void mapsKnownStopReasons() {

@@ -33,10 +33,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.internal.chain.Chain;
@@ -51,101 +51,115 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 class NotificationOpenHandler {
-	private static final String MESSAGE_HANDLER_KEY = ".MESSAGE";
+    private static final String TAG = "NotificationOpenHandler";
+    private static final String MESSAGE_HANDLER_KEY = ".MESSAGE";
 
-	private Chain<PushNotificationOpenHandler> notificationOpenHandlerChain;
-	@Nullable
-	private final Context context = AndroidPlatformModule.getApplicationContext();
+    private Chain<PushNotificationOpenHandler> notificationOpenHandlerChain;
 
-	NotificationOpenHandler(final Chain<PushNotificationOpenHandler> notificationOpenHandlerChain) {
-		this.notificationOpenHandlerChain = notificationOpenHandlerChain;
-	}
+    @Nullable private final Context context = AndroidPlatformModule.getApplicationContext();
 
-	boolean preHandleNotification(Bundle pushBundle) {
-		String link = PushBundleDataProvider.getLink(pushBundle);
-		if (TextUtils.isEmpty(link) || context == null) {
-			return false;
-		}
+    NotificationOpenHandler(final Chain<PushNotificationOpenHandler> notificationOpenHandlerChain) {
+        this.notificationOpenHandlerChain = notificationOpenHandlerChain;
+    }
 
-		try {
-			// do not handle specific hosts to allow system to handle app links
+    boolean preHandleNotification(Bundle pushBundle) {
+        String link = PushBundleDataProvider.getLink(pushBundle);
+        if (TextUtils.isEmpty(link) || context == null) {
+            return false;
+        }
 
-			Uri uri = Uri.parse(link);
-			String host = uri.getHost();
-			NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
-			ArrayList<String> allowedExternalHosts = notificationPrefs.allowedExternalHosts().get();
+        PWLog.debug(TAG, "handling notification link: " + link);
 
-			if (host != null && (allowedExternalHosts.contains(host))) {
-				Intent externalIntent = new Intent(Intent.ACTION_VIEW, uri);
-				externalIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				context.startActivity(externalIntent);
-				return true;
-			}
+        try {
+            // do not handle specific hosts to allow system to handle app links
 
-			Intent notifyIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
-			PackageManager packageManager = context.getPackageManager();
-			if (notifyIntent.resolveActivity(packageManager) == null) {
-				return false;
-			}
-			notifyIntent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
-			PendingIntent.getActivity(context, 0, notifyIntent, PendingIntentUtils.addImmutableFlag(0)).send();
-			return true;
-		} catch (Exception e) {
-			PWLog.exception(e);
-		}
+            Uri uri = Uri.parse(link);
+            String host = uri.getHost();
+            NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+            ArrayList<String> allowedExternalHosts =
+                    notificationPrefs.allowedExternalHosts().get();
 
-		return false;
-	}
+            if (host != null && (allowedExternalHosts.contains(host))) {
+                PWLog.debug(TAG, "host " + host + " is an allowed external host, opening link outside the app");
+                Intent externalIntent = new Intent(Intent.ACTION_VIEW, uri);
+                externalIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(externalIntent);
+                return true;
+            }
 
-	void startPushLauncherActivity(PushMessage message) {
-		Bundle extras = new Bundle();
-		extras.putString(Pushwoosh.PUSH_RECEIVE_EVENT, message.toJson().toString());
-		boolean launchDefaultActivity = false;
+            Intent notifyIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
+            PackageManager packageManager = context.getPackageManager();
+            if (notifyIntent.resolveActivity(packageManager) == null) {
+                PWLog.warn(
+                        TAG,
+                        "no activity resolves " + link
+                                + ", check the ACTION_VIEW intent-filter in AndroidManifest.xml; launching the app instead");
+                return false;
+            }
+            PWLog.debug(TAG, "opening " + link + " inside the app");
+            notifyIntent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
+            PendingIntent.getActivity(context, 0, notifyIntent, PendingIntentUtils.addImmutableFlag(0))
+                    .send();
+            return true;
+        } catch (Exception e) {
+            PWLog.exception(e);
+        }
 
-		Intent notifyIntent = new Intent();
-		String intentAction = AndroidPlatformModule.getAppInfoProvider().getPackageName() + MESSAGE_HANDLER_KEY;
-		notifyIntent.setAction(intentAction);
-		notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-		notifyIntent.putExtras(extras);
-		try {
-			if (context != null) {
-				context.startActivity(notifyIntent);
-			}
-		} catch (ActivityNotFoundException e) {
-			launchDefaultActivity = true;
-		}
+        return false;
+    }
 
-		if (!launchDefaultActivity) {
-			return;
-		}
+    void startPushLauncherActivity(PushMessage message) {
+        Bundle extras = new Bundle();
+        extras.putString(Pushwoosh.PUSH_RECEIVE_EVENT, message.toJson().toString());
+        boolean launchDefaultActivity = false;
 
-		//launching default launcher category activity
-		try {
-			Intent launchIntent = getIntent();
-			launchIntent.putExtras(extras);
-			context.startActivity(launchIntent);
-		} catch (ActivityNotFoundException e) {
-			PWLog.error("Failed to start default launch activity.", e);
-		}
-	}
+        Intent notifyIntent = new Intent();
+        String intentAction = AndroidPlatformModule.getAppInfoProvider().getPackageName() + MESSAGE_HANDLER_KEY;
+        notifyIntent.setAction(intentAction);
+        notifyIntent.setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        notifyIntent.putExtras(extras);
+        try {
+            if (context != null) {
+                context.startActivity(notifyIntent);
+            }
+        } catch (ActivityNotFoundException e) {
+            PWLog.debug(TAG, "no activity handles " + intentAction + ", falling back to the launcher activity");
+            launchDefaultActivity = true;
+        }
 
-	@NonNull
-	private static Intent getIntent() {
-		String packageName = AndroidPlatformModule.getAppInfoProvider().getPackageName();
-		PackageManager packageManager = AndroidPlatformModule.getManagerProvider().getPackageManager();
-		Intent launchIntent = packageManager == null ? null : packageManager.getLaunchIntentForPackage(packageName);
-		if (launchIntent == null) {
-			throw new ActivityNotFoundException();
-		}
-		launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-		launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-		return launchIntent;
-	}
+        if (!launchDefaultActivity) {
+            return;
+        }
 
-	void postHandleNotification(Bundle pushBundle) {
-		Iterator<PushNotificationOpenHandler> iterator = notificationOpenHandlerChain.getIterator();
-		while (iterator.hasNext()) {
-			iterator.next().postHandleNotification(pushBundle);
-		}
-	}
+        // launching default launcher category activity
+        try {
+            Intent launchIntent = getIntent();
+            launchIntent.putExtras(extras);
+            context.startActivity(launchIntent);
+        } catch (ActivityNotFoundException e) {
+            PWLog.error(TAG, "Failed to start default launch activity.", e);
+        }
+    }
+
+    @NonNull private static Intent getIntent() {
+        String packageName = AndroidPlatformModule.getAppInfoProvider().getPackageName();
+        PackageManager packageManager =
+                AndroidPlatformModule.getManagerProvider().getPackageManager();
+        Intent launchIntent = packageManager == null ? null : packageManager.getLaunchIntentForPackage(packageName);
+        if (launchIntent == null) {
+            throw new ActivityNotFoundException();
+        }
+        launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        launchIntent.setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        return launchIntent;
+    }
+
+    void postHandleNotification(Bundle pushBundle) {
+        Iterator<PushNotificationOpenHandler> iterator = notificationOpenHandlerChain.getIterator();
+        while (iterator.hasNext()) {
+            iterator.next().postHandleNotification(pushBundle);
+        }
+    }
 }

@@ -30,7 +30,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import androidx.core.content.ContextCompat
-import com.pushwoosh.demoapp.R
+import com.pushwoosh.sampleapp.R
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.model.customizing.formatter.InboxDateFormatter
 import java.text.SimpleDateFormat

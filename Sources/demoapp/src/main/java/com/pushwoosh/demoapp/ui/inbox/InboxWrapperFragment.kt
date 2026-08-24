@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.pushwoosh.demoapp.R
+import com.pushwoosh.sampleapp.R
 import com.pushwoosh.function.Callback
 import com.pushwoosh.function.Result
 import com.pushwoosh.inbox.PushwooshInbox

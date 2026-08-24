@@ -13,6 +13,7 @@ import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.pushwoosh.inapp.network.model.Resource;
+import com.pushwoosh.sampleapp.R;
 import com.pushwoosh.inapp.view.ModalRichMediaWindow;
 import com.pushwoosh.inapp.view.utils.ModalRichMediaWindowUtils;
 
