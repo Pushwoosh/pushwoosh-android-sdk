@@ -22,4 +22,16 @@
         android:name="com.pushwoosh.demoapp.ui.inbox.InboxWrapperFragment"
         android:label="@string/title_inbox"
         tools:layout="@layout/fragment_inbox_wrapper" />
+
+    <fragment
+        android:id="@+id/navigation_deep_link"
+        android:name="com.pushwoosh.demoapp.ui.deeplink.DeepLinkFragment"
+        android:label="@string/title_deep_link"
+        tools:layout="@layout/fragment_deep_link">
+
+        <argument
+            android:name="uri"
+            app:argType="string" />
+
+    </fragment>
 </navigation>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keeps a white caption legible over an arbitrary photo, same ramp as the iOS slide scrim. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="90"
+        android:endColor="#00000000"
+        android:startColor="#8C000000" />
+</shape>

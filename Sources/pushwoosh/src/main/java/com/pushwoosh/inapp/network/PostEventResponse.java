@@ -32,32 +32,26 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class PostEventResponse {
-	private final String code;
-	private final String richMediaJson;
-	private final boolean isRequired;
-	private final String messageHash;
+    private final String code;
+    private final String richMediaJson;
+    private final String messageHash;
 
-	@WorkerThread
-	PostEventResponse(JSONObject response) throws JSONException {
-		code = response.optString("code");
-		richMediaJson = response.optString("richmedia");
-		isRequired = response.optBoolean("required", false);
-		messageHash = response.optString("message_hash");
-	}
+    @WorkerThread
+    PostEventResponse(JSONObject response) throws JSONException {
+        code = response.optString("code");
+        richMediaJson = response.optString("richmedia");
+        messageHash = response.optString("message_hash");
+    }
 
-	public String getCode() {
-		return code;
-	}
+    public String getCode() {
+        return code;
+    }
 
-	public String getRichMediaJson() {
-		return richMediaJson;
-	}
+    public String getRichMediaJson() {
+        return richMediaJson;
+    }
 
-	public boolean isRequired() {
-		return isRequired;
-	}
-
-	public String getMessageHash() {
-		return messageHash;
-	}
+    public String getMessageHash() {
+        return messageHash;
+    }
 }

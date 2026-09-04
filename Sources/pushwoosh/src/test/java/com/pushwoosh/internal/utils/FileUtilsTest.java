@@ -26,36 +26,37 @@
 
 package com.pushwoosh.internal.utils;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import okio.Buffer;
 import okio.Okio;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
 
 /**
  * Created by aevstefeev on 05/03/2018.
@@ -64,18 +65,30 @@ public class FileUtilsTest {
 
     public static final String TEST_FOLDER = "test";
 
+    // Deliberately not FileUtils.TRY_COUNT: reading the production constant makes the assert pass for
+    // any budget. This copy going stale IS the signal — raising the budget must be a conscious choice.
+    private static final int EXPECTED_ATTEMPTS = 3;
+
+    private int originalConnectTimeoutMs;
+    private int originalReadTimeoutMs;
+
     @Before
     public void setUp() {
+        // @Before/@After sit outside the @Test(timeout) statement, so they run on the main thread and
+        // still restore the statics when a test body hangs and dies as TestTimedOutException.
+        originalConnectTimeoutMs = FileUtils.connectTimeoutMs;
+        originalReadTimeoutMs = FileUtils.readTimeoutMs;
         new File(TEST_FOLDER).mkdir();
     }
 
     @After
     public void taerDown() {
+        FileUtils.connectTimeoutMs = originalConnectTimeoutMs;
+        FileUtils.readTimeoutMs = originalReadTimeoutMs;
         FileUtils.deleteDirectory(new File("test"));
     }
 
     @Test
-
     public void downloadFile() throws Exception {
         MockWebServer server = enableMockServerForTestDownload();
 
@@ -90,6 +103,103 @@ public class FileUtilsTest {
         String md5SoureFile = FileUtils.getMd5Hash(new File(TEST_FOLDER + "/sourceFile.zip"));
         String md5DestFile = FileUtils.getMd5Hash(new File(TEST_FOLDER + "/destFile.zip"));
         Assert.assertEquals(md5SoureFile, md5DestFile);
+    }
+
+    // A ServerSocket we never accept() on: the OS backlog completes the handshake, so connect
+    // succeeds and every attempt has to die on readTimeoutMs instead of pinning the thread.
+    @Test(timeout = 10000)
+    public void downloadFileAllAttemptsTimeOutReturnsNull() throws Exception {
+        ServerSocket silentServer = new ServerSocket(0);
+        try (MockedStatic<PWLog> ignored = Mockito.mockStatic(PWLog.class)) {
+            FileUtils.readTimeoutMs = 200;
+            File destFile = new File(TEST_FOLDER + "/destFile.zip");
+
+            File result = FileUtils.downloadFile("http://127.0.0.1:" + silentServer.getLocalPort() + "/", destFile);
+
+            Assert.assertNull(result);
+            Assert.assertEquals(EXPECTED_ATTEMPTS, drainAcceptQueue(silentServer));
+        } finally {
+            silentServer.close();
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void downloadFileFirstAttemptTimesOutRetriesAndSucceeds() throws Exception {
+        createTestZip(TEST_FOLDER + "/sourceFile.zip");
+        MockWebServer server = new MockWebServer();
+        server.setBodyLimit(0);
+        try (MockedStatic<PWLog> ignored = Mockito.mockStatic(PWLog.class)) {
+            FileUtils.readTimeoutMs = 500;
+
+            Buffer delayedBody = new Buffer();
+            delayedBody.writeAll(Okio.source(new File(TEST_FOLDER + "/sourceFile.zip")));
+            // finite delay > readTimeoutMs: the client times out, the server thread does not hang
+            server.enqueue(new MockResponse().setBody(delayedBody).setBodyDelay(2, TimeUnit.SECONDS));
+
+            Buffer normalBody = new Buffer();
+            normalBody.writeAll(Okio.source(new File(TEST_FOLDER + "/sourceFile.zip")));
+            server.enqueue(new MockResponse().setBody(normalBody));
+
+            File destFile = new File(TEST_FOLDER + "/destFile.zip");
+            File result = FileUtils.downloadFile(server.url("/").toString(), destFile);
+
+            Assert.assertNotNull(result);
+            Assert.assertEquals(
+                    FileUtils.getMd5Hash(new File(TEST_FOLDER + "/sourceFile.zip")), FileUtils.getMd5Hash(destFile));
+            Assert.assertEquals(2, server.getRequestCount());
+        } finally {
+            server.shutdown();
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void downloadFileConnectTimesOutOnEveryAttemptReturnsNull() throws Exception {
+        ServerSocket backloggedServer = new ServerSocket(0, 1);
+        List<Socket> queueHolders = new ArrayList<>();
+        try (MockedStatic<PWLog> ignored = Mockito.mockStatic(PWLog.class)) {
+            fillAcceptQueue(backloggedServer, queueHolders);
+            FileUtils.connectTimeoutMs = 200;
+            File destFile = new File(TEST_FOLDER + "/destFile.zip");
+
+            File result = FileUtils.downloadFile("http://127.0.0.1:" + backloggedServer.getLocalPort() + "/", destFile);
+
+            Assert.assertNull(result);
+        } finally {
+            for (Socket queueHolder : queueHolders) {
+                queueHolder.close();
+            }
+            backloggedServer.close();
+        }
+    }
+
+    // Connects until one stalls: past that point the OS drops every SYN, so connect() can only die on
+    // connectTimeoutMs. Probing beats a fixed count — the queue depth differs across platforms.
+    private void fillAcceptQueue(ServerSocket server, List<Socket> queueHolders) throws IOException {
+        while (queueHolders.size() < 50) {
+            Socket probe = new Socket();
+            try {
+                probe.connect(new InetSocketAddress("127.0.0.1", server.getLocalPort()), 200);
+                queueHolders.add(probe);
+            } catch (SocketTimeoutException e) {
+                probe.close();
+                return;
+            }
+        }
+    }
+
+    // Every attempt leaves its connection in the backlog, so the queue depth is the attempt count:
+    // it pins the retry budget, which assertNull alone cannot distinguish from any other failure.
+    private int drainAcceptQueue(ServerSocket server) throws IOException {
+        server.setSoTimeout(200);
+        int accepted = 0;
+        while (true) {
+            try {
+                server.accept().close();
+                accepted++;
+            } catch (SocketTimeoutException e) {
+                return accepted;
+            }
+        }
     }
 
     private MockWebServer enableMockServerForTestDownload() throws IOException, InterruptedException {
@@ -120,10 +230,9 @@ public class FileUtilsTest {
         Assert.assertEquals(fileList.length, 1);
         File file = fileList[0];
         Assert.assertEquals(TEST_FOLDER + "/destFolder/mytext.txt", file.getPath());
-        //todo replace with normal way read text from file
+        // TODO replace with normal way read text from file
         Assert.assertEquals("Test String\n", FileUtils.readFile(file));
     }
-
 
     private void createTestZip(String zipFilePath) throws IOException {
         StringBuilder sb = new StringBuilder();
@@ -168,7 +277,7 @@ public class FileUtilsTest {
 
     @Test
     public void writeFile() throws Exception {
-        //todo
+        // TODO
     }
 
     @Test
@@ -211,5 +320,4 @@ public class FileUtilsTest {
         String newPath3 = FileUtils.removeExtension(path3);
         Assert.assertEquals("dir/dir2/dir3/File", newPath3);
     }
-
 }

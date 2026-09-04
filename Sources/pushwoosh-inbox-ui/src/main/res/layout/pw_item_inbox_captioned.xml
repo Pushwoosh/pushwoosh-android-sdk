@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~
+  ~ Copyright (c) 2026. Pushwoosh Inc. (http://www.pushwoosh.com)
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining
+  ~ a copy of this software and associated documentation files (the
+  ~ "Software"), to deal in the Software without restriction, including
+  ~ without limitation the rights to use, copy, modify, merge, publish,
+  ~ distribute, sublicense, and/or sell copies of the Software, and to
+  ~ permit persons to whom the Software is furnished to do so, subject to
+  ~ the following conditions:
+  ~
+  ~ (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+  ~
+  ~ (ii) the above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  ~ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  ~ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  ~ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  ~ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/pw_normal_margin"
+    android:paddingLeft="@dimen/pw_normal_margin"
+    android:paddingEnd="@dimen/pw_normal_margin"
+    android:paddingRight="@dimen/pw_normal_margin"
+    android:paddingTop="@dimen/pw_banner_margin_vertical"
+    android:paddingBottom="@dimen/pw_banner_margin_vertical">
+
+    <LinearLayout
+        android:id="@+id/inboxCaptionedCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/pw_bg_captioned_card">
+
+        <FrameLayout
+            android:id="@+id/inboxCaptionedHeroHost"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/pw_captioned_hero_height"
+            android:layout_margin="@dimen/pw_captioned_hero_inset"
+            android:background="@drawable/pw_bg_banner_card">
+
+            <ImageView
+                android:id="@+id/inboxCaptionedHeroImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="@null" />
+
+            <View
+                android:id="@+id/inboxCaptionedUnreadDot"
+                android:layout_width="@dimen/pw_captioned_unread_dot_size"
+                android:layout_height="@dimen/pw_captioned_unread_dot_size"
+                android:layout_gravity="top|start"
+                android:layout_margin="@dimen/pw_banner_pin_chip_offset"
+                android:background="@drawable/pw_bg_banner_unread_dot" />
+
+            <include
+                android:id="@+id/inboxCaptionedPinChip"
+                layout="@layout/pw_inbox_pin_chip"
+                android:layout_width="@dimen/pw_banner_pin_chip_size"
+                android:layout_height="@dimen/pw_banner_pin_chip_size"
+                android:layout_gravity="top|end"
+                android:layout_margin="@dimen/pw_banner_pin_chip_offset" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/pw_captioned_text_margin"
+            android:paddingLeft="@dimen/pw_captioned_text_margin"
+            android:paddingEnd="@dimen/pw_captioned_text_margin"
+            android:paddingRight="@dimen/pw_captioned_text_margin"
+            android:paddingTop="@dimen/pw_captioned_text_margin_top"
+            android:paddingBottom="@dimen/pw_captioned_text_margin">
+
+            <ImageView
+                android:id="@+id/inboxCaptionedIcon"
+                android:layout_width="@dimen/pw_captioned_icon_size"
+                android:layout_height="@dimen/pw_captioned_icon_size"
+                android:layout_marginEnd="@dimen/pw_captioned_icon_text_gap"
+                android:layout_marginRight="@dimen/pw_captioned_icon_text_gap"
+                android:contentDescription="@null"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/inboxCaptionedTitle"
+                        style="@style/TextAppearance.Inbox.InboxTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        tools:text="Title" />
+
+                    <TextView
+                        android:id="@+id/inboxCaptionedDate"
+                        style="@style/TextAppearance.Inbox.InboxDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/pw_minor_margin"
+                        android:layout_marginLeft="@dimen/pw_minor_margin"
+                        tools:text="12:00" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/inboxCaptionedBody"
+                    style="@style/TextAppearance.Inbox.InboxDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/pw_captioned_title_body_gap"
+                    android:maxLines="3"
+                    android:ellipsize="end"
+                    tools:text="Body" />
+
+                <LinearLayout
+                    android:id="@+id/inboxCaptionedButtonsRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/pw_captioned_icon_text_gap"
+                    android:orientation="horizontal"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

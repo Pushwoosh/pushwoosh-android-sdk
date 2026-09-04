@@ -463,7 +463,8 @@ public class InboxRepository {
     }
 
     public void clearAllInboxMessages() {
-        new MergeStateTask(this, Collections.emptyList(), true, mergeStateTaskResult -> {
+        // A user-initiated wipe — the fresh-push grace must not keep rows alive here.
+        new MergeStateTask(this, Collections.emptyList(), true, false, mergeStateTaskResult -> {
                     MergeResult mergeResult = mergeStateTaskResult.getData();
                     if (mergeResult != null) {
                         for (Map.Entry<String, InboxMessageStatus> entry :
@@ -531,16 +532,19 @@ public class InboxRepository {
         private final WeakReference<InboxRepository> inboxRepositoryReference;
         private final Collection<InboxMessageInternal> messages;
         private final boolean fullList;
+        private final boolean keepFreshPushRows;
         private final @Nullable Callback<MergeResult, PushwooshException> callback;
 
         private MergeStateTask(
                 InboxRepository inboxRepository,
                 Collection<InboxMessageInternal> messages,
                 boolean fullList,
+                boolean keepFreshPushRows,
                 @Nullable Callback<MergeResult, PushwooshException> callback) {
             this.inboxRepositoryReference = new WeakReference<>(inboxRepository);
             this.messages = messages;
             this.fullList = fullList;
+            this.keepFreshPushRows = keepFreshPushRows;
             this.callback = callback;
         }
 
@@ -550,7 +554,8 @@ public class InboxRepository {
                 if (inboxRepository == null) {
                     return;
                 }
-                MergeResult mergeResult = inboxRepository.inboxStorage.mergeState(messages, fullList);
+                MergeResult mergeResult =
+                        inboxRepository.inboxStorage.mergeState(messages, fullList, keepFreshPushRows);
 
                 if (callback != null) {
                     BackgroundExecutor.main(() -> callback.process(Result.from(mergeResult, null)));

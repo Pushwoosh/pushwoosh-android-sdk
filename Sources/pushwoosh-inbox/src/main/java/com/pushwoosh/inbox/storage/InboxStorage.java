@@ -26,8 +26,6 @@
 
 package com.pushwoosh.inbox.storage;
 
-import java.util.Collection;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
@@ -36,59 +34,67 @@ import com.pushwoosh.inbox.internal.data.InboxMessageInternal;
 import com.pushwoosh.inbox.internal.data.InboxMessageStatus;
 import com.pushwoosh.inbox.storage.data.MergeResult;
 
+import java.util.Collection;
+
 public interface InboxStorage {
-	/**
-	 * Delete list of {@link InboxMessageInternal}
-	 *
-	 * @param ids - list of {@link InboxMessageInternal#id} which must be deleted
-	 */
-	@WorkerThread
-	void deleteList(@NonNull Collection<String> ids);
+    /**
+     * Delete list of {@link InboxMessageInternal}
+     *
+     * @param ids - list of {@link InboxMessageInternal#id} which must be deleted
+     */
+    @WorkerThread
+    void deleteList(@NonNull Collection<String> ids);
 
-	/**
-	 * Merge state with provided list
-	 *
-	 * @param inboxMessageInternals - list for merge
-	 * @param fullList - if true delete all others from db
-	 * @return map where key is {@link InboxMessageInternal#id} value is {@link InboxMessageInternal#inboxMessageStatus} which should be updated on service
-	 */
-	@WorkerThread
-	@NonNull
-	MergeResult mergeState(@NonNull Collection<InboxMessageInternal> inboxMessageInternals, boolean fullList);
+    /**
+     * Merge state with provided list. Fresh push-sourced rows survive a full-list
+     * merge (server snapshot semantics) — see {@link #mergeState(Collection, boolean, boolean)}.
+     *
+     * @param inboxMessageInternals - list for merge
+     * @param fullList - if true delete all others from db
+     * @return map where key is {@link InboxMessageInternal#id} value is {@link InboxMessageInternal#inboxMessageStatus} which should be updated on service
+     */
+    @WorkerThread
+    @NonNull MergeResult mergeState(@NonNull Collection<InboxMessageInternal> inboxMessageInternals, boolean fullList);
 
-	@WorkerThread
-	@NonNull
-	Collection<InboxMessageInternal> getActualInboxMessages(Collection<String> codes);
+    /**
+     * Same as {@link #mergeState(Collection, boolean)}, but lets the caller distinguish a
+     * server snapshot merge from an explicit local wipe: pass {@code keepFreshPushRows=false}
+     * for user-initiated clears so the fresh-push grace does not keep rows alive.
+     */
+    @WorkerThread
+    @NonNull MergeResult mergeState(
+            @NonNull Collection<InboxMessageInternal> inboxMessageInternals,
+            boolean fullList,
+            boolean keepFreshPushRows);
 
-	@WorkerThread
-	@Nullable
-	InboxMessageInternal getActualInboxMessage(String code);
-	/**
-	 * Obtain all actual (not expired and not deleted) the list of {@link InboxMessageInternal}
-	 *
-	 * @return the list of actual {@link InboxMessageInternal}
-	 */
-	@WorkerThread
-	@NonNull
-	Collection<InboxMessageInternal> getAllActualMessages();
+    @WorkerThread
+    @NonNull Collection<InboxMessageInternal> getActualInboxMessages(Collection<String> codes);
 
-	@WorkerThread
-	@NonNull
-	Collection<InboxMessageInternal> getActualMessages(long order, int limit);
+    @WorkerThread
+    @Nullable InboxMessageInternal getActualInboxMessage(String code);
+    /**
+     * Obtain all actual (not expired and not deleted) the list of {@link InboxMessageInternal}
+     *
+     * @return the list of actual {@link InboxMessageInternal}
+     */
+    @WorkerThread
+    @NonNull Collection<InboxMessageInternal> getAllActualMessages();
 
-	@WorkerThread
-	@NonNull
-	Collection<InboxMessageInternal> getAllPushMessages();
+    @WorkerThread
+    @NonNull Collection<InboxMessageInternal> getActualMessages(long order, int limit);
 
-	@WorkerThread
-	Collection<String> updateStatus(@NonNull String id, @NonNull InboxMessageStatus inboxMessageStatus);
+    @WorkerThread
+    @NonNull Collection<InboxMessageInternal> getAllPushMessages();
 
-	@WorkerThread
-	int getUnreadInboxCount();
+    @WorkerThread
+    Collection<String> updateStatus(@NonNull String id, @NonNull InboxMessageStatus inboxMessageStatus);
 
-	@WorkerThread
-	int getCountWithNoActionPerformed();
+    @WorkerThread
+    int getUnreadInboxCount();
 
-	@WorkerThread
-	int getTotalCount();
+    @WorkerThread
+    int getCountWithNoActionPerformed();
+
+    @WorkerThread
+    int getTotalCount();
 }

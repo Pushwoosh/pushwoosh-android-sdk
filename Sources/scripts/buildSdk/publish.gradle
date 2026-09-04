@@ -69,7 +69,11 @@ afterEvaluate {
                 groupId = "com.pushwoosh"
                 version = LIB_VERSION
 
-                artifact("$buildDir/outputs/aar/$LIB_ARTIFACT_ID-release.aar")
+                // a path artifact carries no task dependency: a single-invocation publishToMavenLocal
+                // used to get its AAR only because customJavadocRelease happened to depend on assembleRelease
+                artifact("$buildDir/outputs/aar/$LIB_ARTIFACT_ID-release.aar") {
+                    builtBy tasks.named('assembleRelease')
+                }
 
                 // Add custom javadoc JAR (if task exists)
                 def customJavadocJarTask = tasks.findByName('customJavadocJarRelease')

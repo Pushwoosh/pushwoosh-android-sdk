@@ -22,13 +22,12 @@ android {
     namespace "com.pushwoosh.inapp.ui"
     testNamespace "com.pushwoosh.inapp.ui.test"
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
     kotlin {
         jvmToolchain(17)
+    }
+    kotlinOptions {
+        // JDK 8 javadoc reads these classes: bytecode above 52.0 breaks customJavadocRelease
+        jvmTarget = '1.8'
     }
 }
 

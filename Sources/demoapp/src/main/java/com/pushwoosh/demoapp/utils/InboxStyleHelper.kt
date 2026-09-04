@@ -30,9 +30,9 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import androidx.core.content.ContextCompat
-import com.pushwoosh.sampleapp.R
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.model.customizing.formatter.InboxDateFormatter
+import com.pushwoosh.sampleapp.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -46,6 +46,7 @@ class InboxStyleHelper {
             setupImages()
             setupFonts()
             setupDateFormatter()
+            PushwooshInboxStyle.richCardsHeuristicEnabled = true
         }
 
         private fun setupColors(context: Context) {

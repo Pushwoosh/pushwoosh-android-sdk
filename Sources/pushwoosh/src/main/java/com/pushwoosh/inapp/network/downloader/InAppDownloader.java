@@ -39,10 +39,7 @@ import com.pushwoosh.internal.utils.PWLog;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 public class InAppDownloader {
     private static final String TAG = "[InApp]InAppDownloader";
@@ -50,8 +47,6 @@ public class InAppDownloader {
     private final Object mutex = new Object();
     private final InAppFolderProvider inAppFolderProvider;
     private final FileHashChecker fileHashChecker = new FileHashChecker();
-
-    private final Set<Resource> downloadingResources = new ConcurrentSkipListSet<>();
 
     public InAppDownloader(InAppFolderProvider inAppFolderProvider) {
         this.inAppFolderProvider = inAppFolderProvider;
@@ -63,15 +58,11 @@ public class InAppDownloader {
             return DownloadResult.empty();
         }
 
-        final List<Resource> localResource = new ArrayList<>(resources);
-        Collections.sort(localResource);
-        this.downloadingResources.addAll(localResource);
-
         synchronized (mutex) {
-            final ArrayList<Resource> deployed = new ArrayList<>(localResource.size());
+            final ArrayList<Resource> deployed = new ArrayList<>(resources.size());
             final ArrayList<Resource> failed = new ArrayList<>();
 
-            for (Resource inapp : localResource) {
+            for (Resource inapp : resources) {
                 if (downloadAndDeployResource(inapp)) {
                     deployed.add(inapp);
                     EventBus.sendEvent(new InAppEvent(InAppEvent.EventType.DEPLOYED, inapp));
@@ -79,8 +70,6 @@ public class InAppDownloader {
                     failed.add(inapp);
                     EventBus.sendEvent(new InAppEvent(InAppEvent.EventType.DEPLOY_FAILED, inapp));
                 }
-
-                downloadingResources.remove(inapp);
             }
 
             return new DownloadResult(deployed, failed);
@@ -92,21 +81,25 @@ public class InAppDownloader {
 
         File zip = downloadZipFile(inapp);
         if (zip == null) {
-            PWLog.error(TAG, String.format("Failed to download ZIP file for resource: %s, url: %s",
-                    inapp.getCode(), inapp.getUrl()));
+            PWLog.error(
+                    TAG,
+                    String.format(
+                            "Failed to download ZIP file for resource: %s, url: %s", inapp.getCode(), inapp.getUrl()));
             return false;
         }
 
         if (!checkZipFile(inapp, zip)) {
-            PWLog.error(TAG, String.format("ZIP file validation failed (hash mismatch) for resource: %s, url: %s",
-                    inapp.getCode(), inapp.getUrl()));
+            PWLog.error(
+                    TAG,
+                    String.format(
+                            "ZIP file validation failed (hash mismatch) for resource: %s, url: %s",
+                            inapp.getCode(), inapp.getUrl()));
             return false;
         }
 
         File deployZip = unzip(inapp, zip);
         if (deployZip == null) {
-            PWLog.error(TAG, String.format("Failed to extract ZIP file for resource: %s",
-                    inapp.getCode()));
+            PWLog.error(TAG, String.format("Failed to extract ZIP file for resource: %s", inapp.getCode()));
             return false;
         }
 
@@ -124,8 +117,9 @@ public class InAppDownloader {
     }
 
     @Nullable private File downloadZipFile(Resource resource) {
-        PWLog.noise(TAG, String.format("Downloading ZIP file for resource: %s from: %s",
-                resource.getCode(), resource.getUrl()));
+        PWLog.noise(
+                TAG,
+                String.format("Downloading ZIP file for resource: %s from: %s", resource.getCode(), resource.getUrl()));
         EventBus.sendEvent(new InAppEvent(InAppEvent.EventType.DOWNLOADING_ZIP, resource));
 
         File cacheDir = inAppFolderProvider.getCacheDir();
@@ -163,14 +157,13 @@ public class InAppDownloader {
         File deployDir = inAppFolderProvider.getInAppFolder(inapp.getCode());
         File result = FileUtils.unzip(zip, deployDir);
 
-        PWLog.noise(TAG, String.format("ZIP extraction %s for resource: %s",
-                result != null ? "succeeded" : "failed", inapp.getCode()));
+        PWLog.noise(
+                TAG,
+                String.format(
+                        "ZIP extraction %s for resource: %s",
+                        result != null ? "succeeded" : "failed", inapp.getCode()));
 
         return result;
-    }
-
-    public boolean isDownloading(Resource resource) {
-        return downloadingResources.contains(resource);
     }
 
     public void removeResourceFiles(String code) {

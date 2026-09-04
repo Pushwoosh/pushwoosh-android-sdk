@@ -1,4 +1,4 @@
-// Shared android{} header for SDK modules. Java 11/17 overrides, testOptions and
+// Shared android{} header for SDK modules. The Java 11 override (pushwoosh-calls), testOptions and
 // namespace/testNamespace (module identity) stay in the module files.
 //
 // publishing lives here, not in pushwoosh.android-minified: amazon-stub is the only module that

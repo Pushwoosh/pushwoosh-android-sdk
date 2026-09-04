@@ -49,6 +49,14 @@ object PushwooshInboxStyle {
     var dateFormatter: InboxDateFormatter = DefaultDateFormatter()
 
     /**
+     * When true, messages without an explicit `displayType` pick a rich card by the
+     * iOS-parity heuristic: image + title renders a captioned card, image alone renders
+     * a banner card. Off by default so existing inboxes keep their legacy row rendering;
+     * messages with an explicit `displayType` render as rich cards regardless of this flag.
+     */
+    var richCardsHeuristicEnabled: Boolean = false
+
+    /**
      * Item appearing animation. Set {@link #EMPTY_ANIMATION} for clear animation
      */
     @AnimRes

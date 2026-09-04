@@ -173,6 +173,30 @@ public class InAppDbHelperTest {
         Assert.assertFalse("identical resource1 must not be in updated list", result.contains("code1"));
     }
 
+    // Verifies that inserting a brand-new resource reports no updated codes:
+    // insert must not trigger the caller's file wipe (fresh install / first on-demand show).
+    @Test
+    public void saveOrUpdateResources_insertNewResource_returnsEmptyList() {
+        Resource fresh = new Resource("code3", "url3", "hash3", 3L, InAppLayout.TOP, null, false, 1);
+
+        List<String> result = inAppDbHelper.saveOrUpdateResources(Arrays.asList(fresh));
+
+        Assert.assertTrue("insert must not signal a wipe", result.isEmpty());
+        Assert.assertEquals(fresh, inAppDbHelper.getResource("code3"));
+    }
+
+    // Verifies that a ts (updated) change on an existing row reports the code:
+    // version invalidation must trigger the caller's file wipe.
+    @Test
+    public void saveOrUpdateResources_updatedTsChange_returnsCode() {
+        Resource newTs = new Resource("code1", "url1", "hash1", 42L, InAppLayout.DIALOG, null, false, 3);
+
+        List<String> result = inAppDbHelper.saveOrUpdateResources(Arrays.asList(newTs));
+
+        Assert.assertTrue("ts change must signal a wipe", result.contains("code1"));
+        Assert.assertEquals(42L, inAppDbHelper.getResource("code1").getUpdated());
+    }
+
     private Set<String> getColumnNames(SQLiteDatabase db, String table) {
         Set<String> names = new HashSet<>();
         Cursor cursor = db.rawQuery("PRAGMA table_info(" + table + ")", null);

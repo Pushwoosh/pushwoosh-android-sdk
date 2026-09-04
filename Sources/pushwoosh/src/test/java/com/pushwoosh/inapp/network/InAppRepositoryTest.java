@@ -50,6 +50,7 @@ import com.pushwoosh.inapp.network.downloader.DownloadResult;
 import com.pushwoosh.inapp.network.downloader.InAppDownloader;
 import com.pushwoosh.inapp.network.model.InAppLayout;
 import com.pushwoosh.inapp.network.model.Resource;
+import com.pushwoosh.inapp.storage.InAppDbHelper;
 import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.storage.InAppStorage;
 import com.pushwoosh.inapp.view.InAppViewEvent;
@@ -57,6 +58,8 @@ import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
+import com.pushwoosh.internal.utils.FileUtils;
+import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.tags.Tags;
 import com.pushwoosh.testutil.CallbackWrapper;
@@ -71,20 +74,29 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.mockito.verification.VerificationMode;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 /**
@@ -110,6 +122,11 @@ public class InAppRepositoryTest {
 
     private PlatformTestManager platformTestManager;
 
+    private File statefulRoot;
+    private InAppDbHelper realDbHelper;
+    private InAppRepository statefulRepository;
+    private InAppDownloader statefulDownloaderMock;
+
     @Before
     public void setUp() {
         platformTestManager = new PlatformTestManager();
@@ -131,17 +148,435 @@ public class InAppRepositoryTest {
 
     @After
     public void tearDown() {
+        InAppRepository.downloadJoinTimeoutMs = 60_000;
+        if (realDbHelper != null) {
+            realDbHelper.close();
+        }
+        if (statefulRoot != null) {
+            FileUtils.deleteDirectory(statefulRoot);
+        }
         EventBus.clearSubscribersMap();
         NetworkModule.setRequestManager(null);
         platformTestManager.tearDown();
     }
 
+    /** Stateful rig: real InAppDbHelper + real InAppDeployedChecker over a tmp folder. */
+    private void setUpStatefulRepository() throws Exception {
+        statefulRoot = Files.createTempDirectory("inapp-ondemand").toFile();
+        realDbHelper = new InAppDbHelper(RuntimeEnvironment.application);
+
+        InAppFolderProvider folderProvider = mock(InAppFolderProvider.class);
+        when(folderProvider.getInAppFolder(Mockito.anyString()))
+                .thenAnswer(inv -> new File(statefulRoot, (String) inv.getArgument(0)));
+        when(folderProvider.getInAppHtmlFile(Mockito.anyString()))
+                .thenAnswer(inv -> new File(new File(statefulRoot, (String) inv.getArgument(0)), "index.html"));
+        when(folderProvider.getNativeConfigFile(Mockito.anyString()))
+                .thenAnswer(inv -> new File(new File(statefulRoot, (String) inv.getArgument(0)), "native-config.json"));
+
+        statefulDownloaderMock = mock(InAppDownloader.class);
+        when(statefulDownloaderMock.downloadAndDeploy(anyList())).thenAnswer(inv -> deployFiles(inv.getArgument(0)));
+        Mockito.doAnswer(inv -> {
+                    FileUtils.deleteDirectory(new File(statefulRoot, (String) inv.getArgument(0)));
+                    return null;
+                })
+                .when(statefulDownloaderMock)
+                .removeResourceFiles(Mockito.anyString());
+
+        statefulRepository =
+                new InAppRepository(realDbHelper, statefulDownloaderMock, resourceMapperMock, folderProvider);
+    }
+
+    /** Mirror of the real downloader for the stateful rig: wipe, then unpack index.html per resource. */
+    private DownloadResult deployFiles(List<Resource> resources) throws IOException {
+        for (Resource r : resources) {
+            File dir = new File(statefulRoot, r.getCode());
+            // Mirror the real downloader: deleteInAppFolder() wipes before unpacking.
+            FileUtils.deleteDirectory(dir);
+            //noinspection ResultOfMethodCallIgnored
+            dir.mkdirs();
+            Files.write(
+                    new File(dir, "index.html").toPath(),
+                    String.valueOf(r.getUpdated()).getBytes(StandardCharsets.UTF_8));
+        }
+        return DownloadResult.success(resources);
+    }
+
+    /** Gated downloader: signals downloadStarted, holds until the test opens the gate, then deploys or fails. */
+    private void stubGatedDownload(CountDownLatch downloadStarted, CountDownLatch gate, boolean succeed) {
+        when(statefulDownloaderMock.downloadAndDeploy(anyList())).thenAnswer(inv -> {
+            downloadStarted.countDown();
+            if (!gate.await(8, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("test gate was never opened");
+            }
+            return succeed ? deployFiles(inv.getArgument(0)) : DownloadResult.empty();
+        });
+    }
+
+    /** Waits until b parks in the leader's latch: other.await(timeout) is its only timed wait on the way there. */
+    private static void awaitJoined(Thread b) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 5_000;
+        while (b.getState() != Thread.State.TIMED_WAITING) {
+            if (System.currentTimeMillis() > deadline) {
+                Assert.fail("joiner never reached the latch");
+            }
+            Thread.sleep(5);
+        }
+    }
+
+    // Two on-demand shows of the same push rich media must download once: the first
+    // ensure call has to leave a DB row so the second one passes InAppDeployedChecker.
+    @Test
+    public void ensureResolvedAndDeployed_calledTwiceWithoutPrefetch_downloadsOnce() throws Exception {
+        setUpStatefulRepository();
+        Resource pushRichMedia =
+                new Resource("r-AAAA-BBBB", "https://cdn.example.com/r.zip", "", 100L, InAppLayout.TOP, null, false, 0);
+
+        Result<Resource, ResourceParseException> first = statefulRepository.ensureResolvedAndDeployed(pushRichMedia);
+        Result<Resource, ResourceParseException> second = statefulRepository.ensureResolvedAndDeployed(pushRichMedia);
+
+        Assert.assertTrue(first.isSuccess());
+        Assert.assertTrue(second.isSuccess());
+        verify(statefulDownloaderMock, Mockito.times(1)).downloadAndDeploy(anyList());
+    }
+
+    // Old-notification tap (ts=1) against a ts=2 row from prefetch: the row must follow the files
+    // to ts=1, so the next ts=2 show misses and re-downloads instead of silently serving stale content.
+    @Test
+    public void ensureResolvedAndDeployed_olderTsAfterNewerRow_rewritesRowAndInvalidatesFiles() throws Exception {
+        setUpStatefulRepository();
+        String code = "r-AAAA-BBBB";
+        Resource ts1 = new Resource(code, "https://cdn.example.com/r.zip", "", 1L, InAppLayout.TOP, null, false, 0);
+        Resource ts2 = new Resource(code, "https://cdn.example.com/r.zip", "", 2L, InAppLayout.TOP, null, false, 0);
+
+        // Simulate receive-time prefetch of ts2: DB row + deployed files on disk.
+        realDbHelper.saveOrUpdateResources(Collections.singletonList(ts2));
+        File dir = new File(statefulRoot, code);
+        //noinspection ResultOfMethodCallIgnored
+        dir.mkdirs();
+        //noinspection ResultOfMethodCallIgnored
+        new File(dir, "index.html").createNewFile();
+
+        Result<Resource, ResourceParseException> oldShow = statefulRepository.ensureResolvedAndDeployed(ts1);
+
+        Assert.assertTrue(oldShow.isSuccess());
+        Assert.assertEquals(1L, realDbHelper.getResource(code).getUpdated());
+        verify(statefulDownloaderMock, Mockito.times(1)).downloadAndDeploy(anyList());
+        // Fresh ts1 files must survive the row write: a wipe here would be updateInAppStorage's.
+        Assert.assertEquals(
+                "1", new String(Files.readAllBytes(new File(dir, "index.html").toPath()), StandardCharsets.UTF_8));
+
+        // Today (without the fix) this second show would pass check and show ts1 content under ts2.
+        Result<Resource, ResourceParseException> newShow = statefulRepository.ensureResolvedAndDeployed(ts2);
+
+        Assert.assertTrue(newShow.isSuccess());
+        Assert.assertEquals(2L, realDbHelper.getResource(code).getUpdated());
+        verify(statefulDownloaderMock, Mockito.times(2)).downloadAndDeploy(anyList());
+    }
+
+    // Stale files without a DB row (what every pre-fix on-demand show left behind): a newer ts must
+    // fetch fresh content, not stamp its ts over the old files and serve them as a cache hit forever.
+    @Test
+    public void ensureResolvedAndDeployed_staleFilesWithoutRow_downloadsFreshContent() throws Exception {
+        setUpStatefulRepository();
+        String code = "r-AAAA-BBBB";
+        File dir = new File(statefulRoot, code);
+        //noinspection ResultOfMethodCallIgnored
+        dir.mkdirs();
+        File html = new File(dir, "index.html");
+        Files.write(html.toPath(), "7".getBytes(StandardCharsets.UTF_8));
+        Assert.assertNull("precondition: files without a row", realDbHelper.getResource(code));
+
+        Resource ts42 = new Resource(code, "https://cdn.example.com/r.zip", "", 42L, InAppLayout.TOP, null, false, 0);
+        Result<Resource, ResourceParseException> result = statefulRepository.ensureResolvedAndDeployed(ts42);
+
+        Assert.assertTrue(result.isSuccess());
+        verify(statefulDownloaderMock).downloadAndDeploy(anyList());
+        Assert.assertEquals("42", new String(Files.readAllBytes(html.toPath()), StandardCharsets.UTF_8));
+        Assert.assertEquals(42L, realDbHelper.getResource(code).getUpdated());
+    }
+
+    // Prefetch of a new version over a deployed old one must not touch the row (and must not
+    // queue a wipe) until the download succeeds: the pre-write + wipe combo raced concurrent
+    // shows of the same code and deleted freshly deployed files (SDK-957).
+    @Test(timeout = 10_000)
+    public void prefetchRichMedia_newTsOverDeployedOldTs_writesRowOnlyAfterDownload() throws Exception {
+        setUpStatefulRepository();
+        String code = "r-AAAA-BBBB";
+        Resource ts1 =
+                new Resource(code, "https://cdn.example.com/AAAA-BBBB.zip", "", 1L, InAppLayout.TOP, null, false, 0);
+        realDbHelper.saveOrUpdateResources(Collections.singletonList(ts1));
+        File dir = new File(statefulRoot, code);
+        //noinspection ResultOfMethodCallIgnored
+        dir.mkdirs();
+        Files.write(new File(dir, "index.html").toPath(), "1".getBytes(StandardCharsets.UTF_8));
+
+        CountDownLatch downloadStarted = new CountDownLatch(1);
+        CountDownLatch gate = new CountDownLatch(1);
+        stubGatedDownload(downloadStarted, gate, true);
+
+        String newTsJson = "{\"url\":\"https://cdn.example.com/AAAA-BBBB.zip\",\"ts\":2}";
+        Thread prefetch = new Thread(() -> statefulRepository.prefetchRichMedia(newTsJson));
+        prefetch.start();
+        Assert.assertTrue("download never started", downloadStarted.await(5, TimeUnit.SECONDS));
+
+        // Gate closed: the row must still be ts1 and no wipe may have been queued.
+        Assert.assertEquals(1L, realDbHelper.getResource(code).getUpdated());
+        verify(statefulDownloaderMock, Mockito.never()).removeResourceFiles(Mockito.anyString());
+
+        gate.countDown();
+        prefetch.join(5_000);
+
+        Assert.assertEquals(2L, realDbHelper.getResource(code).getUpdated());
+        Assert.assertEquals(
+                "2", new String(Files.readAllBytes(new File(dir, "index.html").toPath()), StandardCharsets.UTF_8));
+        verify(statefulDownloaderMock, Mockito.never()).removeResourceFiles(Mockito.anyString());
+    }
+
+    // Two concurrent shows of one code: the leader downloads once, the joiner waits on the
+    // leader's latch and takes its truth from check.
+    @Test(timeout = 10_000)
+    public void downloadIfNeeded_concurrentShowsOfSameCode_downloadOnceBothSucceed() throws Exception {
+        setUpStatefulRepository();
+        CountDownLatch downloadStarted = new CountDownLatch(1);
+        CountDownLatch gate = new CountDownLatch(1);
+        stubGatedDownload(downloadStarted, gate, true);
+        Resource resource =
+                new Resource("r-AAAA-BBBB", "https://cdn.example.com/r.zip", "", 100L, InAppLayout.TOP, null, false, 0);
+
+        AtomicBoolean aResult = new AtomicBoolean();
+        AtomicBoolean bResult = new AtomicBoolean();
+        Thread a = new Thread(() -> aResult.set(
+                statefulRepository.ensureResolvedAndDeployed(resource).isSuccess()));
+        Thread b = new Thread(() -> bResult.set(
+                statefulRepository.ensureResolvedAndDeployed(resource).isSuccess()));
+
+        a.start();
+        Assert.assertTrue("leader never reached the downloader", downloadStarted.await(5, TimeUnit.SECONDS));
+        b.start();
+        awaitJoined(b);
+        gate.countDown();
+        a.join(5_000);
+        b.join(5_000);
+
+        Assert.assertTrue(aResult.get());
+        Assert.assertTrue(bResult.get());
+        verify(statefulDownloaderMock, Mockito.times(1)).downloadAndDeploy(anyList());
+        Assert.assertEquals(100L, realDbHelper.getResource("r-AAAA-BBBB").getUpdated());
+    }
+
+    // Failed leader: joiner gets an honest false (no retry), and the finally-cleanup makes the
+    // very next call a fresh leader instead of a joiner of a dead latch.
+    @Test(timeout = 10_000)
+    public void downloadIfNeeded_leaderFails_bothFalseAndNextCallLeadsAgain() throws Exception {
+        setUpStatefulRepository();
+        CountDownLatch downloadStarted = new CountDownLatch(1);
+        CountDownLatch gate = new CountDownLatch(1);
+        stubGatedDownload(downloadStarted, gate, false);
+        Resource resource =
+                new Resource("r-AAAA-BBBB", "https://cdn.example.com/r.zip", "", 100L, InAppLayout.TOP, null, false, 0);
+
+        AtomicBoolean aResult = new AtomicBoolean(true);
+        AtomicBoolean bResult = new AtomicBoolean(true);
+        Thread a = new Thread(() -> aResult.set(
+                statefulRepository.ensureResolvedAndDeployed(resource).isSuccess()));
+        Thread b = new Thread(() -> bResult.set(
+                statefulRepository.ensureResolvedAndDeployed(resource).isSuccess()));
+
+        a.start();
+        Assert.assertTrue(downloadStarted.await(5, TimeUnit.SECONDS));
+        b.start();
+        awaitJoined(b);
+        gate.countDown();
+        a.join(5_000);
+        b.join(5_000);
+
+        Assert.assertFalse(aResult.get());
+        Assert.assertFalse(bResult.get());
+        verify(statefulDownloaderMock, Mockito.times(1)).downloadAndDeploy(anyList());
+        Assert.assertNull("failed leader must not leave a row", realDbHelper.getResource("r-AAAA-BBBB"));
+
+        // map cleaned in finally: the retry must lead and download, not join a dead latch
+        when(statefulDownloaderMock.downloadAndDeploy(anyList())).thenAnswer(inv -> deployFiles(inv.getArgument(0)));
+        Assert.assertTrue(statefulRepository.ensureResolvedAndDeployed(resource).isSuccess());
+        verify(statefulDownloaderMock, Mockito.times(2)).downloadAndDeploy(anyList());
+    }
+
+    // Slow leader: the joiner gives up after downloadJoinTimeoutMs with false while the leader
+    // is still inside the downloader, and the leader itself finishes with true.
+    @Test(timeout = 10_000)
+    public void downloadIfNeeded_joinerTimesOut_falseWhileLeaderStillDownloading() throws Exception {
+        setUpStatefulRepository();
+        InAppRepository.downloadJoinTimeoutMs = 200;
+        CountDownLatch downloadStarted = new CountDownLatch(1);
+        CountDownLatch gate = new CountDownLatch(1);
+        stubGatedDownload(downloadStarted, gate, true);
+        Resource resource =
+                new Resource("r-AAAA-BBBB", "https://cdn.example.com/r.zip", "", 100L, InAppLayout.TOP, null, false, 0);
+
+        AtomicBoolean aResult = new AtomicBoolean();
+        Thread a = new Thread(() -> aResult.set(
+                statefulRepository.ensureResolvedAndDeployed(resource).isSuccess()));
+        a.start();
+        Assert.assertTrue(downloadStarted.await(5, TimeUnit.SECONDS));
+
+        // joiner runs on the test thread: with the gate still closed it must give up in ~200ms
+        Result<Resource, ResourceParseException> joiner = statefulRepository.ensureResolvedAndDeployed(resource);
+        Assert.assertFalse(joiner.isSuccess());
+        Assert.assertTrue("leader must still be downloading when the joiner gives up", a.isAlive());
+
+        gate.countDown();
+        a.join(5_000);
+        Assert.assertTrue(aResult.get());
+        verify(statefulDownloaderMock, Mockito.times(1)).downloadAndDeploy(anyList());
+    }
+
+    // The map is keyed by code: a ts2 show joins the in-flight ts1 download, wakes up, and its
+    // check against the ts1 row is an honest false. It must not download and must not wipe ts1 files.
+    @Test(timeout = 10_000)
+    public void downloadIfNeeded_joinerWithDifferentTs_falseAndLeaderFilesSurvive() throws Exception {
+        setUpStatefulRepository();
+        String code = "r-AAAA-BBBB";
+        Resource ts1 = new Resource(code, "https://cdn.example.com/r.zip", "", 1L, InAppLayout.TOP, null, false, 0);
+        Resource ts2 = new Resource(code, "https://cdn.example.com/r.zip", "", 2L, InAppLayout.TOP, null, false, 0);
+        CountDownLatch downloadStarted = new CountDownLatch(1);
+        CountDownLatch gate = new CountDownLatch(1);
+        stubGatedDownload(downloadStarted, gate, true);
+
+        AtomicBoolean aResult = new AtomicBoolean();
+        AtomicBoolean bResult = new AtomicBoolean(true);
+        Thread a = new Thread(() ->
+                aResult.set(statefulRepository.ensureResolvedAndDeployed(ts1).isSuccess()));
+        Thread b = new Thread(() ->
+                bResult.set(statefulRepository.ensureResolvedAndDeployed(ts2).isSuccess()));
+
+        a.start();
+        Assert.assertTrue(downloadStarted.await(5, TimeUnit.SECONDS));
+        b.start();
+        awaitJoined(b);
+        gate.countDown();
+        a.join(5_000);
+        b.join(5_000);
+
+        Assert.assertTrue(aResult.get());
+        Assert.assertFalse(bResult.get());
+        verify(statefulDownloaderMock, Mockito.times(1)).downloadAndDeploy(anyList());
+        Assert.assertEquals(1L, realDbHelper.getResource(code).getUpdated());
+        Assert.assertEquals(
+                "1",
+                new String(
+                        Files.readAllBytes(new File(new File(statefulRoot, code), "index.html").toPath()),
+                        StandardCharsets.UTF_8));
+    }
+
+    // loadInApps goes through downloadIfNeeded one code at a time: a show of the code being fetched
+    // right now joins that code's download and wakes when it lands, not when the whole batch does.
+    @Test(timeout = 10_000)
+    public void downloadIfNeeded_showDuringLoadInAppsBatch_wakesOnItsCodeNotWholeBatch() throws Exception {
+        setUpStatefulRepository();
+        Resource a =
+                new Resource("AAAA-1111", "https://cdn.example.com/a.zip", "", 100L, InAppLayout.TOP, null, true, 0);
+        Resource b =
+                new Resource("BBBB-2222", "https://cdn.example.com/b.zip", "", 100L, InAppLayout.TOP, null, true, 0);
+        when(requestManagerMock.sendRequestSync(any())).thenReturn(Result.fromData(Arrays.asList(a, b)));
+        CountDownLatch aStarted = new CountDownLatch(1);
+        CountDownLatch aGate = new CountDownLatch(1);
+        CountDownLatch bGate = new CountDownLatch(1);
+        when(statefulDownloaderMock.downloadAndDeploy(anyList())).thenAnswer(inv -> {
+            List<Resource> resources = inv.getArgument(0);
+            boolean isA = "AAAA-1111".equals(resources.get(0).getCode());
+            if (isA) {
+                aStarted.countDown();
+            }
+            if (!(isA ? aGate : bGate).await(8, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("test gate was never opened");
+            }
+            return deployFiles(resources);
+        });
+
+        AtomicBoolean showResult = new AtomicBoolean();
+        Thread batch = new Thread(() -> statefulRepository.loadInApps());
+        Thread show = new Thread(() ->
+                showResult.set(statefulRepository.ensureResolvedAndDeployed(a).isSuccess()));
+
+        batch.start();
+        Assert.assertTrue("batch never reached the downloader", aStarted.await(5, TimeUnit.SECONDS));
+        show.start();
+        awaitJoined(show);
+        aGate.countDown();
+        show.join(5_000);
+
+        Assert.assertTrue("show must wake as soon as its own code lands", showResult.get());
+        Assert.assertTrue("batch must still be fetching the next code", batch.isAlive());
+        bGate.countDown();
+        batch.join(5_000);
+
+        verify(statefulDownloaderMock, Mockito.times(2)).downloadAndDeploy(anyList());
+        Assert.assertEquals(
+                "100",
+                new String(
+                        Files.readAllBytes(new File(new File(statefulRoot, "AAAA-1111"), "index.html").toPath()),
+                        StandardCharsets.UTF_8));
+    }
+
+    // Check runs under the claim, not before it. The gated checker lets the joiner's second check capture
+    // the truth and then holds it until the leader is gone: with check-first that second check is the
+    // pre-claim one, it captures false, and the joiner lands in an empty map as a second leader that
+    // downloads again. With check-under-claim it is the post-await check and sees the leader's row.
+    @Test(timeout = 10_000)
+    public void downloadIfNeeded_checkRunsUnderClaim_lateSecondCallerJoinsInsteadOfLeading() throws Exception {
+        setUpStatefulRepository();
+        CountDownLatch downloadStarted = new CountDownLatch(1);
+        CountDownLatch gate = new CountDownLatch(1);
+        CountDownLatch leaderDone = new CountDownLatch(1);
+        stubGatedDownload(downloadStarted, gate, true);
+        Resource resource =
+                new Resource("r-AAAA-BBBB", "https://cdn.example.com/r.zip", "", 100L, InAppLayout.TOP, null, false, 0);
+
+        InAppDeployedChecker realChecker =
+                (InAppDeployedChecker) WhiteboxHelper.getInternalState(statefulRepository, "inAppDeployedChecker");
+        InAppDeployedChecker gatedChecker = mock(InAppDeployedChecker.class);
+        AtomicInteger joinerChecks = new AtomicInteger();
+        when(gatedChecker.check(any(Resource.class))).thenAnswer(inv -> {
+            boolean deployed = realChecker.check(inv.getArgument(0));
+            boolean secondJoinerCheck =
+                    "joiner".equals(Thread.currentThread().getName()) && joinerChecks.incrementAndGet() == 2;
+            if (secondJoinerCheck && !leaderDone.await(8, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("test gate leaderDone was never opened");
+            }
+            return deployed;
+        });
+        WhiteboxHelper.setInternalState(statefulRepository, "inAppDeployedChecker", gatedChecker);
+
+        AtomicBoolean aResult = new AtomicBoolean();
+        AtomicBoolean bResult = new AtomicBoolean();
+        Thread a = new Thread(() -> aResult.set(
+                statefulRepository.ensureResolvedAndDeployed(resource).isSuccess()));
+        Thread b = new Thread(
+                () -> bResult.set(
+                        statefulRepository.ensureResolvedAndDeployed(resource).isSuccess()),
+                "joiner");
+
+        a.start();
+        Assert.assertTrue("leader never reached the downloader", downloadStarted.await(5, TimeUnit.SECONDS));
+        b.start();
+        awaitJoined(b);
+        gate.countDown();
+        a.join(5_000);
+        leaderDone.countDown();
+        b.join(5_000);
+
+        Assert.assertTrue(aResult.get());
+        Assert.assertTrue(bResult.get());
+        verify(statefulDownloaderMock, Mockito.times(1)).downloadAndDeploy(anyList());
+    }
+
+    // The batch is downloaded one code per downloader call, in Resource order: required first, then code.
     @Test
     public void loadInApps() throws Exception {
-        List<Resource> resourceList = new ArrayList<>();
-        resourceList.add(new Resource("1", true));
-        resourceList.add(new Resource("2", true));
-        resourceList.add(new Resource("3", true));
+        Resource optional3 = new Resource("3", false);
+        Resource required1 = new Resource("1", true);
+        Resource required2 = new Resource("2", true);
+        List<Resource> resourceList = new ArrayList<>(Arrays.asList(optional3, required1, required2));
 
         List<String> codeList = new ArrayList<>();
         codeList.add("1");
@@ -151,15 +586,43 @@ public class InAppRepositoryTest {
         Result<Object, NetworkException> getInAppsResult = Result.fromData(resourceList);
         when(requestManagerMock.sendRequestSync(any())).thenReturn(getInAppsResult);
         when(inAppStorageMock.saveOrUpdateResources(resourceList)).thenReturn(codeList);
-        when(inAppDownloaderMock.downloadAndDeploy(resourceList)).thenReturn(DownloadResult.success(resourceList));
+        when(inAppDownloaderMock.downloadAndDeploy(anyList()))
+                .thenAnswer(inv -> DownloadResult.success(inv.getArgument(0)));
 
         Result<Void, NetworkException> result = inAppRepository.loadInApps();
 
         Assert.assertNull(result.getData());
         verify(inAppDownloaderMock, Mockito.times(3)).removeResourceFiles(Mockito.anyString());
         verify(inAppStorageMock).saveOrUpdateResources(resourceList);
-        verify(inAppDownloaderMock).downloadAndDeploy(resourceList);
+        InOrder inOrder = Mockito.inOrder(inAppDownloaderMock);
+        inOrder.verify(inAppDownloaderMock).downloadAndDeploy(Collections.singletonList(required1));
+        inOrder.verify(inAppDownloaderMock).downloadAndDeploy(Collections.singletonList(required2));
+        inOrder.verify(inAppDownloaderMock).downloadAndDeploy(Collections.singletonList(optional3));
         verify(requestManagerMock).sendRequestSync(any());
+    }
+
+    // A failed code must not stop the batch: every remaining code still gets its own downloader call.
+    @Test
+    public void loadInApps_oneCodeFails_continuesWithRemainingCodes() {
+        Resource required1 = new Resource("1", true);
+        Resource required2 = new Resource("2", true);
+        Resource required3 = new Resource("3", true);
+        List<Resource> resourceList = new ArrayList<>(Arrays.asList(required1, required2, required3));
+        Result<Object, NetworkException> getInAppsResult = Result.fromData(resourceList);
+        when(requestManagerMock.sendRequestSync(any())).thenReturn(getInAppsResult);
+        when(inAppStorageMock.saveOrUpdateResources(anyList())).thenReturn(Collections.emptyList());
+        when(inAppDownloaderMock.downloadAndDeploy(anyList())).thenAnswer(inv -> {
+            List<Resource> batch = inv.getArgument(0);
+            return "1".equals(batch.get(0).getCode()) ? DownloadResult.empty() : DownloadResult.success(batch);
+        });
+
+        inAppRepository.loadInApps();
+
+        verify(inAppDownloaderMock, Mockito.times(3)).downloadAndDeploy(anyList());
+        InOrder inOrder = Mockito.inOrder(inAppDownloaderMock);
+        inOrder.verify(inAppDownloaderMock).downloadAndDeploy(Collections.singletonList(required1));
+        inOrder.verify(inAppDownloaderMock).downloadAndDeploy(Collections.singletonList(required2));
+        inOrder.verify(inAppDownloaderMock).downloadAndDeploy(Collections.singletonList(required3));
     }
 
     @Test
@@ -180,7 +643,6 @@ public class InAppRepositoryTest {
 
         JSONObject response = new JSONObject();
         response.put("code", "test_code");
-        response.put("required", "true");
         Result<PostEventResponse, NetworkException> result = Result.fromData(new PostEventResponse(response));
         emulatePostEventToNetwork(result);
 
@@ -276,6 +738,7 @@ public class InAppRepositoryTest {
         Assert.assertEquals(
                 "Can't download or update richMedia: r-9F5CD-8579F",
                 result.getException().getMessage());
+        verify(inAppStorageMock, Mockito.never()).saveOrUpdateResources(anyList());
     }
 
     @Test
@@ -300,7 +763,7 @@ public class InAppRepositoryTest {
         Assert.assertNull(result.getException());
     }
 
-    // ensureResolvedAndDeployed: deployed resource short-circuits — no network, no downloader.
+    // ensureResolvedAndDeployed: deployed resource short-circuits — no network, no downloader, no DB write.
     @Test
     public void ensureResolvedAndDeployed_alreadyDeployed_fastPathWithoutNetwork() {
         Resource resource =
@@ -313,6 +776,7 @@ public class InAppRepositoryTest {
         Assert.assertSame(resource, result.getData());
         verify(inAppDownloaderMock, never()).downloadAndDeploy(anyList());
         verify(requestManagerMock, never()).sendRequestSync(any());
+        verify(inAppStorageMock, never()).saveOrUpdateResources(anyList());
     }
 
     // ensureResolvedAndDeployed: not deployed -> downloadIfNeeded path is taken.
@@ -321,7 +785,6 @@ public class InAppRepositoryTest {
         Resource resource =
                 new Resource("1", "http://example.com/inapp", null, 0L, InAppLayout.FULLSCREEN, null, true, -1);
         when(inAppDeployedCheckerMock.check(resource)).thenReturn(false);
-        when(inAppDownloaderMock.isDownloading(resource)).thenReturn(false);
         when(inAppDownloaderMock.downloadAndDeploy(anyList()))
                 .thenReturn(DownloadResult.success(Collections.singletonList(resource)));
 
@@ -388,7 +851,6 @@ public class InAppRepositoryTest {
         Resource resource =
                 new Resource("1", "http://example.com/inapp", null, 0L, InAppLayout.FULLSCREEN, null, true, -1);
         when(inAppDeployedCheckerMock.check(resource)).thenReturn(false);
-        when(inAppDownloaderMock.isDownloading(resource)).thenReturn(false);
         when(inAppDownloaderMock.downloadAndDeploy(anyList())).thenReturn(DownloadResult.empty());
 
         Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(resource);
@@ -397,35 +859,36 @@ public class InAppRepositoryTest {
         Assert.assertTrue(result.getException().getMessage().contains("Can't download or update"));
     }
 
-    // Verifies that a required code-only in-app arriving before getInApps finishes blocks in
-    // waitUntilObtainInApps and resolves from storage once the list is loaded.
-    // Kills L497 mutant that silences the isRequired()/waitUntilObtainInApps branch: with the mutant
-    // the stub skips the wait, is never resolved from storage and leaks downstream as a code-only stub.
+    // On-demand miss with a url writes the row AFTER a successful download, so the row never
+    // describes files that are not on disk yet.
     @Test
-    public void ensureResolvedAndDeployed_requiredInAppWaitsForListAndResolves() throws Exception {
-        Resource stub = new Resource("code1", true);
-        Resource full =
-                new Resource("code1", "http://example.com/z.zip", "h", 5L, InAppLayout.FULLSCREEN, null, true, 0);
-        when(inAppStorageMock.getResource("code1")).thenReturn(full);
-        when(inAppDeployedCheckerMock.check(full)).thenReturn(true);
-        Result<Object, NetworkException> emptyResult = Result.fromData(Collections.emptyList());
-        when(requestManagerMock.sendRequestSync(any())).thenReturn(emptyResult);
+    public void ensureResolvedAndDeployed_missWithUrl_writesRowAfterDownload() {
+        Resource resource =
+                new Resource("1", "http://example.com/inapp", null, 0L, InAppLayout.FULLSCREEN, null, true, -1);
+        when(inAppDeployedCheckerMock.check(resource)).thenReturn(false);
+        when(inAppDownloaderMock.downloadAndDeploy(anyList()))
+                .thenReturn(DownloadResult.success(Collections.singletonList(resource)));
 
-        Thread listLoader = new Thread(() -> {
-            try {
-                Thread.sleep(400);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            inAppRepository.loadInApps();
-        });
-        listLoader.start();
-
-        Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(stub);
-        listLoader.join();
+        Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(resource);
 
         Assert.assertTrue(result.isSuccess());
-        Assert.assertSame(full, result.getData());
+        InOrder inOrder = Mockito.inOrder(inAppDownloaderMock, inAppStorageMock);
+        inOrder.verify(inAppDownloaderMock).downloadAndDeploy(anyList());
+        inOrder.verify(inAppStorageMock).saveOrUpdateResources(Collections.singletonList(resource));
+    }
+
+    // Outer check missed, inner hit (another thread deployed the code in between): success without
+    // a download or a row write. Kills removal of the early return at the top of downloadIfNeeded.
+    @Test
+    public void ensureResolvedAndDeployed_innerCheckHit_skipsDownloadAndWrite() {
+        Resource stub = new Resource("code1", false);
+        when(inAppDeployedCheckerMock.check(stub)).thenReturn(false, true);
+
+        Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(stub);
+
+        Assert.assertTrue(result.isSuccess());
+        verify(inAppDownloaderMock, never()).downloadAndDeploy(anyList());
+        verify(inAppStorageMock, never()).saveOrUpdateResources(anyList());
     }
 
     // Verifies that a non-required code-only in-app does not resolve from storage while the in-app
@@ -440,7 +903,6 @@ public class InAppRepositoryTest {
         when(inAppStorageMock.getResource("code1")).thenReturn(full);
         when(inAppDeployedCheckerMock.check(full)).thenReturn(true);
         when(inAppDeployedCheckerMock.check(stub)).thenReturn(false);
-        when(inAppDownloaderMock.isDownloading(stub)).thenReturn(false);
         when(inAppDownloaderMock.downloadAndDeploy(anyList())).thenReturn(DownloadResult.empty());
 
         Result<Resource, ResourceParseException> result = inAppRepository.ensureResolvedAndDeployed(stub);
@@ -918,8 +1380,7 @@ public class InAppRepositoryTest {
     }
 
     // Verifies that mapToHtmlData returns ResourceParseException when ResourceMapper throws IOException.
-    // Uses a Resource with non-null URL so isNotDownload() is false and we bypass the storage-lookup
-    // branch (which would otherwise hit waitUntilObtainInApps's 5s Thread.sleep loop).
+    // Uses a Resource with non-null URL so isNotDownload() is false and the storage-lookup branch is bypassed.
     @Test
     public void mapToHtmlData_mapperThrowsIOException_returnsResourceParseException() throws Exception {
         Resource resource =
@@ -942,7 +1403,6 @@ public class InAppRepositoryTest {
         Resource resource =
                 new Resource("1", "http://example.com/inapp", null, 0L, InAppLayout.FULLSCREEN, null, true, -1);
         when(inAppDeployedCheckerMock.check(any(Resource.class))).thenReturn(false);
-        when(inAppDownloaderMock.isDownloading(any(Resource.class))).thenReturn(false);
         when(inAppDownloaderMock.downloadAndDeploy(anyList())).thenReturn(DownloadResult.empty());
 
         Result<HtmlData, ResourceParseException> result = inAppRepository.mapToHtmlData(resource);
@@ -1190,5 +1650,72 @@ public class InAppRepositoryTest {
         Assert.assertNull(result.getData());
         verify(inAppStorageMock, never()).saveOrUpdateResources(anyList());
         verify(inAppDownloaderMock, never()).downloadAndDeploy(anyList());
+    }
+
+    /** Captures submitted tasks instead of running them, to prove work left the caller's thread. */
+    private static ExecutorService capturingExecutor(List<Runnable> captured) {
+        return new AbstractExecutorService() {
+            @Override
+            public void execute(Runnable command) {
+                captured.add(command);
+            }
+
+            @Override
+            public void shutdown() {}
+
+            @Override
+            public List<Runnable> shutdownNow() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public boolean isShutdown() {
+                return false;
+            }
+
+            @Override
+            public boolean isTerminated() {
+                return false;
+            }
+
+            @Override
+            public boolean awaitTermination(long timeout, TimeUnit unit) {
+                return true;
+            }
+        };
+    }
+
+    // Async contract of the receive-time prefetch: nothing happens on the caller's thread;
+    // the single captured task does ZIP download, then the DB row, then the tags request.
+    @Test
+    public void prefetchRichMediaAndTags_capturedTask_downloadThenRowThenTags() throws Exception {
+        List<Runnable> captured = new ArrayList<>();
+        InAppRepository repo = new InAppRepository(
+                inAppStorageMock,
+                inAppDownloaderMock,
+                resourceMapperMock,
+                inAppFolderProviderMock,
+                capturingExecutor(captured));
+        WhiteboxHelper.setInternalState(repo, "inAppDeployedChecker", inAppDeployedCheckerMock);
+
+        PushwooshRepository pushwooshRepositorySpy = platformTestManager.getPushwooshRepositoryMock();
+        Mockito.doNothing().when(pushwooshRepositorySpy).prefetchTags();
+        when(inAppDeployedCheckerMock.check(any(Resource.class))).thenReturn(false);
+        when(inAppDownloaderMock.downloadAndDeploy(anyList()))
+                .thenAnswer(inv -> DownloadResult.success(inv.getArgument(0)));
+
+        repo.prefetchRichMediaAndTags(RICH_MEDIA);
+
+        verify(inAppDownloaderMock, Mockito.never()).downloadAndDeploy(anyList());
+        verify(inAppStorageMock, Mockito.never()).saveOrUpdateResources(anyList());
+        verify(pushwooshRepositorySpy, Mockito.never()).prefetchTags();
+        Assert.assertEquals(1, captured.size());
+
+        captured.get(0).run();
+
+        InOrder inOrder = Mockito.inOrder(inAppDownloaderMock, inAppStorageMock, pushwooshRepositorySpy);
+        inOrder.verify(inAppDownloaderMock).downloadAndDeploy(anyList());
+        inOrder.verify(inAppStorageMock).saveOrUpdateResources(anyList());
+        inOrder.verify(pushwooshRepositorySpy).prefetchTags();
     }
 }

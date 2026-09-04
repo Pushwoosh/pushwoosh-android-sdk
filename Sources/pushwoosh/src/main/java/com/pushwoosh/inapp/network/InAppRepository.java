@@ -30,6 +30,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
 import com.pushwoosh.PushwooshPlatform;
@@ -42,7 +43,6 @@ import com.pushwoosh.exception.SetUserException;
 import com.pushwoosh.exception.SetUserIdException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
-import com.pushwoosh.inapp.event.InAppEvent;
 import com.pushwoosh.inapp.exception.ResourceParseException;
 import com.pushwoosh.inapp.mapper.ResourceMapper;
 import com.pushwoosh.inapp.model.HtmlData;
@@ -53,7 +53,6 @@ import com.pushwoosh.inapp.storage.InAppFolderProvider;
 import com.pushwoosh.inapp.storage.InAppStorage;
 import com.pushwoosh.inapp.view.InAppViewEvent;
 import com.pushwoosh.internal.event.EventBus;
-import com.pushwoosh.internal.event.Subscription;
 import com.pushwoosh.internal.event.UserIdUpdatedEvent;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
@@ -69,16 +68,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InAppRepository {
     private static final String TAG = "[InApp]InAppRepository";
-    // Time while wait required inApp
-    private static final int REQUIRED_TIMEOUT_SECONDS = 5;
 
     private final InAppStorage inAppStorage;
     private final InAppDownloader inAppDownloader;
@@ -86,17 +84,40 @@ public class InAppRepository {
     private final ResourceMapper resourceMapper;
     private final AtomicBoolean inAppLoaded = new AtomicBoolean(false);
 
-    private final ExecutorService io = Executors.newSingleThreadExecutor();
+    /**
+     * Single-threaded lane for in-app resource work: downloading resources for postEvent
+     * responses and (since SDK-957) receive-time rich media prefetch + tags refresh.
+     * Contract: postEvent response handling (including showing a code-based in-app already
+     * on disk) is the only work whose latency may depend on this queue. Tap-driven shows,
+     * notification tap handling and API requests must never wait on it.
+     */
+    private final ExecutorService io;
+
+    private final ConcurrentHashMap<String, CountDownLatch> inFlightDownloads = new ConcurrentHashMap<>();
+
+    @VisibleForTesting
+    static long downloadJoinTimeoutMs = 60_000;
 
     public InAppRepository(
             InAppStorage inAppStorage,
             InAppDownloader inAppDownloader,
             ResourceMapper resourceMapper,
             InAppFolderProvider inAppFolderProvider) {
+        this(inAppStorage, inAppDownloader, resourceMapper, inAppFolderProvider, Executors.newSingleThreadExecutor());
+    }
+
+    @VisibleForTesting
+    InAppRepository(
+            InAppStorage inAppStorage,
+            InAppDownloader inAppDownloader,
+            ResourceMapper resourceMapper,
+            InAppFolderProvider inAppFolderProvider,
+            ExecutorService io) {
 
         this.inAppStorage = inAppStorage;
         this.inAppDownloader = inAppDownloader;
         this.resourceMapper = resourceMapper;
+        this.io = io;
 
         inAppDeployedChecker = new InAppDeployedChecker(inAppStorage, inAppFolderProvider);
         EventBus.subscribe(InAppViewEvent.class, (event) -> {
@@ -141,76 +162,73 @@ public class InAppRepository {
         }
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     @WorkerThread
-    private DownloadResult downloadOrUpdate(List<Resource> inapps) {
-        List<Resource> needDeploy = new ArrayList<>();
-
-        for (Resource resource : inapps) {
-            if (!inAppDeployedChecker.check(resource)) {
-                needDeploy.add(resource);
-            }
+    private void downloadOrUpdate(List<Resource> inapps) {
+        // One code per downloader call on purpose: a show during the batch waits for its own ZIP through
+        // the in-flight map, not for the whole batch behind the downloader mutex.
+        List<Resource> ordered = new ArrayList<>(inapps);
+        Collections.sort(ordered);
+        for (Resource resource : ordered) {
+            downloadIfNeeded(resource);
         }
-
-        if (needDeploy.isEmpty()) {
-            return DownloadResult.empty();
-        }
-
-        return inAppDownloader.downloadAndDeploy(needDeploy);
     }
 
+    @WorkerThread
     private boolean downloadIfNeeded(Resource resource) {
-        // Resource already deployed - nothing to do
-        if (inAppDeployedChecker.check(resource)) {
-            return true;
+        String code = resource.getCode();
+        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch other = inFlightDownloads.putIfAbsent(code, latch);
+        if (other != null) {
+            return joinInFlightDownload(resource, other);
         }
 
-        // Resource is being downloaded by another thread - wait for completion
-        if (inAppDownloader.isDownloading(resource)) {
-            PWLog.noise(TAG, String.format("Waiting for resource download to complete: %s", resource.getCode()));
-            return waitUntilDeploying(resource);
+        boolean success = false;
+        try {
+            // Checked under the claim, not before it: a leader finishing in between would otherwise
+            // leave a second leader to wipe and re-download its files.
+            if (inAppDeployedChecker.check(resource)) {
+                return true;
+            }
+            PWLog.noise(TAG, String.format("Starting download for resource: %s", code));
+            DownloadResult downloadResult = inAppDownloader.downloadAndDeploy(Collections.singletonList(resource));
+            success = !downloadResult.getSuccess().isEmpty();
+            // Row lands after the download, and without updateInAppStorage's wipe: written before, it
+            // makes the check pass on stale files; the download already wiped them.
+            if (success && resource.getUrl() != null) {
+                inAppStorage.saveOrUpdateResources(Collections.singletonList(resource));
+            }
+        } finally {
+            // remove before countDown: a woken joiner re-entering must see a fresh row or a live leader
+            inFlightDownloads.remove(code, latch);
+            latch.countDown();
         }
-
-        // Initiate resource download
-        PWLog.noise(TAG, String.format("Starting download for resource: %s", resource.getCode()));
-        DownloadResult downloadResult = inAppDownloader.downloadAndDeploy(Collections.singletonList(resource));
-        boolean success = !downloadResult.getSuccess().isEmpty();
 
         if (success) {
-            PWLog.info(TAG, String.format("Successfully downloaded resource: %s", resource.getCode()));
+            PWLog.info(TAG, String.format("Successfully downloaded resource: %s", code));
         } else {
-            PWLog.error(TAG, String.format("Failed to download resource: %s", resource.getCode()));
+            PWLog.error(TAG, String.format("Failed to download resource: %s", code));
         }
-
         return success;
     }
 
-    // if resource downloading now wait until it deploying or not
-    private boolean waitUntilDeploying(Resource resource) {
-        CountDownLatch latch = new CountDownLatch(1);
-
-        final InAppEvent.EventType[] eventType = {InAppEvent.EventType.DEPLOY_FAILED};
-        Subscription<InAppEvent> subscribe = EventBus.subscribe(InAppEvent.class, event -> {
-            if (event == null
-                    || (!event.getType().equals(InAppEvent.EventType.DEPLOY_FAILED)
-                            && !event.getType().equals(InAppEvent.EventType.DEPLOYED))) {
-                return;
-            }
-
-            if (event.getCode().equals(resource.getCode())) {
-                eventType[0] = event.getType();
-                latch.countDown();
-            }
-        });
-
+    @WorkerThread
+    private boolean joinInFlightDownload(Resource resource, CountDownLatch other) {
+        PWLog.noise(TAG, String.format("Joining in-flight download: %s", resource.getCode()));
+        boolean released;
         try {
-            latch.await();
-            subscribe.unsubscribe();
-            return eventType[0].equals(InAppEvent.EventType.DEPLOYED);
+            released = other.await(downloadJoinTimeoutMs, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            PWLog.error("Deploy interrupted", e);
+            Thread.currentThread().interrupt();
+            PWLog.error(TAG, "Deploy interrupted", e);
             return false;
         }
+        // Truth comes from check, not from the await flag: the leader may have fetched another ts
+        // of this code, and a timed-out joiner has no leader outcome to trust at all.
+        boolean deployed = inAppDeployedChecker.check(resource);
+        String msg = String.format(
+                "Joined in-flight download of %s: deployed=%b, timedOut=%b", resource.getCode(), deployed, !released);
+        PWLog.noise(TAG, msg);
+        return deployed;
     }
 
     public void setUserId(String userId) {
@@ -423,7 +441,6 @@ public class InAppRepository {
         PWLog.noise(TAG, String.format("prefetchRichMedia(), rich media: %s", richMedia));
         try {
             Resource resource = Resource.parseRichMedia(richMedia);
-            updateInAppStorage(Collections.singletonList(resource)); // put this resource in db
             boolean downloaded = downloadIfNeeded(resource);
 
             if (!downloaded) {
@@ -435,6 +452,24 @@ public class InAppRepository {
         } catch (ResourceParseException e) {
             return Result.fromException(e);
         }
+    }
+
+    /**
+     * Prefetches push Rich Media ZIP and refreshes the tags snapshot off the caller's thread.
+     * Fire-and-forget: runs on {@link #io} (see the field contract), never throws.
+     * ZIP first — a tap joins its in-flight download; tags second — they fall back to the
+     * prefs snapshot if a show wins the race.
+     */
+    public void prefetchRichMediaAndTags(String richMedia) {
+        io.submit(() -> {
+            try {
+                prefetchRichMedia(richMedia);
+                PushwooshPlatform.getInstance().pushwooshRepository().prefetchTags();
+            } catch (Throwable t) {
+                // Bare submit would bury this in an unread Future and kill the tags fetch silently.
+                PWLog.error(TAG, "Receive-time prefetch failed", t);
+            }
+        });
     }
 
     /**
@@ -450,7 +485,7 @@ public class InAppRepository {
                         "ensureResolvedAndDeployed: code=%s, inAppListReady=%s", inapp.getCode(), inAppLoaded.get()));
         if (inapp.isNotDownload()) {
             try {
-                if (inAppLoaded.get() || (inapp.isRequired() && waitUntilObtainInApps())) {
+                if (inAppLoaded.get()) {
                     Resource resource = inAppStorage.getResource(inapp.getCode());
                     if (resource != null) {
                         inapp = resource;
@@ -490,19 +525,6 @@ public class InAppRepository {
             return Result.fromException(new ResourceParseException(
                     String.format("Can't mapping resource %s to htmlData", resolved.getCode()), e));
         }
-    }
-
-    private boolean waitUntilObtainInApps() throws Exception {
-        PWLog.noise("Wait until getInApps finished");
-        int waitCounter = 0;
-        while (!inAppLoaded.get() && waitCounter < REQUIRED_TIMEOUT_SECONDS * 5) {
-            Thread.sleep(200);
-            waitCounter++;
-        }
-        if (!inAppLoaded.get()) {
-            throw new TimeoutException("InApp wait timeout");
-        }
-        return true;
     }
 
     private String getResultErrorMessage(Result result, String defaultErrorMessage) {

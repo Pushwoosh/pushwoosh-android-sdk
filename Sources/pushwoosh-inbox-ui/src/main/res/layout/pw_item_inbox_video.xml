@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~
+  ~ Copyright (c) 2026. Pushwoosh Inc. (http://www.pushwoosh.com)
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining
+  ~ a copy of this software and associated documentation files (the
+  ~ "Software"), to deal in the Software without restriction, including
+  ~ without limitation the rights to use, copy, modify, merge, publish,
+  ~ distribute, sublicense, and/or sell copies of the Software, and to
+  ~ permit persons to whom the Software is furnished to do so, subject to
+  ~ the following conditions:
+  ~
+  ~ (i) the original and/or modified Software should be used exclusively to work with Pushwoosh services,
+  ~
+  ~ (ii) the above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  ~ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  ~ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  ~ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  ~ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/pw_normal_margin"
+    android:paddingLeft="@dimen/pw_normal_margin"
+    android:paddingEnd="@dimen/pw_normal_margin"
+    android:paddingRight="@dimen/pw_normal_margin"
+    android:paddingTop="@dimen/pw_rich_card_margin_vertical"
+    android:paddingBottom="@dimen/pw_rich_card_margin_vertical">
+
+    <LinearLayout
+        android:id="@+id/inboxVideoCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/pw_bg_video_card"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:id="@+id/inboxVideoPosterHost"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/pw_video_poster_height"
+            android:layout_margin="@dimen/pw_video_poster_inset"
+            android:background="@drawable/pw_bg_video_poster"
+            android:clickable="true"
+            android:contentDescription="@string/pw_inbox_play_video"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/inboxVideoPoster"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop" />
+
+            <ImageView
+                android:id="@+id/inboxVideoPlayBadge"
+                android:layout_width="@dimen/pw_video_play_badge_size"
+                android:layout_height="@dimen/pw_video_play_badge_size"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/pw_ic_play_circle" />
+
+            <include
+                android:id="@+id/inboxVideoPinChip"
+                layout="@layout/pw_inbox_pin_chip"
+                android:layout_width="@dimen/pw_rich_card_pin_chip_size"
+                android:layout_height="@dimen/pw_rich_card_pin_chip_size"
+                android:layout_gravity="top|end"
+                android:layout_margin="@dimen/pw_rich_card_pin_offset" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/inboxVideoTextBlock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/pw_rich_card_text_end"
+            android:paddingLeft="@dimen/pw_rich_card_text_end"
+            android:paddingEnd="@dimen/pw_rich_card_text_end"
+            android:paddingRight="@dimen/pw_rich_card_text_end"
+            android:paddingTop="@dimen/pw_video_text_top"
+            android:paddingBottom="@dimen/pw_video_text_bottom">
+
+            <View
+                android:id="@+id/inboxVideoUnreadDot"
+                android:layout_width="@dimen/pw_rich_card_unread_dot_size"
+                android:layout_height="@dimen/pw_rich_card_unread_dot_size"
+                android:layout_marginEnd="@dimen/pw_rich_card_unread_dot_gap"
+                android:layout_marginRight="@dimen/pw_rich_card_unread_dot_gap"
+                android:background="@drawable/pw_bg_banner_unread_dot" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/inboxVideoTitleRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/inboxVideoTitle"
+                        style="@style/TextAppearance.Inbox.InboxTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        tools:text="Title" />
+
+                    <TextView
+                        android:id="@+id/inboxVideoDate"
+                        style="@style/TextAppearance.Inbox.InboxDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/pw_rich_card_unread_dot_gap"
+                        android:layout_marginLeft="@dimen/pw_rich_card_unread_dot_gap"
+                        tools:text="12:00" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/inboxVideoBody"
+                    style="@style/TextAppearance.Inbox.InboxDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/pw_rich_card_title_body_gap"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    tools:text="Body" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

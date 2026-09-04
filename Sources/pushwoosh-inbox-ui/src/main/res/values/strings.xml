@@ -27,4 +27,6 @@
 <resources>
 	<string name="app_name">InBox-Ui</string>
 	<string name="pw_attachment_transition_id" translatable="false">attachment</string>
+	<string name="pw_inbox_play_video">Play video</string>
+	<string name="pw_inbox_video_failed">Couldn\'t play this video</string>
 </resources>

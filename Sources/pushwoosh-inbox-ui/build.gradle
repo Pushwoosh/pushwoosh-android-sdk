@@ -49,13 +49,12 @@ android {
     namespace "com.pushwoosh.inbox.ui"
     testNamespace "com.pushwoosh.inbox.ui.test"
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
     kotlin {
         jvmToolchain(17)
+    }
+    kotlinOptions {
+        // JDK 8 javadoc reads these classes: bytecode above 52.0 breaks customJavadocRelease
+        jvmTarget = '1.8'
     }
 
     testOptions {

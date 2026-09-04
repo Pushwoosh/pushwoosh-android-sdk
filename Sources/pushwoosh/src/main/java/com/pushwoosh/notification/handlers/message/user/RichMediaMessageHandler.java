@@ -31,6 +31,7 @@ import android.text.TextUtils;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.InAppModule;
+import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -116,13 +117,13 @@ class RichMediaMessageHandler extends NotificationMessageHandler {
     }
 
     /**
-     * Prefetches Rich Media ZIP when push is received.
-     * Called before notification is shown so content is ready when user clicks.
+     * Delegates receive-time Rich Media prefetch (ZIP + tags snapshot) to the in-app repository.
+     * Runs async on the repository's io lane so the notification posts immediately (SDK-957).
      */
     private void loadRichMedia(final String richMedia) {
-        if (InAppModule.getInAppRepository() != null) {
-            InAppModule.getInAppRepository().prefetchRichMedia(richMedia);
-            PushwooshPlatform.getInstance().pushwooshRepository().prefetchTags();
+        InAppRepository inAppRepository = InAppModule.getInAppRepository();
+        if (inAppRepository != null) {
+            inAppRepository.prefetchRichMediaAndTags(richMedia);
         }
     }
 

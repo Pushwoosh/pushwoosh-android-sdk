@@ -35,6 +35,12 @@ object PushwooshInboxUi{
     var onMessageClickListener: (OnInboxMessageClickListener)? = null
 
     /**
+     * Hook for taps on inline CTA buttons of rich inbox cards. Return true from the
+     * listener to let the SDK perform the button's default action, false to consume the tap.
+     */
+    var onButtonClickListener: (OnInboxButtonClickListener)? = null
+
+    /**
      * @return the fragment corresponding for Inbox display
      */
     fun createInboxFragment(): androidx.fragment.app.Fragment = InboxFragment()

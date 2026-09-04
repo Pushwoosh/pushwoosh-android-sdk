@@ -13,9 +13,11 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.pushwoosh.Pushwoosh;
-import com.pushwoosh.sampleapp.databinding.FragmentHomeBinding;
 import com.pushwoosh.inapp.InAppManager;
 import com.pushwoosh.inapp.ui.PushwooshInAppUi;
+import com.pushwoosh.notification.LocalNotification;
+import com.pushwoosh.sampleapp.R;
+import com.pushwoosh.sampleapp.databinding.FragmentHomeBinding;
 import com.pushwoosh.tags.TagsBundle;
 
 import java.util.Map;
@@ -38,6 +40,9 @@ import java.util.Objects;
  * @see TagsBundle
  */
 public class HomeFragment extends Fragment {
+
+    private static final String DEEP_LINK_DEMO_URI = "pwdemo://demo/screen?id=42";
+    private static final int DEEP_LINK_DEMO_DELAY_SECONDS = 5;
 
     private FragmentHomeBinding binding;
     private boolean attributeState;
@@ -235,6 +240,19 @@ public class HomeFragment extends Fragment {
         binding.buttonInAppCarousel.setOnClickListener(v -> presentInApp("Carousel", InAppPresets.CAROUSEL));
         binding.buttonInAppStories.setOnClickListener(v -> presentInApp("Stories", InAppPresets.STORIES));
         binding.buttonInAppVideo.setOnClickListener(v -> presentInApp("Video", InAppPresets.VIDEO));
+
+        binding.textDeepLinkLocalDescription.setText(
+                getString(R.string.deep_link_local_description, DEEP_LINK_DEMO_DELAY_SECONDS, DEEP_LINK_DEMO_URI));
+        // setLink writes the same `l` key a server push does, exercising NotificationOpenHandler without one.
+        binding.buttonLocalDeepLink.setOnClickListener(v -> {
+            LocalNotification notification = new LocalNotification.Builder()
+                    .setMessage(getString(R.string.deep_link_local_message))
+                    .setLink(DEEP_LINK_DEMO_URI)
+                    .setDelay(DEEP_LINK_DEMO_DELAY_SECONDS)
+                    .build();
+            Pushwoosh.getInstance().scheduleLocalNotification(notification);
+            showSnackbar(getString(R.string.deep_link_local_scheduled, DEEP_LINK_DEMO_DELAY_SECONDS));
+        });
 
         return root;
     }

@@ -69,6 +69,12 @@
 	<style name="TextAppearance.Inbox.InboxDate"
 		parent="TextAppearance.AppCompat.Caption"/>
 
+	<style name="TextAppearance.Inbox.InboxCardButton"
+		parent="TextAppearance.AppCompat.Body2">
+		<item name="android:textSize">@dimen/pw_rich_card_button_text_size</item>
+		<item name="android:fontFamily">sans-serif-medium</item>
+	</style>
+
 	<style name="PwAttachmentView">
 	</style>
 

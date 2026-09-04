@@ -2,6 +2,7 @@ package com.pushwoosh.internal.utils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -28,6 +29,12 @@ public class FileUtils {
 
     private static final int TRY_COUNT = 3;
 
+    @VisibleForTesting
+    static int connectTimeoutMs = 30_000;
+
+    @VisibleForTesting
+    static int readTimeoutMs = 60_000;
+
     @Nullable public static File downloadFile(String linkUrl, File destination) {
         int count;
         int tryCount = 0;
@@ -39,6 +46,8 @@ public class FileUtils {
                 try {
                     URL url = new URL(linkUrl);
                     openConnection = (HttpURLConnection) url.openConnection();
+                    openConnection.setConnectTimeout(connectTimeoutMs);
+                    openConnection.setReadTimeout(readTimeoutMs);
                     openConnection.connect();
 
                     if (openConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
@@ -89,10 +98,6 @@ public class FileUtils {
             PWLog.error(TAG, "Failed to download " + linkUrl, e);
         }
         return null;
-    }
-
-    private static boolean isSSLSessionNPEException(Exception e) {
-        return (e instanceof NullPointerException) && e.getMessage().equals("ssl_session == null");
     }
 
     @Nullable @SuppressWarnings("ResultOfMethodCallIgnored")

@@ -32,6 +32,9 @@
 			android:theme="@style/PwInboxTheme" />
 		<activity android:name="com.pushwoosh.inbox.ui.presentation.view.activity.AttachmentActivity"
 			android:theme="@style/PwInboxAttachment"/>
+		<activity android:name="com.pushwoosh.inbox.ui.presentation.view.activity.InboxVideoActivity"
+			android:configChanges="orientation|screenSize|keyboardHidden"
+			android:theme="@style/PwInboxAttachment"/>
 	</application>
 
 </manifest>

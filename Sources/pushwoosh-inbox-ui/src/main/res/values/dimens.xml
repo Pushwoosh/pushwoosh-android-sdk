@@ -40,4 +40,73 @@
 	<dimen name="pw_large_margin">54dp</dimen>
 	<dimen name="pw_date_text_size">12sp</dimen>
 	<dimen name="pw_title_text_size">16sp</dimen>
+
+	<dimen name="pw_banner_height">200dp</dimen>
+	<dimen name="pw_banner_corner_radius">16dp</dimen>
+	<dimen name="pw_banner_margin_vertical">6dp</dimen>
+	<dimen name="pw_banner_unread_dot_size">8dp</dimen>
+	<dimen name="pw_banner_unread_dot_offset">14dp</dimen>
+	<dimen name="pw_banner_pin_chip_size">28dp</dimen>
+	<dimen name="pw_banner_pin_chip_offset">10dp</dimen>
+	<dimen name="pw_banner_pin_icon_size">14dp</dimen>
+
+	<dimen name="pw_captioned_card_corner_radius">18dp</dimen>
+	<dimen name="pw_captioned_hero_height">178dp</dimen>
+	<dimen name="pw_captioned_hero_corner_radius">16dp</dimen>
+	<dimen name="pw_captioned_hero_inset">6dp</dimen>
+	<dimen name="pw_captioned_unread_dot_size">10dp</dimen>
+	<dimen name="pw_captioned_icon_size">32dp</dimen>
+	<dimen name="pw_captioned_text_margin_top">14dp</dimen>
+	<dimen name="pw_captioned_text_margin">16dp</dimen>
+	<dimen name="pw_captioned_icon_text_gap">12dp</dimen>
+	<dimen name="pw_captioned_title_body_gap">4dp</dimen>
+	<dimen name="pw_rich_card_button_height">34dp</dimen>
+	<dimen name="pw_rich_card_button_gap">8dp</dimen>
+	<dimen name="pw_rich_card_button_radius">10dp</dimen>
+	<dimen name="pw_rich_card_button_text_size">14sp</dimen>
+
+	<dimen name="pw_classic_card_corner_radius">18dp</dimen>
+	<dimen name="pw_classic_unread_dot_size">8dp</dimen>
+	<dimen name="pw_classic_unread_dot_start">6dp</dimen>
+	<dimen name="pw_classic_avatar_size">44dp</dimen>
+	<dimen name="pw_classic_avatar_gap">12dp</dimen>
+	<dimen name="pw_classic_initial_text_size">18sp</dimen>
+	<dimen name="pw_classic_text_margin_vertical">14dp</dimen>
+	<dimen name="pw_classic_text_margin_end">16dp</dimen>
+	<dimen name="pw_classic_title_body_gap">1dp</dimen>
+	<dimen name="pw_classic_pin_icon_size">11dp</dimen>
+	<dimen name="pw_classic_pin_gap">6dp</dimen>
+	<dimen name="pw_classic_buttons_top_gap">10dp</dimen>
+
+	<dimen name="pw_carousel_card_corner_radius">24dp</dimen>
+	<dimen name="pw_rich_card_margin_vertical">8dp</dimen>
+	<dimen name="pw_carousel_gallery_height">190dp</dimen>
+	<dimen name="pw_carousel_gallery_inset">6dp</dimen>
+	<dimen name="pw_carousel_gallery_corner_radius">16dp</dimen>
+	<dimen name="pw_carousel_dot_size">8dp</dimen>
+	<dimen name="pw_carousel_dot_active_width">22dp</dimen>
+	<dimen name="pw_carousel_dot_gap">7dp</dimen>
+	<dimen name="pw_carousel_dots_bottom">12dp</dimen>
+	<dimen name="pw_rich_card_pin_chip_size">30dp</dimen>
+	<dimen name="pw_rich_card_pin_icon_size">14dp</dimen>
+	<dimen name="pw_rich_card_pin_offset">14dp</dimen>
+	<dimen name="pw_carousel_text_top">14dp</dimen>
+	<dimen name="pw_carousel_text_start">32dp</dimen>
+	<dimen name="pw_rich_card_text_end">16dp</dimen>
+	<dimen name="pw_carousel_text_bottom">18dp</dimen>
+	<dimen name="pw_rich_card_title_body_gap">4dp</dimen>
+	<dimen name="pw_rich_card_unread_dot_size">8dp</dimen>
+	<dimen name="pw_rich_card_unread_dot_gap">8dp</dimen>
+	<dimen name="pw_carousel_caption_text_size">17sp</dimen>
+	<dimen name="pw_carousel_caption_start">18dp</dimen>
+	<dimen name="pw_carousel_caption_bottom">22dp</dimen>
+	<dimen name="pw_carousel_scrim_height">104dp</dimen>
+
+	<dimen name="pw_video_card_corner_radius">20dp</dimen>
+	<dimen name="pw_video_poster_height">190dp</dimen>
+	<dimen name="pw_video_poster_inset">6dp</dimen>
+	<dimen name="pw_video_poster_corner_radius">16dp</dimen>
+	<dimen name="pw_video_play_badge_size">56dp</dimen>
+	<dimen name="pw_video_text_top">12dp</dimen>
+	<dimen name="pw_video_text_bottom">14dp</dimen>
 </resources>

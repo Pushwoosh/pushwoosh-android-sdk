@@ -117,8 +117,6 @@ public class InAppDownloaderTest {
         assertTrue(types.contains(InAppEvent.EventType.DOWNLOADED_ZIP));
         assertTrue(types.contains(InAppEvent.EventType.DEPLOYED));
         assertFalse(types.contains(InAppEvent.EventType.DEPLOY_FAILED));
-
-        assertFalse(downloader.isDownloading(resource));
     }
 
     // Verifies that a null cache directory aborts the download and reports failure.
@@ -289,30 +287,5 @@ public class InAppDownloaderTest {
         downloader.downloadAndDeploy(Collections.singletonList(resource));
 
         fileUtilsMock.verify(() -> FileUtils.deleteDirectory(deployDir), times(1));
-    }
-
-    // Verifies that isDownloading is true during download and false after the call returns.
-    @Test
-    public void downloadAndDeploy_isDownloadingTransitions_trueDuringFalseAfter() throws Exception {
-        File cacheDir = tempFolder.newFolder("cache");
-        File deployDir = tempFolder.newFolder("deploy");
-        File zipFile = tempFolder.newFile("r1.zip");
-
-        when(inAppFolderProvider.getCacheDir()).thenReturn(cacheDir);
-        when(inAppFolderProvider.getInAppFolder("r1")).thenReturn(deployDir);
-        fileUtilsMock.when(() -> FileUtils.unzip(eq(zipFile), eq(deployDir))).thenReturn(deployDir);
-
-        Resource resource = newResource("r1", "http://example/r1.zip", "");
-
-        final boolean[] duringDownload = new boolean[1];
-        fileUtilsMock.when(() -> FileUtils.downloadFile(any(), any(File.class))).thenAnswer(inv -> {
-            duringDownload[0] = downloader.isDownloading(resource);
-            return zipFile;
-        });
-
-        downloader.downloadAndDeploy(Collections.singletonList(resource));
-
-        assertTrue(duringDownload[0]);
-        assertFalse(downloader.isDownloading(resource));
     }
 }

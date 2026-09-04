@@ -44,6 +44,11 @@ class InboxAdapter(context: Context,
 
     companion object {
         const val TEXT_VIEW_TYPE = 0
+        const val BANNER_VIEW_TYPE = 1
+        const val CAPTIONED_VIEW_TYPE = 2
+        const val CLASSIC_VIEW_TYPE = 3
+        const val CAROUSEL_VIEW_TYPE = 4
+        const val VIDEO_VIEW_TYPE = 5
     }
 
     var onItemRemoved: ((InboxMessage?) -> Unit)? = null
@@ -85,13 +90,44 @@ class InboxAdapter(context: Context,
             val itemView = LayoutInflater.from(parent.context).inflate(R.layout.pw_item_inbox, parent, false)
             InboxViewHolder(itemView = itemView, adapter = this, colorSchemeProvider = colorSchemeProvider, attachmentClickListener = attachmentClickListener)
         }
+        BANNER_VIEW_TYPE -> {
+            val itemView = LayoutInflater.from(parent.context).inflate(R.layout.pw_item_inbox_banner, parent, false)
+            BannerInboxViewHolder(itemView = itemView, adapter = this, colorSchemeProvider = colorSchemeProvider)
+        }
+        CAPTIONED_VIEW_TYPE -> {
+            val itemView = LayoutInflater.from(parent.context).inflate(R.layout.pw_item_inbox_captioned, parent, false)
+            CaptionedInboxViewHolder(itemView = itemView, adapter = this, colorSchemeProvider = colorSchemeProvider)
+        }
+        CLASSIC_VIEW_TYPE -> {
+            val itemView = LayoutInflater.from(parent.context).inflate(R.layout.pw_item_inbox_classic, parent, false)
+            ClassicInboxViewHolder(itemView = itemView, adapter = this, colorSchemeProvider = colorSchemeProvider)
+        }
+        CAROUSEL_VIEW_TYPE -> {
+            val itemView = LayoutInflater.from(parent.context).inflate(R.layout.pw_item_inbox_carousel, parent, false)
+            CarouselInboxViewHolder(itemView = itemView, adapter = this, colorSchemeProvider = colorSchemeProvider)
+        }
+        VIDEO_VIEW_TYPE -> {
+            val itemView = LayoutInflater.from(parent.context).inflate(R.layout.pw_item_inbox_video, parent, false)
+            VideoInboxViewHolder(itemView = itemView, adapter = this, colorSchemeProvider = colorSchemeProvider)
+        }
         else -> throw IllegalArgumentException("Unknown type: $viewType")
     }
 
-    override fun getItemViewType(position: Int): Int = when (getItem(position)?.type ?: InboxMessageType.PLAIN) {
-        InboxMessageType.PLAIN,
-        InboxMessageType.RICH_MEDIA,
-        InboxMessageType.URL,
-        InboxMessageType.DEEP_LINK -> TEXT_VIEW_TYPE
+    override fun getItemViewType(position: Int): Int {
+        val item = getItem(position) ?: return TEXT_VIEW_TYPE
+        when (InboxCardKind.resolve(item)) {
+            InboxCardKind.BANNER -> return BANNER_VIEW_TYPE
+            InboxCardKind.CAPTIONED -> return CAPTIONED_VIEW_TYPE
+            InboxCardKind.CLASSIC -> return CLASSIC_VIEW_TYPE
+            InboxCardKind.CAROUSEL -> return CAROUSEL_VIEW_TYPE
+            InboxCardKind.VIDEO -> return VIDEO_VIEW_TYPE
+            InboxCardKind.DEFAULT -> {}
+        }
+        return when (item.type) {
+            InboxMessageType.PLAIN,
+            InboxMessageType.RICH_MEDIA,
+            InboxMessageType.URL,
+            InboxMessageType.DEEP_LINK -> TEXT_VIEW_TYPE
+        }
     }
 }

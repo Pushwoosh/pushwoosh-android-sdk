@@ -131,4 +131,26 @@ public class RemoteMessageMapperTest {
 
         Assert.assertNull(bundle.getString("pw_msg_tag"));
     }
+
+    /**
+     * FCM stamps a send time on the RemoteMessage itself ({@link RemoteMessage#getSentTime()}),
+     * but this mapper copies only {@code getData()}, so no {@code google.sent_time} reaches the
+     * bundle. The inbox relies on that: {@code InboxPayloadDataProvider.getSentTime} then falls
+     * back to the device clock, which keeps the fresh-push grace in
+     * {@code InboxDbHelper.selectNotFromList} comparing two device-clock timestamps instead of
+     * a server timestamp against a device one.
+     */
+    @Test
+    public void mapToBundle_doesNotCarryFcmSentTime() {
+        Map<String, String> data = new HashMap<>();
+        data.put("pw_inbox", "inbox-id");
+        RemoteMessage remoteMessage = Mockito.mock(RemoteMessage.class);
+        Mockito.when(remoteMessage.getData()).thenReturn(data);
+        Mockito.when(remoteMessage.getCollapseKey()).thenReturn(null);
+        Mockito.when(remoteMessage.getSentTime()).thenReturn(1_700_000_000_000L);
+
+        Bundle bundle = RemoteMessageMapper.mapToBundle(remoteMessage);
+
+        Assert.assertFalse(bundle.containsKey("google.sent_time"));
+    }
 }

@@ -23,9 +23,6 @@ tasks.register('customJavadocRelease', Javadoc) {
     description = 'Generates Javadoc for all classes using JDK 8 toolchain (SDK is obfuscated in AAR)'
     group = 'documentation'
 
-    // Depend on release build to ensure BuildConfig is generated
-    dependsOn 'assembleRelease'
-
     // Find release variant (fail-fast if missing)
     def releaseVariant = android.libraryVariants.find { it.name == 'release' }
     if (!releaseVariant) {
@@ -36,11 +33,9 @@ tasks.register('customJavadocRelease', Javadoc) {
     classpath += project.files(android.getBootClasspath())
     classpath += releaseVariant.javaCompileProvider.get().classpath
 
-    // Collect all source files (avoiding duplicates)
-    Set<File> allSources = []
-    allSources.addAll(releaseVariant.javaCompileProvider.get().source.files)
-    allSources.addAll(android.sourceSets.main.java.srcDirs)
-    source = allSources.unique()
+    // must stay lazy: an eager .files snapshot predates generateReleaseBuildConfig, so a clean
+    // build loses BuildConfig.java and javadoc dies on "cannot find symbol" (src/main/java is here too)
+    source releaseVariant.javaCompileProvider.get().source
 
     // Include ALL Java source files (exclude Kotlin files - JDK 8 javadoc can't process them)
     // (SDK is obfuscated in release AAR, so it's safe to document all classes)

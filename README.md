@@ -48,7 +48,7 @@ plugins {
 }
 
 dependencies {
-    implementation 'com.pushwoosh:pushwoosh-firebase:6.11.1'
+    implementation 'com.pushwoosh:pushwoosh-firebase:6.12.0'
 }
 ```
 

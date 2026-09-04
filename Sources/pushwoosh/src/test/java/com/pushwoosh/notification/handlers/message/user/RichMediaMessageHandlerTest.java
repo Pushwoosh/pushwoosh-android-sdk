@@ -65,6 +65,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
@@ -127,16 +128,30 @@ public class RichMediaMessageHandlerTest {
             MockedStatic<RepositoryModule> repositoryModuleMock,
             MockedStatic<PushwooshPlatform> pushwooshPlatformMock,
             MockedStatic<BackgroundExecutor> backgroundExecutorMock) {
+        stubRepositoryAndPlatform(repositoryModuleMock, pushwooshPlatformMock);
+        stubExecutorsInline(backgroundExecutorMock);
+    }
+
+    private void stubRepositoryAndPlatform(
+            MockedStatic<RepositoryModule> repositoryModuleMock,
+            MockedStatic<PushwooshPlatform> pushwooshPlatformMock) {
         repositoryModuleMock.when(RepositoryModule::getNotificationPreferences).thenReturn(notificationPrefs);
         repositoryModuleMock.when(RepositoryModule::getLockScreenMediaStorage).thenReturn(lockScreenMediaStorage);
         repositoryModuleMock.when(RepositoryModule::getSilentRichMediaStorage).thenReturn(silentRichMediaStorage);
         pushwooshPlatformMock.when(PushwooshPlatform::getInstance).thenReturn(pushwooshPlatform);
+    }
+
+    private void stubExecutorsInline(MockedStatic<BackgroundExecutor> backgroundExecutorMock) {
+        Answer<Void> runInline = invocation -> {
+            ((Runnable) invocation.getArgument(0)).run();
+            return null;
+        };
         backgroundExecutorMock
                 .when(() -> BackgroundExecutor.executeOnPool(any(Runnable.class)))
-                .thenAnswer(invocation -> {
-                    ((Runnable) invocation.getArgument(0)).run();
-                    return null;
-                });
+                .thenAnswer(runInline);
+        backgroundExecutorMock
+                .when(() -> BackgroundExecutor.network(any(Runnable.class)))
+                .thenAnswer(runInline);
     }
 
     // Verifies that lock-screen push shows Rich Media immediately when the screen is locked.
@@ -424,8 +439,10 @@ public class RichMediaMessageHandlerTest {
 
             new RichMediaMessageHandler().handlePushMessage(pushMessage);
 
-            verify(inAppRepository, times(1)).prefetchRichMedia(RICH_MEDIA_JSON);
-            verify(pushwooshRepository, times(1)).prefetchTags();
+            verify(inAppRepository, times(1)).prefetchRichMediaAndTags(RICH_MEDIA_JSON);
+            verify(inAppRepository, never()).prefetchRichMedia(Mockito.anyString());
+            verify(pushwooshRepository, never()).prefetchTags();
+            backgroundExecutorMock.verify(() -> BackgroundExecutor.network(any(Runnable.class)), never());
             verify(messageHashPref, never()).set(Mockito.anyString());
         }
     }
@@ -489,6 +506,7 @@ public class RichMediaMessageHandlerTest {
 
             verify(pushwooshRepository, never()).prefetchTags();
             verify(notificationEnabledPref, times(1)).get();
+            verify(inAppRepository, never()).prefetchRichMediaAndTags(Mockito.anyString());
         }
     }
 
@@ -514,6 +532,7 @@ public class RichMediaMessageHandlerTest {
             new RichMediaMessageHandler().handlePushMessage(pushMessage);
 
             verify(inAppRepository, never()).prefetchRichMedia(Mockito.anyString());
+            verify(inAppRepository, never()).prefetchRichMediaAndTags(Mockito.anyString());
             verify(pushwooshRepository, never()).prefetchTags();
             verify(messageHashPref, never()).set(Mockito.anyString());
             verify(notificationEnabledPref, times(1)).get();

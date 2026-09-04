@@ -40,84 +40,91 @@ import java.util.List;
 
 public class DbInboxStorage implements InboxStorage {
 
-	private final InboxDbHelper inboxDbHelper;
+    private final InboxDbHelper inboxDbHelper;
 
-	public DbInboxStorage(InboxDbHelper inboxDbHelper) {
-		this.inboxDbHelper = inboxDbHelper;
-	}
+    public DbInboxStorage(InboxDbHelper inboxDbHelper) {
+        this.inboxDbHelper = inboxDbHelper;
+    }
 
-	@Override
-	public void deleteList(@NonNull Collection<String> codes) {
-		if (codes.isEmpty()) {
-			return;
-		}
+    @Override
+    public void deleteList(@NonNull Collection<String> codes) {
+        if (codes.isEmpty()) {
+            return;
+        }
 
-		inboxDbHelper.removeItems(codes);
-	}
+        inboxDbHelper.removeItems(codes);
+    }
 
-	@NonNull
-	@Override
-	public MergeResult mergeState(@NonNull Collection<InboxMessageInternal> inboxMessageInternals, boolean fullList) {
-		if (inboxMessageInternals.isEmpty() && !fullList) {
-			return MergeResult.createNull();
-		}
-		return inboxDbHelper.createOrUpdate(inboxMessageInternals, fullList);
-	}
+    @NonNull @Override
+    public MergeResult mergeState(@NonNull Collection<InboxMessageInternal> inboxMessageInternals, boolean fullList) {
+        return mergeState(inboxMessageInternals, fullList, true);
+    }
 
-	@NonNull
-	@Override
-	public Collection<InboxMessageInternal> getAllActualMessages() {
-		final Collection<InboxMessageInternal> allActualWithStatus = inboxDbHelper.getAllActualWithStatus(InboxMessageStatus.getActualCodes());
-		return allActualWithStatus == null ? Collections.emptyList() : allActualWithStatus;
-	}
+    @NonNull @Override
+    public MergeResult mergeState(
+            @NonNull Collection<InboxMessageInternal> inboxMessageInternals,
+            boolean fullList,
+            boolean keepFreshPushRows) {
+        if (inboxMessageInternals.isEmpty() && !fullList) {
+            return MergeResult.createNull();
+        }
+        return inboxDbHelper.createOrUpdate(inboxMessageInternals, fullList, keepFreshPushRows);
+    }
 
-	@NonNull
-	@Override
-	public Collection<InboxMessageInternal> getActualMessages(long sortOrder, int limit) {
-		final Collection<InboxMessageInternal> allActualWithStatus = inboxDbHelper.getActualMessagesWithStatus(InboxMessageStatus.getActualCodes(), sortOrder, limit);
-		return allActualWithStatus == null ? Collections.emptyList() : allActualWithStatus;
-	}
+    @NonNull @Override
+    public Collection<InboxMessageInternal> getAllActualMessages() {
+        final Collection<InboxMessageInternal> allActualWithStatus =
+                inboxDbHelper.getAllActualWithStatus(InboxMessageStatus.getActualCodes());
+        return allActualWithStatus == null ? Collections.emptyList() : allActualWithStatus;
+    }
 
-	@Override
-	public Collection<String> updateStatus(@NonNull String code, @NonNull InboxMessageStatus inboxMessageStatus) {
-		return inboxDbHelper.changeStatus(Collections.singleton(code), inboxMessageStatus);
-	}
+    @NonNull @Override
+    public Collection<InboxMessageInternal> getActualMessages(long sortOrder, int limit) {
+        final Collection<InboxMessageInternal> allActualWithStatus =
+                inboxDbHelper.getActualMessagesWithStatus(InboxMessageStatus.getActualCodes(), sortOrder, limit);
+        return allActualWithStatus == null ? Collections.emptyList() : allActualWithStatus;
+    }
 
-	@Override
-	public int getUnreadInboxCount() {
-		final Integer actualCountWithStatus = inboxDbHelper.getActualCountWithStatus(InboxMessageStatus.READ.getLowerStatus());
-		return actualCountWithStatus == null ? 0 : actualCountWithStatus;
-	}
+    @Override
+    public Collection<String> updateStatus(@NonNull String code, @NonNull InboxMessageStatus inboxMessageStatus) {
+        return inboxDbHelper.changeStatus(Collections.singleton(code), inboxMessageStatus);
+    }
 
-	@Override
-	public int getCountWithNoActionPerformed() {
-		final Integer actualCountWithStatus = inboxDbHelper.getActualCountWithStatus(InboxMessageStatus.OPEN.getLowerStatus());
-		return actualCountWithStatus == null ? 0 : actualCountWithStatus;
-	}
+    @Override
+    public int getUnreadInboxCount() {
+        final Integer actualCountWithStatus =
+                inboxDbHelper.getActualCountWithStatus(InboxMessageStatus.READ.getLowerStatus());
+        return actualCountWithStatus == null ? 0 : actualCountWithStatus;
+    }
 
-	@Override
-	public int getTotalCount() {
-		final Integer actualCountWithStatus = inboxDbHelper.getActualCountWithStatus(InboxMessageStatus.DELETED_BY_USER.getLowerStatus());
-		return actualCountWithStatus == null ? 0 : actualCountWithStatus;
-	}
+    @Override
+    public int getCountWithNoActionPerformed() {
+        final Integer actualCountWithStatus =
+                inboxDbHelper.getActualCountWithStatus(InboxMessageStatus.OPEN.getLowerStatus());
+        return actualCountWithStatus == null ? 0 : actualCountWithStatus;
+    }
 
-	@NonNull
-	@Override
-	public Collection<InboxMessageInternal> getActualInboxMessages(Collection<String> codes) {
-		final List<InboxMessageInternal> byCode = inboxDbHelper.getById(codes);
-		return byCode == null ? Collections.emptyList() : byCode;
-	}
+    @Override
+    public int getTotalCount() {
+        final Integer actualCountWithStatus =
+                inboxDbHelper.getActualCountWithStatus(InboxMessageStatus.DELETED_BY_USER.getLowerStatus());
+        return actualCountWithStatus == null ? 0 : actualCountWithStatus;
+    }
 
-	@Nullable
-	@Override
-	public InboxMessageInternal getActualInboxMessage(String code) {
-		return inboxDbHelper.getById(code);
-	}
+    @NonNull @Override
+    public Collection<InboxMessageInternal> getActualInboxMessages(Collection<String> codes) {
+        final List<InboxMessageInternal> byCode = inboxDbHelper.getById(codes);
+        return byCode == null ? Collections.emptyList() : byCode;
+    }
 
-	@NonNull
-	@Override
-	public Collection<InboxMessageInternal> getAllPushMessages() {
-		final Collection<InboxMessageInternal> allActualWithStatus = inboxDbHelper.getAllPushMessages();
-		return allActualWithStatus == null ? Collections.emptyList() : allActualWithStatus;
-	}
+    @Nullable @Override
+    public InboxMessageInternal getActualInboxMessage(String code) {
+        return inboxDbHelper.getById(code);
+    }
+
+    @NonNull @Override
+    public Collection<InboxMessageInternal> getAllPushMessages() {
+        final Collection<InboxMessageInternal> allActualWithStatus = inboxDbHelper.getAllPushMessages();
+        return allActualWithStatus == null ? Collections.emptyList() : allActualWithStatus;
+    }
 }
