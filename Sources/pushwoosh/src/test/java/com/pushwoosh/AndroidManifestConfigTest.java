@@ -17,6 +17,7 @@ import com.pushwoosh.internal.PluginProvider;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.platform.resource.ResourceProvider;
+import com.pushwoosh.richmedia.RichMediaColorScheme;
 import com.pushwoosh.richmedia.RichMediaType;
 import com.pushwoosh.test.manifest.FakeNotificationService;
 import com.pushwoosh.test.manifest.FakePlugin;
@@ -364,5 +365,42 @@ public class AndroidManifestConfigTest {
 
         assertEquals(12345, config.getNotificationIcon());
         verify(resourceProvider).getIdentifier("notification_small_icon", "drawable");
+    }
+
+    @Test
+    public void richMediaColorSchemeKeyIsRead() {
+        Bundle metaData = new Bundle();
+        metaData.putString("com.pushwoosh.rich_media_color_scheme", "dark");
+
+        AndroidManifestConfig config = configWithMetaData(metaData);
+
+        assertEquals(RichMediaColorScheme.DARK, config.getRichMediaColorScheme());
+    }
+
+    @Test
+    public void richMediaColorSchemeIsCaseInsensitive() {
+        Bundle metaData = new Bundle();
+        metaData.putString("com.pushwoosh.rich_media_color_scheme", "SyStEm");
+
+        AndroidManifestConfig config = configWithMetaData(metaData);
+
+        assertEquals(RichMediaColorScheme.SYSTEM, config.getRichMediaColorScheme());
+    }
+
+    @Test
+    public void invalidRichMediaColorSchemeFallsBackToApp() {
+        Bundle metaData = new Bundle();
+        metaData.putString("com.pushwoosh.rich_media_color_scheme", "blue");
+
+        AndroidManifestConfig config = configWithMetaData(metaData);
+
+        assertEquals(RichMediaColorScheme.APP, config.getRichMediaColorScheme());
+    }
+
+    @Test
+    public void absentRichMediaColorSchemeFallsBackToApp() {
+        AndroidManifestConfig config = configWithMetaData(new Bundle());
+
+        assertEquals(RichMediaColorScheme.APP, config.getRichMediaColorScheme());
     }
 }

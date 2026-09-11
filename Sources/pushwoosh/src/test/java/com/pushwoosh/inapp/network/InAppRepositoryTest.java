@@ -1437,13 +1437,18 @@ public class InAppRepositoryTest {
         when(laterManager.sendRequestSync(any())).thenReturn(emptyInApps);
 
         EntryPointCase[] cases = {
-            new EntryPointCase("loadInApps", () -> inAppRepository.loadInApps(), (m, once) -> verify(m, once)
-                    .sendRequestSync(any(GetInAppsRequest.class))),
-            new EntryPointCase("setEmail", () -> inAppRepository.setEmail("a@x.com", null), (m, once) -> verify(m, once)
-                    .sendRequest(any(RegisterEmailRequest.class), any(Callback.class))),
             new EntryPointCase(
-                    "postEvent", () -> inAppRepository.postEvent("test_event", null, null), (m, once) -> verify(m, once)
-                            .sendRequest(any(PostEventRequest.class), any(Callback.class))),
+                    "loadInApps",
+                    () -> inAppRepository.loadInApps(),
+                    (m, once) -> verify(m, once).sendRequestSync(any(GetInAppsRequest.class))),
+            new EntryPointCase(
+                    "setEmail",
+                    () -> inAppRepository.setEmail("a@x.com", null),
+                    (m, once) -> verify(m, once).sendRequest(any(RegisterEmailRequest.class), any(Callback.class))),
+            new EntryPointCase(
+                    "postEvent",
+                    () -> inAppRepository.postEvent("test_event", null, null),
+                    (m, once) -> verify(m, once).sendRequest(any(PostEventRequest.class), any(Callback.class))),
             new EntryPointCase(
                     "mergeUserId",
                     () -> inAppRepository.mergeUserId("old", "new", true, null),

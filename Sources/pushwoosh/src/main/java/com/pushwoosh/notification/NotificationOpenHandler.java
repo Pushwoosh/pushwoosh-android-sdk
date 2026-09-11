@@ -97,7 +97,9 @@ class NotificationOpenHandler {
                 return false;
             }
             PWLog.debug(TAG, "opening " + link + " inside the app");
-            notifyIntent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
+            // SDK's own NotificationOpenActivity tops the stack when this fires and breaks singleTop;
+            // CLEAR_TOP lands the link in the existing activity. No SINGLE_TOP: standard targets read it in onCreate.
+            notifyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             PendingIntent.getActivity(context, 0, notifyIntent, PendingIntentUtils.addImmutableFlag(0))
                     .send();
             return true;

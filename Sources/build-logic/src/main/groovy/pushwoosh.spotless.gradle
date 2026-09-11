@@ -30,7 +30,7 @@ spotless {
         }
         targetExclude '**/build/**', '**/*-stub/**'
 
-        palantirJavaFormat('2.50.0')
+        palantirJavaFormat('2.97.0')
 
         removeUnusedImports()
         importOrder('android', 'androidx', 'com', 'junit', 'net', 'org', 'java', 'javax')

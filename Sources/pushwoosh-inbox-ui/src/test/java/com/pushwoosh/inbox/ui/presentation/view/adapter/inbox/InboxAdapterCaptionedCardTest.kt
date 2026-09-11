@@ -105,7 +105,7 @@ class InboxAdapterCaptionedCardTest {
     fun getItemViewType_displayTypeCaptioned_isCaptionedViewType() {
         val adapter = newAdapter()
         adapter.setCollection(listOf(
-            msg(actionParams = """{"displayType":"captioned"}""", bannerUrl = "https://img.example/hero.png")
+            msg(actionParams = """{"displayType":"captioned"}""", bannerUrl = "https://img.example/hero.png", title = "t")
         ))
         assertEquals(InboxAdapter.CAPTIONED_VIEW_TYPE, adapter.getItemViewType(0))
     }

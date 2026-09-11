@@ -64,6 +64,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowPackageManager;
@@ -204,7 +205,7 @@ public class NotificationOpenHandlerTest {
     }
 
     @Test
-    public void preHandleNotification_nonWhitelistedResolvableLink_returnsTrue() {
+    public void preHandleNotification_nonWhitelistedResolvableLink_firesClearTopViewIntent() {
         Context context = AndroidPlatformModule.getApplicationContext();
         Mockito.clearInvocations(context);
         Bundle bundle = new Bundle();
@@ -225,13 +226,28 @@ public class NotificationOpenHandlerTest {
             result = notificationOpenHandler.preHandleNotification(bundle);
         }
 
-        // The non-whitelisted resolvable path is taken: code reached PendingIntent.send() without
-        // returning false. PendingIntent.send() dispatches through Robolectric's Instrumentation
-        // bypassing our context spy, so the intent itself cannot be captured via verify(context).
-        // We assert (a) the method returned true, and (b) the external-host short-circuit was NOT
-        // taken (no plain startActivity invocation captured on the spy).
         Assert.assertTrue(result);
+        // The external-host short-circuit was NOT taken: no plain startActivity on the context spy.
         verify(context, never()).startActivity(any(Intent.class));
+
+        // PendingIntent.send() dispatches through Robolectric's Instrumentation: the context spy
+        // delegates to the real Robolectric application, so ShadowApplication captures the launch.
+        Intent started = Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
+        Assert.assertNotNull("expected deep link ACTION_VIEW intent fired via PendingIntent.send()", started);
+        Assert.assertEquals(Intent.ACTION_VIEW, started.getAction());
+        Assert.assertEquals("myapp://deep/link", started.getDataString());
+        Assert.assertEquals(
+                "deep link intent must carry exactly NEW_TASK | CLEAR_TOP: CLEAR_TOP is what lets a"
+                        + " singleTop activity behind the SDK's NotificationOpenActivity receive the"
+                        + " link in onNewIntent (regression of 2018)",
+                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP,
+                started.getFlags());
+        Assert.assertEquals(
+                "FLAG_ACTIVITY_SINGLE_TOP must NOT be set: standard-launchMode apps parse the link in"
+                        + " onCreate and do not implement onNewIntent — with SINGLE_TOP the link would"
+                        + " be lost silently",
+                0,
+                started.getFlags() & Intent.FLAG_ACTIVITY_SINGLE_TOP);
     }
 
     @Test

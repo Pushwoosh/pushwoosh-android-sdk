@@ -4,9 +4,11 @@ import android.content.Context
 import android.net.Uri
 import com.pushwoosh.inapp.ui.model.InAppLayout
 import com.pushwoosh.inapp.ui.model.InAppMessage
+import com.pushwoosh.inapp.ui.parser.InAppColorParser
 import com.pushwoosh.inapp.ui.presentation.InAppPresentationChannel
 import com.pushwoosh.internal.platform.AndroidPlatformModule
 import com.pushwoosh.internal.utils.BackgroundExecutor
+import com.pushwoosh.richmedia.RichMediaColorSchemeResolver
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -69,6 +71,39 @@ class PushwooshInAppUiTest {
             isAccessible = true
             set(owner, null)
         }
+    }
+
+    private val modalWithDarkConfig: Map<String, Any?> = mapOf(
+        "displayType" to "modal",
+        "modal" to mapOf(
+            "showClose" to true, "dimBackground" to true, "background" to "#FFFFFFFF",
+            "buttons" to emptyList<Any>(),
+            "dark" to mapOf("background" to "#101014FF")
+        )
+    )
+
+    @Test
+    fun presentAppliesDarkOverlayWhenSchemeResolvesDark() {
+        Mockito.mockStatic(RichMediaColorSchemeResolver::class.java).use { resolver ->
+            resolver.`when`<Boolean> { RichMediaColorSchemeResolver.isCurrentSchemeDark(any()) }
+                .thenReturn(true)
+            PushwooshInAppUi.present(modalWithDarkConfig)
+        }
+        assertEquals(1, presented.size)
+        val modal = (presented[0].layout as InAppLayout.Modal).content
+        assertEquals(InAppColorParser.parse("#101014FF")!!, modal.backgroundColor)
+    }
+
+    @Test
+    fun presentKeepsLightWhenSchemeResolvesLight() {
+        Mockito.mockStatic(RichMediaColorSchemeResolver::class.java).use { resolver ->
+            resolver.`when`<Boolean> { RichMediaColorSchemeResolver.isCurrentSchemeDark(any()) }
+                .thenReturn(false)
+            PushwooshInAppUi.present(modalWithDarkConfig)
+        }
+        assertEquals(1, presented.size)
+        val modal = (presented[0].layout as InAppLayout.Modal).content
+        assertEquals(InAppColorParser.parse("#FFFFFFFF")!!, modal.backgroundColor)
     }
 
     /// A blocking modal (dimBackground defaults true) routed via present() enters the FIFO

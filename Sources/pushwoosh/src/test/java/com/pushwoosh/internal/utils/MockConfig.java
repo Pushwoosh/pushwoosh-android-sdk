@@ -30,25 +30,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.pushwoosh.internal.PluginProvider;
+import com.pushwoosh.richmedia.RichMediaColorScheme;
 import com.pushwoosh.richmedia.RichMediaType;
-
 
 public class MockConfig {
 
-	public static final String APP_ID = "testAppId";
+    public static final String APP_ID = "testAppId";
 
-	public static Config createMock(){
-		return createMock(APP_ID);
-	}
+    public static Config createMock() {
+        return createMock(APP_ID);
+    }
 
-	public static Config createMock(String appId) {
-		Config configMock = mock(Config.class);
-		PluginProvider pluginProvider = mock(PluginProvider.class);
-		when(pluginProvider.richMediaStartDelay()).thenReturn(40);
-		when(configMock.getPluginProvider()).thenReturn(pluginProvider);
-		when(configMock.getAppId()).thenReturn(appId);
-		when(configMock.isServerCommunicationAllowed()).thenReturn(true);
-		when(configMock.getRichMediaType()).thenReturn(RichMediaType.DEFAULT);
-		return configMock;
-	}
+    public static Config createMock(String appId) {
+        Config configMock = mock(Config.class);
+        PluginProvider pluginProvider = mock(PluginProvider.class);
+        when(pluginProvider.richMediaStartDelay()).thenReturn(40);
+        when(configMock.getPluginProvider()).thenReturn(pluginProvider);
+        when(configMock.getAppId()).thenReturn(appId);
+        when(configMock.isServerCommunicationAllowed()).thenReturn(true);
+        when(configMock.getRichMediaType()).thenReturn(RichMediaType.DEFAULT);
+        when(configMock.getRichMediaColorScheme()).thenReturn(RichMediaColorScheme.APP);
+        return configMock;
+    }
 }

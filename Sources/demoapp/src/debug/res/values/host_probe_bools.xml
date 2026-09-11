@@ -1,0 +1,3 @@
+<resources>
+    <bool name="host_probe_is_light">false</bool>
+</resources>

@@ -12,7 +12,10 @@ import org.json.JSONObject
 internal class NativeInAppPresenterImpl : NativeInAppPresenter {
 
     override fun present(configJson: String, resource: Resource): Boolean {
-        val message = InAppConfigParser.parse(ensureInAppId(configJson, resource.code)) ?: return false
+        val message = InAppConfigParser.parse(
+            ensureInAppId(configJson, resource.code),
+            PushwooshInAppUi.isCurrentSchemeDark()
+        ) ?: return false
         NativeInAppAnalytics.register(message.rawJson, resource)
         PushwooshInAppUi.route(message)
         return true

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.OpaqueLightActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material.Light" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.OpaqueDarkActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.TranslucentActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.DialogDarkActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material.Dialog" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.NoAttrThemeActivity"
+            android:exported="false"
+            android:theme="@style/HostProbe.NoAttrs" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.TranslucentLightActivity"
+            android:exported="false"
+            android:theme="@style/HostProbe.TranslucentLight" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.FloatingLightActivity"
+            android:exported="false"
+            android:theme="@style/HostProbe.FloatingLight" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.OpaqueOverrideActivity"
+            android:exported="false"
+            android:theme="@style/HostProbe.OpaqueOverride" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.DarkPaletteLightFlagActivity"
+            android:exported="false"
+            android:theme="@style/HostProbe.DarkPaletteLightFlag" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.RemoteProcessActivity"
+            android:exported="false"
+            android:process=":probe"
+            android:theme="@android:style/Theme.Material" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.FinishInOnCreateActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.OwnTaskActivity"
+            android:exported="false"
+            android:taskAffinity="com.pushwoosh.sampleapp.probe"
+            android:theme="@android:style/Theme.Material.Light" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.ConfigChangesActivity"
+            android:configChanges="uiMode|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:exported="false"
+            android:theme="@style/Theme.Demoapp" />
+        <activity
+            android:name="com.pushwoosh.demoapp.hostprobe.ReferenceFlagActivity"
+            android:exported="false"
+            android:theme="@style/HostProbe.ReferenceFlag" />
+    </application>
+</manifest>

@@ -33,6 +33,7 @@ import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.Plugin;
 import com.pushwoosh.internal.PluginProvider;
+import com.pushwoosh.richmedia.RichMediaColorScheme;
 import com.pushwoosh.richmedia.RichMediaType;
 
 import java.util.Collection;
@@ -164,6 +165,11 @@ public interface Config {
     void setLazySdkInitialization(boolean value);
 
     @NonNull RichMediaType getRichMediaType();
+
+    /**
+     * @return Color scheme the SDK reports to Rich Media content.
+     */
+    @NonNull RichMediaColorScheme getRichMediaColorScheme();
 
     /**
      * @return If true, the SDK allows routing requests through a reverse proxy URL set via {@code setReverseProxy()}.

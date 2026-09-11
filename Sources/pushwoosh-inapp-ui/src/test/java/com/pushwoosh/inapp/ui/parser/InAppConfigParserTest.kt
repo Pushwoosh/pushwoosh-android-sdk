@@ -375,4 +375,127 @@ class InAppConfigParserTest {
         """.trimIndent())?.layout as InAppLayout.Banner
         assertEquals(6000L, banner.content.autoDismissMs)
     }
+
+    // MARK: - Dark overlay (SDK-971)
+
+    private val modalWithDark = """
+        {"displayType":"modal","inAppId":"dark-demo","modal":{
+          "showClose":true,"dimBackground":true,"background":"#FFFFFFFF",
+          "image":"https://x/light.png",
+          "title":{"text":"Hi","color":"#111111FF"},
+          "message":{"text":"body","color":"#333333FF"},
+          "buttons":[{
+            "text":{"text":"Go","color":"#FFFFFFFF"},
+            "background":"#0E72E5FF",
+            "border":{"color":"#0E72E5FF","radius":12},
+            "action":{"type":"url","url":"app://x"}
+          }],
+          "dark":{
+            "background":"#101014FF",
+            "image":"https://x/dark.png",
+            "title":{"color":"#F2F2F7FF"},
+            "buttons":[{
+              "text":{"color":"#000000FF"},
+              "background":"#8AB4F8FF",
+              "border":{"color":"#8AB4F8FF"}
+            }]
+          }}}
+    """.trimIndent()
+
+    private fun color(hex: String): Int = InAppColorParser.parse(hex)!!
+
+    private fun parsedModal(json: String, isDark: Boolean) =
+        (InAppConfigParser.parse(json, isDark)!!.layout as InAppLayout.Modal).content
+
+    @Test
+    fun darkThemeAppliesOverlay() {
+        val modal = parsedModal(modalWithDark, isDark = true)
+        assertEquals(color("#101014FF"), modal.backgroundColor)
+        assertEquals("https://x/dark.png", modal.imageUrl)
+        assertEquals(color("#F2F2F7FF"), modal.title?.color)
+        assertEquals(color("#8AB4F8FF"), modal.buttons[0].backgroundColor)
+        assertEquals(color("#8AB4F8FF"), modal.buttons[0].borderColor)
+        assertEquals(color("#000000FF"), modal.buttons[0].text.color)
+    }
+
+    @Test
+    fun darkThemeInheritsKeysAbsentFromOverlay() {
+        val modal = parsedModal(modalWithDark, isDark = true)
+        assertEquals(color("#333333FF"), modal.message?.color)
+        assertEquals("Hi", modal.title?.text)
+        assertEquals("Go", modal.buttons[0].text.text)
+        assertEquals(InAppAction.Url("app://x"), modal.buttons[0].action)
+        assertEquals(12f, modal.buttons[0].cornerRadiusDp)
+    }
+
+    @Test
+    fun lightThemeIgnoresDarkOverlay() {
+        val modal = parsedModal(modalWithDark, isDark = false)
+        assertEquals(color("#FFFFFFFF"), modal.backgroundColor)
+        assertEquals("https://x/light.png", modal.imageUrl)
+        assertEquals(color("#111111FF"), modal.title?.color)
+    }
+
+    @Test
+    fun darkThemeWithoutDarkShowsLight() {
+        val noDark = """{"displayType":"modal","modal":{"showClose":true,"dimBackground":true,
+            "background":"#FFFFFFFF","buttons":[]}}"""
+        assertEquals(color("#FFFFFFFF"), parsedModal(noDark, isDark = true).backgroundColor)
+    }
+
+    @Test
+    fun nonVisualKeysInDarkAreIgnored() {
+        val json = """{"displayType":"modal","modal":{
+            "showClose":true,"dimBackground":true,"background":"#FFFFFFFF",
+            "title":{"text":"Hi","color":"#111111FF"},
+            "buttons":[{"text":{"text":"Go","color":"#FFFFFFFF"},"background":"#0E72E5FF",
+                        "border":{"color":"#0E72E5FF","radius":12},"action":{"type":"url","url":"app://x"}}],
+            "dark":{"title":{"text":"Dark Hi"},
+                    "buttons":[{"text":{"text":"Stop"},"action":{"type":"close"}}]}}}"""
+        val modal = parsedModal(json, isDark = true)
+        assertEquals("Hi", modal.title?.text)
+        assertEquals("Go", modal.buttons[0].text.text)
+        assertEquals(InAppAction.Url("app://x"), modal.buttons[0].action)
+    }
+
+    @Test
+    fun brokenDarkFallsBackToLight() {
+        val base = """{"displayType":"modal","modal":{"showClose":true,"dimBackground":true,
+            "background":"#FFFFFFFF","image":"https://x/light.png","buttons":[],"dark":%s}}"""
+        val brokenDarks = listOf(
+            """{"background":"#GGGGGG"}""",          // bad hex -> strict parse of merged fails
+            """"night"""",                            // dark is not an object
+            """{"image":""}""",                       // empty media string fails strictString
+            """{"buttons":[{"background":"#000000FF"}]}""" // length mismatch: light has 0 buttons
+        )
+        for (dark in brokenDarks) {
+            val modal = parsedModal(base.format(dark), isDark = true)
+            assertEquals("broken dark '$dark' must show light", color("#FFFFFFFF"), modal.backgroundColor)
+            assertEquals("https://x/light.png", modal.imageUrl)
+        }
+    }
+
+    @Test
+    fun unknownKeysNextToDarkAreStillIgnored() {
+        val json = """{"displayType":"modal","modal":{
+            "showClose":true,"dimBackground":true,"background":"#FFFFFFFF","buttons":[],
+            "totallyUnknown":{"x":1},
+            "dark":{"background":"#101014FF"}}}"""
+        assertEquals(color("#101014FF"), parsedModal(json, isDark = true).backgroundColor)
+        assertEquals(color("#FFFFFFFF"), parsedModal(json, isDark = false).backgroundColor)
+    }
+
+    @Test
+    fun darkParseKeepsOriginalRawJson() {
+        assertEquals(modalWithDark, InAppConfigParser.parse(modalWithDark, isDark = true)!!.rawJson)
+    }
+
+    @Test
+    fun jsonNullDarkIsTreatedAsAbsent() {
+        val json = """{"displayType":"modal","inAppId":"null-dark","modal":{
+            "showClose":true,"dimBackground":true,"background":"#FFFFFFFF","buttons":[],
+            "dark":null}}"""
+        val modal = parsedModal(json, isDark = true)
+        assertEquals(color("#FFFFFFFF"), modal.backgroundColor)
+    }
 }

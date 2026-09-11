@@ -9,16 +9,20 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 
 import android.content.Context;
+import android.util.TypedValue;
+import android.view.ContextThemeWrapper;
 import android.view.animation.Animation;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
+import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.model.HtmlData;
 import com.pushwoosh.inapp.view.js.PushwooshJSInterface;
 import com.pushwoosh.richmedia.RichMediaStyle;
 import com.pushwoosh.richmedia.animation.RichMediaAnimation;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +33,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
+
+import java.lang.reflect.Field;
 
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -51,6 +57,10 @@ public class ResourceWebViewTest {
 
     @Before
     public void setUp() throws Exception {
+        Field instance = PushwooshPlatform.class.getDeclaredField("instance");
+        instance.setAccessible(true);
+        instance.set(null, null);
+
         mocks = MockitoAnnotations.openMocks(this);
         richMediaStyle = new RichMediaStyle(0, richMediaAnimation);
         context = Mockito.spy(RuntimeEnvironment.application);
@@ -118,5 +128,40 @@ public class ResourceWebViewTest {
         WebSettings settings = resourceWebView.webView.getSettings();
 
         org.junit.Assert.assertEquals(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE, settings.getMixedContentMode());
+    }
+
+    // Verifies the WebView context is wrapped with the color-scheme overlay (light: app theme is 0 here).
+    @Test
+    public void createWebView_contextIsThemeWrapper_lightByDefault() {
+        Context webViewContext = resourceWebView.webView.getContext();
+
+        Assert.assertTrue(webViewContext instanceof ContextThemeWrapper);
+        TypedValue value = new TypedValue();
+        Assert.assertTrue(webViewContext.getTheme().resolveAttribute(android.R.attr.isLightTheme, value, true));
+        Assert.assertTrue(value.data != 0);
+    }
+
+    // Verifies the resolved manifest (dark) theme reaches the WebView context on API 29+.
+    @Test
+    public void createWebView_darkManifestTheme_wrapsDark() {
+        RuntimeEnvironment.application.getApplicationInfo().theme = android.R.style.Theme_Material;
+
+        ResourceWebView view = new ResourceWebView(context, FULLSCREEN, richMediaStyle, false);
+
+        TypedValue value = new TypedValue();
+        Assert.assertTrue(
+                view.webView.getContext().getTheme().resolveAttribute(android.R.attr.isLightTheme, value, true));
+        Assert.assertEquals(0, value.data);
+    }
+
+    // API <= 28: the framework has no isLightTheme attribute; the wrapper exists but resolves nothing.
+    @Test
+    @Config(sdk = 28)
+    public void createWebView_api28_wrapperPresentAttributeAbsent() {
+        Context webViewContext = resourceWebView.webView.getContext();
+
+        Assert.assertTrue(webViewContext instanceof ContextThemeWrapper);
+        TypedValue value = new TypedValue();
+        Assert.assertFalse(webViewContext.getTheme().resolveAttribute(android.R.attr.isLightTheme, value, true));
     }
 }

@@ -95,6 +95,7 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
      */
     @Override
     public void onActivityStarted(@NonNull Activity activity) {
+        trackHostActivity(activity);
         if (!PushwooshPlatform.getInstance().getConfig().isCollectingLifecycleEventsAllowed()) {
             return;
         }
@@ -127,6 +128,8 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
      */
     @Override
     public void onActivityResumed(@NonNull Activity activity) {
+        // Also on resume: an activity coming back from under a short-lived one gets no onStart.
+        trackHostActivity(activity);
         PushwooshPlatform.getInstance().setTopActivity(activity);
         EventBus.sendEvent(ActivityBroughtOnTopEvent.getInstance());
         if (idleDetector != null) {
@@ -186,6 +189,7 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
     @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
         clearTopActivityIfCurrent(activity);
+        clearHostActivityIfCurrent(activity);
     }
 
     // --- Fragment listeners ---
@@ -259,6 +263,18 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
         if (PushwooshPlatform.getInstance().getTopActivity() != null
                 && PushwooshPlatform.getInstance().getTopActivity() == activity) {
             PushwooshPlatform.getInstance().setTopActivity(null);
+        }
+    }
+
+    private static void trackHostActivity(@NonNull Activity activity) {
+        if (PushwooshPlatform.isHostCandidate(activity)) {
+            PushwooshPlatform.getInstance().setHostActivity(activity);
+        }
+    }
+
+    private static void clearHostActivityIfCurrent(@NonNull Activity activity) {
+        if (PushwooshPlatform.getInstance().getHostActivity() == activity) {
+            PushwooshPlatform.getInstance().setHostActivity(null);
         }
     }
 

@@ -13,10 +13,11 @@ import com.pushwoosh.inapp.view.config.enums.ModalRichMediaPresentAnimationType;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaSwipeGesture;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaWindowWidth;
-import com.pushwoosh.repository.NotificationPrefs;
-import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.internal.preference.PreferenceBooleanValue;
 import com.pushwoosh.internal.preference.PreferenceIntValue;
+import com.pushwoosh.internal.preference.PreferenceStringValue;
+import com.pushwoosh.repository.NotificationPrefs;
+import com.pushwoosh.repository.RepositoryModule;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,25 +39,35 @@ public class RichMediaManagerTest {
     @Mock
     private ModalRichmediaConfig mockConfig;
 
-
     @Mock
     private PreferenceIntValue mockDismissAnimPref;
+
     @Mock
     private PreferenceIntValue mockPresentAnimPref;
+
     @Mock
     private PreferenceIntValue mockSwipeGesturePref;
+
     @Mock
     private PreferenceIntValue mockViewPositionPref;
+
     @Mock
     private PreferenceIntValue mockWindowWidthPref;
+
     @Mock
     private PreferenceBooleanValue mockStatusBarPref;
+
     @Mock
     private PreferenceBooleanValue mockRespectEdgeToEdgePref;
+
     @Mock
     private PreferenceIntValue mockAnimationDurationPref;
+
     @Mock
     private PreferenceIntValue mockRichMediaTypePref;
+
+    @Mock
+    private PreferenceStringValue mockColorSchemePref;
 
     @Before
     public void setUp() {
@@ -90,9 +101,7 @@ public class RichMediaManagerTest {
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
             RichMediaManager.setDefaultRichMediaConfig(mockConfig);
-
 
             verify(mockDismissAnimPref).set(ModalRichMediaDismissAnimationType.SLIDE_DOWN.getCode());
             verify(mockPresentAnimPref).set(ModalRichMediaPresentAnimationType.SLIDE_UP.getCode());
@@ -101,7 +110,6 @@ public class RichMediaManagerTest {
             verify(mockStatusBarPref).set(true);
             verify(mockRespectEdgeToEdgePref).set(false);
             verify(mockAnimationDurationPref).set(500);
-
 
             int expectedMask = ModalRichMediaSwipeGesture.UP.getBit() | ModalRichMediaSwipeGesture.DOWN.getBit();
             verify(mockSwipeGesturePref).set(expectedMask);
@@ -123,9 +131,7 @@ public class RichMediaManagerTest {
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
             RichMediaManager.setDefaultRichMediaConfig(mockConfig);
-
 
             verify(mockDismissAnimPref).set(ModalRichMediaDismissAnimationType.FADE_OUT.getCode());
             verify(mockPresentAnimPref).set(ModalRichMediaPresentAnimationType.FADE_IN.getCode());
@@ -153,9 +159,7 @@ public class RichMediaManagerTest {
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
             RichMediaManager.setDefaultRichMediaConfig(mockConfig);
-
 
             verify(mockSwipeGesturePref).set(0);
         }
@@ -179,9 +183,7 @@ public class RichMediaManagerTest {
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
             RichMediaManager.setDefaultRichMediaConfig(mockConfig);
-
 
             verify(mockDismissAnimPref).set(ModalRichMediaDismissAnimationType.SLIDE_LEFT.getCode());
             verify(mockPresentAnimPref).set(ModalRichMediaPresentAnimationType.FADE_IN.getCode()); // Default
@@ -205,21 +207,25 @@ public class RichMediaManagerTest {
         when(mockRespectEdgeToEdgePref.get()).thenReturn(false);
         when(mockAnimationDurationPref.get()).thenReturn(750);
 
-
         int gestureMask = ModalRichMediaSwipeGesture.UP.getBit() | ModalRichMediaSwipeGesture.RIGHT.getBit();
         when(mockSwipeGesturePref.get()).thenReturn(gestureMask);
 
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
             ModalRichmediaConfig result = RichMediaManager.getDefaultRichMediaConfig();
 
-
-            assertEquals("should restore dismiss animation", ModalRichMediaDismissAnimationType.SLIDE_LEFT, result.getDismissAnimationType());
-            assertEquals("should restore present animation", ModalRichMediaPresentAnimationType.SLIDE_FROM_RIGHT, result.getPresentAnimationType());
+            assertEquals(
+                    "should restore dismiss animation",
+                    ModalRichMediaDismissAnimationType.SLIDE_LEFT,
+                    result.getDismissAnimationType());
+            assertEquals(
+                    "should restore present animation",
+                    ModalRichMediaPresentAnimationType.SLIDE_FROM_RIGHT,
+                    result.getPresentAnimationType());
             assertEquals("should restore view position", ModalRichMediaViewPosition.BOTTOM, result.getViewPosition());
-            assertEquals("should restore window width", ModalRichMediaWindowWidth.WRAP_CONTENT, result.getWindowWidth());
+            assertEquals(
+                    "should restore window width", ModalRichMediaWindowWidth.WRAP_CONTENT, result.getWindowWidth());
             assertTrue("should restore status bar covered", result.isStatusBarCovered());
             assertFalse("should restore edge-to-edge respect", result.shouldRespectEdgeToEdgeLayout());
             assertEquals("should restore animation duration", Integer.valueOf(750), result.getAnimationDuration());
@@ -246,11 +252,11 @@ public class RichMediaManagerTest {
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
             ModalRichmediaConfig result = RichMediaManager.getDefaultRichMediaConfig();
 
-
-            assertTrue("should have empty gesture set for zero mask", result.getSwipeGestures().isEmpty());
+            assertTrue(
+                    "should have empty gesture set for zero mask",
+                    result.getSwipeGestures().isEmpty());
         }
     }
 
@@ -272,9 +278,7 @@ public class RichMediaManagerTest {
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
             RichMediaManager.setDefaultRichMediaConfig(mockConfig);
-
 
             verify(mockSwipeGesturePref).set(ModalRichMediaSwipeGesture.UP.getBit());
         }
@@ -301,14 +305,12 @@ public class RichMediaManagerTest {
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
             RichMediaManager.setDefaultRichMediaConfig(mockConfig);
 
-
-            int expectedMask = ModalRichMediaSwipeGesture.UP.getBit() |
-                              ModalRichMediaSwipeGesture.DOWN.getBit() |
-                              ModalRichMediaSwipeGesture.LEFT.getBit() |
-                              ModalRichMediaSwipeGesture.RIGHT.getBit();
+            int expectedMask = ModalRichMediaSwipeGesture.UP.getBit()
+                    | ModalRichMediaSwipeGesture.DOWN.getBit()
+                    | ModalRichMediaSwipeGesture.LEFT.getBit()
+                    | ModalRichMediaSwipeGesture.RIGHT.getBit();
             verify(mockSwipeGesturePref).set(expectedMask);
         }
     }
@@ -316,10 +318,10 @@ public class RichMediaManagerTest {
     @Test
     public void testSwipeGestureBitmaskDecoding_AllGestures() {
 
-        int allGesturesMask = ModalRichMediaSwipeGesture.UP.getBit() |
-                             ModalRichMediaSwipeGesture.DOWN.getBit() |
-                             ModalRichMediaSwipeGesture.LEFT.getBit() |
-                             ModalRichMediaSwipeGesture.RIGHT.getBit();
+        int allGesturesMask = ModalRichMediaSwipeGesture.UP.getBit()
+                | ModalRichMediaSwipeGesture.DOWN.getBit()
+                | ModalRichMediaSwipeGesture.LEFT.getBit()
+                | ModalRichMediaSwipeGesture.RIGHT.getBit();
 
         when(mockDismissAnimPref.get()).thenReturn(ModalRichMediaDismissAnimationType.FADE_OUT.getCode());
         when(mockPresentAnimPref.get()).thenReturn(ModalRichMediaPresentAnimationType.FADE_IN.getCode());
@@ -333,9 +335,7 @@ public class RichMediaManagerTest {
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
             ModalRichmediaConfig result = RichMediaManager.getDefaultRichMediaConfig();
-
 
             Set<ModalRichMediaSwipeGesture> gestures = result.getSwipeGestures();
             assertEquals("should have all 4 gestures", 4, gestures.size());
@@ -349,20 +349,18 @@ public class RichMediaManagerTest {
     @Test
     public void testRoundTripConfigStorage_PreservesAllValues() {
 
-
         ModalRichmediaConfig originalConfig = new ModalRichmediaConfig()
-            .setViewPosition(ModalRichMediaViewPosition.BOTTOM)
-            .setPresentAnimationType(ModalRichMediaPresentAnimationType.SLIDE_FROM_RIGHT)
-            .setDismissAnimationType(ModalRichMediaDismissAnimationType.SLIDE_LEFT)
-            .setWindowWidth(ModalRichMediaWindowWidth.WRAP_CONTENT)
-            .setAnimationDuration(2000)
-            .setStatusBarCovered(true);
+                .setViewPosition(ModalRichMediaViewPosition.BOTTOM)
+                .setPresentAnimationType(ModalRichMediaPresentAnimationType.SLIDE_FROM_RIGHT)
+                .setDismissAnimationType(ModalRichMediaDismissAnimationType.SLIDE_LEFT)
+                .setWindowWidth(ModalRichMediaWindowWidth.WRAP_CONTENT)
+                .setAnimationDuration(2000)
+                .setStatusBarCovered(true);
 
         Set<ModalRichMediaSwipeGesture> originalGestures = new HashSet<>();
         originalGestures.add(ModalRichMediaSwipeGesture.DOWN);
         originalGestures.add(ModalRichMediaSwipeGesture.RIGHT);
         originalConfig.setSwipeGestures(originalGestures);
-
 
         when(mockDismissAnimPref.get()).thenReturn(ModalRichMediaDismissAnimationType.SLIDE_LEFT.getCode());
         when(mockPresentAnimPref.get()).thenReturn(ModalRichMediaPresentAnimationType.SLIDE_FROM_RIGHT.getCode());
@@ -371,27 +369,34 @@ public class RichMediaManagerTest {
         when(mockStatusBarPref.get()).thenReturn(true);
         when(mockRespectEdgeToEdgePref.get()).thenReturn(false);
         when(mockAnimationDurationPref.get()).thenReturn(2000);
-        
+
         int expectedMask = ModalRichMediaSwipeGesture.DOWN.getBit() | ModalRichMediaSwipeGesture.RIGHT.getBit();
         when(mockSwipeGesturePref.get()).thenReturn(expectedMask);
 
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
-
-
             ModalRichmediaConfig retrievedConfig = RichMediaManager.getDefaultRichMediaConfig();
 
-
-            assertEquals("viewPosition should match", ModalRichMediaViewPosition.BOTTOM, retrievedConfig.getViewPosition());
-            assertEquals("presentAnimationType should match", ModalRichMediaPresentAnimationType.SLIDE_FROM_RIGHT, retrievedConfig.getPresentAnimationType());
-            assertEquals("dismissAnimationType should match", ModalRichMediaDismissAnimationType.SLIDE_LEFT, retrievedConfig.getDismissAnimationType());
-            assertEquals("windowWidth should match", ModalRichMediaWindowWidth.WRAP_CONTENT, retrievedConfig.getWindowWidth());
-            assertEquals("animationDuration should match", Integer.valueOf(2000), retrievedConfig.getAnimationDuration());
+            assertEquals(
+                    "viewPosition should match", ModalRichMediaViewPosition.BOTTOM, retrievedConfig.getViewPosition());
+            assertEquals(
+                    "presentAnimationType should match",
+                    ModalRichMediaPresentAnimationType.SLIDE_FROM_RIGHT,
+                    retrievedConfig.getPresentAnimationType());
+            assertEquals(
+                    "dismissAnimationType should match",
+                    ModalRichMediaDismissAnimationType.SLIDE_LEFT,
+                    retrievedConfig.getDismissAnimationType());
+            assertEquals(
+                    "windowWidth should match",
+                    ModalRichMediaWindowWidth.WRAP_CONTENT,
+                    retrievedConfig.getWindowWidth());
+            assertEquals(
+                    "animationDuration should match", Integer.valueOf(2000), retrievedConfig.getAnimationDuration());
             assertTrue("statusBarCovered should match", retrievedConfig.isStatusBarCovered());
             assertFalse("respectEdgeToEdgeLayout should match", retrievedConfig.shouldRespectEdgeToEdgeLayout());
-            
+
             Set<ModalRichMediaSwipeGesture> retrievedGestures = retrievedConfig.getSwipeGestures();
             assertEquals("should have same number of gestures", 2, retrievedGestures.size());
             assertTrue("should contain DOWN gesture", retrievedGestures.contains(ModalRichMediaSwipeGesture.DOWN));
@@ -438,7 +443,6 @@ public class RichMediaManagerTest {
         }
     }
 
-
     // Verifies that getRichMediaType falls back to DEFAULT when the stored ordinal exceeds the enum range.
     @Test
     public void testGetRichMediaType_OrdinalOutOfRange_FallsBackToDefault() {
@@ -470,7 +474,6 @@ public class RichMediaManagerTest {
     @Test
     public void testSwipeGestureBitmaskHandling_NoGesturesWithNonZeroBit() {
 
-
         when(mockDismissAnimPref.get()).thenReturn(ModalRichMediaDismissAnimationType.FADE_OUT.getCode());
         when(mockPresentAnimPref.get()).thenReturn(ModalRichMediaPresentAnimationType.FADE_IN.getCode());
         when(mockViewPositionPref.get()).thenReturn(ModalRichMediaViewPosition.CENTER.getCode());
@@ -479,23 +482,77 @@ public class RichMediaManagerTest {
         when(mockRespectEdgeToEdgePref.get()).thenReturn(true);
         when(mockAnimationDurationPref.get()).thenReturn(1000);
 
-
         int gestureMask = ModalRichMediaSwipeGesture.LEFT.getBit();
         when(mockSwipeGesturePref.get()).thenReturn(gestureMask);
 
         try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
             repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
 
-
             ModalRichmediaConfig result = RichMediaManager.getDefaultRichMediaConfig();
-
 
             Set<ModalRichMediaSwipeGesture> gestures = result.getSwipeGestures();
             assertEquals("should have 1 gesture", 1, gestures.size());
             assertTrue("should contain LEFT gesture", gestures.contains(ModalRichMediaSwipeGesture.LEFT));
-            
 
             assertFalse("should not contain NONE gesture", gestures.contains(ModalRichMediaSwipeGesture.NONE));
+        }
+    }
+
+    // Verifies that setRichMediaColorScheme persists the enum's name to NotificationPrefs.
+    @Test
+    public void testSetRichMediaColorScheme_ValidScheme_PersistsName() {
+        try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
+            repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
+            when(mockPrefs.richMediaColorScheme()).thenReturn(mockColorSchemePref);
+
+            RichMediaManager.setRichMediaColorScheme(RichMediaColorScheme.DARK);
+
+            verify(mockColorSchemePref).set("DARK");
+        }
+    }
+
+    // Verifies that setRichMediaColorScheme(null) is a no-op and does not touch the prefs.
+    @Test
+    public void testSetRichMediaColorScheme_Null_DoesNotTouchPrefs() {
+        try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
+            repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
+
+            RichMediaManager.setRichMediaColorScheme(null);
+
+            verify(mockPrefs, never()).richMediaColorScheme();
+        }
+    }
+
+    // Verifies that a scheme set through the setter is returned by the getter (round-trip).
+    @Test
+    public void testRichMediaColorScheme_SetGetRoundTrip() {
+        final String[] stored = {null};
+        Mockito.doAnswer(invocation -> {
+                    stored[0] = invocation.getArgument(0);
+                    return null;
+                })
+                .when(mockColorSchemePref)
+                .set(Mockito.anyString());
+        when(mockColorSchemePref.get()).thenAnswer(invocation -> stored[0]);
+        try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
+            repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
+            when(mockPrefs.richMediaColorScheme()).thenReturn(mockColorSchemePref);
+
+            RichMediaManager.setRichMediaColorScheme(RichMediaColorScheme.SYSTEM);
+
+            assertEquals(RichMediaColorScheme.SYSTEM, RichMediaManager.getRichMediaColorScheme());
+        }
+    }
+
+    // Verifies that garbage in prefs falls back to APP.
+    @Test
+    public void testGetRichMediaColorScheme_GarbageStored_FallsBackToApp() {
+        try (MockedStatic<RepositoryModule> repositoryMock = Mockito.mockStatic(RepositoryModule.class)) {
+            repositoryMock.when(RepositoryModule::getNotificationPreferences).thenReturn(mockPrefs);
+            when(mockPrefs.richMediaColorScheme()).thenReturn(mockColorSchemePref);
+            when(mockColorSchemePref.get()).thenReturn("not-a-scheme");
+
+            assertEquals(RichMediaColorScheme.APP, RichMediaManager.getRichMediaColorScheme());
         }
     }
 }

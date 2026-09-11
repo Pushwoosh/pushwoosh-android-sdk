@@ -36,7 +36,10 @@ object InAppPresets {
                 ),
         )
 
-    /** Blocking modal: header image, two styled buttons (url + close), dims and blocks the host. */
+    /**
+     * Blocking modal: header image, two styled buttons (url + close), dims the host; carries a dark
+     * overlay (SDK-971).
+     */
     @JvmField
     val MODAL: Map<String, Any?> =
         mapOf(
@@ -70,6 +73,26 @@ object InAppPresets {
                                 "border" to mapOf("color" to "#1E88E5FF", "radius" to 12),
                                 "action" to mapOf("type" to "close"),
                             ),
+                        ),
+                    "dark" to
+                        mapOf(
+                            "background" to "#16161AFF",
+                            "image" to "https://picsum.photos/seed/pwmodaldark/600/320",
+                            "title" to mapOf("color" to "#F2F2F7FF"),
+                            "message" to mapOf("color" to "#B8B8C0FF"),
+                            "buttons" to
+                                listOf(
+                                    mapOf(
+                                        "text" to mapOf("color" to "#0B0B0EFF"),
+                                        "background" to "#8AB4F8FF",
+                                        "border" to mapOf("color" to "#8AB4F8FF"),
+                                    ),
+                                    mapOf(
+                                        "text" to mapOf("color" to "#8AB4F8FF"),
+                                        "background" to "#16161AFF",
+                                        "border" to mapOf("color" to "#8AB4F8FF"),
+                                    ),
+                                ),
                         ),
                 ),
         )

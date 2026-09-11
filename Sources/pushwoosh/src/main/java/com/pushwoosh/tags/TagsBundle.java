@@ -45,6 +45,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -515,7 +516,7 @@ public class TagsBundle {
                 PWLog.warn("Skipping date tag \"" + key + "\": value is null");
                 return this;
             }
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
             tags.put(key, dateFormat.format(value));
             return this;
         }

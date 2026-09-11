@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- android:isLightTheme exists since API 29 (values-v29); below it this empty overlay changes nothing. -->
+    <style name="PwRichMediaColorScheme.Light" parent="" />
+    <style name="PwRichMediaColorScheme.Dark" parent="" />
+</resources>

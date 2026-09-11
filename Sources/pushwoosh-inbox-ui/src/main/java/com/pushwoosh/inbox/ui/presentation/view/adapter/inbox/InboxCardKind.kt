@@ -38,15 +38,16 @@ import org.json.JSONObject
  * Rich-card kind of an inbox message, mirroring the iOS PushwooshInboxKit
  * resolver. Server-driven first: an explicit `displayType` in the message's
  * actionParams selects the card. Without a known displayType the iOS
- * image/title heuristic applies — image + title renders `captioned`, image
- * alone renders `banner`, neither renders `classic` — but only when
- * [PushwooshInboxStyle.richCardsHeuristicEnabled] is on (off by default so
- * existing integrations keep their legacy row rendering, which is what
+ * image/text heuristic applies — image + title + body renders `captioned`,
+ * image alone renders `banner`, anything else renders `classic` — but only
+ * when [PushwooshInboxStyle.richCardsHeuristicEnabled] is on (off by default
+ * so existing integrations keep their legacy row rendering, which is what
  * [DEFAULT] stands for).
  *
- * A requested kind whose payload is missing degrades to [CLASSIC], matching
- * iOS: `banner`/`captioned` need a hero image, `carousel` at least one slide,
- * `video` a descriptor. `wallet` always degrades — Apple Wallet is iOS-only.
+ * A requested kind whose mandatory fields are missing degrades to [CLASSIC],
+ * matching iOS: `banner` needs a hero image, `captioned` a hero image plus
+ * title and body, `carousel` title and body plus at least one slide, `video`
+ * a descriptor. `wallet` always degrades — Apple Wallet is iOS-only.
  */
 enum class InboxCardKind {
     BANNER,
@@ -73,13 +74,15 @@ enum class InboxCardKind {
             val params = parseActionParams(message)
             val displayType = readDisplayType(params)
             val hasHero = resolveHeroUrl(message, params) != null
+            val hasTitle = !message.title.isNullOrEmpty()
+            val hasText = hasTitle && !message.message.isNullOrEmpty()
 
             val requested: String = if (displayType != null && displayType in KNOWN_KINDS) {
                 displayType
             } else if (PushwooshInboxStyle.richCardsHeuristicEnabled) {
                 when {
-                    hasHero && message.title.isNullOrEmpty() -> "banner"
-                    hasHero -> "captioned"
+                    hasHero && !hasTitle -> "banner"
+                    hasHero && hasText -> "captioned"
                     else -> "classic"
                 }
             } else {
@@ -90,8 +93,8 @@ enum class InboxCardKind {
             // card, never to the legacy row: the message was authored as a card either way.
             val resolved: InboxCardKind = when (requested) {
                 "banner" -> if (hasHero) BANNER else CLASSIC
-                "captioned" -> if (hasHero) CAPTIONED else CLASSIC
-                "carousel" -> if (InboxCarouselSlide.decode(params).isEmpty()) CLASSIC else CAROUSEL
+                "captioned" -> if (hasHero && hasText) CAPTIONED else CLASSIC
+                "carousel" -> if (hasText && InboxCarouselSlide.decode(params).isNotEmpty()) CAROUSEL else CLASSIC
                 "video" -> if (InboxVideoContent.decode(params) == null) CLASSIC else VIDEO
                 // Apple Wallet has no Android counterpart; the kind stays known so the message
                 // renders as a card rather than falling back to the heuristic or a legacy row.
@@ -100,17 +103,24 @@ enum class InboxCardKind {
             }
 
             if (resolved == CLASSIC && requested != "classic") {
-                logDegrade(message, displayType, requested, hasHero)
+                logDegrade(message, displayType, requested, hasHero, hasText)
             }
             return resolved
         }
 
-        private fun logDegrade(message: InboxMessage, displayType: String?, requested: String, hasHero: Boolean) {
+        private fun logDegrade(
+            message: InboxMessage,
+            displayType: String?,
+            requested: String,
+            hasHero: Boolean,
+            hasText: Boolean
+        ) {
             if (degradeLoggedCodes.put(message.code, true) != null) {
                 return
             }
             val reason = when (requested) {
-                "carousel" -> "no slides"
+                "captioned" -> if (hasHero) "no title/body" else "no image"
+                "carousel" -> if (hasText) "no slides" else "no title/body"
                 "video" -> "no video descriptor"
                 "wallet" -> "wallet cards are iOS-only"
                 else -> "no image"

@@ -9,6 +9,7 @@ import com.pushwoosh.inapp.ui.parser.InAppConfigParser
 import com.pushwoosh.internal.platform.AndroidPlatformModule
 import com.pushwoosh.internal.utils.BackgroundExecutor
 import com.pushwoosh.internal.utils.PWLog
+import com.pushwoosh.richmedia.RichMediaColorSchemeResolver
 import org.json.JSONObject
 
 /**
@@ -103,8 +104,14 @@ object PushwooshInAppUi {
             PWLog.warn(TAG, "present(): config map holds a value JSON cannot carry, not shown")
             return
         }
-        val message = InAppConfigParser.parse(json) ?: return
+        val message = InAppConfigParser.parse(json, isCurrentSchemeDark()) ?: return
         route(message)
+    }
+
+    /** Effective scheme for the parse at a present point; light until the SDK has a context. */
+    internal fun isCurrentSchemeDark(): Boolean {
+        val context = AndroidPlatformModule.getApplicationContext() ?: return false
+        return RichMediaColorSchemeResolver.isCurrentSchemeDark(context)
     }
 
     /** Routes a parsed message: every template goes through the single FIFO queue, which

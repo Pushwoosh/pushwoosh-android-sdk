@@ -43,7 +43,7 @@ import org.robolectric.annotation.Config
  * Mirrors the iOS PushwooshInboxKit resolver contract: server-driven
  * `displayType` read from actionParams (root, `u` dict, `u` as a JSON-encoded
  * string, legacy `userdata`), the iOS image/title heuristic when no known
- * displayType is present (image + title -> captioned, image alone -> banner,
+ * displayType is present (image + title + body -> captioned, image alone -> banner,
  * neither -> classic) — gated behind
  * PushwooshInboxStyle.richCardsHeuristicEnabled, off by default so existing
  * inboxes keep their legacy rows. A requested kind whose payload is missing
@@ -109,13 +109,29 @@ class InboxCardKindTest {
 
     @Test
     fun resolve_displayTypeCaptioned_isCaptioned() {
-        val m = msg(actionParams = """{"displayType":"captioned","attachment":"https://img.example/hero.png"}""")
+        val m = msg(actionParams = """{"displayType":"captioned","attachment":"https://img.example/hero.png"}""", title = "title")
         assertEquals(InboxCardKind.CAPTIONED, InboxCardKind.resolve(m))
     }
 
     @Test
     fun resolve_captionedWithoutAnyImage_degradesToClassic() {
         val m = msg(actionParams = """{"displayType":"captioned"}""", title = "title")
+        assertEquals(InboxCardKind.CLASSIC, InboxCardKind.resolve(m))
+    }
+
+    @Test
+    fun resolve_captionedWithoutTitle_degradesToClassic() {
+        val m = msg(actionParams = """{"displayType":"captioned","attachment":"https://img.example/hero.png"}""")
+        assertEquals(InboxCardKind.CLASSIC, InboxCardKind.resolve(m))
+    }
+
+    @Test
+    fun resolve_captionedWithEmptyBody_degradesToClassic() {
+        val m = fakeInboxMessage(
+            actionParams = """{"displayType":"captioned","attachment":"https://img.example/hero.png"}""",
+            title = "title",
+            message = ""
+        )
         assertEquals(InboxCardKind.CLASSIC, InboxCardKind.resolve(m))
     }
 
@@ -139,6 +155,13 @@ class InboxCardKindTest {
         enableHeuristic()
         val m = msg(imageUrl = "https://img.example/icon.png", title = "title")
         assertEquals(InboxCardKind.CAPTIONED, InboxCardKind.resolve(m))
+    }
+
+    @Test
+    fun resolve_heuristic_imageWithTitleButEmptyBody_isClassic() {
+        enableHeuristic()
+        val m = fakeInboxMessage(imageUrl = "https://img.example/icon.png", title = "title", message = "")
+        assertEquals(InboxCardKind.CLASSIC, InboxCardKind.resolve(m))
     }
 
     @Test
@@ -198,8 +221,14 @@ class InboxCardKindTest {
 
     @Test
     fun resolve_carouselWithSlides_isCarousel() {
-        val m = msg(actionParams = """{"displayType":"carousel","carousel":[{"image":"https://cdn/1.jpg"}]}""")
+        val m = msg(actionParams = """{"displayType":"carousel","carousel":[{"image":"https://cdn/1.jpg"}]}""", title = "title")
         assertEquals(InboxCardKind.CAROUSEL, InboxCardKind.resolve(m))
+    }
+
+    @Test
+    fun resolve_carouselWithoutTitle_degradesToClassic() {
+        val m = msg(actionParams = """{"displayType":"carousel","carousel":[{"image":"https://cdn/1.jpg"}]}""")
+        assertEquals(InboxCardKind.CLASSIC, InboxCardKind.resolve(m))
     }
 
     @Test

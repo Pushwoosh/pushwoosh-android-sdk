@@ -2,6 +2,7 @@ package com.pushwoosh.notification;
 
 import android.content.Context;
 import android.os.Bundle;
+
 import androidx.annotation.MainThread;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
@@ -15,7 +16,6 @@ import com.pushwoosh.notification.handlers.message.system.MessageSystemHandleCha
 import com.pushwoosh.notification.handlers.message.user.MessageHandleChainProvider;
 import com.pushwoosh.notification.handlers.notification.NotificationOpenHandlerChainProvider;
 import com.pushwoosh.notification.handlers.notification.PushStatNotificationOpenHandler;
-import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
 import java.util.List;
@@ -193,16 +193,20 @@ public class NotificationServiceExtension {
     private PushMessageFactory pushMessageFactory;
     private PushwooshNotificationManager pushNotificationManager;
     private Config config;
-    @Nullable
-    private Context applicationContext;
+
+    @Nullable private Context applicationContext;
+
     private final PushStatNotificationOpenHandler pushStatNotificationOpenHandler;
 
     public NotificationServiceExtension() {
         pushMessageFactory = PushwooshPlatform.getInstance().getPushMessageFactory();
         applicationContext = AndroidPlatformModule.getApplicationContext();
         pushNotificationManager = PushwooshPlatform.getInstance().notificationManager();
-        notificationOpenHandler = new NotificationOpenHandler(NotificationOpenHandlerChainProvider.getNotificationOpenHandlerChain());
-        pushMessageHandler = new PushMessageHandler(MessageSystemHandleChainProvider.getMessageSystemChain(), MessageHandleChainProvider.getHandleProcessor());
+        notificationOpenHandler =
+                new NotificationOpenHandler(NotificationOpenHandlerChainProvider.getNotificationOpenHandlerChain());
+        pushMessageHandler = new PushMessageHandler(
+                MessageSystemHandleChainProvider.getMessageSystemChain(),
+                MessageHandleChainProvider.getHandleProcessor());
         config = PushwooshPlatform.getInstance().getConfig();
         pushStatNotificationOpenHandler = new PushStatNotificationOpenHandler();
     }
@@ -228,7 +232,6 @@ public class NotificationServiceExtension {
      * @see #onMessageReceived(PushMessage)
      */
     @WorkerThread
-
     public final void handleMessage(Bundle pushBundle) {
         handleMessageInternal(pushBundle);
     }
@@ -246,7 +249,6 @@ public class NotificationServiceExtension {
         }
 
         PushMessage message = pushMessageFactory.createPushMessage(pushBundle);
-
 
         boolean isHandled = onMessageReceived(message);
 
@@ -305,7 +307,6 @@ public class NotificationServiceExtension {
             notificationOpenHandler.postHandleNotification(pushBundle);
             onMessageOpened(message);
         }
-
     }
 
     /**
@@ -414,11 +415,8 @@ public class NotificationServiceExtension {
      * @see #startActivityForPushMessage(PushMessage)
      * @see PushMessage
      */
-
     @SuppressWarnings({"WeakerAccess", "unused"})
-    protected void onMessageOpened(final PushMessage message) {
-
-    }
+    protected void onMessageOpened(final PushMessage message) {}
 
     /**
      * Callback invoked when a user dismisses or swipes away a notification.
@@ -456,10 +454,7 @@ public class NotificationServiceExtension {
      *
      * @see PushMessage
      */
-    protected void onMessageCanceled(final PushMessage message) {
-
-    }
-
+    protected void onMessageCanceled(final PushMessage message) {}
 
     /**
      * Callback invoked when a user taps on a grouped notification (notification stack).
@@ -609,7 +604,10 @@ public class NotificationServiceExtension {
     @WorkerThread
     protected boolean onMessageReceived(PushMessage data) {
         if (RepositoryModule.getNotificationPreferences() != null) {
-            return (RepositoryModule.getNotificationPreferences().showPushnotificationAlert().get() && isAppOnForeground());
+            return (RepositoryModule.getNotificationPreferences()
+                            .showPushnotificationAlert()
+                            .get()
+                    && isAppOnForeground());
         } else {
             return false;
         }
@@ -749,6 +747,13 @@ public class NotificationServiceExtension {
      * By default, Pushwoosh automatically processes notifications that contain a URL or deep link in
      * the notification payload. If an activity can handle the URL/deep link, it will be started
      * automatically, and {@link #startActivityForPushMessage(PushMessage)} will not be called.
+     * The link is opened with an {@code ACTION_VIEW} intent carrying
+     * {@code FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TOP}, so a running {@code singleTop}
+     * activity receives it in {@code onNewIntent()} and activities above it in the task are closed.
+     * A running {@code standard} activity is finished and recreated with the link in
+     * {@code onCreate()}; {@code singleTask} and {@code singleInstance} activities receive it in
+     * {@code onNewIntent()}. The flags apply to whichever activity resolves the link, including
+     * one in another app.
      * <p>
      * Override this method to return {@code false} if you want to handle all URLs and deep links
      * manually in {@link #startActivityForPushMessage(PushMessage)}.
@@ -904,8 +909,7 @@ public class NotificationServiceExtension {
      * @see #onMessageReceived(PushMessage)
      * @see #startActivityForPushMessage(PushMessage)
      */
-    @Nullable
-    protected final Context getApplicationContext() {
+    @Nullable protected final Context getApplicationContext() {
         return applicationContext;
     }
 }

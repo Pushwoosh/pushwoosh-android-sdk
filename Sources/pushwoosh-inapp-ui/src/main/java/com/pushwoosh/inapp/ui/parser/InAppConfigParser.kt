@@ -32,10 +32,16 @@ private const val TAG = "InAppConfigParser"
  * no-op (the parser never throws). Unknown keys are ignored at every level. The envelope fields
  * (`inAppId`/`maxDisplays`/`cooldown`/`expireDate`/`ttl`) are a deliberate extension over the
  * contract and keep their existing tolerant reading.
+ *
+ * With `isDark = true`, a `dark` overlay inside the display block is merged onto the light
+ * values before the strict parse ([InAppDarkOverlay]); a `dark` that is broken structurally or
+ * fails the strict parse is dropped with a warning and the light variant is parsed instead —
+ * the only fail-open exception (SDK-971). `rawJson` on the result always keeps the original
+ * (light) input.
  */
 object InAppConfigParser {
 
-    fun parse(rawJson: String?): InAppMessage? {
+    fun parse(rawJson: String?, isDark: Boolean = false): InAppMessage? {
         if (rawJson.isNullOrEmpty()) return null
         val root = try {
             JSONObject(rawJson)
@@ -44,7 +50,7 @@ object InAppConfigParser {
         }
 
         val displayType = (root.opt("displayType") as? String)?.lowercase(Locale.ROOT) ?: return null
-        val layout = parseLayout(root, displayType) ?: run {
+        val layout = parseLayout(root, displayType, isDark) ?: run {
             PWLog.warn(TAG, "native-config: '$displayType' config is invalid, not shown")
             return null
         }
@@ -59,14 +65,25 @@ object InAppConfigParser {
         )
     }
 
-    private fun parseLayout(root: JSONObject, displayType: String): InAppLayout? = when (displayType) {
-        "banner" -> root.optJSONObject("banner")?.let { parseBanner(it) }?.let { InAppLayout.Banner(it) }
-        "carousel" -> root.optJSONObject("carousel")?.let { parseCarousel(it) }?.let { InAppLayout.Carousel(it) }
-        "fullscreen" -> root.optJSONObject("fullscreen")?.let { parseFullscreen(it) }?.let { InAppLayout.Fullscreen(it) }
-        "modal" -> root.optJSONObject("modal")?.let { parseModal(it) }?.let { InAppLayout.Modal(it) }
-        "sheet" -> root.optJSONObject("sheet")?.let { parseSheet(it) }?.let { InAppLayout.Sheet(it) }
-        "stories" -> root.optJSONObject("stories")?.let { parseStories(it) }?.let { InAppLayout.Stories(it) }
-        "video" -> root.optJSONObject("video")?.let { parseVideo(it) }?.let { InAppLayout.Video(it) }
+    private fun parseLayout(root: JSONObject, displayType: String, isDark: Boolean): InAppLayout? {
+        val block = root.optJSONObject(displayType) ?: return null
+        if (isDark && block.has("dark") && !block.isNull("dark")) {
+            InAppDarkOverlay.merge(block)?.let { merged ->
+                parseBlock(merged, displayType)?.let { return it }
+            }
+            PWLog.warn(TAG, "native-config: 'dark' overlay is invalid, showing the light variant")
+        }
+        return parseBlock(block, displayType)
+    }
+
+    private fun parseBlock(dict: JSONObject, displayType: String): InAppLayout? = when (displayType) {
+        "banner" -> parseBanner(dict)?.let { InAppLayout.Banner(it) }
+        "carousel" -> parseCarousel(dict)?.let { InAppLayout.Carousel(it) }
+        "fullscreen" -> parseFullscreen(dict)?.let { InAppLayout.Fullscreen(it) }
+        "modal" -> parseModal(dict)?.let { InAppLayout.Modal(it) }
+        "sheet" -> parseSheet(dict)?.let { InAppLayout.Sheet(it) }
+        "stories" -> parseStories(dict)?.let { InAppLayout.Stories(it) }
+        "video" -> parseVideo(dict)?.let { InAppLayout.Video(it) }
         else -> null
     }
 

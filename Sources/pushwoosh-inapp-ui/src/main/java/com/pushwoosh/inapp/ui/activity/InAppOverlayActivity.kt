@@ -12,6 +12,7 @@ import com.pushwoosh.inapp.ui.model.InAppAction
 import com.pushwoosh.inapp.ui.parser.InAppConfigParser
 import com.pushwoosh.inapp.ui.view.InAppTemplateView
 import com.pushwoosh.inapp.ui.view.InAppViewFactory
+import com.pushwoosh.richmedia.RichMediaColorSchemeResolver
 
 /**
  * Shared translucent Activity hosting a blocking native in-app template. The message is
@@ -46,7 +47,10 @@ class InAppOverlayActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val message = InAppConfigParser.parse(intent.getStringExtra(EXTRA_RAW_JSON))
+        val message = InAppConfigParser.parse(
+            intent.getStringExtra(EXTRA_RAW_JSON),
+            RichMediaColorSchemeResolver.isCurrentSchemeDark(this)
+        )
         if (message == null) {
             finish()
             return

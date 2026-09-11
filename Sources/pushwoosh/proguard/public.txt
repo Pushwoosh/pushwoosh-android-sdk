@@ -119,6 +119,8 @@
 
 -keep public enum com.pushwoosh.richmedia.RichMediaType { *; }
 
+-keep public enum com.pushwoosh.richmedia.RichMediaColorScheme { *; }
+
 -keep public class com.pushwoosh.richmedia.RichMediaPresentingDelegate {
     *;
 }

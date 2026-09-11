@@ -126,6 +126,8 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.androidx.test.core
+    androidTestImplementation libs.androidx.test.runner
 }
 
 apply plugin: "com.google.gms.google-services"

@@ -55,6 +55,7 @@ import com.pushwoosh.inapp.network.model.InAppLayout;
 import com.pushwoosh.inapp.view.js.PushwooshJSInterface;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.richmedia.RichMediaColorSchemeResolver;
 import com.pushwoosh.richmedia.RichMediaStyle;
 import com.pushwoosh.richmedia.animation.RichMediaAnimation;
 
@@ -139,7 +140,7 @@ public class ResourceWebView extends FrameLayout {
     }
 
     protected WebView createWebView() {
-        return new WebView(getContext());
+        return new WebView(RichMediaColorSchemeResolver.wrapForCurrentScheme(getContext()));
     }
 
     @SuppressLint("SetJavaScriptEnabled")

@@ -6,6 +6,8 @@ googleServices = "4.4.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
+androidxTestCore = "1.6.1"
+androidxTestRunner = "1.6.2"
 appcompat = "1.7.0"
 material = "1.12.0"
 constraintlayout = "2.1.4"
@@ -15,10 +17,10 @@ navigationFragment = "2.7.7"
 navigationUi = "2.7.7"
 coreKtx = "1.10.1"
 playServicesLocation = "21.0.1"
-pushwooshFirebase = "6.12.0"
+pushwooshFirebase = "6.13.0"
 swiperefreshlayout = "1.1.0"
 workRuntime = "2.8.1"
-spotless = "6.25.0"
+spotless = "8.10.2"
 pitest = "1.15.0"
 
 [libraries]
@@ -29,6 +31,8 @@ google-services = { module = "com.google.gms:google-services", version.ref = "go
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }

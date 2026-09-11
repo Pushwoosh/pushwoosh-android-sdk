@@ -481,3 +481,7 @@
 # classes — renamed in the published core AAR, the module's call sites die with NoSuchMethodError.
 -keep public class com.pushwoosh.repository.NotificationPrefs { public *; }
 -keep public class com.pushwoosh.inapp.PushwooshInAppImpl { public *; }
+# The module resolves the dark scheme through this at every present point. Its only in-core
+# caller is ResourceWebView, so without a keep R8 inlines the class away entirely and the
+# separately minified module AAR dies on NoClassDefFoundError.
+-keep public class com.pushwoosh.richmedia.RichMediaColorSchemeResolver { public *; }

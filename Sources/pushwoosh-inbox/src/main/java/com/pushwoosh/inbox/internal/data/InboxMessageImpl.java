@@ -36,109 +36,104 @@ import com.pushwoosh.inbox.notification.InboxPayloadDataProvider;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class InboxMessageImpl implements InboxMessage {
-	private static final long serialVersionUID = 5094347184829087767L;
-	private final InboxMessageInternal inboxMessageInternal;
+    private static final long serialVersionUID = 5094347184829087767L;
+    private final InboxMessageInternal inboxMessageInternal;
 
-	public InboxMessageImpl(InboxMessageInternal inboxMessageInternal) {
-		this.inboxMessageInternal = inboxMessageInternal;
-	}
+    public InboxMessageImpl(InboxMessageInternal inboxMessageInternal) {
+        this.inboxMessageInternal = inboxMessageInternal;
+    }
 
-	@NonNull
-	@Override
-	public String getCode() {
-		return inboxMessageInternal.getId();
-	}
+    @NonNull @Override
+    public String getCode() {
+        return inboxMessageInternal.getId();
+    }
 
-	@Nullable
-	@Override
-	public String getTitle() {
-		return inboxMessageInternal.getTitle();
-	}
+    @Nullable @Override
+    public String getTitle() {
+        return inboxMessageInternal.getTitle();
+    }
 
-	@Nullable
-	@Override
-	public String getImageUrl() {
-		return inboxMessageInternal.getImage();
-	}
+    @Nullable @Override
+    public String getImageUrl() {
+        return inboxMessageInternal.getImage();
+    }
 
-	@NonNull
-	@Override
-	public String getMessage() {
-		return inboxMessageInternal.getMessage();
-	}
+    @NonNull @Override
+    public String getMessage() {
+        return inboxMessageInternal.getMessage();
+    }
 
-	@NonNull
-	@Override
-	public Date getSendDate() {
-		return DateProvider.map(inboxMessageInternal.getSendDate());
-	}
+    @NonNull @Override
+    public Date getSendDate() {
+        return DateProvider.map(inboxMessageInternal.getSendDate());
+    }
 
-	@NonNull
-	@Override
-	public String getISO8601SendDate() {
-		Date date = DateProvider.map(inboxMessageInternal.getSendDate());
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-		return format.format(date);
-	}
+    @NonNull @Override
+    public String getISO8601SendDate() {
+        Date date = DateProvider.map(inboxMessageInternal.getSendDate());
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
+        return format.format(date);
+    }
 
-	@NonNull
-	@Override
-	public InboxMessageType getType() {
-		return InboxPayloadDataProvider.getInboxType(inboxMessageInternal.getActionParams());
-	}
+    @NonNull @Override
+    public InboxMessageType getType() {
+        return InboxPayloadDataProvider.getInboxType(inboxMessageInternal.getActionParams());
+    }
 
-	@Nullable
-	@Override
-	public String getBannerUrl() {
-		return inboxMessageInternal.getBannerUrl();
-	}
+    @Nullable @Override
+    public String getBannerUrl() {
+        return inboxMessageInternal.getBannerUrl();
+    }
 
-	@Override
-	public boolean isRead() {
-		return inboxMessageInternal.isRead();
-	}
+    @Override
+    public boolean isRead() {
+        return inboxMessageInternal.isRead();
+    }
 
-	@Override
-	public boolean isActionPerformed() {
-		return inboxMessageInternal.isActionCompleted();
-	}
+    @Override
+    public boolean isActionPerformed() {
+        return inboxMessageInternal.isActionCompleted();
+    }
 
-	@Override
-	public String getActionParams() {
-		return inboxMessageInternal.getActionParams();
-	}
+    @Override
+    public String getActionParams() {
+        return inboxMessageInternal.getActionParams();
+    }
 
-	public InboxMessageInternal getInboxMessageInternal() {
-		return inboxMessageInternal;
-	}
+    public InboxMessageInternal getInboxMessageInternal() {
+        return inboxMessageInternal;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-		InboxMessageImpl that = (InboxMessageImpl) o;
+        InboxMessageImpl that = (InboxMessageImpl) o;
 
-		return inboxMessageInternal != null ? inboxMessageInternal.equals(that.inboxMessageInternal) : that.inboxMessageInternal == null;
-	}
+        return inboxMessageInternal != null
+                ? inboxMessageInternal.equals(that.inboxMessageInternal)
+                : that.inboxMessageInternal == null;
+    }
 
-	@Override
-	public int hashCode() {
-		return inboxMessageInternal != null ? inboxMessageInternal.hashCode() : 0;
-	}
+    @Override
+    public int hashCode() {
+        return inboxMessageInternal != null ? inboxMessageInternal.hashCode() : 0;
+    }
 
-	@Override
-	public int compareTo(@NonNull InboxMessage o) {
-		if (o instanceof InboxMessageImpl) {
-			return inboxMessageInternal.compareTo(((InboxMessageImpl) o).inboxMessageInternal);
-		}
+    @Override
+    public int compareTo(@NonNull InboxMessage o) {
+        if (o instanceof InboxMessageImpl) {
+            return inboxMessageInternal.compareTo(((InboxMessageImpl) o).inboxMessageInternal);
+        }
 
-		return -1;
-	}
+        return -1;
+    }
 }

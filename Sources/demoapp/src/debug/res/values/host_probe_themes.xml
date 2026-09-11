@@ -1,0 +1,31 @@
+<resources>
+    <!-- Theme that declares neither windowIsTranslucent nor isLightTheme. -->
+    <style name="HostProbe.NoAttrs" parent="" />
+
+    <!-- Light theme that is explicitly translucent: light, but must not be picked as host. -->
+    <style name="HostProbe.TranslucentLight" parent="@android:style/Theme.Material.Light">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <!-- Floating (dialog-like) but not translucent: the filter must reject it on windowIsFloating alone. -->
+    <style name="HostProbe.FloatingLight" parent="@android:style/Theme.Material.Light">
+        <item name="android:windowIsFloating">true</item>
+    </style>
+
+    <!-- Translucent parent, attribute overridden back to opaque. -->
+    <style name="HostProbe.OpaqueOverride" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+
+    <!-- Dark palette that claims to be light: the resolver must trust the attribute. -->
+    <style name="HostProbe.DarkPaletteLightFlag" parent="@android:style/Theme.Material">
+        <item name="android:isLightTheme">true</item>
+    </style>
+
+    <!-- isLightTheme behind a reference: resolveAttribute must follow it. -->
+    <style name="HostProbe.ReferenceFlag" parent="@android:style/Theme.Material.Light">
+        <item name="android:isLightTheme">@bool/host_probe_is_light</item>
+    </style>
+</resources>

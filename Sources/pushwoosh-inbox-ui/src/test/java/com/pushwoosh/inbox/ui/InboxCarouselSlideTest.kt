@@ -105,21 +105,21 @@ class InboxCarouselSlideTest {
 
     @Test
     fun decode_slidesPastMaxAreDropped() {
-        val items = (1..12).joinToString(",") { """{"image":"https://cdn/$it.jpg"}""" }
+        val items = (1..7).joinToString(",") { """{"image":"https://cdn/$it.jpg"}""" }
         val result = slides("""{"carousel":[$items]}""")
 
         assertEquals(InboxCarouselSlide.MAX_SLIDES, result.size)
         assertEquals("https://cdn/1.jpg", result[0].imageUrl)
-        assertEquals("https://cdn/10.jpg", result[9].imageUrl)
+        assertEquals("https://cdn/5.jpg", result[4].imageUrl)
     }
 
     @Test
     fun decode_droppedSlideDoesNotCountTowardsMax() {
-        val valid = (1..11).joinToString(",") { """{"image":"https://cdn/$it.jpg"}""" }
+        val valid = (1..6).joinToString(",") { """{"image":"https://cdn/$it.jpg"}""" }
         val result = slides("""{"carousel":[{"title":"no image"},$valid]}""")
 
         assertEquals(InboxCarouselSlide.MAX_SLIDES, result.size)
-        assertEquals("https://cdn/10.jpg", result[9].imageUrl)
+        assertEquals("https://cdn/5.jpg", result[4].imageUrl)
     }
 
     @Test

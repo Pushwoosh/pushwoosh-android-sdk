@@ -52,8 +52,9 @@ public class PushwooshInboxPlugin implements Plugin {
         MessageSystemHandleChainProvider.getMessageSystemChain().addItem(new InboxNotificationHandler());
         NotificationOpenHandlerChainProvider.getNotificationOpenHandlerChain()
                 .addItem(new InboxNotificationOpenHandler());
-        EventBus.subscribe(AppIdChangedEvent.class, event -> PushwooshInboxModule.getInboxRepository()
-                .clearAllInboxMessages());
+        EventBus.subscribe(
+                AppIdChangedEvent.class,
+                event -> PushwooshInboxModule.getInboxRepository().clearAllInboxMessages());
     }
 
     @Override

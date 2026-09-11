@@ -1,6 +1,11 @@
 package com.pushwoosh;
 
 import android.app.Activity;
+import android.content.res.Resources;
+import android.util.TypedValue;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.appevents.PushwooshDefaultEvents;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
@@ -30,6 +35,7 @@ import com.pushwoosh.richmedia.RichMediaFactory;
 import com.pushwoosh.richmedia.RichMediaStyle;
 import com.pushwoosh.richmedia.animation.RichMediaAnimationSlideBottom;
 
+import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PushwooshPlatform {
@@ -60,6 +66,9 @@ public class PushwooshPlatform {
     private DeviceRegistrar deviceRegistrar;
     private RichMediaStyle richMediaStyle;
     private Activity topActivity;
+    // Written from Activity lifecycle callbacks (main), read by RichMediaColorSchemeResolver on
+    // whatever thread the app called PushwooshInAppUi.present() from.
+    private volatile WeakReference<Activity> hostActivity;
     private PushwooshDefaultEvents pushwooshDefaultEvents;
 
     public PushMessageFactory getPushMessageFactory() {
@@ -200,5 +209,25 @@ public class PushwooshPlatform {
 
     public void setTopActivity(Activity topActivity) {
         this.topActivity = topActivity;
+    }
+
+    // One method on purpose: a private static helper here would be swallowed by MockedStatic
+    // in tests that call the real isHostCandidate.
+    public static boolean isHostCandidate(@NonNull Activity activity) {
+        Resources.Theme theme = activity.getTheme();
+        TypedValue value = new TypedValue();
+        boolean translucent =
+                theme.resolveAttribute(android.R.attr.windowIsTranslucent, value, true) && value.data != 0;
+        boolean floating = theme.resolveAttribute(android.R.attr.windowIsFloating, value, true) && value.data != 0;
+        return !translucent && !floating;
+    }
+
+    @Nullable public Activity getHostActivity() {
+        WeakReference<Activity> ref = hostActivity;
+        return ref == null ? null : ref.get();
+    }
+
+    public void setHostActivity(@Nullable Activity activity) {
+        hostActivity = activity == null ? null : new WeakReference<>(activity);
     }
 }

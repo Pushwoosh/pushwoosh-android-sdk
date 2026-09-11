@@ -2,8 +2,13 @@ package com.pushwoosh.appevents;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -149,6 +154,113 @@ public class PushwooshAppLifecycleCallbacksTest {
             idle(200);
 
             assertEquals(Arrays.asList(PushwooshAppLifecycleCallbacks.SCREEN_OPENED_EVENT), emittedEvents);
+        }
+    }
+
+    // --- Host activity tracking (SDK-961) ---
+
+    @Test
+    public void hostActivity_setOnOpaqueStart_survivesPauseAndStop() {
+        try (MockedStatic<PushwooshPlatform> mocked = stubPlatform()) {
+            mocked.when(() -> PushwooshPlatform.isHostCandidate(any(Activity.class)))
+                    .thenCallRealMethod();
+            activity.setTheme(android.R.style.Theme_Material_Light);
+
+            callbacks.onActivityStarted(activity);
+            verify(pushwooshPlatform).setHostActivity(activity);
+            when(pushwooshPlatform.getHostActivity()).thenReturn(activity);
+
+            callbacks.onActivityPaused(activity);
+            callbacks.onActivityStopped(activity);
+            verify(pushwooshPlatform, never()).setHostActivity(null);
+        }
+    }
+
+    @Test
+    public void hostActivity_notSetOnTranslucentStart() {
+        try (MockedStatic<PushwooshPlatform> mocked = stubPlatform()) {
+            mocked.when(() -> PushwooshPlatform.isHostCandidate(any(Activity.class)))
+                    .thenCallRealMethod();
+            // Same theme RichMediaWebActivity carries in the SDK manifest (class runs manifest=NONE).
+            activity.setTheme(android.R.style.Theme_Translucent_NoTitleBar);
+
+            callbacks.onActivityStarted(activity);
+
+            verify(pushwooshPlatform, never()).setHostActivity(nullable(Activity.class));
+        }
+    }
+
+    @Test
+    public void hostActivity_setOnOpaqueResume() {
+        try (MockedStatic<PushwooshPlatform> mocked = stubPlatform()) {
+            mocked.when(() -> PushwooshPlatform.isHostCandidate(any(Activity.class)))
+                    .thenCallRealMethod();
+            activity.setTheme(android.R.style.Theme_Material_Light);
+
+            callbacks.onActivityResumed(activity);
+
+            verify(pushwooshPlatform).setHostActivity(activity);
+        }
+    }
+
+    @Test
+    public void hostActivity_notSetOnTranslucentResume() {
+        try (MockedStatic<PushwooshPlatform> mocked = stubPlatform()) {
+            mocked.when(() -> PushwooshPlatform.isHostCandidate(any(Activity.class)))
+                    .thenCallRealMethod();
+            activity.setTheme(android.R.style.Theme_Translucent_NoTitleBar);
+
+            callbacks.onActivityResumed(activity);
+
+            verify(pushwooshPlatform, never()).setHostActivity(nullable(Activity.class));
+        }
+    }
+
+    /**
+     * A short-lived activity on top can be destroyed before the one underneath is stopped, so the
+     * lower activity never gets onStart on the way back — only onResume.
+     */
+    @Test
+    public void hostActivity_restoredOnResumeAfterTopActivityDestroyed() {
+        try (MockedStatic<PushwooshPlatform> mocked = stubPlatform()) {
+            mocked.when(() -> PushwooshPlatform.isHostCandidate(any(Activity.class)))
+                    .thenCallRealMethod();
+            activity.setTheme(android.R.style.Theme_Material_Light);
+            Activity top = Robolectric.buildActivity(Activity.class).get();
+            top.setTheme(android.R.style.Theme_Material);
+
+            callbacks.onActivityStarted(activity);
+            callbacks.onActivityStarted(top);
+            when(pushwooshPlatform.getHostActivity()).thenReturn(top);
+            callbacks.onActivityDestroyed(top);
+            verify(pushwooshPlatform).setHostActivity(null);
+
+            callbacks.onActivityResumed(activity);
+
+            verify(pushwooshPlatform, times(2)).setHostActivity(activity);
+        }
+    }
+
+    @Test
+    public void hostActivity_clearedOnDestroyOfHost() {
+        try (MockedStatic<PushwooshPlatform> ignored = stubPlatform()) {
+            when(pushwooshPlatform.getHostActivity()).thenReturn(activity);
+
+            callbacks.onActivityDestroyed(activity);
+
+            verify(pushwooshPlatform).setHostActivity(null);
+        }
+    }
+
+    @Test
+    public void hostActivity_keptOnDestroyOfOtherActivity() {
+        try (MockedStatic<PushwooshPlatform> ignored = stubPlatform()) {
+            when(pushwooshPlatform.getHostActivity()).thenReturn(activity);
+            Activity other = Robolectric.buildActivity(Activity.class).get();
+
+            callbacks.onActivityDestroyed(other);
+
+            verify(pushwooshPlatform, never()).setHostActivity(nullable(Activity.class));
         }
     }
 }

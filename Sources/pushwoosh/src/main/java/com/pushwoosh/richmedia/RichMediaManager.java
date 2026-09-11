@@ -26,6 +26,8 @@
 
 package com.pushwoosh.richmedia;
 
+import androidx.annotation.NonNull;
+
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.view.config.ModalRichmediaConfig;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaDismissAnimationType;
@@ -200,5 +202,57 @@ public class RichMediaManager {
         int ordinal = notificationPrefs.richMediaType().get();
         RichMediaType[] values = RichMediaType.values();
         return (ordinal >= 0 && ordinal < values.length) ? values[ordinal] : RichMediaType.DEFAULT;
+    }
+
+    /**
+     * Sets the color scheme the SDK reports to Rich Media content.
+     * <p>
+     * Available schemes:
+     * <ul>
+     * <li>{@link RichMediaColorScheme#APP} - follows the application theme (default)</li>
+     * <li>{@link RichMediaColorScheme#SYSTEM} - follows the system dark mode setting</li>
+     * <li>{@link RichMediaColorScheme#LIGHT} - always light</li>
+     * <li>{@link RichMediaColorScheme#DARK} - always dark</li>
+     * </ul>
+     * <p>
+     * This setting can also be configured via AndroidManifest.xml using the
+     * {@code com.pushwoosh.rich_media_color_scheme} meta-data tag. This method takes
+     * priority over the AndroidManifest value.
+     *
+     * @param colorScheme Rich Media color scheme
+     */
+    public static void setRichMediaColorScheme(@NonNull RichMediaColorScheme colorScheme) {
+        if (colorScheme == null) {
+            PWLog.warn("RichMediaManager", "RichMediaColorScheme value is null, ignoring");
+            return;
+        }
+        NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+        if (notificationPrefs == null) {
+            PWLog.warn("RichMediaManager", "NotificationPrefs is null, cannot set RichMediaColorScheme");
+            return;
+        }
+        notificationPrefs.richMediaColorScheme().set(colorScheme.name());
+    }
+
+    /**
+     * Returns the current Rich Media color scheme.
+     * <p>
+     * Priority order:
+     * <ol>
+     * <li>Value set via {@link #setRichMediaColorScheme(RichMediaColorScheme)}</li>
+     * <li>Value from AndroidManifest.xml (if set)</li>
+     * <li>{@link RichMediaColorScheme#APP}</li>
+     * </ol>
+     *
+     * @return Current Rich Media color scheme
+     */
+    @NonNull public static RichMediaColorScheme getRichMediaColorScheme() {
+        NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+        if (notificationPrefs == null) {
+            PWLog.warn("RichMediaManager", "NotificationPrefs is null, falling back to APP color scheme");
+            return RichMediaColorScheme.APP;
+        }
+        return RichMediaColorScheme.fromString(
+                notificationPrefs.richMediaColorScheme().get());
     }
 }

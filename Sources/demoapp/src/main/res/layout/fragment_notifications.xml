@@ -149,6 +149,78 @@
 
                 </RadioGroup>
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Rich Media color scheme"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <RadioGroup
+                    android:id="@+id/colorSchemeGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <RadioButton
+                        android:id="@+id/colorSchemeApp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="App" />
+
+                    <RadioButton
+                        android:id="@+id/colorSchemeSystem"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="System" />
+
+                    <RadioButton
+                        android:id="@+id/colorSchemeLight"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Light" />
+
+                    <RadioButton
+                        android:id="@+id/colorSchemeDark"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dark" />
+
+                </RadioGroup>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="App theme"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <RadioGroup
+                    android:id="@+id/appThemeGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <RadioButton
+                        android:id="@+id/appThemeFollowSystem"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Follow system" />
+
+                    <RadioButton
+                        android:id="@+id/appThemeLight"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Light" />
+
+                    <RadioButton
+                        android:id="@+id/appThemeDark"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dark" />
+
+                </RadioGroup>
+
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>

@@ -1,7 +1,11 @@
 package com.pushwoosh.repository;
 
+import static org.mockito.Mockito.when;
+
 import com.pushwoosh.internal.preference.PreferenceBooleanValue;
+import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
+import com.pushwoosh.richmedia.RichMediaColorScheme;
 import com.pushwoosh.testutil.PlatformTestManager;
 
 import org.junit.After;
@@ -10,10 +14,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = "AndroidManifest.xml")
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class NotificationPrefsTest {
     private NotificationPrefs notificationPrefs;
 
@@ -37,5 +40,24 @@ public class NotificationPrefsTest {
         Assert.assertNotNull(preferenceBooleanValue);
     }
 
+    @Test
+    public void richMediaColorSchemeDefaultsToConfigValue() {
+        Config config = MockConfig.createMock();
+        when(config.getRichMediaColorScheme()).thenReturn(RichMediaColorScheme.DARK);
 
+        NotificationPrefs prefs = new NotificationPrefs(config);
+
+        Assert.assertEquals("DARK", prefs.richMediaColorScheme().get());
+    }
+
+    @Test
+    public void richMediaColorSchemeSetterBeatsConfigDefault() {
+        notificationPrefs.richMediaColorScheme().set(RichMediaColorScheme.LIGHT.name());
+
+        Config config = MockConfig.createMock();
+        when(config.getRichMediaColorScheme()).thenReturn(RichMediaColorScheme.DARK);
+        NotificationPrefs reloaded = new NotificationPrefs(config);
+
+        Assert.assertEquals("LIGHT", reloaded.richMediaColorScheme().get());
+    }
 }

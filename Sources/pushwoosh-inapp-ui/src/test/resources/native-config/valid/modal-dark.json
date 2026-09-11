@@ -1,0 +1,33 @@
+{
+  "displayType": "modal",
+  "inAppId": "modal-dark",
+  "modal": {
+    "showClose": true,
+    "dimBackground": true,
+    "background": "#FFFFFFFF",
+    "image": "https://example.com/hero.png",
+    "title": { "text": "Hi", "color": "#111111FF" },
+    "message": { "text": "Body", "color": "#333333FF" },
+    "buttons": [
+      {
+        "text": { "text": "Go", "color": "#FFFFFFFF" },
+        "background": "#0E72E5FF",
+        "border": { "color": "#0E72E5FF", "radius": 12 },
+        "action": { "type": "url", "url": "https://pushwoosh.com" }
+      }
+    ],
+    "dark": {
+      "background": "#101014FF",
+      "image": "https://example.com/hero-dark.png",
+      "title": { "color": "#F2F2F7FF" },
+      "message": { "color": "#B8B8C0FF" },
+      "buttons": [
+        {
+          "text": { "color": "#000000FF" },
+          "background": "#8AB4F8FF",
+          "border": { "color": "#8AB4F8FF" }
+        }
+      ]
+    }
+  }
+}

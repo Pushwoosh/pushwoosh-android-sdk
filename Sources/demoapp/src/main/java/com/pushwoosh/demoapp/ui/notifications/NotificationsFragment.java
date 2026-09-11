@@ -8,6 +8,7 @@ import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -16,9 +17,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.calls.CallPermissionsCallback;
 import com.pushwoosh.calls.PushwooshCallSettings;
-import com.pushwoosh.sampleapp.BuildConfig;
-import com.pushwoosh.sampleapp.R;
-import com.pushwoosh.sampleapp.databinding.FragmentNotificationsBinding;
+import com.pushwoosh.demoapp.utils.ThemePrefs;
 import com.pushwoosh.inapp.view.config.ModalRichmediaConfig;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaDismissAnimationType;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaPresentAnimationType;
@@ -26,8 +25,12 @@ import com.pushwoosh.inapp.view.config.enums.ModalRichMediaSwipeGesture;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaWindowWidth;
 import com.pushwoosh.location.PushwooshLocation;
+import com.pushwoosh.richmedia.RichMediaColorScheme;
 import com.pushwoosh.richmedia.RichMediaManager;
 import com.pushwoosh.richmedia.RichMediaType;
+import com.pushwoosh.sampleapp.BuildConfig;
+import com.pushwoosh.sampleapp.R;
+import com.pushwoosh.sampleapp.databinding.FragmentNotificationsBinding;
 
 import java.util.Collections;
 
@@ -112,6 +115,62 @@ public class NotificationsFragment extends Fragment {
                     .setWindowWidth(ModalRichMediaWindowWidth.FULL_SCREEN)
                     .setStatusBarCovered(true)
                     .setAnimationDuration(300));
+        });
+
+        RadioGroup colorSchemeGroup = binding.colorSchemeGroup;
+        RichMediaColorScheme currentScheme = RichMediaManager.getRichMediaColorScheme();
+        int checkedSchemeId;
+        switch (currentScheme) {
+            case SYSTEM:
+                checkedSchemeId = R.id.colorSchemeSystem;
+                break;
+            case LIGHT:
+                checkedSchemeId = R.id.colorSchemeLight;
+                break;
+            case DARK:
+                checkedSchemeId = R.id.colorSchemeDark;
+                break;
+            default:
+                checkedSchemeId = R.id.colorSchemeApp;
+                break;
+        }
+        colorSchemeGroup.check(checkedSchemeId);
+        colorSchemeGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            RichMediaColorScheme scheme;
+            if (checkedId == R.id.colorSchemeSystem) {
+                scheme = RichMediaColorScheme.SYSTEM;
+            } else if (checkedId == R.id.colorSchemeLight) {
+                scheme = RichMediaColorScheme.LIGHT;
+            } else if (checkedId == R.id.colorSchemeDark) {
+                scheme = RichMediaColorScheme.DARK;
+            } else {
+                scheme = RichMediaColorScheme.APP;
+            }
+            RichMediaManager.setRichMediaColorScheme(scheme);
+        });
+
+        RadioGroup appThemeGroup = binding.appThemeGroup;
+        int nightMode = ThemePrefs.load(requireContext());
+        int checkedThemeId;
+        if (nightMode == AppCompatDelegate.MODE_NIGHT_NO) {
+            checkedThemeId = R.id.appThemeLight;
+        } else if (nightMode == AppCompatDelegate.MODE_NIGHT_YES) {
+            checkedThemeId = R.id.appThemeDark;
+        } else {
+            checkedThemeId = R.id.appThemeFollowSystem;
+        }
+        appThemeGroup.check(checkedThemeId);
+        appThemeGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            int mode;
+            if (checkedId == R.id.appThemeLight) {
+                mode = AppCompatDelegate.MODE_NIGHT_NO;
+            } else if (checkedId == R.id.appThemeDark) {
+                mode = AppCompatDelegate.MODE_NIGHT_YES;
+            } else {
+                mode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+            }
+            ThemePrefs.save(requireContext(), mode);
+            AppCompatDelegate.setDefaultNightMode(mode);
         });
 
         MaterialSwitch locationTracking = binding.switchLocationTracking;

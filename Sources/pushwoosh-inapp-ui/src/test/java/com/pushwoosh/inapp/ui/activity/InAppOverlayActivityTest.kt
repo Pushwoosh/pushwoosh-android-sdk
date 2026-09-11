@@ -2,7 +2,9 @@ package com.pushwoosh.inapp.ui.activity
 
 import android.content.Context
 import android.os.Looper
+import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import com.pushwoosh.PushwooshPlatform
 import com.pushwoosh.inapp.PushwooshInAppImpl
 import com.pushwoosh.inapp.event.RichMediaCloseEvent
@@ -12,9 +14,11 @@ import com.pushwoosh.inapp.ui.InAppModule
 import com.pushwoosh.inapp.ui.NativeInAppAnalytics
 import com.pushwoosh.inapp.ui.PushwooshInAppUi
 import com.pushwoosh.inapp.ui.model.InAppAction
+import com.pushwoosh.inapp.ui.parser.InAppColorParser
 import com.pushwoosh.inapp.ui.view.InAppTemplateView
 import com.pushwoosh.internal.event.EventBus
 import com.pushwoosh.internal.utils.BackgroundExecutor
+import com.pushwoosh.richmedia.RichMediaColorSchemeResolver
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -303,5 +307,32 @@ class InAppOverlayActivityTest {
         } finally {
             NativeInAppAnalytics.reset()
         }
+    }
+
+    @Test
+    fun onCreateAppliesDarkOverlayWhenSchemeResolvesDark() {
+        val json = """{"displayType":"modal","inAppId":"dark-wire","modal":{
+            "showClose":true,"dimBackground":true,"background":"#FFFFFFFF","buttons":[],
+            "title":{"text":"Hi","color":"#111111FF"},
+            "dark":{"title":{"color":"#FFEE00FF"}}}}"""
+        Mockito.mockStatic(RichMediaColorSchemeResolver::class.java).use { resolver ->
+            resolver.`when`<Boolean> { RichMediaColorSchemeResolver.isCurrentSchemeDark(any()) }
+                .thenReturn(true)
+            val controller = Robolectric.buildActivity(
+                InAppOverlayActivity::class.java, InAppOverlayActivity.intent(context, json)).setup()
+            val title = findTextView(controller.get().findViewById(android.R.id.content), "Hi")
+            assertNotNull("dark modal must still show its title", title)
+            assertEquals(InAppColorParser.parse("#FFEE00FF")!!, title!!.currentTextColor)
+            controller.destroy()
+        }
+    }
+
+    private fun findTextView(root: View, text: String): TextView? {
+        if (root is TextView && root.text.toString() == text) return root
+        if (root !is ViewGroup) return null
+        for (i in 0 until root.childCount) {
+            findTextView(root.getChildAt(i), text)?.let { return it }
+        }
+        return null
     }
 }

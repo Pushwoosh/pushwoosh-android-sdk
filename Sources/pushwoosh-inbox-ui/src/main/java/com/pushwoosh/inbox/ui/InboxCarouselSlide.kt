@@ -62,7 +62,7 @@ class InboxCarouselSlide(val imageUrl: String, val title: String?, val url: Stri
          * Slides past this many are dropped: every slide costs a view, a page dot
          * and an image request, so a mis-authored campaign must not freeze the list.
          */
-        const val MAX_SLIDES = 10
+        const val MAX_SLIDES = 5
 
         @JvmStatic
         fun decode(message: InboxMessage): List<InboxCarouselSlide> =

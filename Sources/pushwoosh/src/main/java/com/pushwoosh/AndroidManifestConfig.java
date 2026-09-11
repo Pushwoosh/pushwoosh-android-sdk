@@ -44,6 +44,7 @@ import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.FileUtils;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.richmedia.RichMediaColorScheme;
 import com.pushwoosh.richmedia.RichMediaType;
 
 import java.util.ArrayList;
@@ -61,6 +62,7 @@ class AndroidManifestConfig implements Config {
     private String requestUrl = null;
     private String trackingUrl = null;
     private String richMediaType = null;
+    private String richMediaColorScheme = null;
     private String[] trustedPackageNames = {};
     private Class<?> notificationService;
     private Class<?> notificationFactory;
@@ -119,6 +121,7 @@ class AndroidManifestConfig implements Config {
         requestUrl = getString(applicationInfo.metaData, "com.pushwoosh.base_url", "PushwooshUrl");
         trackingUrl = getString(applicationInfo.metaData, "com.pushwoosh.tracking_url", null);
         richMediaType = getString(applicationInfo.metaData, "com.pushwoosh.rich_media_type", "RichMediaType");
+        richMediaColorScheme = getString(applicationInfo.metaData, "com.pushwoosh.rich_media_color_scheme", null);
 
         notificationService = getClass(applicationInfo.metaData, "com.pushwoosh.notification_service_extension");
         notificationFactory = getClass(applicationInfo.metaData, "com.pushwoosh.notification_factory");
@@ -385,6 +388,18 @@ class AndroidManifestConfig implements Config {
     @NonNull @Override
     public RichMediaType getRichMediaType() {
         return RichMediaType.fromString(richMediaType);
+    }
+
+    @NonNull @Override
+    public RichMediaColorScheme getRichMediaColorScheme() {
+        RichMediaColorScheme scheme = RichMediaColorScheme.fromString(richMediaColorScheme);
+        if (richMediaColorScheme != null && !scheme.name().equalsIgnoreCase(richMediaColorScheme)) {
+            PWLog.warn(
+                    TAG,
+                    "Invalid com.pushwoosh.rich_media_color_scheme value '" + richMediaColorScheme
+                            + "', falling back to APP");
+        }
+        return scheme;
     }
 
     @Override

@@ -1,9 +1,12 @@
 package com.pushwoosh.inapp.ui
 
+import android.content.Context
 import com.pushwoosh.inapp.network.model.Resource
 import com.pushwoosh.inapp.ui.parser.InAppConfigParser
 import com.pushwoosh.inapp.view.InAppViewEvent
 import com.pushwoosh.internal.event.EventBus
+import com.pushwoosh.internal.platform.AndroidPlatformModule
+import com.pushwoosh.richmedia.RichMediaColorSchemeResolver
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -12,7 +15,10 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.LooperMode
 
 @RunWith(RobolectricTestRunner::class)
@@ -51,6 +57,36 @@ class NativeInAppPresenterImplTest {
     fun presentReturnsTrueForValidModalConfig() {
         val json = """{"displayType":"modal","modal":{"showClose":true,"dimBackground":true,"background":"#FFFFFFFF","buttons":[]}}"""
         assertTrue(presenter.present(json, resource))
+    }
+
+    @Test
+    fun presentResolvesColorSchemeBeforeParsing() {
+        Mockito.mockStatic(AndroidPlatformModule::class.java).use { platformModule ->
+            platformModule.`when`<Context> { AndroidPlatformModule.getApplicationContext() }
+                .thenReturn(RuntimeEnvironment.getApplication())
+            Mockito.mockStatic(RichMediaColorSchemeResolver::class.java).use { resolver ->
+                resolver.`when`<Boolean> { RichMediaColorSchemeResolver.isCurrentSchemeDark(any()) }
+                    .thenReturn(true)
+                assertTrue(presenter.present(modalNoId, resource))
+                resolver.verify { RichMediaColorSchemeResolver.isCurrentSchemeDark(any()) }
+            }
+        }
+    }
+
+    @Test
+    fun presentShowsMessageWhenDarkOverlayIsBroken() {
+        val broken =
+            """{"displayType":"modal","modal":{"showClose":true,"dimBackground":true,
+                "background":"#FFFFFFFF","buttons":[],"dark":"night"}}"""
+        Mockito.mockStatic(AndroidPlatformModule::class.java).use { platformModule ->
+            platformModule.`when`<Context> { AndroidPlatformModule.getApplicationContext() }
+                .thenReturn(RuntimeEnvironment.getApplication())
+            Mockito.mockStatic(RichMediaColorSchemeResolver::class.java).use { resolver ->
+                resolver.`when`<Boolean> { RichMediaColorSchemeResolver.isCurrentSchemeDark(any()) }
+                    .thenReturn(true)
+                assertTrue(presenter.present(broken, resource))
+            }
+        }
     }
 
     @Test
