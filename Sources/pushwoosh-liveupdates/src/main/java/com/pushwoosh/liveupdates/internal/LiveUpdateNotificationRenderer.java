@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.text.TextUtils;
 
@@ -26,6 +27,7 @@ import com.pushwoosh.internal.utils.PendingIntentUtils;
 import com.pushwoosh.liveupdates.LiveUpdateProgressStyleProvider;
 import com.pushwoosh.liveupdates.LiveUpdateState;
 import com.pushwoosh.notification.Action;
+import com.pushwoosh.notification.PushMessage;
 
 import org.json.JSONObject;
 
@@ -78,9 +80,12 @@ public class LiveUpdateNotificationRenderer {
      * silently ({@code setOnlyAlertOnce}). Failures in optional steps (icon download, individual
      * actions, the style provider) are logged and degrade gracefully; the notification still posts.
      * A missing context or {@link NotificationManager} drops the render with an error log.
+     * <p>
+     * The raw {@code pushBundle} is carried into the tap and dismiss intents so that opening and
+     * swiping a live update reach {@code NotificationServiceExtension} exactly like a regular push.
      */
     @WorkerThread
-    public void render(@NonNull LiveUpdateState state) {
+    public void render(@NonNull LiveUpdateState state, @NonNull Bundle pushBundle) {
         PWLog.noise(TAG, "render(activityId=" + state.getActivityId() + ", op=" + state.getOperation() + ")");
         Context context = AndroidPlatformModule.getApplicationContext();
         if (context == null) {
@@ -106,7 +111,7 @@ public class LiveUpdateNotificationRenderer {
                 .setOnlyAlertOnce(true);
 
         // Raw key, not setRequestPromotedOngoing(): that API is 36.1, we compile against 36.
-        android.os.Bundle promotedExtras = new android.os.Bundle();
+        Bundle promotedExtras = new Bundle();
         promotedExtras.putBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, true);
         builder.addExtras(promotedExtras);
 
@@ -149,6 +154,20 @@ public class LiveUpdateNotificationRenderer {
             } catch (Throwable t) {
                 PWLog.warn(TAG, "action build failed, skipping: " + t.getMessage());
             }
+        }
+
+        try {
+            PushMessage message = new PushMessage(pushBundle);
+            PendingIntent contentIntent = LiveUpdateIntents.contentIntent(context, message, state.getActivityId());
+            if (contentIntent != null) {
+                builder.setContentIntent(contentIntent);
+            }
+            PendingIntent deleteIntent = LiveUpdateIntents.deleteIntent(context, message, state.getActivityId());
+            if (deleteIntent != null) {
+                builder.setDeleteIntent(deleteIntent);
+            }
+        } catch (Throwable t) {
+            PWLog.warn(TAG, "intent setup failed for " + state.getActivityId() + ", rendering without intents");
         }
 
         try {

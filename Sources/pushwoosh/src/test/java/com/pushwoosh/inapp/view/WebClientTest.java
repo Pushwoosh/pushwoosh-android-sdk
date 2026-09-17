@@ -7,7 +7,9 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,13 +23,19 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 
+import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
+import com.pushwoosh.inapp.event.RichMediaPresentEvent;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.storage.InAppFolderProvider;
+import com.pushwoosh.internal.event.EventBus;
+import com.pushwoosh.internal.preference.PreferenceStringValue;
+import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.LockScreenMediaStorage;
+import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
 import org.junit.After;
@@ -54,6 +62,7 @@ import java.util.Collections;
 @LooperMode(LooperMode.Mode.LEGACY)
 @Config(manifest = Config.NONE)
 public class WebClientTest {
+    private static final String RICH_MEDIA_URL = "https://appassets.androidplatform.net/pushwoosh_richmedia/CODE/";
 
     @Mock
     private InAppView inAppView;
@@ -79,10 +88,27 @@ public class WebClientTest {
     @Mock
     private InAppFolderProvider inAppFolderProvider;
 
+    @Mock
+    private Pushwoosh pushwoosh;
+
+    @Mock
+    private NotificationPrefs notificationPrefs;
+
+    @Mock
+    private PreferenceStringValue customDataValue;
+
+    @Mock
+    private PreferenceStringValue messageHashValue;
+
+    @Mock
+    private DeviceSpecificProvider deviceSpecificProvider;
+
     private AutoCloseable mocks;
     private MockedStatic<PushwooshPlatform> pushwooshPlatformStatic;
     private MockedStatic<RepositoryModule> repositoryModuleStatic;
     private MockedStatic<InAppModule> inAppModuleStatic;
+    private MockedStatic<Pushwoosh> pushwooshStatic;
+    private MockedStatic<DeviceSpecificProvider> deviceSpecificStatic;
 
     private WebClient webClient;
     private Application application;
@@ -102,6 +128,18 @@ public class WebClientTest {
 
         repositoryModuleStatic.when(RepositoryModule::getLockScreenMediaStorage).thenReturn(lockScreenMediaStorage);
 
+        repositoryModuleStatic
+                .when(RepositoryModule::getNotificationPreferences)
+                .thenReturn(notificationPrefs);
+        when(notificationPrefs.customData()).thenReturn(customDataValue);
+        when(notificationPrefs.messageHash()).thenReturn(messageHashValue);
+
+        pushwooshStatic = Mockito.mockStatic(Pushwoosh.class);
+        pushwooshStatic.when(Pushwoosh::getInstance).thenReturn(pushwoosh);
+
+        deviceSpecificStatic = Mockito.mockStatic(DeviceSpecificProvider.class);
+        deviceSpecificStatic.when(DeviceSpecificProvider::getInstance).thenReturn(deviceSpecificProvider);
+
         inAppModuleStatic = Mockito.mockStatic(InAppModule.class);
         inAppModuleStatic.when(InAppModule::getInAppFolderProvider).thenReturn(inAppFolderProvider);
 
@@ -115,6 +153,12 @@ public class WebClientTest {
 
     @After
     public void tearDown() throws Exception {
+        if (deviceSpecificStatic != null) {
+            deviceSpecificStatic.close();
+        }
+        if (pushwooshStatic != null) {
+            pushwooshStatic.close();
+        }
         if (inAppModuleStatic != null) {
             inAppModuleStatic.close();
         }
@@ -285,7 +329,7 @@ public class WebClientTest {
     public void onPageFinished_afterRelease_isNoOp() {
         webClient.release();
 
-        webClient.onPageFinished(webView, "https://appassets.androidplatform.net/pushwoosh_richmedia/CODE/");
+        webClient.onPageFinished(webView, RICH_MEDIA_URL);
 
         verify(inAppView, never()).onPageLoaded();
     }
@@ -293,8 +337,7 @@ public class WebClientTest {
     // Verifies navigation to the in-app's own synthetic origin is a no-op: no external intent, no close. Layer 1.
     @Test
     public void shouldOverrideUrlLoading_ownVirtualOrigin_doesNothing() {
-        boolean handled = webClient.shouldOverrideUrlLoading(
-                webView, "https://appassets.androidplatform.net/pushwoosh_richmedia/CODE/");
+        boolean handled = webClient.shouldOverrideUrlLoading(webView, RICH_MEDIA_URL);
 
         assertTrue(handled);
         verify(inAppView, never()).close();
@@ -311,5 +354,74 @@ public class WebClientTest {
         verify(inAppView, never()).close();
         assertNull(Shadows.shadowOf(application).getNextStartedActivity());
         verify(lockScreenMediaStorage, never()).cacheRemoteUrl(any());
+    }
+
+    // Verifies the first rendered frame reveals content and sends exactly one present event; a repeat
+    // frame commit (re-navigation inside the rich media) is not a new show.
+    @Test
+    public void onPageCommitVisible_firstFrame_showsOnceAndSendsPresentEvent() {
+        try (MockedStatic<EventBus> eventBus = Mockito.mockStatic(EventBus.class)) {
+            webClient.onPageCommitVisible(webView, RICH_MEDIA_URL);
+            webClient.onPageCommitVisible(webView, RICH_MEDIA_URL + "page2.html");
+
+            verify(inAppView, times(1)).onPageLoaded();
+            eventBus.verify(() -> EventBus.sendEvent(any(RichMediaPresentEvent.class)), times(1));
+        }
+    }
+
+    // Twin of onPageFinished_afterRelease_isNoOp: after release() the first-frame callback has no side effects.
+    @Test
+    public void onPageCommitVisible_afterRelease_isNoOp() {
+        try (MockedStatic<EventBus> eventBus = Mockito.mockStatic(EventBus.class)) {
+            webClient.release();
+
+            webClient.onPageCommitVisible(webView, RICH_MEDIA_URL);
+
+            verify(inAppView, never()).onPageLoaded();
+            eventBus.verify(() -> EventBus.sendEvent(any(RichMediaPresentEvent.class)), never());
+        }
+    }
+
+    // The modal-path insurance: full load arriving after the first frame must not repeat the reveal
+    // or send a second present event — the modal window has no dedup of its own.
+    @Test
+    public void onPageFinished_afterCommitVisible_doesNotRepeatShowOrEvent() {
+        try (MockedStatic<EventBus> eventBus = Mockito.mockStatic(EventBus.class)) {
+            webClient.attachToWebView(webView);
+            webClient.onPageCommitVisible(webView, RICH_MEDIA_URL);
+
+            webClient.onPageFinished(webView, RICH_MEDIA_URL);
+
+            verify(inAppView, times(1)).onPageLoaded();
+            eventBus.verify(() -> EventBus.sendEvent(any(RichMediaPresentEvent.class)), times(1));
+        }
+    }
+
+    // Fallback: pages that never commit a frame (cache hit, no paint) still get shown on full load.
+    @Test
+    public void onPageFinished_withoutCommitVisible_fallsBackToShow() {
+        try (MockedStatic<EventBus> eventBus = Mockito.mockStatic(EventBus.class)) {
+            webClient.attachToWebView(webView);
+
+            webClient.onPageFinished(webView, RICH_MEDIA_URL);
+
+            verify(inAppView, times(1)).onPageLoaded();
+            eventBus.verify(() -> EventBus.sendEvent(any(RichMediaPresentEvent.class)), times(1));
+        }
+    }
+
+    // JS bridge injection is tied to document load, not to the show gate: it must run even when the
+    // first frame already consumed the gate.
+    @Test
+    public void onPageFinished_afterCommitVisible_stillInjectsJsBridge() {
+        try (MockedStatic<EventBus> eventBus = Mockito.mockStatic(EventBus.class)) {
+            webClient.attachToWebView(webView);
+            webClient.onPageCommitVisible(webView, RICH_MEDIA_URL);
+            verify(webView, never()).loadUrl(anyString());
+
+            webClient.onPageFinished(webView, RICH_MEDIA_URL);
+
+            verify(webView).loadUrl(startsWith("javascript:"));
+        }
     }
 }

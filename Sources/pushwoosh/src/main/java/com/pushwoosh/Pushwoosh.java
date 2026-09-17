@@ -21,7 +21,6 @@ import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
-import com.pushwoosh.internal.event.Subscription;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.utils.NotificationUtils;
@@ -31,7 +30,6 @@ import com.pushwoosh.notification.LocalNotificationReceiver;
 import com.pushwoosh.notification.LocalNotificationRequest;
 import com.pushwoosh.notification.PushMessage;
 import com.pushwoosh.notification.PushwooshNotificationManager;
-import com.pushwoosh.notification.event.RegistrationSuccessEvent;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
@@ -148,7 +146,6 @@ public class Pushwoosh {
     private final InAppRepository inAppRepository;
     private final RegistrationPrefs registrationPrefs;
     private final ServerCommunicationManager serverCommunicationManager;
-    private Subscription<RegistrationSuccessEvent> subscriberRegister;
     private volatile boolean isInitialized = false;
 
     private static final String ZERO_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000";
@@ -865,9 +862,7 @@ public class Pushwoosh {
                 return;
             }
 
-            SdkStateProvider.getInstance().executeOrQueue(() -> {
-                notificationManager.registerExistingToken(token, callback);
-            });
+            notificationManager.registerExistingToken(token, callback);
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't register device with existing token", e);
         }
@@ -1014,35 +1009,6 @@ public class Pushwoosh {
                     .set(showAlert);
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set showPushNotificationAlert", e);
-        }
-    }
-
-    private void subscribeRegisterFromInApp(
-            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().subscribeRegisterFromInApp()");
-        if (callback == null) {
-            return;
-        }
-        try {
-            subscriberRegister = EventBus.subscribe(RegistrationSuccessEvent.class, event -> {
-                unSubscribeRegisterEvent();
-                callback.process(Result.fromData(event.getData()));
-            });
-        } catch (Exception e) {
-            PWLog.error("Pushwoosh", "can't subscribe to registration success event", e);
-        }
-    }
-
-    private void unSubscribeRegisterEvent() {
-        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().unSubscribeRegisterEvent()");
-        if (subscriberRegister == null) {
-            return;
-        }
-        try {
-            subscriberRegister.unsubscribe();
-            subscriberRegister = null;
-        } catch (Exception e) {
-            PWLog.error("Pushwoosh", "can't unsubscribe from registration success event", e);
         }
     }
 

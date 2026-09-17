@@ -58,18 +58,13 @@ public final class NotificationRegistrarHelper {
 
     public static void onRegisteredForRemoteNotifications(final String registrationId, String tagsJson) {
         PWLog.noise(TAG, String.format("onRegisteredForRemoteNotifications: %s", registrationId));
-        // this if checks whether device is registered with Pushwoosh and does not allow passing a token if it is not
-        // todo: remove this check
+        // sole barrier keeping installs with a leaked periodic FCM work from re-registering after unregister
         if (!isRegisteredForRemoteNotifications()) {
-            PWLog.warn(
-                    TAG,
-                    "Device should be registered directly to continue registration, token change ignored");
+            PWLog.warn(TAG, "Device should be registered directly to continue registration, token change ignored");
             return;
         }
 
-        PushwooshNotificationManager notificationManager =
-                PushwooshPlatform.getInstance().notificationManager();
-        notificationManager.onRemoteTokenReceived(registrationId, tagsJson);
+        PushwooshPlatform.getInstance().notificationManager().onTokenReceived(registrationId, tagsJson, false);
     }
 
     public static void clearToken() {

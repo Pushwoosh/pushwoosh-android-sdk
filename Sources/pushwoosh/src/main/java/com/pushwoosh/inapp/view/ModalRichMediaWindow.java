@@ -40,6 +40,7 @@ import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.internal.utils.ReduceMotionUtil;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.richmedia.RichMediaManager;
 
@@ -279,8 +280,10 @@ public class ModalRichMediaWindow extends PopupWindow
         if (resourceWebView != null) {
             resourceWebView.hideProgress();
 
-            int xCoordinate = ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionX(config);
-            int yCoordinate = ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config);
+            // One read per show: coordinates and animator must agree on whether animations are off.
+            boolean reduceMotion = ReduceMotionUtil.isReduceMotionEnabled();
+            int xCoordinate = ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionX(config, reduceMotion);
+            int yCoordinate = ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, reduceMotion);
             int gravity = ModalRichMediaWindowUtils.getModalRichMediaWindowGravity(config);
 
             try {
@@ -295,7 +298,8 @@ public class ModalRichMediaWindow extends PopupWindow
                     }
                 }
 
-                ValueAnimator animator = ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(this, config);
+                ValueAnimator animator =
+                        ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(this, config, reduceMotion);
                 if (animator != null) {
                     Integer duration = config.getAnimationDuration();
                     animator.setDuration(duration != null ? duration.longValue() : DEFAULT_ANIMATION_DURATION_MS);

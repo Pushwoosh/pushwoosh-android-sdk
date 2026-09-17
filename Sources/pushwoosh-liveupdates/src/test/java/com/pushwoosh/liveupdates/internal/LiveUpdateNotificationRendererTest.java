@@ -11,15 +11,21 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.platform.manager.ManagerProvider;
 import com.pushwoosh.internal.platform.resource.ResourceProvider;
+import com.pushwoosh.internal.preference.PreferenceIntValue;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.liveupdates.LiveUpdateOperation;
 import com.pushwoosh.liveupdates.LiveUpdateProgressStyleProvider;
 import com.pushwoosh.liveupdates.LiveUpdateSegment;
 import com.pushwoosh.liveupdates.LiveUpdateState;
+import com.pushwoosh.notification.NotificationIntentHelper;
+import com.pushwoosh.repository.NotificationPrefs;
+import com.pushwoosh.repository.RepositoryModule;
 
 import org.junit.After;
 import org.junit.Before;
@@ -54,11 +60,30 @@ public class LiveUpdateNotificationRendererTest {
         ManagerProvider managerProvider = mock(ManagerProvider.class);
         when(managerProvider.getNotificationManager()).thenReturn(nm);
         platformMock.when(AndroidPlatformModule::getManagerProvider).thenReturn(managerProvider);
+
+        // PushBundleDataProvider.getHeader() falls back to this when the bundle carries no "header"
+        // key, which livePushBundle() doesn't.
+        AppInfoProvider appInfoProvider = mock(AppInfoProvider.class);
+        when(appInfoProvider.getApplicationLabel()).thenReturn("Test App");
+        platformMock.when(AndroidPlatformModule::getAppInfoProvider).thenReturn(appInfoProvider);
+
+        // PushMessage's constructor reads RepositoryModule.getNotificationPreferences().iconBackgroundColor()
+        // unconditionally when the bundle carries no "ibc" key; stub it so livePushBundle() doesn't NPE.
+        NotificationPrefs prefs = mock(NotificationPrefs.class);
+        when(prefs.iconBackgroundColor()).thenReturn(mock(PreferenceIntValue.class));
+        RepositoryModule.setNotificationPreferences(prefs);
     }
 
     @After
     public void tearDown() {
+        RepositoryModule.setNotificationPreferences(null);
         platformMock.close();
+    }
+
+    private static Bundle livePushBundle() {
+        Bundle bundle = new Bundle();
+        bundle.putString("pw_live", "{\"op\":\"OPERATION_START\",\"id\":\"order_1\"}");
+        return bundle;
     }
 
     @Test
@@ -67,7 +92,7 @@ public class LiveUpdateNotificationRendererTest {
                 .title("Order")
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         NotificationChannel ch = nm.getNotificationChannel("pushwoosh_live_updates");
         assertNotNull(ch);
@@ -82,7 +107,7 @@ public class LiveUpdateNotificationRendererTest {
                 .title("Order")
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         assertEquals(1, nm.getActiveNotifications().length);
         assertEquals("order_1", nm.getActiveNotifications()[0].getTag());
@@ -96,7 +121,7 @@ public class LiveUpdateNotificationRendererTest {
                 .progress(35)
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         // Notification has no getStyle(), but the EXTRA_TEMPLATE extra records the style class name.
@@ -111,7 +136,7 @@ public class LiveUpdateNotificationRendererTest {
                 .showProgressBar(false)
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         // No setStyle() call → the ProgressStyle template marker is absent.
@@ -132,7 +157,7 @@ public class LiveUpdateNotificationRendererTest {
                 .actions(java.util.Collections.singletonList(a))
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         assertNotNull(n.actions);
@@ -153,7 +178,7 @@ public class LiveUpdateNotificationRendererTest {
                 .actions(java.util.Collections.singletonList(a))
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         ShadowPendingIntent pi = Shadows.shadowOf(n.actions[0].actionIntent);
@@ -174,7 +199,7 @@ public class LiveUpdateNotificationRendererTest {
                 .actions(java.util.Collections.singletonList(a))
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         ShadowPendingIntent pi = Shadows.shadowOf(n.actions[0].actionIntent);
@@ -194,7 +219,7 @@ public class LiveUpdateNotificationRendererTest {
                 .actions(java.util.Collections.singletonList(a))
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         ShadowPendingIntent pi = Shadows.shadowOf(n.actions[0].actionIntent);
@@ -219,7 +244,7 @@ public class LiveUpdateNotificationRendererTest {
                         new com.pushwoosh.notification.Action(json1), new com.pushwoosh.notification.Action(json2)))
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         assertEquals(2, n.actions.length);
@@ -235,7 +260,8 @@ public class LiveUpdateNotificationRendererTest {
                 .iconUrl("http://example.invalid/will-fail.png")
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state); // must not throw
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider())
+                .render(state, livePushBundle()); // must not throw
 
         assertEquals(1, nm.getActiveNotifications().length);
     }
@@ -248,7 +274,7 @@ public class LiveUpdateNotificationRendererTest {
         LiveUpdateNotificationRenderer renderer =
                 new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider());
 
-        renderer.render(state);
+        renderer.render(state, livePushBundle());
         assertEquals(1, nm.getActiveNotifications().length);
 
         renderer.dismiss("order_1");
@@ -260,9 +286,11 @@ public class LiveUpdateNotificationRendererTest {
         LiveUpdateNotificationRenderer renderer =
                 new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider());
 
-        renderer.render(new LiveUpdateState.Builder("order_1", LiveUpdateOperation.START)
-                .title("Order")
-                .build());
+        renderer.render(
+                new LiveUpdateState.Builder("order_1", LiveUpdateOperation.START)
+                        .title("Order")
+                        .build(),
+                livePushBundle());
 
         // Foreign notification on a different channel, WITH a non-null tag. The tag is what makes
         // this test meaningful: it isolates the CHANNEL_ID filter as the only reason for exclusion.
@@ -288,12 +316,16 @@ public class LiveUpdateNotificationRendererTest {
     public void dismissAll_cancelsEveryLiveUpdate_butLeavesForeignNotifications() {
         LiveUpdateNotificationRenderer renderer =
                 new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider());
-        renderer.render(new LiveUpdateState.Builder("order_1", LiveUpdateOperation.START)
-                .title("A")
-                .build());
-        renderer.render(new LiveUpdateState.Builder("order_2", LiveUpdateOperation.START)
-                .title("B")
-                .build());
+        renderer.render(
+                new LiveUpdateState.Builder("order_1", LiveUpdateOperation.START)
+                        .title("A")
+                        .build(),
+                livePushBundle());
+        renderer.render(
+                new LiveUpdateState.Builder("order_2", LiveUpdateOperation.START)
+                        .title("B")
+                        .build(),
+                livePushBundle());
 
         // A foreign notification on another channel must survive dismissAll: it iterates only the
         // ids getActiveIds() reports, which are filtered to the live-update channel.
@@ -321,7 +353,7 @@ public class LiveUpdateNotificationRendererTest {
                 .title("Order")
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         assertTrue(n.extras.getBoolean("android.requestPromotedOngoing", false));
@@ -334,7 +366,7 @@ public class LiveUpdateNotificationRendererTest {
                 .progress(35)
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         assertEquals(35, n.extras.getInt(Notification.EXTRA_PROGRESS));
@@ -352,7 +384,7 @@ public class LiveUpdateNotificationRendererTest {
                 .title("Order")
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         NotificationChannel ch = nm.getNotificationChannel("pushwoosh_live_updates");
         assertEquals("custom-sentinel", ch.getDescription());
@@ -372,7 +404,7 @@ public class LiveUpdateNotificationRendererTest {
                 .progress(5)
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         // ProgressStyle persists segments in extras as ArrayList<Bundle> under
@@ -403,7 +435,7 @@ public class LiveUpdateNotificationRendererTest {
                 .title("Order")
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         NotificationChannel ch = nm.getNotificationChannel("pushwoosh_live_updates");
         assertEquals(
@@ -421,7 +453,7 @@ public class LiveUpdateNotificationRendererTest {
                 .when(1779976320000L)
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         assertEquals(1779976320000L, n.when);
@@ -436,7 +468,7 @@ public class LiveUpdateNotificationRendererTest {
                 .chronometerCountDown(true)
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         assertTrue(n.extras.getBoolean("android.showChronometer"));
@@ -450,7 +482,7 @@ public class LiveUpdateNotificationRendererTest {
                 .showWhen(false)
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         assertFalse(n.extras.getBoolean("android.showWhen"));
@@ -462,7 +494,7 @@ public class LiveUpdateNotificationRendererTest {
                 .title("Order")
                 .build();
 
-        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state);
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         assertFalse(n.extras.getBoolean("android.showChronometer"));
@@ -485,7 +517,7 @@ public class LiveUpdateNotificationRendererTest {
                 .progress(35)
                 .build();
 
-        new LiveUpdateNotificationRenderer(custom).render(state);
+        new LiveUpdateNotificationRenderer(custom).render(state, livePushBundle());
 
         Notification n = nm.getActiveNotifications()[0].getNotification();
         assertEquals(77, n.extras.getInt(Notification.EXTRA_PROGRESS));
@@ -502,7 +534,7 @@ public class LiveUpdateNotificationRendererTest {
                 .build();
 
         try (MockedStatic<PWLog> log = mockStatic(PWLog.class)) {
-            new LiveUpdateNotificationRenderer(boom).render(state);
+            new LiveUpdateNotificationRenderer(boom).render(state, livePushBundle());
             log.verify(() -> PWLog.error(
                     eq("LiveUpdateNotificationRenderer"), contains("style provider threw"), any(Throwable.class)));
         }
@@ -510,5 +542,35 @@ public class LiveUpdateNotificationRendererTest {
         // Notification still posts, using the default style derived from state (progress 35).
         Notification n = nm.getActiveNotifications()[0].getNotification();
         assertEquals(35, n.extras.getInt(Notification.EXTRA_PROGRESS));
+    }
+
+    @Test
+    public void render_setsContentIntentAndDeleteIntent() {
+        LiveUpdateState state = new LiveUpdateState.Builder("order_1", LiveUpdateOperation.START)
+                .title("Order")
+                .build();
+
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
+
+        Notification n = nm.getActiveNotifications()[0].getNotification();
+        assertNotNull(n.contentIntent);
+        assertNotNull(n.deleteIntent);
+        assertTrue(Shadows.shadowOf(n.contentIntent).isActivityIntent());
+        assertTrue(Shadows.shadowOf(n.deleteIntent).isBroadcastIntent());
+        Intent deleteSaved = Shadows.shadowOf(n.deleteIntent).getSavedIntent();
+        assertTrue(deleteSaved.getBooleanExtra(NotificationIntentHelper.EXTRA_IS_DELETE_INTENT, false));
+    }
+
+    @Test
+    public void render_doesNotSetAutoCancel_notificationSurvivesTap() {
+        LiveUpdateState state = new LiveUpdateState.Builder("order_1", LiveUpdateOperation.START)
+                .title("Order")
+                .build();
+
+        new LiveUpdateNotificationRenderer(new DefaultProgressStyleProvider()).render(state, livePushBundle());
+
+        Notification n = nm.getActiveNotifications()[0].getNotification();
+        assertEquals(0, n.flags & Notification.FLAG_AUTO_CANCEL);
+        assertTrue((n.flags & Notification.FLAG_ONGOING_EVENT) != 0);
     }
 }

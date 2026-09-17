@@ -228,7 +228,11 @@ public class ModalRichMediaWindowUtils {
     }
 
     public static ValueAnimator getPresentValueAnimatorForWindow(
-            ModalRichMediaWindow window, ModalRichmediaConfig config) {
+            ModalRichMediaWindow window, ModalRichmediaConfig config, boolean reduceMotion) {
+        // Animations off: null animator = show without animation (onPageLoaded null-guards it).
+        if (reduceMotion) {
+            return null;
+        }
         ModalRichMediaPresentAnimationType type = config.getPresentAnimationType();
         ValueAnimator animator;
         switch (type) {
@@ -255,7 +259,11 @@ public class ModalRichMediaWindowUtils {
         return animator;
     }
 
-    public static int getModalRichMediaWindowShowPositionX(ModalRichmediaConfig config) {
+    public static int getModalRichMediaWindowShowPositionX(ModalRichmediaConfig config, boolean reduceMotion) {
+        // Animations off: static FADE_IN position instead of the off-screen slide start (SDK-984).
+        if (reduceMotion) {
+            return 0;
+        }
         ModalRichMediaPresentAnimationType type = config.getPresentAnimationType();
         int width;
         switch (type) {
@@ -273,7 +281,19 @@ public class ModalRichMediaWindowUtils {
         return width;
     }
 
-    public static int getModalRichMediaWindowShowPositionY(ModalRichmediaConfig config) {
+    public static int getModalRichMediaWindowShowPositionY(ModalRichmediaConfig config, boolean reduceMotion) {
+        // Animations off: rest at the drag-snap position (top/bottom inset), not the off-screen
+        // slide start (SDK-984).
+        if (reduceMotion) {
+            ModalRichMediaViewPosition position = config.getViewPosition();
+            if (position == ModalRichMediaViewPosition.TOP) {
+                return getSystemWindowInsetTop();
+            }
+            if (position == ModalRichMediaViewPosition.BOTTOM) {
+                return getSystemWindowInsetBottom(config);
+            }
+            return 0;
+        }
         ModalRichMediaPresentAnimationType type = config.getPresentAnimationType();
         int height;
         switch (type) {
@@ -284,7 +304,14 @@ public class ModalRichMediaWindowUtils {
                 height = -screenHeight;
                 break;
             case FADE_IN:
-                height = config.getViewPosition() == ModalRichMediaViewPosition.TOP ? getSystemWindowInsetTop() : 0;
+                // FADE_IN never moves the window, so show must land at the resting position right away.
+                if (config.getViewPosition() == ModalRichMediaViewPosition.TOP) {
+                    height = getSystemWindowInsetTop();
+                } else if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {
+                    height = getSystemWindowInsetBottom(config);
+                } else {
+                    height = 0;
+                }
                 break;
             default:
                 height = 0;

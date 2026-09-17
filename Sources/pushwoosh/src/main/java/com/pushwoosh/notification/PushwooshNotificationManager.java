@@ -20,6 +20,7 @@ import com.pushwoosh.exception.RegisterForPushNotificationsException;
 import com.pushwoosh.exception.UnregisterForPushNotificationException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
+import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.AppIdChangedEvent;
 import com.pushwoosh.internal.event.Event;
 import com.pushwoosh.internal.event.EventBus;
@@ -223,11 +224,7 @@ public class PushwooshNotificationManager {
             String token,
             Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
         PWLog.noise(TAG, "RegisterExistingToken");
-        if (TextUtils.isEmpty(token)) {
-            PWLog.error(TAG, "Token is empty, ignoring method call");
-            return;
-        }
-        RegistrationCallbackHolder.setCallback(callback, false);
+        RegistrationCallbackHolder.setCallback(callback);
         Data inputData = new Data.Builder()
                 .putString(ExistingTokenRegistrarWorker.TOKEN, token)
                 .build();
@@ -243,14 +240,8 @@ public class PushwooshNotificationManager {
         PWLog.noise(TAG, "registerForPushesInternal()");
 
         try {
-            boolean communicationEnable =
-                    registrationPrefs.communicationEnable().get();
-            if (!communicationEnable) {
-                PWLog.info(TAG, "Communication with Pushwoosh is disabled");
-                return;
-            }
             registrationPrefs.isRegisteredForPush().set(true);
-            RegistrationCallbackHolder.setCallback(callback, true);
+            RegistrationCallbackHolder.setCallback(callback);
 
             pushRegistrar.checkDevice(registrationPrefs.applicationId().get());
 
@@ -299,34 +290,25 @@ public class PushwooshNotificationManager {
         this.launchNotification = launchNotification;
     }
 
-    public void onExistingTokenReceived(String pushToken, String tagsJson) {
-        onRegisteredForRemoteNotifications(pushToken, tagsJson, true);
-    }
-
-    public void onRemoteTokenReceived(String pushToken, String tagsJson) {
-        onRegisteredForRemoteNotifications(pushToken, tagsJson, false);
-    }
-
-    private void onRegisteredForRemoteNotifications(
-            String pushToken, String tagsJson, boolean shouldRetryRegistration) {
-        PWLog.noise(TAG, String.format("onRegisteredForRemoteNotifications: %s", pushToken));
-        // todo: probably we should move this into `if (result.isSuccess) { ... }`
-        registrationPrefs.pushToken().set(pushToken);
-        if (DeviceSpecificProvider.getInstance() != null) {
-            if (shouldRetryRegistration) {
+    public void onTokenReceived(@NonNull String pushToken, @Nullable String tagsJson, boolean withRetries) {
+        PWLog.noise(TAG, String.format("onTokenReceived: %s", pushToken));
+        SdkStateProvider.getInstance().executeOrQueue(() -> {
+            DeviceSpecificProvider provider = DeviceSpecificProvider.getInstance();
+            if (provider == null) {
+                PWLog.error(TAG, "can't register device: no push transport module");
+                EventBus.sendEvent(new RegistrationErrorEvent("can't register device: no push transport module"));
+                return;
+            }
+            // written before the request on purpose: updateRegistration on next app open re-sends after a failure
+            registrationPrefs.pushToken().set(pushToken);
+            if (withRetries) {
                 deviceRegistrar.registerWithServerWithRetries(
-                        pushToken,
-                        tagsJson,
-                        DeviceSpecificProvider.getInstance().deviceType(),
-                        provideServerRegistrationCallback(pushToken));
+                        pushToken, tagsJson, provider.deviceType(), provideServerRegistrationCallback(pushToken));
             } else {
                 deviceRegistrar.registerWithServer(
-                        pushToken,
-                        tagsJson,
-                        DeviceSpecificProvider.getInstance().deviceType(),
-                        provideServerRegistrationCallback(pushToken));
+                        pushToken, tagsJson, provider.deviceType(), provideServerRegistrationCallback(pushToken));
             }
-        }
+        });
     }
 
     private Callback<Void, NetworkException> provideServerRegistrationCallback(String pushToken) {

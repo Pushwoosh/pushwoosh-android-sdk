@@ -3,6 +3,7 @@ package com.pushwoosh.inapp.view;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -35,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
@@ -146,6 +148,19 @@ public class RichMediaWebActivityTest {
         listener.onAnimationEnd(animation);
 
         verify(resourceWebView).setVisibility(View.GONE);
+    }
+
+    // Verifies close() silences the web client before the slide-out starts, not in its onAnimationEnd: a first frame
+    // landing inside the 300 ms animation must not reopen a window the user has already dismissed.
+    @Test
+    public void close_releasesWebClientBeforeCloseAnimation() {
+        richMediaWebActivity.updateWebView(resourceWebView);
+
+        richMediaWebActivity.close();
+
+        InOrder inOrder = inOrder(resourceWebView);
+        inOrder.verify(resourceWebView).releaseWebClient();
+        inOrder.verify(resourceWebView).animateClose(any());
     }
 
     // Verifies that createRichMediaLockScreenIntent assembles intent with lockscreen mode, sound and required activity

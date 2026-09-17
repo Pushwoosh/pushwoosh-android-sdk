@@ -66,6 +66,16 @@
     public *;
 }
 
+# Referenced by :pushwoosh-liveupdates (LiveUpdateIntents targets it in the delete intent).
+-keep public class com.pushwoosh.NotificationUpdateReceiver {
+    public *;
+}
+
+# Referenced by :pushwoosh-liveupdates (LiveUpdateIntents writes its extras keys).
+-keep public class com.pushwoosh.notification.NotificationIntentHelper {
+    public *;
+}
+
 -keep public class com.pushwoosh.internal.utils.PWLog {
     public *;
     protected *;
@@ -348,10 +358,6 @@
 -keep public class com.pushwoosh.notification.handlers.message.system.MessageSystemHandler {
     public *;
     protected *;
-}
-
--keep class com.pushwoosh.PluginAPI {
-    *;
 }
 
 -keep class com.pushwoosh.internal.utils.ImageUtils {

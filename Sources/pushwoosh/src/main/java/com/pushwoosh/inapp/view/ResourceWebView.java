@@ -277,13 +277,17 @@ public class ResourceWebView extends FrameLayout {
         webView.loadDataWithBaseURL(baseUrl, htmlData, mimeType, encoding, historyUri);
     }
 
+    protected void releaseWebClient() {
+        if (webClient != null) {
+            webClient.release();
+        }
+    }
+
     protected void clear() {
         if (webView != null) {
             // Layer 2: release() first (queued lifecycle callbacks become no-ops), then destroy() — never leave a live
             // WebView with a null client that lets Chromium run target=_blank itself.
-            if (webClient != null) {
-                webClient.release();
-            }
+            releaseWebClient();
             webView.stopLoading();
             ViewGroup parent = (ViewGroup) webView.getParent();
             if (parent != null) {

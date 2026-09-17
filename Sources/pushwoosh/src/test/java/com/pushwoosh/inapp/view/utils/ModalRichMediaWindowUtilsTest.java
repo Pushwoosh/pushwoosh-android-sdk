@@ -1,6 +1,8 @@
 package com.pushwoosh.inapp.view.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -15,6 +17,7 @@ import android.view.View;
 
 import com.pushwoosh.inapp.view.ModalRichMediaWindow;
 import com.pushwoosh.inapp.view.config.ModalRichmediaConfig;
+import com.pushwoosh.inapp.view.config.enums.ModalRichMediaPresentAnimationType;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaSwipeGesture;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
 
@@ -24,6 +27,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -219,5 +224,159 @@ public class ModalRichMediaWindowUtilsTest {
         ModalRichMediaWindowUtils.movePopupOnDragEvent(window, 10, 20, config);
 
         verify(window).update(anyInt(), anyInt(), anyInt(), anyInt(), anyBoolean());
+    }
+
+    // SDK-984: with animations off the present factory must return null — this skips animation
+    // entirely, same as the NONE animation type.
+    @Test
+    public void testPresentFactoryReturnsNullForSlideUpWhenAnimationsOff() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.SLIDE_UP);
+
+        assertNull(ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(window, config, true));
+    }
+
+    // FADE_IN is not affected by the original defect (alpha starts at 1, nothing sets it before the
+    // animator runs), so suppressing its animator is safe — spec decision: one early exit for all types.
+    @Test
+    public void testPresentFactoryReturnsNullForFadeInWhenAnimationsOff() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.FADE_IN);
+
+        assertNull(ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(window, config, true));
+    }
+
+    // Guard rail: with animations ON the factory keeps producing animators — the early exit must
+    // not eat the normal path.
+    @Test
+    public void testPresentFactoryReturnsAnimatorForSlideUpWhenAnimationsOn() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.SLIDE_UP);
+
+        assertNotNull(ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(window, config, false));
+    }
+
+    // SDK-984: with animations off the window is shown at its resting position, not the off-screen
+    // SLIDE_UP start coordinate (y == screenHeight) where it would stay without animation frames.
+    @Test
+    public void testShowPositionYForSlideUpIsStaticWhenAnimationsOff() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.SLIDE_UP);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.CENTER);
+
+        assertEquals(0, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, true));
+    }
+
+    // Guard rail for the same case with animations ON: start coordinate stays the off-screen
+    // screenHeight (package-visible static field) so the slide still starts from below.
+    @Test
+    public void testShowPositionYForSlideUpIsOffScreenWhenAnimationsOn() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.SLIDE_UP);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.BOTTOM);
+
+        assertEquals(
+                ModalRichMediaWindowUtils.screenHeight,
+                ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, false));
+    }
+
+    // DROP_DOWN parks at x == screenWidth, y == -screenHeight; both must collapse to the static
+    // position when animations are off.
+    @Test
+    public void testShowPositionForDropDownIsStaticWhenAnimationsOff() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.DROP_DOWN);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.CENTER);
+
+        assertEquals(0, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionX(config, true));
+        assertEquals(0, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, true));
+    }
+
+    @Test
+    public void testShowPositionXForSlideFromLeftIsStaticWhenAnimationsOff() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.SLIDE_FROM_LEFT);
+
+        assertEquals(0, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionX(config, true));
+    }
+
+    // Guard rail with animations ON: SLIDE_FROM_LEFT still starts off-screen to the left.
+    @Test
+    public void testShowPositionXForSlideFromLeftIsOffScreenWhenAnimationsOn() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.SLIDE_FROM_LEFT);
+
+        assertEquals(
+                -ModalRichMediaWindowUtils.screenWidth,
+                ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionX(config, false));
+    }
+
+    // With animations off a TOP modal keeps the status bar inset (FADE_IN semantics, not NONE's
+    // y == 0); the inset is stubbed non-zero so the assert can tell the two apart.
+    @Test
+    public void testShowPositionYForTopKeepsStatusBarInsetWhenAnimationsOff() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.SLIDE_UP);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.TOP);
+
+        try (MockedStatic<ModalRichMediaWindowUtils> utils =
+                Mockito.mockStatic(ModalRichMediaWindowUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            utils.when(ModalRichMediaWindowUtils::getSystemWindowInsetTop).thenReturn(63);
+
+            assertEquals(63, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, true));
+        }
+    }
+
+    // BOTTOM mirrors TOP: the static position sits above the nav bar, where drag-snap lands.
+    @Test
+    public void testShowPositionYForBottomKeepsNavBarInsetWhenAnimationsOff() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.SLIDE_UP);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.BOTTOM);
+
+        try (MockedStatic<ModalRichMediaWindowUtils> utils =
+                Mockito.mockStatic(ModalRichMediaWindowUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            utils.when(() -> ModalRichMediaWindowUtils.getSystemWindowInsetBottom(config))
+                    .thenReturn(126);
+
+            assertEquals(126, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, true));
+        }
+    }
+
+    // SDK-987: FADE_IN never moves the window, so show must land at the resting position — above
+    // the nav bar, not y == 0 glued under it.
+    @Test
+    public void testShowPositionYForFadeInBottomIsNavBarInset() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.FADE_IN);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.BOTTOM);
+
+        try (MockedStatic<ModalRichMediaWindowUtils> utils =
+                Mockito.mockStatic(ModalRichMediaWindowUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            utils.when(() -> ModalRichMediaWindowUtils.getSystemWindowInsetBottom(config))
+                    .thenReturn(126);
+
+            assertEquals(126, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, false));
+        }
+    }
+
+    // Guard rail: the TOP leg of the FADE_IN branch keeps the status bar inset — symmetry intact.
+    @Test
+    public void testShowPositionYForFadeInTopIsStatusBarInset() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.FADE_IN);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.TOP);
+
+        try (MockedStatic<ModalRichMediaWindowUtils> utils =
+                Mockito.mockStatic(ModalRichMediaWindowUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            utils.when(ModalRichMediaWindowUtils::getSystemWindowInsetTop).thenReturn(63);
+
+            assertEquals(63, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, false));
+        }
+    }
+
+    // Guard rail: CENTER has no insets (gravity centers the window) — both insets are stubbed
+    // non-zero to prove the branch ignores them.
+    @Test
+    public void testShowPositionYForFadeInCenterIsZero() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.FADE_IN);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.CENTER);
+
+        try (MockedStatic<ModalRichMediaWindowUtils> utils =
+                Mockito.mockStatic(ModalRichMediaWindowUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            utils.when(ModalRichMediaWindowUtils::getSystemWindowInsetTop).thenReturn(63);
+            utils.when(() -> ModalRichMediaWindowUtils.getSystemWindowInsetBottom(config))
+                    .thenReturn(126);
+
+            assertEquals(0, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, false));
+        }
     }
 }

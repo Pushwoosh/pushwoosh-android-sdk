@@ -22,6 +22,7 @@ import androidx.work.testing.WorkManagerTestInitHelper;
 
 import com.pushwoosh.exception.RegisterForPushNotificationsException;
 import com.pushwoosh.function.Callback;
+import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
 import com.pushwoosh.internal.event.Subscription;
@@ -40,6 +41,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
@@ -159,9 +161,35 @@ public class PushwooshTest {
         info = infos.get(0);
         testDriver.setAllConstraintsMet(info.getId());
 
-        Mockito.verify(callback, Mockito.times(2)).process(Mockito.any());
-        Mockito.verify(notificationManagerSpy, Mockito.times(1)).onExistingTokenReceived(Mockito.any(), Mockito.any());
+        ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
+                ArgumentCaptor.forClass(Result.class);
+        Mockito.verify(callback, Mockito.times(2)).process(captor.capture());
+        Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> secondResult =
+                captor.getAllValues().get(1);
+        assertThat(secondResult.isSuccess(), equalTo(true));
+        assertThat(secondResult.getData().getToken(), equalTo(testToken));
+        Mockito.verify(notificationManagerSpy, Mockito.times(1))
+                .onTokenReceived(Mockito.eq(testToken), Mockito.isNull(), Mockito.eq(true));
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+    }
+
+    @Test
+    public void registerExistingToken_emptyToken_failsWithoutWorker() throws ExecutionException, InterruptedException {
+        Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback =
+                CallbackWrapper.spy();
+
+        Pushwoosh.getInstance().registerExistingToken("", callback);
+
+        ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
+                ArgumentCaptor.forClass(Result.class);
+        Mockito.verify(callback).process(captor.capture());
+        assertThat(captor.getValue().isSuccess(), equalTo(false));
+        List<WorkInfo> infos = workManager
+                .getWorkInfosForUniqueWork(ExistingTokenRegistrarWorker.TAG)
+                .get();
+        assertThat(infos, hasSize(0));
+        Mockito.verify(notificationManagerSpy, Mockito.never())
+                .onTokenReceived(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
     }
 
     private Pushwoosh spyWith(String appCode, String hwid) {

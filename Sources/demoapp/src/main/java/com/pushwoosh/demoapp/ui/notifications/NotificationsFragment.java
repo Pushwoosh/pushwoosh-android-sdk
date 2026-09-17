@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.pushwoosh.Pushwoosh;
 import com.pushwoosh.calls.CallPermissionsCallback;
 import com.pushwoosh.calls.PushwooshCallSettings;
@@ -65,6 +66,31 @@ public class NotificationsFragment extends Fragment {
                     Pushwoosh.getInstance().unregisterForPushNotifications();
                 }
             }
+        });
+
+        binding.buttonRegisterExistingToken.setOnClickListener(v -> {
+            FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+                if (binding == null) return;
+                if (!task.isSuccessful() || task.getResult() == null) {
+                    Snackbar.make(binding.getRoot(), "Failed to get FCM token", Snackbar.LENGTH_SHORT)
+                            .show();
+                    return;
+                }
+                Pushwoosh.getInstance().registerExistingToken(task.getResult(), result -> {
+                    if (binding == null) return;
+                    if (result.isSuccess()) {
+                        Snackbar.make(binding.getRoot(), "registerExistingToken: success", Snackbar.LENGTH_SHORT)
+                                .show();
+                    } else {
+                        Snackbar.make(
+                                        binding.getRoot(),
+                                        "registerExistingToken error: "
+                                                + result.getException().getMessage(),
+                                        Snackbar.LENGTH_SHORT)
+                                .show();
+                    }
+                });
+            });
         });
 
         communicationServerEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

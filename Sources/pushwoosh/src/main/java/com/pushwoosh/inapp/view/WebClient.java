@@ -86,6 +86,7 @@ public class WebClient extends WebViewClient implements JsCallback {
     private boolean assetLoaderInitialized;
 
     private boolean released;
+    private boolean pageShown;
 
     public WebClient(InAppView inAppView, Resource resource) {
         this.inAppView = inAppView;
@@ -124,8 +125,8 @@ public class WebClient extends WebViewClient implements JsCallback {
         this.mainContainer = view;
     }
 
-    // Released from clear() before destroy(): skips side effects of lifecycle callbacks still queued after teardown (JS
-    // bridge, phantom present event).
+    // Released once the presentation starts closing (fullscreen close(), clear() before destroy()): callbacks still in
+    // flight — first frame, full load — must not reveal, count or inject anything for a dismissed window.
     public void release() {
         released = true;
     }
@@ -139,7 +140,31 @@ public class WebClient extends WebViewClient implements JsCallback {
             return;
         }
 
+        // JS bridge injection is tied to full document load, not visibility — it stays outside the gate.
         pushwooshJSInterface.onPageFinished(view, resource);
+
+        notifyPageShown();
+    }
+
+    @Override
+    public void onPageCommitVisible(WebView view, String url) {
+        super.onPageCommitVisible(view, url);
+        PWLog.noise(TAG, String.format("onPageCommitVisible(url: %s)", url));
+
+        if (released) {
+            return;
+        }
+
+        notifyPageShown();
+    }
+
+    // One show per presentation: first frame and full load race to reveal content, first one wins.
+    // The gate never resets — re-navigation inside the rich media is not a new show.
+    private void notifyPageShown() {
+        if (pageShown) {
+            return;
+        }
+        pageShown = true;
 
         inAppView.onPageLoaded();
 

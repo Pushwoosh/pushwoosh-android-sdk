@@ -10,6 +10,8 @@ import androidx.annotation.VisibleForTesting;
 
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.liveupdates.internal.LiveUpdateNotificationRenderer;
+import com.pushwoosh.liveupdates.internal.LiveUpdateStateParser;
+import com.pushwoosh.notification.PushMessage;
 
 import java.util.Collections;
 import java.util.List;
@@ -113,6 +115,27 @@ public final class PushwooshLiveUpdates {
             PWLog.error(TAG, "renderer.getActiveIds failed", t);
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * Tells a Live Update push apart from a regular one and returns its {@code activityId}.
+     * <p>
+     * A Live Update arrives as an ordinary push whose payload carries the live-update marker; this
+     * helper is the supported way to recognize one from a {@link PushMessage} — for example inside
+     * {@code NotificationServiceExtension.onMessageOpened} or {@code onMessageCanceled} — without
+     * parsing the wire format yourself. The returned id is the same value used to key
+     * {@link #endLiveUpdate(String)} and {@link #getActiveIds()}.
+     * <p>
+     * Safe to call from any thread and on any API level.
+     *
+     * @param message the push message to inspect
+     * @return the Live Update's {@code activityId}, or {@code null} if the message is not a
+     *         (well-formed) Live Update push
+     */
+    @Nullable @AnyThread
+    public static String getLiveUpdateActivityId(@NonNull PushMessage message) {
+        LiveUpdateState state = LiveUpdateStateParser.parse(message.toBundle());
+        return state == null ? null : state.getActivityId();
     }
 
     /**

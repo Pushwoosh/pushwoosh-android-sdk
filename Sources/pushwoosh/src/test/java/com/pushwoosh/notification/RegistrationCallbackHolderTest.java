@@ -1,11 +1,9 @@
 package com.pushwoosh.notification;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -31,7 +29,6 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -52,26 +49,12 @@ public class RegistrationCallbackHolderTest {
     public void setUp() throws Exception {
         mocks = MockitoAnnotations.openMocks(this);
         EventBus.clearSubscribersMap();
-        resetStaticHolder();
     }
 
     @After
     public void tearDown() throws Exception {
         EventBus.clearSubscribersMap();
-        resetStaticHolder();
         mocks.close();
-    }
-
-    private static void resetStaticHolder() throws Exception {
-        Field f = RegistrationCallbackHolder.class.getDeclaredField("currentCallbackHolder");
-        f.setAccessible(true);
-        f.set(null, null);
-    }
-
-    private static Object readStaticHolder() throws Exception {
-        Field f = RegistrationCallbackHolder.class.getDeclaredField("currentCallbackHolder");
-        f.setAccessible(true);
-        return f.get(null);
     }
 
     private static int subscribersCountFor(Class<? extends Event> eventClass) {
@@ -80,156 +63,68 @@ public class RegistrationCallbackHolderTest {
         return list == null ? 0 : list.size();
     }
 
-    // Verifies that setCallback with null callback and public flag does not subscribe or change state.
+    // Verifies that setCallback with null callback does not subscribe.
     @Test
-    public void setCallback_nullCallbackPublicFlag_doesNothing() throws Exception {
-        RegistrationCallbackHolder.setCallback(null, true);
+    public void setCallback_nullCallback_doesNothing() {
+        RegistrationCallbackHolder.setCallback(null);
 
         assertEquals(0, subscribersCountFor(RegistrationSuccessEvent.class));
         assertEquals(0, subscribersCountFor(RegistrationErrorEvent.class));
-        assertNull(readStaticHolder());
     }
 
-    // Verifies that setCallback with null callback and internal flag does not subscribe or change state.
+    // Verifies that on success the callback receives success Result and both subscriptions are removed.
     @Test
-    public void setCallback_nullCallbackInternalFlag_doesNothing() throws Exception {
-        RegistrationCallbackHolder.setCallback(null, false);
-
-        assertEquals(0, subscribersCountFor(RegistrationSuccessEvent.class));
-        assertEquals(0, subscribersCountFor(RegistrationErrorEvent.class));
-        assertNull(readStaticHolder());
-    }
-
-    // Verifies that on RegistrationSuccessEvent the public-path callback receives success Result and the singleton
-    // holder is cleared.
-    @Test
-    public void setCallback_publicPathSuccessEvent_callbackInvokedAndHolderCleared() throws Exception {
+    public void setCallback_successEvent_callbackInvokedAndUnsubscribed() {
         RegisterForPushNotificationsResultData data = new RegisterForPushNotificationsResultData("token-123", true);
 
-        RegistrationCallbackHolder.setCallback(callback, true);
-        assertNotNull(readStaticHolder());
-
+        RegistrationCallbackHolder.setCallback(callback);
         EventBus.sendEvent(new RegistrationSuccessEvent(data));
         ShadowLooper.idleMainLooper();
 
         ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
                 ArgumentCaptor.forClass(Result.class);
         verify(callback).process(captor.capture());
-
-        Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> result =
-                captor.getValue();
-        assertTrue(result.isSuccess());
-        assertEquals(data, result.getData());
-        assertNull(readStaticHolder());
+        assertTrue(captor.getValue().isSuccess());
+        assertEquals(data, captor.getValue().getData());
         assertEquals(0, subscribersCountFor(RegistrationSuccessEvent.class));
         assertEquals(0, subscribersCountFor(RegistrationErrorEvent.class));
     }
 
-    // Verifies that on RegistrationErrorEvent the public-path callback receives failure Result wrapped in
-    // RegisterForPushNotificationsException.
+    // Verifies that on error the callback receives a RegisterForPushNotificationsException with the event message.
     @Test
-    public void setCallback_publicPathErrorEvent_callbackInvokedWithExceptionAndHolderCleared() throws Exception {
-        RegistrationCallbackHolder.setCallback(callback, true);
-        assertNotNull(readStaticHolder());
-
+    public void setCallback_errorEvent_callbackInvokedWithException() {
+        RegistrationCallbackHolder.setCallback(callback);
         EventBus.sendEvent(new RegistrationErrorEvent("registration_failed"));
         ShadowLooper.idleMainLooper();
 
         ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
                 ArgumentCaptor.forClass(Result.class);
         verify(callback).process(captor.capture());
-
-        Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> result =
-                captor.getValue();
-        assertNull(result.getData());
-        assertNotNull(result.getException());
-        assertEquals("registration_failed", result.getException().getMessage());
-        assertNull(readStaticHolder());
+        assertNull(captor.getValue().getData());
+        assertEquals("registration_failed", captor.getValue().getException().getMessage());
         assertEquals(0, subscribersCountFor(RegistrationSuccessEvent.class));
-        assertEquals(0, subscribersCountFor(RegistrationErrorEvent.class));
     }
 
-    // Verifies that a second public-path setCallback while holder is active is silently ignored and only the first
-    // callback receives the event.
+    // Spec test 6: two waiting callbacks, one event - both invoked once, no subscriptions left,
+    // a later error event does not re-invoke.
     @Test
-    public void setCallback_secondPublicCallWhileActive_silentlyIgnoresSecond() throws Exception {
-        RegistrationCallbackHolder.setCallback(callback, true);
-        Object holderAfterFirst = readStaticHolder();
-        assertNotNull(holderAfterFirst);
-
-        RegistrationCallbackHolder.setCallback(callback2, true);
-        assertEquals("holder must not be replaced", holderAfterFirst, readStaticHolder());
+    public void setCallback_twoWaitingCallbacks_bothResolvedByNearestEventOnce() {
+        RegistrationCallbackHolder.setCallback(callback);
+        RegistrationCallbackHolder.setCallback(callback2);
 
         RegisterForPushNotificationsResultData data = new RegisterForPushNotificationsResultData("token-x", true);
         EventBus.sendEvent(new RegistrationSuccessEvent(data));
         ShadowLooper.idleMainLooper();
 
         verify(callback, times(1)).process(any());
-        verify(callback2, never()).process(any());
-        assertNull(readStaticHolder());
-    }
-
-    // Verifies that internal-path setCallback allows multiple registrations and each receives the event independently.
-    @Test
-    public void setCallback_internalPathMultipleRegistrations_allCallbacksInvoked() throws Exception {
-        RegistrationCallbackHolder.setCallback(callback, false);
-        RegistrationCallbackHolder.setCallback(callback2, false);
-        assertNull(readStaticHolder());
-
-        RegisterForPushNotificationsResultData data = new RegisterForPushNotificationsResultData("token-y", false);
-        EventBus.sendEvent(new RegistrationSuccessEvent(data));
-        ShadowLooper.idleMainLooper();
-
-        verify(callback, times(1)).process(any());
         verify(callback2, times(1)).process(any());
-    }
-
-    // Verifies that internal-path unsubscribe does not write to the static singleton holder.
-    @Test
-    public void setCallback_internalPath_doesNotTouchStaticHolder() throws Exception {
-        RegistrationCallbackHolder.setCallback(callback, false);
-        assertNull("internal path must not set holder", readStaticHolder());
-
-        RegisterForPushNotificationsResultData data = new RegisterForPushNotificationsResultData("token-z", true);
-        EventBus.sendEvent(new RegistrationSuccessEvent(data));
-        ShadowLooper.idleMainLooper();
-
-        verify(callback).process(any());
-        assertNull(readStaticHolder());
         assertEquals(0, subscribersCountFor(RegistrationSuccessEvent.class));
         assertEquals(0, subscribersCountFor(RegistrationErrorEvent.class));
-    }
-
-    // Verifies that triggering success unsubscribes BOTH success and error listeners so a later error event does not
-    // reach the callback.
-    @Test
-    public void setCallback_successEventThenErrorEvent_errorIgnoredAfterSuccess() throws Exception {
-        RegistrationCallbackHolder.setCallback(callback, true);
-
-        RegisterForPushNotificationsResultData data = new RegisterForPushNotificationsResultData("token-q", true);
-        EventBus.sendEvent(new RegistrationSuccessEvent(data));
-        ShadowLooper.idleMainLooper();
 
         EventBus.sendEvent(new RegistrationErrorEvent("late_error"));
         ShadowLooper.idleMainLooper();
 
         verify(callback, times(1)).process(any());
-        assertEquals(0, subscribersCountFor(RegistrationSuccessEvent.class));
-        assertEquals(0, subscribersCountFor(RegistrationErrorEvent.class));
-    }
-
-    // Verifies that a repeated event after the callback fired does not invoke the callback a second time.
-    @Test
-    public void setCallback_repeatedSuccessEvent_callbackInvokedOnlyOnce() throws Exception {
-        RegistrationCallbackHolder.setCallback(callback, false);
-
-        RegisterForPushNotificationsResultData data = new RegisterForPushNotificationsResultData("token-r", true);
-        EventBus.sendEvent(new RegistrationSuccessEvent(data));
-        ShadowLooper.idleMainLooper();
-
-        EventBus.sendEvent(new RegistrationSuccessEvent(data));
-        ShadowLooper.idleMainLooper();
-
-        verify(callback, times(1)).process(any());
+        verify(callback2, times(1)).process(any());
     }
 }

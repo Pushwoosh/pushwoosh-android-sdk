@@ -4,12 +4,14 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
 
 import android.os.Bundle;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.liveupdates.LiveUpdateState;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -54,7 +56,7 @@ public class LiveUpdatePushHandlerTest {
         Bundle b = liveBundle("OPERATION_START", "order_1");
 
         assertTrue(handler.preHandleMessage(b));
-        verify(renderer).render(any());
+        verify(renderer).render(any(), any());
     }
 
     // Verifies that an UPDATE push is consumed and dispatched to renderer.render (shares the START
@@ -64,7 +66,18 @@ public class LiveUpdatePushHandlerTest {
         Bundle b = liveBundle("OPERATION_UPDATE", "order_1");
 
         assertTrue(handler.preHandleMessage(b));
-        verify(renderer).render(any());
+        verify(renderer).render(any(), any());
+    }
+
+    // Verifies that the original push bundle (not a copy) reaches the renderer, so the tap/dismiss
+    // intents built from it carry the same payload NotificationServiceExtension would see.
+    @Test
+    public void liveUpdatePush_passesOriginalBundleToRenderer() {
+        Bundle b = liveBundle("OPERATION_START", "order_1");
+
+        handler.preHandleMessage(b);
+
+        verify(renderer).render(any(LiveUpdateState.class), same(b));
     }
 
     // Verifies that an END push is consumed and dispatched to renderer.dismiss with the activityId.
@@ -106,7 +119,7 @@ public class LiveUpdatePushHandlerTest {
     // Verifies that an exception from the renderer is swallowed and the push is still consumed.
     @Test
     public void testRendererThrowsIsSwallowedAndReturnsTrue() {
-        doThrow(new RuntimeException("boom")).when(renderer).render(any());
+        doThrow(new RuntimeException("boom")).when(renderer).render(any(), any());
         Bundle b = liveBundle("OPERATION_START", "order_1");
 
         assertTrue(handler.preHandleMessage(b));

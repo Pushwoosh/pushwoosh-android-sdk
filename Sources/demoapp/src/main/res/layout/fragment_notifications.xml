@@ -84,6 +84,13 @@
                     android:layout_height="48dp"
                     android:text="Register For Push Notifications" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonRegisterExistingToken"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Register Existing Token" />
+
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"

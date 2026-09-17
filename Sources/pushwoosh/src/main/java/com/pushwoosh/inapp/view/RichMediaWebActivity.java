@@ -315,6 +315,9 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
         }
 
         if (resourceWebView != null) {
+            // Before the animation, not in its onAnimationEnd: a first frame landing inside the 300 ms slide-out would
+            // reopen the window and drop the close listener, leaving the activity stuck behind isAnimatedClose.
+            resourceWebView.releaseWebClient();
             resourceWebView.animateClose(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {}

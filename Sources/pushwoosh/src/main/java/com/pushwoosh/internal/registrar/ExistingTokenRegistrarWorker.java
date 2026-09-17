@@ -1,13 +1,11 @@
 package com.pushwoosh.internal.registrar;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.work.WorkerParameters;
 
 import com.pushwoosh.PushwooshPlatform;
-import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.work.BasePushwooshWorker;
 
@@ -29,13 +27,7 @@ public class ExistingTokenRegistrarWorker extends BasePushwooshWorker {
         PWLog.noise(TAG, "ExistingTokenRegistrarWorker doWork");
         try {
             String token = getInputData().getString(TOKEN);
-            if (TextUtils.isEmpty(token)) {
-                PWLog.error(TAG, "Cannot register for pushes with null token");
-                return Result.failure();
-            }
-            SdkStateProvider.getInstance().executeOrQueue(() -> {
-                PushwooshPlatform.getInstance().notificationManager().onExistingTokenReceived(token, null);
-            });
+            PushwooshPlatform.getInstance().notificationManager().onTokenReceived(token, null, true);
         } catch (Exception e) {
             PWLog.error(TAG, "Failed to register existing token", e);
             return Result.failure();

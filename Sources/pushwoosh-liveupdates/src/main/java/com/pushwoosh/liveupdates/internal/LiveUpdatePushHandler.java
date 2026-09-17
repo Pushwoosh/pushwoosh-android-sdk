@@ -77,7 +77,7 @@ public class LiveUpdatePushHandler implements MessageSystemHandler {
             switch (state.getOperation()) {
                 case START:
                 case UPDATE:
-                    renderer.render(state);
+                    renderer.render(state, pushBundle);
                     break;
                 case END:
                     renderer.dismiss(state.getActivityId());

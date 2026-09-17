@@ -29,7 +29,6 @@ public class FcmRegistrarWorker extends BasePushwooshWorker {
     }
 
     private static void registerPW(String tagsJson) {
-        String error = "";
         try {
             String savedPushToken =
                     RepositoryModule.getRegistrationPreferences().pushToken().get();
@@ -42,13 +41,15 @@ public class FcmRegistrarWorker extends BasePushwooshWorker {
                 NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token, tagsJson);
             } else {
                 PWLog.info(TAG, "FCM token is empty");
+                NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications("FCM token is empty");
             }
         } catch (IllegalStateException e) {
-            PWLog.error(TAG, "FCM registration error: Failed to retrieve token. Is firebase configured correctly?");
+            String error = "Failed to retrieve token. Is firebase configured correctly?";
+            PWLog.error(TAG, "FCM registration error: " + error);
             NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(error);
         } catch (Exception e) {
-            error = e.getMessage();
             PWLog.error(TAG, "FCM registration error", e);
+            NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(e.getMessage());
         }
     }
 
