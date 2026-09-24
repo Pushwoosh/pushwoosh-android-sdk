@@ -80,7 +80,12 @@ class InboxAdapter(context: Context,
     override fun onBindViewHolder(holder: ViewHolder<InboxMessage>, position: Int) {
         super.onBindViewHolder(holder, position)
         holder.itemView.setOnClickListener {
-            onItemClick?.invoke(getItem(position))
+            // A card with a destination of its own answers the tap wherever it lands, so the
+            // poster and the title of one card cannot lead to two different places.
+            val handledByCard = (holder as? OwnRowDestination)?.handleRowTap() ?: false
+            if (!handledByCard) {
+                onItemClick?.invoke(getItem(position))
+            }
         }
 
     }

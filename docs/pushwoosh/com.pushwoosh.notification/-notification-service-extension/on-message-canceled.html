@@ -99,9 +99,22 @@
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-message-canceled.html"><span class="token function">onMessageCanceled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span><a href="../-push-message/index.html">PushMessage</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">Callback invoked when a user dismisses or swipes away a notification. </p><p class="paragraph"> Override this method to handle notification dismissal events. This is useful for tracking user engagement, cleaning up notification state, or updating notification counters. The callback is triggered when the user explicitly dismisses a notification from the notification center (not when it expires or is cleared programmatically).  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
 
 protected void onMessageCanceled(PushMessage message) {
-    // Track dismissal in analytics
-    String campaignId = message.getCustomData().getString("campaign_id");
-    Analytics.track("notification_dismissed", campaignId);
+    String customData = message.getCustomData();
+    if (customData != null) {
+        try {
+            JSONObject data = new JSONObject(customData);
+
+            // Track dismissal in analytics
+            String campaignId = data.optString("campaign_id", null);
+            Analytics.track("notification_dismissed", campaignId);
+
+            // Clean up related local data
+            String notificationId = data.optString("notification_id", null);
+            deleteNotificationData(notificationId);
+        } catch (JSONException e) {
+            Log.e("App", "Failed to parse custom data", e);
+        }
+    }
 
     // Update badge count
     SharedPreferences prefs = getApplicationContext()
@@ -110,10 +123,6 @@ protected void onMessageCanceled(PushMessage message) {
     if (badgeCount &gt; 0) {
         prefs.edit().putInt("badge_count", badgeCount - 1).apply();
     }
-
-    // Clean up related local data
-    String notificationId = message.getCustomData().getString("notification_id");
-    deleteNotificationData(notificationId);
 }
 </code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>message</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the push message that was dismissed by the user</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-push-message/index.html"><span>Push</span><wbr><span><span>Message</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>

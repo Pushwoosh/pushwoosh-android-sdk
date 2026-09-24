@@ -43,6 +43,20 @@ import java.util.List;
  * <p>
  * <b>Setup:</b>
  * <p>
+ * <b>Pushwoosh and JSON imports used by the examples below:</b>
+ * <pre>
+ * {@code
+ * import android.util.Log;
+ *
+ * import com.pushwoosh.notification.NotificationServiceExtension;
+ * import com.pushwoosh.notification.PushBundleDataProvider;
+ * import com.pushwoosh.notification.PushMessage;
+ *
+ * import org.json.JSONException;
+ * import org.json.JSONObject;
+ * }
+ * </pre>
+ * <p>
  * 1. Create a public class extending NotificationServiceExtension with a public no-args constructor:
  * <pre>
  * {@code
@@ -61,8 +75,15 @@ import java.util.List;
  *     @Override
  *     protected void onMessageOpened(PushMessage message) {
  *         // Track notification open event
- *         String campaignId = message.getCustomData().getString("campaign_id");
- *         Analytics.track("notification_opened", campaignId);
+ *         String customData = message.getCustomData();
+ *         if (customData != null) {
+ *             try {
+ *                 String campaignId = new JSONObject(customData).optString("campaign_id", null);
+ *                 Analytics.track("notification_opened", campaignId);
+ *             } catch (JSONException e) {
+ *                 Log.e("App", "Failed to parse custom data", e);
+ *             }
+ *         }
  *     }
  * }
  * }
@@ -105,26 +126,38 @@ import java.util.List;
  * @Override
  * protected void startActivityForPushMessage(PushMessage message) {
  *     Context context = getApplicationContext();
- *     String screenType = message.getCustomData().getString("screen");
- *
- *     Intent intent;
- *     if ("product".equals(screenType)) {
- *         // Open product details
- *         intent = new Intent(context, ProductActivity.class);
- *         String productId = message.getCustomData().getString("product_id");
- *         intent.putExtra("productId", productId);
- *     } else if ("cart".equals(screenType)) {
- *         // Open shopping cart
- *         intent = new Intent(context, CartActivity.class);
- *     } else {
- *         // Default behavior
+ *     String customData = message.getCustomData();
+ *     if (customData == null) {
  *         super.startActivityForPushMessage(message);
  *         return;
  *     }
  *
- *     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
- *                     Intent.FLAG_ACTIVITY_CLEAR_TOP);
- *     context.startActivity(intent);
+ *     try {
+ *         JSONObject data = new JSONObject(customData);
+ *         String screenType = data.optString("screen");
+ *
+ *         Intent intent;
+ *         if ("product".equals(screenType)) {
+ *             // Open product details
+ *             intent = new Intent(context, ProductActivity.class);
+ *             String productId = data.optString("product_id", null);
+ *             intent.putExtra("productId", productId);
+ *         } else if ("cart".equals(screenType)) {
+ *             // Open shopping cart
+ *             intent = new Intent(context, CartActivity.class);
+ *         } else {
+ *             // Default behavior
+ *             super.startActivityForPushMessage(message);
+ *             return;
+ *         }
+ *
+ *         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+ *                         Intent.FLAG_ACTIVITY_CLEAR_TOP);
+ *         context.startActivity(intent);
+ *     } catch (JSONException e) {
+ *         Log.e("App", "Failed to parse custom data", e);
+ *         super.startActivityForPushMessage(message);
+ *     }
  * }
  * }
  * </pre>
@@ -135,8 +168,15 @@ import java.util.List;
  * @Override
  * protected void onMessageCanceled(PushMessage message) {
  *     // User dismissed notification - track in analytics
- *     String campaignId = message.getCustomData().getString("campaign_id");
- *     Analytics.track("notification_dismissed", campaignId);
+ *     String customData = message.getCustomData();
+ *     if (customData != null) {
+ *         try {
+ *             String campaignId = new JSONObject(customData).optString("campaign_id", null);
+ *             Analytics.track("notification_dismissed", campaignId);
+ *         } catch (JSONException e) {
+ *             Log.e("App", "Failed to parse custom data", e);
+ *         }
+ *     }
  *
  *     // Update notification count
  *     SharedPreferences prefs = getApplicationContext()
@@ -160,7 +200,7 @@ import java.util.List;
  * @Override
  * protected void startActivityForPushMessage(PushMessage message) {
  *     // Custom URL handling logic
- *     String url = message.getLink();
+ *     String url = PushBundleDataProvider.getLink(message.toBundle());
  *     if (url != null && url.startsWith("myapp://")) {
  *         // Handle custom deep link
  *         handleDeepLink(url);
@@ -358,8 +398,15 @@ public class NotificationServiceExtension {
      * @Override
      * protected void onMessageCanceled(PushMessage message) {
      *     // Track dismissal in analytics
-     *     String messageId = message.getCustomData().getString("message_id");
-     *     Analytics.track("notification_dismissed", messageId);
+     *     String customData = message.getCustomData();
+     *     if (customData != null) {
+     *         try {
+     *             String messageId = new JSONObject(customData).optString("message_id", null);
+     *             Analytics.track("notification_dismissed", messageId);
+     *         } catch (JSONException e) {
+     *             Log.e("App", "Failed to parse custom data", e);
+     *         }
+     *     }
      *
      *     // Update unread count
      *     decrementUnreadNotifications();
@@ -395,8 +442,15 @@ public class NotificationServiceExtension {
      * @Override
      * protected void onMessageOpened(PushMessage message) {
      *     // Track notification open in analytics
-     *     String campaignCode = message.getCustomData().getString("campaign_code");
-     *     Analytics.track("push_opened", campaignCode);
+     *     String customData = message.getCustomData();
+     *     if (customData != null) {
+     *         try {
+     *             String campaignCode = new JSONObject(customData).optString("campaign_code", null);
+     *             Analytics.track("push_opened", campaignCode);
+     *         } catch (JSONException e) {
+     *             Log.e("App", "Failed to parse custom data", e);
+     *         }
+     *     }
      *
      *     // Update user engagement score
      *     SharedPreferences prefs = getApplicationContext()
@@ -431,9 +485,22 @@ public class NotificationServiceExtension {
      * {@code
      * @Override
      * protected void onMessageCanceled(PushMessage message) {
-     *     // Track dismissal in analytics
-     *     String campaignId = message.getCustomData().getString("campaign_id");
-     *     Analytics.track("notification_dismissed", campaignId);
+     *     String customData = message.getCustomData();
+     *     if (customData != null) {
+     *         try {
+     *             JSONObject data = new JSONObject(customData);
+     *
+     *             // Track dismissal in analytics
+     *             String campaignId = data.optString("campaign_id", null);
+     *             Analytics.track("notification_dismissed", campaignId);
+     *
+     *             // Clean up related local data
+     *             String notificationId = data.optString("notification_id", null);
+     *             deleteNotificationData(notificationId);
+     *         } catch (JSONException e) {
+     *             Log.e("App", "Failed to parse custom data", e);
+     *         }
+     *     }
      *
      *     // Update badge count
      *     SharedPreferences prefs = getApplicationContext()
@@ -442,10 +509,6 @@ public class NotificationServiceExtension {
      *     if (badgeCount > 0) {
      *         prefs.edit().putInt("badge_count", badgeCount - 1).apply();
      *     }
-     *
-     *     // Clean up related local data
-     *     String notificationId = message.getCustomData().getString("notification_id");
-     *     deleteNotificationData(notificationId);
      * }
      * }
      * </pre>
@@ -480,11 +543,21 @@ public class NotificationServiceExtension {
      *     // Pass all message IDs
      *     ArrayList<String> messageIds = new ArrayList<>();
      *     for (PushMessage msg : messages) {
-     *         String id = msg.getCustomData().getString("message_id");
-     *         messageIds.add(id);
+     *         String customData = msg.getCustomData();
+     *         if (customData == null) {
+     *             continue;
+     *         }
+     *         try {
+     *             String id = new JSONObject(customData).optString("message_id", null);
+     *             if (id != null) {
+     *                 messageIds.add(id);
+     *             }
+     *         } catch (JSONException e) {
+     *             Log.e("App", "Failed to parse custom data", e);
+     *         }
      *     }
      *     intent.putStringArrayListExtra("message_ids", messageIds);
-     *     intent.putExtra("count", messages.size());
+     *     intent.putExtra("count", messageIds.size());
      *
      *     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
      *                     Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -551,7 +624,15 @@ public class NotificationServiceExtension {
      * {@code
      * @Override
      * protected boolean onMessageReceived(PushMessage message) {
-     *     String priority = message.getCustomData().getString("priority");
+     *     String customData = message.getCustomData();
+     *     String priority = "";
+     *     if (customData != null) {
+     *         try {
+     *             priority = new JSONObject(customData).optString("priority");
+     *         } catch (JSONException e) {
+     *             Log.e("App", "Failed to parse custom data", e);
+     *         }
+     *     }
      *
      *     // Block low-priority notifications when user is busy
      *     if ("low".equals(priority) && isUserBusy()) {
@@ -636,40 +717,52 @@ public class NotificationServiceExtension {
      * @Override
      * protected void startActivityForPushMessage(PushMessage message) {
      *     Context context = getApplicationContext();
-     *     String screenType = message.getCustomData().getString("screen");
-     *
-     *     Intent intent;
-     *     if ("product".equals(screenType)) {
-     *         // Open product details
-     *         intent = new Intent(context, ProductActivity.class);
-     *         String productId = message.getCustomData().getString("product_id");
-     *         intent.putExtra("productId", productId);
-     *
-     *     } else if ("order".equals(screenType)) {
-     *         // Open order details
-     *         intent = new Intent(context, OrderActivity.class);
-     *         String orderId = message.getCustomData().getString("order_id");
-     *         intent.putExtra("orderId", orderId);
-     *
-     *     } else if ("cart".equals(screenType)) {
-     *         // Open shopping cart
-     *         intent = new Intent(context, CartActivity.class);
-     *
-     *     } else {
-     *         // Default behavior for unknown screen types
+     *     String customData = message.getCustomData();
+     *     if (customData == null) {
      *         super.startActivityForPushMessage(message);
      *         return;
      *     }
      *
-     *     // Required flags for starting activity from non-activity context
-     *     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-     *                     Intent.FLAG_ACTIVITY_CLEAR_TOP |
-     *                     Intent.FLAG_ACTIVITY_SINGLE_TOP);
+     *     try {
+     *         JSONObject data = new JSONObject(customData);
+     *         String screenType = data.optString("screen");
      *
-     *     // Pass full push message data
-     *     intent.putExtra("pushMessage", message.toJson().toString());
+     *         Intent intent;
+     *         if ("product".equals(screenType)) {
+     *             // Open product details
+     *             intent = new Intent(context, ProductActivity.class);
+     *             String productId = data.optString("product_id", null);
+     *             intent.putExtra("productId", productId);
      *
-     *     context.startActivity(intent);
+     *         } else if ("order".equals(screenType)) {
+     *             // Open order details
+     *             intent = new Intent(context, OrderActivity.class);
+     *             String orderId = data.optString("order_id", null);
+     *             intent.putExtra("orderId", orderId);
+     *
+     *         } else if ("cart".equals(screenType)) {
+     *             // Open shopping cart
+     *             intent = new Intent(context, CartActivity.class);
+     *
+     *         } else {
+     *             // Default behavior for unknown screen types
+     *             super.startActivityForPushMessage(message);
+     *             return;
+     *         }
+     *
+     *         // Required flags for starting activity from non-activity context
+     *         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+     *                         Intent.FLAG_ACTIVITY_CLEAR_TOP |
+     *                         Intent.FLAG_ACTIVITY_SINGLE_TOP);
+     *
+     *         // Pass full push message data
+     *         intent.putExtra("pushMessage", message.toJson().toString());
+     *
+     *         context.startActivity(intent);
+     *     } catch (JSONException e) {
+     *         Log.e("App", "Failed to parse custom data", e);
+     *         super.startActivityForPushMessage(message);
+     *     }
      * }
      * }
      * </pre>
@@ -679,7 +772,15 @@ public class NotificationServiceExtension {
      * {@code
      * @Override
      * protected void startActivityForPushMessage(PushMessage message) {
-     *     String deepLink = message.getCustomData().getString("deep_link");
+     *     String customData = message.getCustomData();
+     *     String deepLink = null;
+     *     if (customData != null) {
+     *         try {
+     *             deepLink = new JSONObject(customData).optString("deep_link", null);
+     *         } catch (JSONException e) {
+     *             Log.e("App", "Failed to parse custom data", e);
+     *         }
+     *     }
      *
      *     if (deepLink != null && deepLink.startsWith("myapp://")) {
      *         // Parse and handle custom deep link
@@ -713,8 +814,18 @@ public class NotificationServiceExtension {
      *     SharedPreferences prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE);
      *     boolean isLoggedIn = prefs.getBoolean("is_logged_in", false);
      *
-     *     String screenType = message.getCustomData().getString("screen");
-     *     boolean requiresAuth = message.getCustomData().getBoolean("requires_auth", false);
+     *     String screenType = null;
+     *     boolean requiresAuth = false;
+     *     String customData = message.getCustomData();
+     *     if (customData != null) {
+     *         try {
+     *             JSONObject data = new JSONObject(customData);
+     *             screenType = data.optString("screen", null);
+     *             requiresAuth = data.optBoolean("requires_auth", false);
+     *         } catch (JSONException e) {
+     *             Log.e("App", "Failed to parse custom data", e);
+     *         }
+     *     }
      *
      *     if (requiresAuth && !isLoggedIn) {
      *         // Redirect to login screen
@@ -778,7 +889,7 @@ public class NotificationServiceExtension {
      * @Override
      * protected void startActivityForPushMessage(PushMessage message) {
      *     // Now YOU control all URL/deep link handling
-     *     String url = message.getLink();
+     *     String url = PushBundleDataProvider.getLink(message.toBundle());
      *
      *     if (url != null) {
      *         if (url.startsWith("myapp://")) {
@@ -814,7 +925,7 @@ public class NotificationServiceExtension {
      *         {@code false} to handle all URLs manually in {@link #startActivityForPushMessage(PushMessage)}
      *
      * @see #startActivityForPushMessage(PushMessage)
-     * @see PushMessage#getLink()
+     * @see PushMessage#toBundle()
      */
     protected boolean preHandleNotificationsWithUrl() {
         return true;

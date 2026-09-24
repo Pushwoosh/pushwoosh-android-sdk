@@ -140,8 +140,8 @@ public abstract class WebActivity extends Activity implements InAppView {
 
             resource = intentResource;
             if (resource == null) {
-                // Tiramisu 13.0/13.1 lazy-bundle bug: BundleCompat.getSerializable могла вернуть null
-                // для валидного Serializable из IPC-bundle. Fallback на deprecated path.
+                // Tiramisu 13.0/13.1 lazy-bundle bug: BundleCompat.getSerializable may return null
+                // for a valid Serializable from an IPC bundle. Fall back to the deprecated path.
                 @SuppressWarnings("deprecation")
                 Resource legacy = (Resource) intent.getSerializableExtra(EXTRA_INAPP);
                 resource = legacy;

@@ -37,7 +37,7 @@ import org.robolectric.annotation.LooperMode;
 /**
  * Regression guards for modal rich media with animation type NONE on both paths.
  *
- * <p>NONE has no switch case in {@code ModalRichMediaWindowUtils} and falls to the default branch,
+ * <p>NONE has no case in the present-animator switch and falls to the default branch,
  * which returns a null animator. The present consumer ({@code onPageLoaded()}) used to dereference
  * that null (NPE swallowed as "Failed to show modal rich media", and the in-app view stat lost);
  * the dismiss consumer ({@code close()}) null-guarded the dereference but hid {@code

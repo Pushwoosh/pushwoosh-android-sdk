@@ -48,6 +48,10 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
+import com.pushwoosh.inbox.PushwooshInbox
+import com.pushwoosh.inbox.ui.OnInboxMessageClickListener
+import com.pushwoosh.inbox.ui.PushwooshInboxUi
+import org.mockito.Mockito.mockStatic
 
 /**
  * Video rich card wiring in [InboxAdapter]: a `displayType=video` message with
@@ -124,10 +128,11 @@ class InboxAdapterVideoCardTest {
         val holder = holder(newAdapter())
         holder.fillView(msg(actionParams = videoParams, title = "t"), 0)
 
-        // Marking the message read afterwards reaches PushwooshInbox, which has no SDK behind
-        // it in a unit test and throws. The player intent is already out by then — that is what
-        // this test is about.
-        runCatching { holder.itemView.findViewById<View>(R.id.inboxVideoPosterHost).performClick() }
+        // Reporting the open reaches PushwooshInbox, which has no SDK behind it in a unit test:
+        // stub it out so the tap gets all the way to the player intent this test is about.
+        mockStatic(PushwooshInbox::class.java).use {
+            holder.itemView.findViewById<View>(R.id.inboxVideoPosterHost).performClick()
+        }
 
         val started = Shadows.shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity
         assertNotNull(started)
@@ -142,7 +147,9 @@ class InboxAdapterVideoCardTest {
         // fire a stale intent if it is ever bound to a payload-less message.
         holder.fillView(msg(actionParams = """{"displayType":"video"}""", title = "t"), 0)
 
-        holder.itemView.findViewById<View>(R.id.inboxVideoPosterHost).performClick()
+        mockStatic(PushwooshInbox::class.java).use {
+            holder.itemView.findViewById<View>(R.id.inboxVideoPosterHost).performClick()
+        }
 
         assertNull(Shadows.shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity)
         assertEquals(View.GONE, holder.itemView.findViewById<View>(R.id.inboxVideoPlayBadge).visibility)
@@ -167,6 +174,55 @@ class InboxAdapterVideoCardTest {
 
         holder.fillView(msg(actionParams = videoParams, title = "t", read = true), 0)
         assertEquals(View.GONE, dot.visibility)
+    }
+
+    @Test
+    fun rowTap_opensThePlayerInsteadOfTheMessagePayload() {
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true)
+        val adapter = newAdapter()
+        var rowActions = 0
+        adapter.onItemClick = { rowActions++ }
+        adapter.setCollection(listOf(msg(actionParams = videoParams, title = "t")))
+        val holder = holder(adapter)
+        adapter.onBindViewHolder(holder, 0)
+
+        mockStatic(PushwooshInbox::class.java).use { holder.itemView.performClick() }
+
+        val started = Shadows.shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity
+        assertNotNull("the card's own destination answers a tap on the text block too", started)
+        assertEquals(InboxVideoActivity::class.java.name, started.component?.className)
+        assertEquals(0, rowActions)
+    }
+
+    @Test
+    fun rowTap_notifiesTheHostAboutTheTap() {
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).checkActivities(true)
+        var seen: InboxMessage? = null
+        PushwooshInboxUi.onMessageClickListener = OnInboxMessageClickListener { message -> seen = message }
+        val adapter = newAdapter()
+        adapter.setCollection(listOf(msg(actionParams = videoParams, title = "t")))
+        val holder = holder(adapter)
+        adapter.onBindViewHolder(holder, 0)
+
+        mockStatic(PushwooshInbox::class.java).use { holder.itemView.performClick() }
+
+        assertNotNull("the host hears about a tap on a video card too", seen)
+        PushwooshInboxUi.onMessageClickListener = null
+    }
+
+    @Test
+    fun rowTap_withoutDescriptor_opensNothingAndKeepsTheRowActionOut() {
+        val adapter = newAdapter()
+        var rowActions = 0
+        adapter.onItemClick = { rowActions++ }
+        adapter.setCollection(listOf(msg(actionParams = """{"displayType":"video"}""", title = "t")))
+        val holder = adapter.onCreateViewHolder(FrameLayout(ctx()), InboxAdapter.VIDEO_VIEW_TYPE)
+        adapter.onBindViewHolder(holder, 0)
+
+        mockStatic(PushwooshInbox::class.java).use { holder.itemView.performClick() }
+
+        assertNull(Shadows.shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity)
+        assertEquals("a video card stays a video card even with a payload it cannot play", 0, rowActions)
     }
 
     @Test

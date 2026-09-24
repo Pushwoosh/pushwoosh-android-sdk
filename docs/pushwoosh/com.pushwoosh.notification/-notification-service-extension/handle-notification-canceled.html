@@ -100,8 +100,15 @@
 
 protected void onMessageCanceled(PushMessage message) {
     // Track dismissal in analytics
-    String messageId = message.getCustomData().getString("message_id");
-    Analytics.track("notification_dismissed", messageId);
+    String customData = message.getCustomData();
+    if (customData != null) {
+        try {
+            String messageId = new JSONObject(customData).optString("message_id", null);
+            Analytics.track("notification_dismissed", messageId);
+        } catch (JSONException e) {
+            Log.e("App", "Failed to parse custom data", e);
+        }
+    }
 
     // Update unread count
     decrementUnreadNotifications();

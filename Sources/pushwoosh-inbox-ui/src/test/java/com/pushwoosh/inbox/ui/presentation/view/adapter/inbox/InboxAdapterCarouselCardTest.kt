@@ -52,6 +52,8 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
+import com.pushwoosh.inbox.PushwooshInbox
+import org.mockito.Mockito.mockStatic
 
 /**
  * Carousel rich card wiring in [InboxAdapter]: a `displayType=carousel`
@@ -206,8 +208,8 @@ class InboxAdapterCarouselCardTest {
         val holder = holder(newAdapter())
         holder.fillView(msg(actionParams = twoSlides, title = "t"), 0)
 
-        // Marking read afterwards reaches PushwooshInbox, which has no SDK behind it here.
-        runCatching { bindSlide(holder, 0).performClick() }
+        // Reporting the open reaches PushwooshInbox, which has no SDK behind it here.
+        mockStatic(PushwooshInbox::class.java).use { bindSlide(holder, 0).performClick() }
 
         val started = Shadows.shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity
         assertNotNull(started)

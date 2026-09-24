@@ -1,6 +1,7 @@
 package com.pushwoosh.function;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import com.pushwoosh.internal.network.ConnectionException;
 import com.pushwoosh.internal.network.NetworkException;
@@ -16,7 +17,10 @@ public class RetriableRequestCallback<Response> implements Callback<Response, Ne
     private final Callback<Response, NetworkException> callback;
     private final PushRequest<Response> request;
     private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    private static final int[] RETRY_DELAYS_SECONDS = {1, 5, 10};
+    static final int[] DEFAULT_RETRY_DELAYS_SECONDS = {1, 5, 10};
+
+    @VisibleForTesting
+    static int[] retryDelaysSeconds = DEFAULT_RETRY_DELAYS_SECONDS;
 
     public RetriableRequestCallback(Callback<Response, NetworkException> callback, PushRequest<Response> request) {
         this.callback = callback;
@@ -41,12 +45,12 @@ public class RetriableRequestCallback<Response> implements Callback<Response, Ne
 
     private void retryRequest(final int attempt, final Result<Response, NetworkException> lastResult) {
         try {
-            if (attempt >= RETRY_DELAYS_SECONDS.length) {
+            if (attempt >= retryDelaysSeconds.length) {
                 safeProcessCallback(callback, lastResult);
                 return;
             }
 
-            long delay = RETRY_DELAYS_SECONDS[attempt];
+            long delay = retryDelaysSeconds[attempt];
             PWLog.debug("Scheduling retry attempt " + (attempt + 1) + " with a delay of " + delay + " seconds");
 
             executor.schedule(

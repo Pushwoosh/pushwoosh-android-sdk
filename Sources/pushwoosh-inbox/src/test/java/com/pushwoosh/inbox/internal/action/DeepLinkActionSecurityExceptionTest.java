@@ -51,12 +51,16 @@ import java.util.function.Supplier;
 @LooperMode(LooperMode.Mode.LEGACY)
 public class DeepLinkActionSecurityExceptionTest {
 
+    // AndroidPlatformModule holds the context weakly; without this strong reference GC nulls it mid-test.
+    private static Context installedContext;
+
     @After
     public void tearDown() throws Exception {
         installApplicationContext(null);
     }
 
     private static void installApplicationContext(Context ctx) throws Exception {
+        installedContext = ctx;
         Field field = AndroidPlatformModule.class.getDeclaredField("context");
         field.setAccessible(true);
         field.set(AndroidPlatformModule.getInstance(), ctx == null ? null : new WeakReference<>(ctx));

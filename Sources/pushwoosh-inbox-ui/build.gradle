@@ -85,6 +85,7 @@ dependencies {
 
     testImplementation libs.junit
     testImplementation 'org.robolectric:robolectric:4.14.1'
+    testImplementation "org.mockito:mockito-core:${mockito}"
 }
 
 // Custom Javadoc generation for Maven publication

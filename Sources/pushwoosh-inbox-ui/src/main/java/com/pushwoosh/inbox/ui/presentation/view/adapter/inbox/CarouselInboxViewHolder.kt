@@ -38,6 +38,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.pushwoosh.inbox.PushwooshInbox
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.ui.InboxCarouselSlide
 import com.pushwoosh.inbox.ui.R
@@ -253,7 +254,9 @@ class CarouselInboxViewHolder(adapter: InboxAdapter,
                 val model = message ?: return@setOnClickListener
                 val url = slide.url
                 if (url != null) {
-                    openCardUrl(url, model)
+                    // Not performAction: the slide has its own URL and the message's l/rm would open a second one.
+                    PushwooshInbox.markMessageOpened(model.code)
+                    openCardUrl(url)
                 } else {
                     // No destination of its own — behave like a tap on the card itself.
                     this@CarouselInboxViewHolder.itemView.performClick()

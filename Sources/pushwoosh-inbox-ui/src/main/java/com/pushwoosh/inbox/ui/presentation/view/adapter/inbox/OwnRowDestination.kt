@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2017. Pushwoosh Inc. (http://www.pushwoosh.com)
+ * Copyright (c) 2026. Pushwoosh Inc. (http://www.pushwoosh.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -24,25 +24,18 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.pushwoosh.badge.notification;
+package com.pushwoosh.inbox.ui.presentation.view.adapter.inbox
 
-import com.pushwoosh.badge.PushwooshBadge;
-import com.pushwoosh.notification.PushMessage;
-import com.pushwoosh.notification.handlers.message.user.NotificationMessageHandler;
+/**
+ * A card kind that carries its own destination — a video to play, a pass to add — and therefore
+ * owns the whole row: the destination opens wherever the tap lands, and the message-level
+ * `l` / `rm` payload is not performed on top of it.
+ *
+ * Cards without a destination of their own do not implement this and fall through to the row
+ * action, which performs the message payload.
+ */
+internal interface OwnRowDestination {
 
-public class BadgeUpdaterMessageHandler extends NotificationMessageHandler {
-
-	public BadgeUpdaterMessageHandler() {/*do nothing*/}
-
-	@Override
-	protected void handleNotification(final PushMessage pushMessage) {
-		int badgeCount = pushMessage.getBadges();
-		if (pushMessage.isBadgesAdditive()) {
-			PushwooshBadge.addBadgeNumber(badgeCount);
-		} else if (badgeCount >= 0) {
-			// getBadges() falls back to -1 when the payload has no pw_badges: such a push
-			// carries no badge instruction, so the current badge must stay untouched.
-			PushwooshBadge.setBadgeNumber(badgeCount);
-		}
-	}
+    /** Returns true when the card handled the tap and the row action must not run. */
+    fun handleRowTap(): Boolean
 }

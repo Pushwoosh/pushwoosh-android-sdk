@@ -95,7 +95,16 @@
   <div class="breadcrumbs"><a href="../../index.html">pushwoosh</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.notification</a><span class="delimiter">/</span><span class="current">NotificationServiceExtension</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Notification</span><wbr><span>Service</span><wbr><span><span>Extension</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">NotificationServiceExtension</a></div><p class="paragraph">Allows customization of push notification behavior before display and when opened. </p><p class="paragraph"> NotificationServiceExtension provides hook methods to intercept and modify push notification processing at key moments: when notifications are received, opened, canceled, or when notification groups are opened. This is the primary extension point for customizing how your app handles push notifications. </p><p class="paragraph"><strong>Key Features:</strong></p><ul><li><strong>Foreground Handling</strong> - Prevent notification display when app is in foreground</li><li><strong>Custom Launch Behavior</strong> - Control which activity opens when notification is tapped</li><li><strong>Deep Link Control</strong> - Override default URL/deep link handling</li><li><strong>Lifecycle Callbacks</strong> - Track notification open, cancel, and group open events</li><li><strong>Context Access</strong> - Access application context for custom logic</li></ul><p class="paragraph"><strong>Note:</strong> For simple foreground suppression without any Java code, use the <code class="lang-kotlin">com.pushwoosh.foreground_push</code> manifest metadata instead of subclassing. See <a href="../../com.pushwoosh/-pushwoosh/set-show-pushnotification-alert.html">setShowPushnotificationAlert</a> for details. </p><p class="paragraph"><strong>Setup:</strong></p><p class="paragraph"> 1. Create a public class extending NotificationServiceExtension with a public no-args constructor: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="index.html">NotificationServiceExtension</a></div><p class="paragraph">Allows customization of push notification behavior before display and when opened. </p><p class="paragraph"> NotificationServiceExtension provides hook methods to intercept and modify push notification processing at key moments: when notifications are received, opened, canceled, or when notification groups are opened. This is the primary extension point for customizing how your app handles push notifications. </p><p class="paragraph"><strong>Key Features:</strong></p><ul><li><strong>Foreground Handling</strong> - Prevent notification display when app is in foreground</li><li><strong>Custom Launch Behavior</strong> - Control which activity opens when notification is tapped</li><li><strong>Deep Link Control</strong> - Override default URL/deep link handling</li><li><strong>Lifecycle Callbacks</strong> - Track notification open, cancel, and group open events</li><li><strong>Context Access</strong> - Access application context for custom logic</li></ul><p class="paragraph"><strong>Note:</strong> For simple foreground suppression without any Java code, use the <code class="lang-kotlin">com.pushwoosh.foreground_push</code> manifest metadata instead of subclassing. See <a href="../../com.pushwoosh/-pushwoosh/set-show-pushnotification-alert.html">setShowPushnotificationAlert</a> for details. </p><p class="paragraph"><strong>Setup:</strong></p><p class="paragraph"><strong>Pushwoosh and JSON imports used by the examples below:</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+import android.util.Log;
+
+import com.pushwoosh.notification.NotificationServiceExtension;
+import com.pushwoosh.notification.PushBundleDataProvider;
+import com.pushwoosh.notification.PushMessage;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"> 1. Create a public class extending NotificationServiceExtension with a public no-args constructor: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
 public class MyNotificationService extends NotificationServiceExtension {
     
     protected boolean onMessageReceived(PushMessage message) {
@@ -111,8 +120,15 @@ public class MyNotificationService extends NotificationServiceExtension {
     
     protected void onMessageOpened(PushMessage message) {
         // Track notification open event
-        String campaignId = message.getCustomData().getString("campaign_id");
-        Analytics.track("notification_opened", campaignId);
+        String customData = message.getCustomData();
+        if (customData != null) {
+            try {
+                String campaignId = new JSONObject(customData).optString("campaign_id", null);
+                Analytics.track("notification_opened", campaignId);
+            } catch (JSONException e) {
+                Log.e("App", "Failed to parse custom data", e);
+            }
+        }
     }
 }
 </code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"> 2. Register your extension in AndroidManifest.xml: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
@@ -138,33 +154,52 @@ protected boolean onMessageReceived(PushMessage message) {
 
 protected void startActivityForPushMessage(PushMessage message) {
     Context context = getApplicationContext();
-    String screenType = message.getCustomData().getString("screen");
-
-    Intent intent;
-    if ("product".equals(screenType)) {
-        // Open product details
-        intent = new Intent(context, ProductActivity.class);
-        String productId = message.getCustomData().getString("product_id");
-        intent.putExtra("productId", productId);
-    } else if ("cart".equals(screenType)) {
-        // Open shopping cart
-        intent = new Intent(context, CartActivity.class);
-    } else {
-        // Default behavior
+    String customData = message.getCustomData();
+    if (customData == null) {
         super.startActivityForPushMessage(message);
         return;
     }
 
-    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP);
-    context.startActivity(intent);
+    try {
+        JSONObject data = new JSONObject(customData);
+        String screenType = data.optString("screen");
+
+        Intent intent;
+        if ("product".equals(screenType)) {
+            // Open product details
+            intent = new Intent(context, ProductActivity.class);
+            String productId = data.optString("product_id", null);
+            intent.putExtra("productId", productId);
+        } else if ("cart".equals(screenType)) {
+            // Open shopping cart
+            intent = new Intent(context, CartActivity.class);
+        } else {
+            // Default behavior
+            super.startActivityForPushMessage(message);
+            return;
+        }
+
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        context.startActivity(intent);
+    } catch (JSONException e) {
+        Log.e("App", "Failed to parse custom data", e);
+        super.startActivityForPushMessage(message);
+    }
 }
 </code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Example 3: Handle notification cancel events</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
 
 protected void onMessageCanceled(PushMessage message) {
     // User dismissed notification - track in analytics
-    String campaignId = message.getCustomData().getString("campaign_id");
-    Analytics.track("notification_dismissed", campaignId);
+    String customData = message.getCustomData();
+    if (customData != null) {
+        try {
+            String campaignId = new JSONObject(customData).optString("campaign_id", null);
+            Analytics.track("notification_dismissed", campaignId);
+        } catch (JSONException e) {
+            Log.e("App", "Failed to parse custom data", e);
+        }
+    }
 
     // Update notification count
     SharedPreferences prefs = getApplicationContext()
@@ -183,7 +218,7 @@ protected boolean preHandleNotificationsWithUrl() {
 
 protected void startActivityForPushMessage(PushMessage message) {
     // Custom URL handling logic
-    String url = message.getLink();
+    String url = PushBundleDataProvider.getLink(message.toBundle());
     if (url != null &amp;&amp; url.startsWith("myapp://")) {
         // Handle custom deep link
         handleDeepLink(url);

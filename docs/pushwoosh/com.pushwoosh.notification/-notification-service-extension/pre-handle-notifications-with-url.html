@@ -106,7 +106,7 @@ protected boolean preHandleNotificationsWithUrl() {
 
 protected void startActivityForPushMessage(PushMessage message) {
     // Now YOU control all URL/deep link handling
-    String url = message.getLink();
+    String url = PushBundleDataProvider.getLink(message.toBundle());
 
     if (url != null) {
         if (url.startsWith("myapp://")) {
@@ -130,7 +130,7 @@ protected boolean preHandleNotificationsWithUrl() {
         .getSharedPreferences("settings", Context.MODE_PRIVATE);
     return prefs.getBoolean("auto_open_links", true);
 }
-</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph"><code class="lang-kotlin">true</code> to enable automatic URL/deep link handling (default), <code class="lang-kotlin">false</code> to handle all URLs manually in <a href="start-activity-for-push-message.html">startActivityForPushMessage</a></p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="start-activity-for-push-message.html"><span>start</span><wbr><span>Activity</span><wbr><span>For</span><wbr><span>Push</span><wbr><span>Message(Push</span><wbr><span><span>Message)</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><span>com.</span><wbr><span>pushwoosh.</span><wbr><span>notification.</span><wbr><span>Push</span><wbr><span><span>Message</span></span></div></span></div><div></div></div></div></div></div></div>
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph"><code class="lang-kotlin">true</code> to enable automatic URL/deep link handling (default), <code class="lang-kotlin">false</code> to handle all URLs manually in <a href="start-activity-for-push-message.html">startActivityForPushMessage</a></p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="start-activity-for-push-message.html"><span>start</span><wbr><span>Activity</span><wbr><span>For</span><wbr><span>Push</span><wbr><span>Message(Push</span><wbr><span><span>Message)</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-push-message/to-bundle.html"><span>Push</span><wbr><span><span>Message</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

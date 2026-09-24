@@ -115,7 +115,15 @@ protected boolean onMessageReceived(PushMessage message) {
 </code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Example 2: Filter notifications by priority</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
 
 protected boolean onMessageReceived(PushMessage message) {
-    String priority = message.getCustomData().getString("priority");
+    String customData = message.getCustomData();
+    String priority = "";
+    if (customData != null) {
+        try {
+            priority = new JSONObject(customData).optString("priority");
+        } catch (JSONException e) {
+            Log.e("App", "Failed to parse custom data", e);
+        }
+    }
 
     // Block low-priority notifications when user is busy
     if ("low".equals(priority) &amp;&amp; isUserBusy()) {

@@ -34,6 +34,7 @@ import com.bumptech.glide.Glide
 import com.pushwoosh.inbox.PushwooshInbox
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.ui.InboxVideoContent
+import com.pushwoosh.inbox.ui.PushwooshInboxUi
 import com.pushwoosh.inbox.ui.R
 import com.pushwoosh.inbox.ui.presentation.view.activity.InboxVideoActivity
 import com.pushwoosh.inbox.ui.presentation.view.style.ColorSchemeProvider
@@ -47,11 +48,15 @@ import com.pushwoosh.internal.utils.PWLog
  */
 class VideoInboxViewHolder(adapter: InboxAdapter,
                            itemView: View,
-                           colorSchemeProvider: ColorSchemeProvider) : RichCardViewHolder(adapter, itemView, colorSchemeProvider) {
+                           colorSchemeProvider: ColorSchemeProvider) : RichCardViewHolder(adapter, itemView, colorSchemeProvider),
+                                                                      OwnRowDestination {
 
     private companion object {
         private const val TAG = "VideoInboxViewHolder"
     }
+
+    private var boundModel: InboxMessage? = null
+    private var boundContent: InboxVideoContent? = null
 
     private val posterHostView: View = itemView.findViewById(R.id.inboxVideoPosterHost)
     private val posterView: ImageView = itemView.findViewById(R.id.inboxVideoPoster)
@@ -75,6 +80,8 @@ class VideoInboxViewHolder(adapter: InboxAdapter,
 
         val params = InboxCardKind.parseActionParams(model)
         val content = InboxVideoContent.decode(params)
+        boundModel = model
+        boundContent = content
 
         // A video card carries its picture in the descriptor's poster and nowhere else: iOS
         // feeds message.imageUrl only to its glass backdrop, never to the poster itself.
@@ -84,10 +91,7 @@ class VideoInboxViewHolder(adapter: InboxAdapter,
                 .into(posterView)
 
         playBadgeView.visibility = if (content == null) View.GONE else View.VISIBLE
-        posterHostView.setOnClickListener {
-            val videoUrl = content?.videoUrl ?: return@setOnClickListener
-            openPlayer(videoUrl, model)
-        }
+        posterHostView.setOnClickListener { handleRowTap() }
 
         val hasText = bindTextBlock(model, titleRowView, titleTextView, bodyTextView, dateTextView, textBlockView)
 
@@ -98,9 +102,23 @@ class VideoInboxViewHolder(adapter: InboxAdapter,
         bindPinChip(pinChipView, InboxCardKind.isPinned(params))
     }
 
-    // Marks read even when the player fails to open, matching openCardUrl: the tap itself is
-    // the engagement signal, and iOS reports it the same way.
-    private fun openPlayer(videoUrl: String, model: InboxMessage) {
+    /**
+     * The player is this card's own destination, so it opens from anywhere on the row — the
+     * poster and the text block must not lead to two different places. The open is reported even
+     * when the descriptor carries no video: the tap itself is the engagement signal.
+     */
+    override fun handleRowTap(): Boolean {
+        val model = boundModel ?: return false
+        PushwooshInbox.markMessageOpened(model.code)
+        // The host still hears about the tap, exactly as it does for a row that goes through
+        // the presenter — only the message payload is left out.
+        PushwooshInboxUi.onMessageClickListener?.onInboxMessageClick(model)
+        val videoUrl = boundContent?.videoUrl ?: return true
+        openPlayer(videoUrl)
+        return true
+    }
+
+    private fun openPlayer(videoUrl: String) {
         try {
             val intent = Intent(context, InboxVideoActivity::class.java)
             intent.putExtra(InboxVideoActivity.VIDEO_URL_EXTRA, videoUrl)
@@ -109,6 +127,5 @@ class VideoInboxViewHolder(adapter: InboxAdapter,
         } catch (e: Exception) {
             PWLog.warn(TAG, "Failed to open the inbox video player: $videoUrl")
         }
-        PushwooshInbox.readMessage(model.code)
     }
 }

@@ -244,6 +244,14 @@ public class ModalRichMediaWindowUtilsTest {
         assertNull(ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(window, config, true));
     }
 
+    // SDK-988: NONE never produces a present animator — no animation is applied.
+    @Test
+    public void testPresentFactoryReturnsNullForNone() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.NONE);
+
+        assertNull(ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(window, config, false));
+    }
+
     // Guard rail: with animations ON the factory keeps producing animators — the early exit must
     // not eat the normal path.
     @Test
@@ -303,8 +311,8 @@ public class ModalRichMediaWindowUtilsTest {
                 ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionX(config, false));
     }
 
-    // With animations off a TOP modal keeps the status bar inset (FADE_IN semantics, not NONE's
-    // y == 0); the inset is stubbed non-zero so the assert can tell the two apart.
+    // With animations off a TOP modal keeps the status bar inset — the same resting position the
+    // FADE_IN and NONE branches use; the inset is stubbed non-zero so the assert can tell it from 0.
     @Test
     public void testShowPositionYForTopKeepsStatusBarInsetWhenAnimationsOff() {
         when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.SLIDE_UP);
@@ -368,6 +376,53 @@ public class ModalRichMediaWindowUtilsTest {
     @Test
     public void testShowPositionYForFadeInCenterIsZero() {
         when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.FADE_IN);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.CENTER);
+
+        try (MockedStatic<ModalRichMediaWindowUtils> utils =
+                Mockito.mockStatic(ModalRichMediaWindowUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            utils.when(ModalRichMediaWindowUtils::getSystemWindowInsetTop).thenReturn(63);
+            utils.when(() -> ModalRichMediaWindowUtils.getSystemWindowInsetBottom(config))
+                    .thenReturn(126);
+
+            assertEquals(0, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, false));
+        }
+    }
+
+    // SDK-988: NONE never moves the window either, so show must land at the resting position —
+    // above the nav bar, not y == 0 glued under it. Same contract as FADE_IN, one switch branch.
+    @Test
+    public void testShowPositionYForNoneBottomIsNavBarInset() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.NONE);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.BOTTOM);
+
+        try (MockedStatic<ModalRichMediaWindowUtils> utils =
+                Mockito.mockStatic(ModalRichMediaWindowUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            utils.when(() -> ModalRichMediaWindowUtils.getSystemWindowInsetBottom(config))
+                    .thenReturn(126);
+
+            assertEquals(126, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, false));
+        }
+    }
+
+    // The TOP leg of the same defect: content must start below the status bar, not under the clock.
+    @Test
+    public void testShowPositionYForNoneTopIsStatusBarInset() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.NONE);
+        when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.TOP);
+
+        try (MockedStatic<ModalRichMediaWindowUtils> utils =
+                Mockito.mockStatic(ModalRichMediaWindowUtils.class, Mockito.CALLS_REAL_METHODS)) {
+            utils.when(ModalRichMediaWindowUtils::getSystemWindowInsetTop).thenReturn(63);
+
+            assertEquals(63, ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, false));
+        }
+    }
+
+    // Guard rail: CENTER has no insets (gravity centers the window) — both insets are stubbed
+    // non-zero to prove the NONE branch ignores them.
+    @Test
+    public void testShowPositionYForNoneCenterIsZero() {
+        when(config.getPresentAnimationType()).thenReturn(ModalRichMediaPresentAnimationType.NONE);
         when(config.getViewPosition()).thenReturn(ModalRichMediaViewPosition.CENTER);
 
         try (MockedStatic<ModalRichMediaWindowUtils> utils =

@@ -100,8 +100,15 @@
 
 protected void onMessageOpened(PushMessage message) {
     // Track notification open in analytics
-    String campaignCode = message.getCustomData().getString("campaign_code");
-    Analytics.track("push_opened", campaignCode);
+    String customData = message.getCustomData();
+    if (customData != null) {
+        try {
+            String campaignCode = new JSONObject(customData).optString("campaign_code", null);
+            Analytics.track("push_opened", campaignCode);
+        } catch (JSONException e) {
+            Log.e("App", "Failed to parse custom data", e);
+        }
+    }
 
     // Update user engagement score
     SharedPreferences prefs = getApplicationContext()

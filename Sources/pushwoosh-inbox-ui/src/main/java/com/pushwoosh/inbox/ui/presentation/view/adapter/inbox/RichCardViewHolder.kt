@@ -76,8 +76,8 @@ abstract class RichCardViewHolder(adapter: InboxAdapter,
 
     /**
      * The unread dot mirrors the iOS cards: visible until the message is read
-     * — by a row tap (performAction -> OPEN) or an inline button
-     * (readMessage -> READ); [InboxMessage.isRead] covers both statuses.
+     * — by a row tap or a navigating element (OPEN) or by an explicit Mark read
+     * button (READ); [InboxMessage.isRead] covers both statuses.
      */
     protected fun bindUnreadDot(dot: View, model: InboxMessage) {
         dot.backgroundTintList = ColorStateList.valueOf(colorSchemeProvider.accentColor)
@@ -139,10 +139,10 @@ abstract class RichCardViewHolder(adapter: InboxAdapter,
 
     /**
      * Opens a destination carried by card content — an inline button or a
-     * carousel slide — and marks the message read, mirroring iOS. Unsafe
-     * schemes are refused; the message stays unread then.
+     * carousel slide. The open is reported by the tap handler that got here,
+     * so an unsafe scheme still counts as an interaction.
      */
-    protected fun openCardUrl(url: String, model: InboxMessage) {
+    protected fun openCardUrl(url: String) {
         if (!InboxCardButton.isSafeUrl(url)) {
             PWLog.warn(TAG, "Refusing to open inbox card URL with unsafe scheme: $url")
             return
@@ -154,7 +154,6 @@ abstract class RichCardViewHolder(adapter: InboxAdapter,
         } catch (e: Exception) {
             PWLog.warn(TAG, "No activity to handle inbox card URL: $url")
         }
-        PushwooshInbox.readMessage(model.code)
     }
 
     /**
@@ -196,21 +195,20 @@ abstract class RichCardViewHolder(adapter: InboxAdapter,
     }
 
     private fun handleButtonTap(button: InboxCardButton, model: InboxMessage) {
+        // Any tap on a card is an open, so it lands before the host is asked and before the
+        // button kind is inspected: a consumed tap used to leave statistics with nothing.
+        PushwooshInbox.markMessageOpened(model.code)
         // Mirrors the iOS delegate contract: the host returning false consumes the tap.
         val shouldPerformDefault = PushwooshInboxUi.onButtonClickListener?.onInboxButtonClick(model, button) ?: true
         if (!shouldPerformDefault) {
             return
         }
         when (val action = button.action) {
-            is InboxCardButton.Action.OpenUrl -> openCardUrl(action.url, model)
+            is InboxCardButton.Action.OpenUrl -> openCardUrl(action.url)
             is InboxCardButton.Action.Dismiss -> PushwooshInbox.deleteMessage(model.code)
-            is InboxCardButton.Action.MarkRead -> PushwooshInbox.readMessage(model.code)
-            is InboxCardButton.Action.Custom -> {
-                // The payload reaches the host via onButtonClickListener; the interaction
-                // still counts as engagement, so flip the message to read like iOS does.
-                PWLog.noise(TAG, "Custom inbox button tapped: ${button.title}")
-                PushwooshInbox.readMessage(model.code)
-            }
+            // The open above already made the message read; readMessage would report a lower status.
+            is InboxCardButton.Action.MarkRead -> Unit
+            is InboxCardButton.Action.Custom -> PWLog.noise(TAG, "Custom inbox button tapped: ${button.title}")
         }
     }
 }

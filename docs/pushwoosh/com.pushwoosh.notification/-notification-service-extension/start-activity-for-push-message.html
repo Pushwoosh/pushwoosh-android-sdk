@@ -100,45 +100,65 @@
 
 protected void startActivityForPushMessage(PushMessage message) {
     Context context = getApplicationContext();
-    String screenType = message.getCustomData().getString("screen");
-
-    Intent intent;
-    if ("product".equals(screenType)) {
-        // Open product details
-        intent = new Intent(context, ProductActivity.class);
-        String productId = message.getCustomData().getString("product_id");
-        intent.putExtra("productId", productId);
-
-    } else if ("order".equals(screenType)) {
-        // Open order details
-        intent = new Intent(context, OrderActivity.class);
-        String orderId = message.getCustomData().getString("order_id");
-        intent.putExtra("orderId", orderId);
-
-    } else if ("cart".equals(screenType)) {
-        // Open shopping cart
-        intent = new Intent(context, CartActivity.class);
-
-    } else {
-        // Default behavior for unknown screen types
+    String customData = message.getCustomData();
+    if (customData == null) {
         super.startActivityForPushMessage(message);
         return;
     }
 
-    // Required flags for starting activity from non-activity context
-    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP);
+    try {
+        JSONObject data = new JSONObject(customData);
+        String screenType = data.optString("screen");
 
-    // Pass full push message data
-    intent.putExtra("pushMessage", message.toJson().toString());
+        Intent intent;
+        if ("product".equals(screenType)) {
+            // Open product details
+            intent = new Intent(context, ProductActivity.class);
+            String productId = data.optString("product_id", null);
+            intent.putExtra("productId", productId);
 
-    context.startActivity(intent);
+        } else if ("order".equals(screenType)) {
+            // Open order details
+            intent = new Intent(context, OrderActivity.class);
+            String orderId = data.optString("order_id", null);
+            intent.putExtra("orderId", orderId);
+
+        } else if ("cart".equals(screenType)) {
+            // Open shopping cart
+            intent = new Intent(context, CartActivity.class);
+
+        } else {
+            // Default behavior for unknown screen types
+            super.startActivityForPushMessage(message);
+            return;
+        }
+
+        // Required flags for starting activity from non-activity context
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        // Pass full push message data
+        intent.putExtra("pushMessage", message.toJson().toString());
+
+        context.startActivity(intent);
+    } catch (JSONException e) {
+        Log.e("App", "Failed to parse custom data", e);
+        super.startActivityForPushMessage(message);
+    }
 }
 </code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph"><strong>Example 2: Handle custom deep links</strong></p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
 
 protected void startActivityForPushMessage(PushMessage message) {
-    String deepLink = message.getCustomData().getString("deep_link");
+    String customData = message.getCustomData();
+    String deepLink = null;
+    if (customData != null) {
+        try {
+            deepLink = new JSONObject(customData).optString("deep_link", null);
+        } catch (JSONException e) {
+            Log.e("App", "Failed to parse custom data", e);
+        }
+    }
 
     if (deepLink != null &amp;&amp; deepLink.startsWith("myapp://")) {
         // Parse and handle custom deep link
@@ -167,8 +187,18 @@ protected void startActivityForPushMessage(PushMessage message) {
     SharedPreferences prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE);
     boolean isLoggedIn = prefs.getBoolean("is_logged_in", false);
 
-    String screenType = message.getCustomData().getString("screen");
-    boolean requiresAuth = message.getCustomData().getBoolean("requires_auth", false);
+    String screenType = null;
+    boolean requiresAuth = false;
+    String customData = message.getCustomData();
+    if (customData != null) {
+        try {
+            JSONObject data = new JSONObject(customData);
+            screenType = data.optString("screen", null);
+            requiresAuth = data.optBoolean("requires_auth", false);
+        } catch (JSONException e) {
+            Log.e("App", "Failed to parse custom data", e);
+        }
+    }
 
     if (requiresAuth &amp;&amp; !isLoggedIn) {
         // Redirect to login screen

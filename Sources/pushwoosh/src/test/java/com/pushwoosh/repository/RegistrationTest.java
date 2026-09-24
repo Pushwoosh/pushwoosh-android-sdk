@@ -423,7 +423,7 @@ public class RegistrationTest {
     }
 
     // Spec test 3: with retries a transient failure re-sends registerDevice
-    // (real 1 s retry delay, same approach as RetriableRequestCallbackTest).
+    // (real 1 s retry delay).
     @Test
     public void onTokenReceivedWithRetriesRetriesTransientError() throws Exception {
         fake.failWith("registerDevice", new ConnectionException("connection reset", 0, 0));

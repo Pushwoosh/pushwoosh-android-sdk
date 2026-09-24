@@ -131,6 +131,8 @@ object InboxRepository {
     }
 
     fun removeItem(inboxMessage: InboxMessage) {
+        // A swipe is the same interaction as the dismiss button, and counts the same.
+        PushwooshInbox.markMessageOpened(inboxMessage.code)
         PushwooshInbox.deleteMessage(inboxMessage.code)
     }
 }

@@ -107,11 +107,21 @@ protected void onMessagesGroupOpened(List&lt;PushMessage&gt; messages) {
     // Pass all message IDs
     ArrayList&lt;String&gt; messageIds = new ArrayList&lt;&gt;();
     for (PushMessage msg : messages) {
-        String id = msg.getCustomData().getString("message_id");
-        messageIds.add(id);
+        String customData = msg.getCustomData();
+        if (customData == null) {
+            continue;
+        }
+        try {
+            String id = new JSONObject(customData).optString("message_id", null);
+            if (id != null) {
+                messageIds.add(id);
+            }
+        } catch (JSONException e) {
+            Log.e("App", "Failed to parse custom data", e);
+        }
     }
     intent.putStringArrayListExtra("message_ids", messageIds);
-    intent.putExtra("count", messages.size());
+    intent.putExtra("count", messageIds.size());
 
     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
                     Intent.FLAG_ACTIVITY_CLEAR_TOP);

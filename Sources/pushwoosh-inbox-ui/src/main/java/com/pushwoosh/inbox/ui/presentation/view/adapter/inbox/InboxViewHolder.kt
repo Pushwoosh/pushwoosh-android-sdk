@@ -43,6 +43,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import com.pushwoosh.inbox.PushwooshInbox
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.data.InboxMessageType
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
@@ -124,7 +125,11 @@ class InboxViewHolder(adapter: InboxAdapter,
 
         val bannerUrl = model.bannerUrl
         if (bannerUrl != null && !TextUtils.isEmpty(bannerUrl)) {
-            inboxBannerImage.setOnClickListener{ attachmentClickListener.invoke(bannerUrl, inboxBannerImage) }
+            inboxBannerImage.setOnClickListener {
+                // Opening the attachment preview is an interaction with the card.
+                PushwooshInbox.markMessageOpened(model.code)
+                attachmentClickListener.invoke(bannerUrl, inboxBannerImage)
+            }
             inboxBannerImage.visibility = View.VISIBLE
             Glide.with(itemView.context)
                     .load(bannerUrl)

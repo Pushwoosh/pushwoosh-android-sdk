@@ -50,6 +50,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
+import com.pushwoosh.inbox.PushwooshInbox
+import org.mockito.Mockito.mockStatic
 
 /**
  * Captioned rich card wiring in [InboxAdapter]: `displayType=captioned` (or
@@ -236,9 +238,9 @@ class InboxAdapterCaptionedCardTest {
             title = "t"
         ), 0)
 
-        // The SDK default would hit PushwooshInbox (uninitialized in this test and
-        // would throw); a consumed tap must not reach it.
-        buttonsRow(holder.itemView).getChildAt(0).performClick()
+        // A consumed tap skips the button's own action, but the open is still reported through
+        // PushwooshInbox, which has no SDK behind it in a unit test: stub it out.
+        mockStatic(PushwooshInbox::class.java).use { buttonsRow(holder.itemView).getChildAt(0).performClick() }
 
         assertEquals("Read", seenTitle)
         assertFalse(seenTitle == null)

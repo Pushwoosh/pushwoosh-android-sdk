@@ -103,12 +103,27 @@
       setContentView(R.layout.activity_main);
 
       // Check if app was launched from a push notification
+      // import android.util.Log;
+      // import com.pushwoosh.notification.PushMessage;
+      // import org.json.JSONException;
+      // import org.json.JSONObject;
       PushMessage launchNotification = Pushwoosh.getInstance().getLaunchNotification();
       if (launchNotification != null) {
           // Extract custom data for deep linking
-          String screen = launchNotification.getCustomData().getString("screen");
-          String productId = launchNotification.getCustomData().getString("product_id");
-          String articleId = launchNotification.getCustomData().getString("article_id");
+          String customData = launchNotification.getCustomData();
+          String screen = null;
+          String productId = null;
+          String articleId = null;
+          if (customData != null) {
+              try {
+                  JSONObject data = new JSONObject(customData);
+                  screen = data.optString("screen");
+                  productId = data.optString("product_id", null);
+                  articleId = data.optString("article_id", null);
+              } catch (JSONException e) {
+                  Log.e("App", "Failed to parse custom data", e);
+              }
+          }
 
           Log.d("App", "Launched from push: " + launchNotification.getMessage());
 

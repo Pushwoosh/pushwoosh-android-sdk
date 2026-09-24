@@ -123,7 +123,7 @@ public class HttpTransportTest {
     @Test(timeout = TIMEOUT_TEST)
     public void makeRequest_nonAsciiPayload_bytesOnWireMatchDeclaredLength() throws Exception {
         server.enqueue(new MockResponse().setBody("{\"status_code\":200}"));
-        JSONObject data = payload("Привет");
+        JSONObject data = payload("Héllo wörld");
         String rendered = data.toString();
 
         post(data);
@@ -172,7 +172,7 @@ public class HttpTransportTest {
     public void makeRequest_nonAsciiResponseBody_readsWholeBodyIntact() throws Exception {
         StringBuilder text = new StringBuilder();
         for (int i = 0; i < 400; i++) {
-            text.append("Привет");
+            text.append("Héllo wörld");
         }
         String body = "{\"status_code\":200,\"response\":{\"text\":\"" + text + "\"}}";
         server.enqueue(new MockResponse().setBody(body));

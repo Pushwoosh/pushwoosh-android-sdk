@@ -51,6 +51,8 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
+import com.pushwoosh.inbox.PushwooshInbox
+import org.mockito.Mockito.mockStatic
 
 /**
  * Classic rich card wiring in [InboxAdapter]: `displayType=classic`, the
@@ -190,7 +192,9 @@ class InboxAdapterClassicCardTest {
         )
         val row = holder.itemView.findViewById<LinearLayout>(R.id.inboxClassicButtonsRow)
 
-        runCatching { row.getChildAt(0).performClick() }
+        // The open report reaches PushwooshInbox, which has no SDK behind it in a unit test:
+        // stub it out so the tap gets all the way to the navigation this test is about.
+        mockStatic(PushwooshInbox::class.java).use { row.getChildAt(0).performClick() }
 
         assertNull(Shadows.shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity)
     }
@@ -204,7 +208,9 @@ class InboxAdapterClassicCardTest {
         )
         val row = holder.itemView.findViewById<LinearLayout>(R.id.inboxClassicButtonsRow)
 
-        runCatching { row.getChildAt(0).performClick() }
+        // The open report reaches PushwooshInbox, which has no SDK behind it in a unit test:
+        // stub it out so the tap gets all the way to the navigation this test is about.
+        mockStatic(PushwooshInbox::class.java).use { row.getChildAt(0).performClick() }
 
         val started = Shadows.shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity
         assertNotNull(started)

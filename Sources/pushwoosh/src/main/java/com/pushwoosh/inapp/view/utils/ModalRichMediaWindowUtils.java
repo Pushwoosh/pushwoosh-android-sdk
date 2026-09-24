@@ -303,8 +303,9 @@ public class ModalRichMediaWindowUtils {
             case DROP_DOWN:
                 height = -screenHeight;
                 break;
+            case NONE:
             case FADE_IN:
-                // FADE_IN never moves the window, so show must land at the resting position right away.
+                // Neither moves the window, so show must land at the resting position right away.
                 if (config.getViewPosition() == ModalRichMediaViewPosition.TOP) {
                     height = getSystemWindowInsetTop();
                 } else if (config.getViewPosition() == ModalRichMediaViewPosition.BOTTOM) {

@@ -101,7 +101,7 @@ public class InboxDbHelper extends SQLiteOpenHelper {
         }
 
         for (InboxMessageInternal inboxMessageInternal : byId) {
-            if (inboxMessageInternal.getInboxMessageStatus() == status) {
+            if (!inboxMessageInternal.getInboxMessageStatus().isLowerStatus(status)) {
                 copyIds.remove(inboxMessageInternal.getId());
             }
         }
@@ -109,10 +109,14 @@ public class InboxDbHelper extends SQLiteOpenHelper {
             return Collections.emptyList();
         }
 
+        // The ladder only climbs, and the comparison belongs in the statement: an open and a
+        // delete reported by the same tap run on separate pool threads, and a read-then-write
+        // check lets the open land last and resurrect a deleted message.
         String raw = "UPDATE " + InboxTable.NAME + " SET "
                 + InboxTable.Column.STATUS + " = " + status.getCode() + " WHERE "
                 + InboxTable.Column.ID + " IN ('"
-                + TextUtils.join(DELIMITER, copyIds) + "')";
+                + TextUtils.join(DELIMITER, copyIds) + "') AND "
+                + InboxTable.Column.STATUS + " < " + status.getCode();
 
         executeSqlRaw(raw);
 

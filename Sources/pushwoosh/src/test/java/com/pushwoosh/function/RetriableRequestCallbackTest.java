@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.pushwoosh.internal.network.ConnectionException;
@@ -27,7 +28,6 @@ import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
-import org.robolectric.shadows.ShadowLooper;
 
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -52,10 +52,12 @@ public class RetriableRequestCallbackTest {
         mockCallback = CallbackWrapper.spy();
 
         retriableCallback = new RetriableRequestCallback<>(mockCallback, mockRequest);
+        RetriableRequestCallback.retryDelaysSeconds = new int[] {0, 0, 0};
     }
 
     @After
     public void tearDown() throws Exception {
+        RetriableRequestCallback.retryDelaysSeconds = RetriableRequestCallback.DEFAULT_RETRY_DELAYS_SECONDS;
         platformTestManager.tearDown();
     }
 
@@ -99,36 +101,46 @@ public class RetriableRequestCallbackTest {
 
         retriableCallback.process(failureResult);
 
-        // Advance time to trigger first retry
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
         ArgumentCaptor<Result<String, NetworkException>> captor = ArgumentCaptor.forClass(Result.class);
-        verify(mockCallback, timeout(2000)).process(captor.capture());
+        verify(mockCallback, timeout(1000)).process(captor.capture());
+        verifyNoMoreInteractions(mockCallback);
 
         assertThat(captor.getValue().isSuccess(), is(true));
+        assertEquals(1, fake.count("testMethod"));
+        fake.assertAllScripted();
+    }
+
+    @Test
+    public void testRetrySucceedsAfterFailedRetry() {
+        ConnectionException connectionException = new ConnectionException("Connection failed", 0, 0);
+        fake.failWith("testMethod", connectionException);
+        fake.respondWith("testMethod", createSuccessResponse("retry_success"));
+
+        retriableCallback.process(Result.fromException(connectionException));
+
+        ArgumentCaptor<Result<String, NetworkException>> captor = ArgumentCaptor.forClass(Result.class);
+        verify(mockCallback, timeout(1000)).process(captor.capture());
+        verifyNoMoreInteractions(mockCallback);
+
+        assertThat(captor.getValue().isSuccess(), is(true));
+        assertEquals(2, fake.count("testMethod"));
         fake.assertAllScripted();
     }
 
     @Test
     public void testMaxRetriesExceeded() {
-        ConnectionException connectionException = new ConnectionException("Connection failed", 0, 0);
-        Result<String, NetworkException> failureResult = Result.fromException(connectionException);
+        ConnectionException initialFailure = new ConnectionException("Connection failed", 0, 0);
+        ConnectionException retryFailure = new ConnectionException("Service Unavailable", 503, 0);
+        fake.alwaysFailWith("testMethod", retryFailure);
 
-        // Mock all retries to fail
-        fake.alwaysFailWith("testMethod", connectionException);
+        retriableCallback.process(Result.fromException(initialFailure));
 
-        retriableCallback.process(failureResult);
-
-        // Wait for all retries to complete (total time is 1 + 5 + 10 = 16 seconds)
-        // Since RetriableRequestCallback uses a real ScheduledExecutorService, we need to wait for real time
-        // or use a longer timeout to allow the retries to happen
-
-        // Final callback should be called with last failure after all retries (allow 20 seconds)
         ArgumentCaptor<Result<String, NetworkException>> captor = ArgumentCaptor.forClass(Result.class);
-        verify(mockCallback, timeout(20000)).process(captor.capture());
+        verify(mockCallback, timeout(1000)).process(captor.capture());
+        verifyNoMoreInteractions(mockCallback);
 
-        assertThat(captor.getValue().isSuccess(), is(false));
-        fake.assertAllScripted();
+        assertThat(captor.getValue().getException(), is(equalTo(retryFailure)));
+        assertEquals(3, fake.count("testMethod"));
     }
 
     @Test
@@ -155,7 +167,7 @@ public class RetriableRequestCallbackTest {
         retriableCallback.process(Result.fromException(retriable));
 
         ArgumentCaptor<Result<String, NetworkException>> captor = ArgumentCaptor.forClass(Result.class);
-        verify(mockCallback, timeout(5000)).process(captor.capture());
+        verify(mockCallback, timeout(1000)).process(captor.capture());
 
         assertThat(captor.getValue().getException(), is(equalTo(nonRetriable)));
         assertEquals(1, fake.count("testMethod"));
@@ -171,7 +183,7 @@ public class RetriableRequestCallbackTest {
         retriableCallback.process(Result.fromException(retriable));
 
         ArgumentCaptor<Result<String, NetworkException>> captor = ArgumentCaptor.forClass(Result.class);
-        verify(mockCallback, timeout(5000)).process(captor.capture());
+        verify(mockCallback, timeout(1000)).process(captor.capture());
 
         assertThat(captor.getValue().getException().getMessage(), equalTo("SDK is not initialized"));
     }
@@ -186,7 +198,7 @@ public class RetriableRequestCallbackTest {
         retriableCallback.process(notInitialized);
 
         ArgumentCaptor<Result<String, NetworkException>> captor = ArgumentCaptor.forClass(Result.class);
-        verify(mockCallback, timeout(2000)).process(captor.capture());
+        verify(mockCallback).process(captor.capture());
 
         assertThat(captor.getValue().isSuccess(), is(false));
         assertThat(captor.getValue().getException().getMessage(), equalTo("SDK is not initialized"));
