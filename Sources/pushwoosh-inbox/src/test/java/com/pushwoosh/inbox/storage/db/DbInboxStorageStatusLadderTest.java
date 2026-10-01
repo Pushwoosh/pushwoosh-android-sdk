@@ -27,6 +27,7 @@
 package com.pushwoosh.inbox.storage.db;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.pushwoosh.inbox.data.InboxMessageType;
@@ -42,6 +43,8 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -62,18 +65,20 @@ public class DbInboxStorageStatusLadderTest {
 
     private static final String ID = "msg-997";
 
+    private InboxDbHelper helper;
     private DbInboxStorage storage;
 
     @Before
     public void setUp() {
-        storage = new DbInboxStorage(new InboxDbHelper(RuntimeEnvironment.getApplication()));
-        storage.mergeState(Collections.singleton(message()), false);
+        helper = new InboxDbHelper(RuntimeEnvironment.getApplication());
+        storage = new DbInboxStorage(helper);
+        storage.mergeState(Collections.singleton(message(ID)), false);
     }
 
-    private static InboxMessageInternal message() {
+    private static InboxMessageInternal message(String id) {
         long now = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
         return new InboxMessageInternal.Builder()
-                .setId(ID)
+                .setId(id)
                 .setOrder(now)
                 .setSendDate(now)
                 .setExpiredDate(now + TimeUnit.DAYS.toSeconds(14))
@@ -86,7 +91,11 @@ public class DbInboxStorageStatusLadderTest {
     }
 
     private InboxMessageStatus storedStatus() {
-        InboxMessageInternal stored = storage.getActualInboxMessage(ID);
+        return storedStatus(ID);
+    }
+
+    private InboxMessageStatus storedStatus(String id) {
+        InboxMessageInternal stored = storage.getActualInboxMessage(id);
         return stored == null ? null : stored.getInboxMessageStatus();
     }
 
@@ -137,5 +146,45 @@ public class DbInboxStorageStatusLadderTest {
         storage.updateStatus(ID, InboxMessageStatus.DELIVERED);
 
         assertEquals(InboxMessageStatus.READ, storedStatus());
+    }
+
+    @Test
+    public void unknownCode_isNotReported() {
+        Collection<String> reported = storage.updateStatus("msg-not-stored", InboxMessageStatus.READ);
+
+        assertTrue("nothing moved, so nothing goes to the backend", reported.isEmpty());
+        assertNull(storedStatus("msg-not-stored"));
+    }
+
+    @Test
+    public void repeatedDeleteFromService_isNotReportedTwice() {
+        assertTrue(storage.updateStatus(ID, InboxMessageStatus.DELETED_FROM_SERVICE)
+                .contains(ID));
+
+        assertTrue(
+                "a message already deleted by the service is not deleted again",
+                storage.updateStatus(ID, InboxMessageStatus.DELETED_FROM_SERVICE)
+                        .isEmpty());
+    }
+
+    @Test
+    public void batch_reportsOnlyIdsThatMoved() {
+        String opened = "msg-997-opened";
+        storage.mergeState(Collections.singleton(message(opened)), false);
+        storage.updateStatus(opened, InboxMessageStatus.OPEN);
+
+        Collection<String> reported =
+                helper.changeStatus(Arrays.asList(ID, opened, "msg-not-stored"), InboxMessageStatus.READ);
+
+        assertEquals(Collections.singletonList(ID), new ArrayList<>(reported));
+        assertEquals(InboxMessageStatus.READ, storedStatus(ID));
+        assertEquals(InboxMessageStatus.OPEN, storedStatus(opened));
+    }
+
+    @Test
+    public void emptyIds_reportNothing() {
+        assertTrue(helper.changeStatus(Collections.emptyList(), InboxMessageStatus.READ)
+                .isEmpty());
+        assertEquals(InboxMessageStatus.DELIVERED, storedStatus());
     }
 }

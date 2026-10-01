@@ -27,8 +27,9 @@
 package com.pushwoosh.inbox.notification;
 
 import android.os.Bundle;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
+
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.inbox.data.InboxMessageType;
 import com.pushwoosh.internal.utils.JsonUtils;
@@ -39,88 +40,107 @@ import org.json.JSONObject;
 
 public class InboxPayloadDataProvider {
 
-	@Nullable
-	public static String getInboxId(Bundle bundle) {
-		return bundle.getString("pw_inbox", null);
-	}
+    @Nullable public static String getInboxId(Bundle bundle) {
+        return bundle.getString("pw_inbox", null);
+    }
 
-	@Nullable
-	public static String getTitle(Bundle bundle) {
-		return bundle.getString("header", null);
-	}
+    @Nullable public static String getTitle(Bundle bundle) {
+        return bundle.getString("header", null);
+    }
 
-	@Nullable
-	public static String getUrl(JSONObject jsonObject) throws JSONException {
-		if (!jsonObject.has("l")) {
-			return null;
-		}
-		return jsonObject.getString("l");
-	}
+    @Nullable public static String getUrl(JSONObject jsonObject) throws JSONException {
+        if (!jsonObject.has("l")) {
+            return null;
+        }
+        return jsonObject.getString("l");
+    }
 
-	@Nullable
-	public static JSONObject getRichMedia(JSONObject jsonObject) throws JSONException {
-		if (!jsonObject.has("rm")) {
-			return null;
-		}
+    /** `rm` is a JSON object from the push builder, or a bare zip URL with a `ts` query when set through root params. */
+    @Nullable public static JSONObject getRichMedia(JSONObject jsonObject) throws JSONException {
+        if (!jsonObject.has("rm")) {
+            return null;
+        }
 
-		return new JSONObject(jsonObject.getString("rm"));
-	}
+        Object raw = jsonObject.get("rm");
+        if (raw instanceof JSONObject) {
+            return (JSONObject) raw;
+        }
+        String value = String.valueOf(raw).trim();
+        if (value.startsWith("http://") || value.startsWith("https://")) {
+            JSONObject richMedia = new JSONObject();
+            richMedia.put("url", value);
+            richMedia.put("ts", timestampFromUrl(value));
+            return richMedia;
+        }
+        return new JSONObject(value);
+    }
 
-	public static long getSentTime(Bundle pushBundle) {
-		return pushBundle.getLong("google.sent_time", System.currentTimeMillis());
-	}
+    private static String timestampFromUrl(String url) {
+        int query = url.indexOf('?');
+        if (query < 0) {
+            return "0";
+        }
+        for (String pair : url.substring(query + 1).split("&")) {
+            if (pair.startsWith("ts=") && pair.length() > 3) {
+                return pair.substring(3);
+            }
+        }
+        return "0";
+    }
 
-	@Nullable
-	public static String getMessage(Bundle bundle) {
-		return bundle.getString("title");
-	}
+    public static long getSentTime(Bundle pushBundle) {
+        return pushBundle.getLong("google.sent_time", System.currentTimeMillis());
+    }
 
-	@Nullable
-	public static String getInboxParams(Bundle pushBundle) {
-		return pushBundle.getString("inbox_params");
-	}
+    @Nullable public static String getMessage(Bundle bundle) {
+        return bundle.getString("title");
+    }
 
-	public static InboxMessageType getInboxType(Bundle pushBundle) {
-		JSONObject jsonObject = JsonUtils.bundleToJsonWithUserData(pushBundle);
-		try {
-			return getFromJson(jsonObject);
-		} catch (JSONException e) {
-			PWLog.noise("Failed to parse inbox type form bundle");
-		}
+    @Nullable public static String getInboxParams(Bundle pushBundle) {
+        return pushBundle.getString("inbox_params");
+    }
 
-		return InboxMessageType.PLAIN;
-	}
+    public static InboxMessageType getInboxType(Bundle pushBundle) {
+        JSONObject jsonObject = JsonUtils.bundleToJsonWithUserData(pushBundle);
+        try {
+            return getFromJson(jsonObject);
+        } catch (JSONException e) {
+            PWLog.noise("Failed to parse inbox type form bundle");
+        }
 
-	public static InboxMessageType getInboxType(String actionPayload) {
-		if (TextUtils.isEmpty(actionPayload)) {
-			return InboxMessageType.PLAIN;
-		}
-		try {
-			JSONObject jsonPayload = new JSONObject(actionPayload);
-			return getFromJson(jsonPayload);
-		} catch (JSONException e) {
-			PWLog.noise("Failed to parse inbox type from actionPayload");
-		}
+        return InboxMessageType.PLAIN;
+    }
 
-		return InboxMessageType.PLAIN;
-	}
+    public static InboxMessageType getInboxType(String actionPayload) {
+        if (TextUtils.isEmpty(actionPayload)) {
+            return InboxMessageType.PLAIN;
+        }
+        try {
+            JSONObject jsonPayload = new JSONObject(actionPayload);
+            return getFromJson(jsonPayload);
+        } catch (JSONException e) {
+            PWLog.noise("Failed to parse inbox type from actionPayload");
+        }
 
-	private static InboxMessageType getFromJson(JSONObject jsonPayload) throws JSONException {
-		String remoteUrl;
-		if (InboxPayloadDataProvider.getRichMedia(jsonPayload) != null) {
-			return InboxMessageType.RICH_MEDIA;
-		} else if ((remoteUrl = InboxPayloadDataProvider.getUrl(jsonPayload)) != null) {
-			if (remoteUrl.startsWith("http")) {
-				return InboxMessageType.URL;
-			} else {
-				return InboxMessageType.DEEP_LINK;
-			}
-		}
+        return InboxMessageType.PLAIN;
+    }
 
-		return InboxMessageType.PLAIN;
-	}
+    private static InboxMessageType getFromJson(JSONObject jsonPayload) throws JSONException {
+        String remoteUrl;
+        if (InboxPayloadDataProvider.getRichMedia(jsonPayload) != null) {
+            return InboxMessageType.RICH_MEDIA;
+        } else if ((remoteUrl = InboxPayloadDataProvider.getUrl(jsonPayload)) != null) {
+            if (remoteUrl.startsWith("http")) {
+                return InboxMessageType.URL;
+            } else {
+                return InboxMessageType.DEEP_LINK;
+            }
+        }
 
-	public static String getHash(Bundle pushBundle) {
-		return pushBundle.getString("p", null);
-	}
+        return InboxMessageType.PLAIN;
+    }
+
+    public static String getHash(Bundle pushBundle) {
+        return pushBundle.getString("p", null);
+    }
 }

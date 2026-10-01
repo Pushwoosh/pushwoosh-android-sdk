@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="bottom"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/wordmark_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-black"
+        android:includeFontPadding="false"
+        android:text="PushMart"
+        android:textColor="@color/pm_text_primary"
+        android:textSize="28sp" />
+
+    <View
+        android:id="@+id/wordmark_dot"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_marginStart="2dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/bg_circle_brand" />
+</LinearLayout>

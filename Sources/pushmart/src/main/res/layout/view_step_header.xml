@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/step_pill_1"
+            android:layout_width="26dp"
+            android:layout_height="6dp"
+            android:background="@drawable/bg_pill_brand" />
+
+        <View
+            android:id="@+id/step_pill_2"
+            android:layout_width="18dp"
+            android:layout_height="6dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_pill_secondary" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/step_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:textAppearance="@style/TextAppearance.PushMart.Display"
+        android:textSize="28sp" />
+
+    <TextView
+        android:id="@+id/step_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textAppearance="@style/TextAppearance.PushMart.Body"
+        android:textColor="@color/pm_text_secondary" />
+</LinearLayout>

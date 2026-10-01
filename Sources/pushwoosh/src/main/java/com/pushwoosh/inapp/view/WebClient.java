@@ -57,6 +57,7 @@ import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.repository.RepositoryModule;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -69,6 +70,7 @@ public class WebClient extends WebViewClient implements JsCallback {
 
     private static final String JS_PUSH_MANAGER = "pushManager";
     private static final String JS_PUSHWOOSH = "pushwooshImpl";
+    private static final String FAVICON_PATH = "/favicon.ico";
 
     private final InAppView inAppView;
     private final Map<String, Object> jsInterfaces;
@@ -221,11 +223,23 @@ public class WebClient extends WebViewClient implements JsCallback {
     }
 
     @Nullable private WebResourceResponse interceptViaAssetLoader(WebView view, Uri uri) {
+        WebResourceResponse faviconStub = stubFaviconOnAssetHost(uri);
+        if (faviconStub != null) {
+            return faviconStub;
+        }
         WebViewAssetLoader loader = getAssetLoader(view.getContext());
         if (loader == null) {
             return null;
         }
         return loader.shouldInterceptRequest(uri);
+    }
+
+    @Nullable private static WebResourceResponse stubFaviconOnAssetHost(Uri uri) {
+        if (!ResourceMapper.RICH_MEDIA_ASSET_HOST.equals(uri.getHost()) || !FAVICON_PATH.equals(uri.getPath())) {
+            return null;
+        }
+        // The pseudo-host has no DNS entry, so a network load of the WebView's default favicon can only fail.
+        return new WebResourceResponse("image/x-icon", null, new ByteArrayInputStream(new byte[0]));
     }
 
     // synchronized: parallel shouldInterceptRequest worker threads must not see assetLoaderInitialized==true while

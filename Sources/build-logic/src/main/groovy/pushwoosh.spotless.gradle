@@ -26,7 +26,7 @@ spotless {
         if (targetPattern != null) {
             target targetPattern.endsWith('.java') ? targetPattern : 'nonexistent'
         } else {
-            target 'pushwoosh*/src/**/*.java', 'demoapp/src/**/*.java'
+            target 'pushwoosh*/src/**/*.java', 'demoapp/src/**/*.java', 'pushmart/src/**/*.java'
         }
         targetExclude '**/build/**', '**/*-stub/**'
 
@@ -43,7 +43,7 @@ spotless {
         if (targetPattern != null) {
             target targetPattern.endsWith('.kt') ? targetPattern : 'nonexistent'
         } else {
-            target 'demoapp/src/**/*.kt'
+            target 'demoapp/src/**/*.kt', 'pushmart/src/**/*.kt'
         }
         targetExclude '**/build/**'
 

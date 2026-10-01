@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:name="com.pushwoosh.pushmart.PushMartApp"
+        android:allowBackup="false"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PushMart">
+
+        <meta-data android:name="com.pushwoosh.apitoken" android:value="@string/pushwoosh_api_token" />
+        <meta-data android:name="com.pushwoosh.appid" android:value="5DF3B-09018" />
+        <meta-data android:name="com.pushwoosh.log_level" android:value="NOISE" />
+        <meta-data android:name="com.pushwoosh.notification_icon" android:value="@drawable/ic_stat_pushmart" />
+        <meta-data android:name="com.pushwoosh.notification_icon_color" android:value="#FF5A5F" />
+        <meta-data
+            android:name="com.pushwoosh.notification_service_extension"
+            android:value="com.pushwoosh.pushmart.PushMartNotificationServiceExtension" />
+
+        <activity
+            android:name="com.pushwoosh.pushmart.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="pushwoosh" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.pushwoosh.DeepLinkActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="pushwoosh-5df3b-09018" android:host="createTestDevice" />
+                <data android:scheme="pushwoosh-5DF3B-09018" android:host="createTestDevice" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

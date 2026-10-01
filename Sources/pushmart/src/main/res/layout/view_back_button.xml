@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageButton xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/back"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:background="@drawable/bg_circle_surface_hi"
+    android:contentDescription="Back"
+    android:padding="10dp"
+    android:src="@drawable/ic_arrow_back"
+    android:tint="@color/pm_text_primary" />

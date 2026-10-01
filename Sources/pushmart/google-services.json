@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "379096294681",
+    "project_id": "project-5564757014238720780",
+    "storage_bucket": "project-5564757014238720780.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:379096294681:android:3e70f418cddea23b5f5188",
+        "android_client_info": {
+          "package_name": "com.pushwoosh.pushmart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXb5lqJdAOpGGXAuKcNHwsTjFQiA46TKI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

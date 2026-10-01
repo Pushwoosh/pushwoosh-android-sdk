@@ -1,0 +1,40 @@
+<resources>
+    <color name="pm_ink">#F7F7FA</color>
+    <color name="pm_ink2">#FFFFFF</color>
+    <color name="pm_surface">#FFFFFF</color>
+    <color name="pm_surface_hi">#F0F0F4</color>
+    <color name="pm_stroke">#14000000</color>
+    <color name="pm_stroke_strong">#24000000</color>
+    <color name="pm_text_primary">#0B0B10</color>
+    <color name="pm_text_secondary">#99000000</color>
+    <color name="pm_text_tertiary">#66000000</color>
+    <color name="pm_success">#12A868</color>
+    <color name="pm_warning">#9A6510</color>
+    <color name="pm_danger">#E0263A</color>
+    <color name="pm_info">#1476C6</color>
+
+    <!-- Fixed brand colors, identical in both themes -->
+    <color name="pm_coral">#FF5A5F</color>
+    <color name="pm_tangerine">#FF8A3D</color>
+    <color name="pm_on_brand">#0B0B10</color>
+    <color name="pm_coral_14">#24FF5A5F</color>
+    <color name="pm_coral_50">#80FF5A5F</color>
+    <color name="pm_white">#FFFFFF</color>
+    <color name="pm_white_14">#24FFFFFF</color>
+    <color name="pm_white_18">#2EFFFFFF</color>
+    <color name="pm_white_30">#4DFFFFFF</color>
+    <color name="pm_white_65">#A6FFFFFF</color>
+    <color name="pm_white_85">#D9FFFFFF</color>
+    <color name="pm_white_90">#E6FFFFFF</color>
+    <color name="pm_black_22">#38000000</color>
+    <color name="pm_scrim_45">#73000000</color>
+    <color name="pm_sale_plum">#2B0A29</color>
+    <color name="pm_sale_magenta">#C4185C</color>
+    <color name="pm_sale_orange">#FF5E3A</color>
+    <color name="pm_sale_gold">#FFE6A0</color>
+    <color name="pm_sale_pink">#FF2D6E</color>
+    <color name="pm_gold_light">#FFE7A8</color>
+    <color name="pm_gold_dark">#E8B75C</color>
+    <color name="pm_success_16">#2912A868</color>
+    <color name="pm_danger_16">#29E0263A</color>
+</resources>

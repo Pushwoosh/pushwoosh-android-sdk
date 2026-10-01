@@ -1,0 +1,4 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/pm_on_brand" android:state_selected="true" />
+    <item android:color="@color/pm_text_secondary" />
+</selector>

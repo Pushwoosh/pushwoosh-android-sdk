@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/pm_screen_padding"
+        android:paddingTop="@dimen/pm_screen_padding"
+        android:paddingEnd="@dimen/pm_screen_padding">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your offers"
+                android:textAppearance="@style/TextAppearance.PushMart.Display"
+                android:textSize="32sp" />
+
+            <TextView
+                android:id="@+id/counter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:letterSpacing="0.08"
+                android:text="No messages yet"
+                android:textAllCaps="true"
+                android:textAppearance="@style/TextAppearance.PushMart.Label"
+                android:textColor="@color/pm_text_tertiary" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/actions"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_circle_surface_hi"
+            android:contentDescription="Inbox actions"
+            android:padding="10dp"
+            android:src="@drawable/ic_more_horiz"
+            app:tint="@color/pm_text_primary" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/inbox_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_weight="1" />
+</LinearLayout>

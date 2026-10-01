@@ -82,8 +82,9 @@ class InboxViewHolder(adapter: InboxAdapter,
 
         inboxDescriptionTextView.setTextColor(colorSchemeProvider.descriptionColor)
         
-        // Handle color state for the status image - get appropriate color for current state
-        val imageColor = if (!model.isActionPerformed) {
+        // READ and OPEN both count as read, as in RichCardViewHolder.isUnread.
+        val unread = !model.isRead
+        val imageColor = if (unread) {
             colorSchemeProvider.imageColor.getColorForState(intArrayOf(android.R.attr.state_selected), colorSchemeProvider.imageColor.defaultColor)
         } else {
             colorSchemeProvider.imageColor.defaultColor
@@ -93,9 +94,9 @@ class InboxViewHolder(adapter: InboxAdapter,
         inboxDescriptionTextView.text = model.message
         inboxStatusImageView.setImageResource(model.type.getResource())
 
-        inboxLabelTextView.isSelected = !model.isActionPerformed
-        inboxStatusImageView.isSelected = inboxLabelTextView.isSelected
-        inboxDescriptionTextView.isSelected = inboxLabelTextView.isSelected
+        inboxLabelTextView.isSelected = unread
+        inboxStatusImageView.isSelected = unread
+        inboxDescriptionTextView.isSelected = unread
 
         Glide.with(itemView)
                 .clear(itemView)
@@ -126,6 +127,10 @@ class InboxViewHolder(adapter: InboxAdapter,
         val bannerUrl = model.bannerUrl
         if (bannerUrl != null && !TextUtils.isEmpty(bannerUrl)) {
             inboxBannerImage.setOnClickListener {
+                if (model.carriesMessageAction()) {
+                    itemView.performClick()
+                    return@setOnClickListener
+                }
                 // Opening the attachment preview is an interaction with the card.
                 PushwooshInbox.markMessageOpened(model.code)
                 attachmentClickListener.invoke(bannerUrl, inboxBannerImage)

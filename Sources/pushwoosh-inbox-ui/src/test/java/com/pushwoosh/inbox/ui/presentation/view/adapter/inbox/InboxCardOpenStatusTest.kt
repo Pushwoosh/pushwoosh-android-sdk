@@ -35,6 +35,7 @@ import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.pushwoosh.inbox.PushwooshInbox
 import com.pushwoosh.inbox.data.InboxMessage
+import com.pushwoosh.inbox.data.InboxMessageType
 import com.pushwoosh.inbox.ui.PushwooshInboxUi
 import com.pushwoosh.inbox.ui.R
 import com.pushwoosh.inbox.ui.fakeInboxMessage
@@ -117,6 +118,24 @@ class InboxCardOpenStatusTest {
         message = "body text",
         actionParams = actionParams
     )
+
+    private fun richMsg(actionParams: String?): InboxMessage = fakeInboxMessage(
+        code = CODE,
+        title = "t",
+        message = "body text",
+        actionParams = actionParams,
+        type = InboxMessageType.RICH_MEDIA
+    )
+
+    /** An adapter bound to one message, counting the row taps that reach the presenter. */
+    private fun boundHolder(message: InboxMessage, viewType: Int, rowClicks: IntArray): BaseRecyclerAdapter.ViewHolder<InboxMessage> {
+        val adapter = newAdapter()
+        adapter.onItemClick = { rowClicks[0]++ }
+        adapter.setCollection(listOf(message))
+        val holder = adapter.onCreateViewHolder(FrameLayout(ctx()), viewType)
+        adapter.onBindViewHolder(holder, 0)
+        return holder
+    }
 
     private fun newAdapter(): InboxAdapter = InboxAdapter(ctx(), fakeColorScheme()) { _, _ -> }
 
@@ -345,5 +364,93 @@ class InboxCardOpenStatusTest {
             inbox.verify({ PushwooshInbox.markMessageOpened(CODE) }, times(1))
             inbox.verify({ PushwooshInbox.deleteMessage(CODE) }, times(1))
         }
+    }
+
+    // --- a message with its own l/rm: every element runs that action ---
+
+    @Test
+    fun linkButtonOnMessageWithRichMedia_performsTheMessageActionOnce() {
+        val holder = holder(InboxAdapter.CLASSIC_VIEW_TYPE)
+        holder.fillView(richMsg(HTTPS_BUTTON), 0)
+        val button = holder.itemView.findViewById<LinearLayout>(R.id.inboxClassicButtonsRow).getChildAt(0)
+
+        withInboxStatic { inbox ->
+            button.performClick()
+
+            inbox.verify({ PushwooshInbox.performAction(CODE) }, times(1))
+            inbox.verify({ PushwooshInbox.markMessageOpened(CODE) }, times(1))
+        }
+
+        assertNull("the button URL does not open on top of the message action", startedActivity())
+    }
+
+    @Test
+    fun linkButtonOnMessageWithRichMedia_hostVeto_reportsTheOpenOnly() {
+        PushwooshInboxUi.onButtonClickListener = OnInboxButtonClickListener { _, _ -> false }
+        val holder = holder(InboxAdapter.CLASSIC_VIEW_TYPE)
+        holder.fillView(richMsg(HTTPS_BUTTON), 0)
+        val button = holder.itemView.findViewById<LinearLayout>(R.id.inboxClassicButtonsRow).getChildAt(0)
+
+        withInboxStatic { inbox ->
+            button.performClick()
+
+            inbox.verify({ PushwooshInbox.markMessageOpened(CODE) }, times(1))
+            inbox.verify({ PushwooshInbox.performAction(anyString()) }, never())
+        }
+    }
+
+    @Test
+    fun slideWithOwnUrlOnMessageWithRichMedia_goesToTheRowAction() {
+        val rowClicks = intArrayOf(0)
+        val holder = boundHolder(richMsg(TWO_SLIDES), InboxAdapter.CAROUSEL_VIEW_TYPE, rowClicks)
+        val firstSlide = slide(holder, 0)
+
+        withInboxStatic { inbox ->
+            firstSlide.performClick()
+
+            inbox.verify({ PushwooshInbox.markMessageOpened(anyString()) }, never())
+        }
+
+        assertEquals(1, rowClicks[0])
+        assertNull("the slide URL does not open on top of the message action", startedActivity())
+    }
+
+    @Test
+    fun posterTapOnMessageWithRichMedia_goesToTheRowActionInsteadOfThePlayer() {
+        val rowClicks = intArrayOf(0)
+        val holder = boundHolder(richMsg(VIDEO_PARAMS), InboxAdapter.VIDEO_VIEW_TYPE, rowClicks)
+        val poster = holder.itemView.findViewById<View>(R.id.inboxVideoPosterHost)
+
+        withInboxStatic { inbox ->
+            poster.performClick()
+
+            inbox.verify({ PushwooshInbox.markMessageOpened(anyString()) }, never())
+        }
+
+        assertEquals(1, rowClicks[0])
+        assertNull("no player opens when the message has its own action", startedActivity())
+    }
+
+    @Test
+    fun bannerAttachmentOnMessageWithRichMedia_goesToTheRowAction() {
+        var openedAttachment: String? = null
+        val rowClicks = intArrayOf(0)
+        val adapter = InboxAdapter(ctx(), fakeColorScheme()) { url, _ -> openedAttachment = url }
+        adapter.onItemClick = { rowClicks[0]++ }
+        val message = fakeInboxMessage(code = CODE, title = "t", message = "body",
+            bannerUrl = "https://cdn/b.jpg", type = InboxMessageType.RICH_MEDIA)
+        adapter.setCollection(listOf(message))
+        val holder = adapter.onCreateViewHolder(FrameLayout(ctx()), InboxAdapter.TEXT_VIEW_TYPE)
+        adapter.onBindViewHolder(holder, 0)
+        val banner = holder.itemView.findViewById<View>(R.id.inboxBannerImage)
+
+        withInboxStatic { inbox ->
+            banner.performClick()
+
+            inbox.verify({ PushwooshInbox.markMessageOpened(anyString()) }, never())
+        }
+
+        assertEquals(1, rowClicks[0])
+        assertNull("the attachment preview does not open on top of the message action", openedAttachment)
     }
 }

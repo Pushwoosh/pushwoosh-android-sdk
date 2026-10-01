@@ -33,11 +33,14 @@ import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.core.app.ActivityOptionsCompat
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import com.pushwoosh.inbox.PushwooshInbox
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.R
@@ -173,6 +176,11 @@ open class InboxFragment : BaseFragment(), InboxView {
         val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context, androidx.recyclerview.widget.LinearLayoutManager.VERTICAL, false)
         inboxRecyclerView.layoutManager = layoutManager
         inboxRecyclerView.adapter = inboxAdapter
+        inboxRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) markDisplayedAsRead()
+            }
+        })
 
         val backgroundColor = PushwooshInboxStyle.backgroundColor
         if (backgroundColor != null) {
@@ -268,6 +276,23 @@ open class InboxFragment : BaseFragment(), InboxView {
     override fun showList(inboxList: Collection<InboxMessage>) {
         inboxAdapter.setCollection(inboxList)
         updateContent(isEmpty = false)
+        inboxRecyclerView.post { markDisplayedAsRead() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        inboxRecyclerView.post { markDisplayedAsRead() }
+    }
+
+    /** Reads the rows on screen while the inbox is showing them; already-read rows are skipped. */
+    internal fun markDisplayedAsRead() {
+        if (!PushwooshInboxStyle.automaticReadOnDisplay || !isResumed) return
+        val layoutManager = inboxRecyclerView.layoutManager as? LinearLayoutManager ?: return
+        val first = layoutManager.findFirstVisibleItemPosition()
+        val last = layoutManager.findLastVisibleItemPosition()
+        if (first == RecyclerView.NO_POSITION || last < first) return
+        val codes = (first..last).mapNotNull { inboxAdapter.getItem(it) }.filter { !it.isRead }.map { it.code }
+        if (codes.isNotEmpty()) PushwooshInbox.readMessages(codes)
     }
 
     override fun showEmptyView() {

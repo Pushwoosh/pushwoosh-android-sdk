@@ -200,11 +200,11 @@ abstract class RichCardViewHolder(adapter: InboxAdapter,
         PushwooshInbox.markMessageOpened(model.code)
         // Mirrors the iOS delegate contract: the host returning false consumes the tap.
         val shouldPerformDefault = PushwooshInboxUi.onButtonClickListener?.onInboxButtonClick(model, button) ?: true
-        if (!shouldPerformDefault) {
-            return
-        }
+        if (!shouldPerformDefault) return
         when (val action = button.action) {
-            is InboxCardButton.Action.OpenUrl -> openCardUrl(action.url)
+            is InboxCardButton.Action.OpenUrl ->
+                // A message with its own l/rm runs it; its second OPEN is a no-op in storage.
+                if (model.carriesMessageAction()) PushwooshInbox.performAction(model.code) else openCardUrl(action.url)
             is InboxCardButton.Action.Dismiss -> PushwooshInbox.deleteMessage(model.code)
             // The open above already made the message read; readMessage would report a lower status.
             is InboxCardButton.Action.MarkRead -> Unit

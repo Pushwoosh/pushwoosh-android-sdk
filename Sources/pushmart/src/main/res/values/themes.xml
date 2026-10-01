@@ -1,0 +1,45 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.PushMart" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/pm_coral</item>
+        <item name="colorOnPrimary">@color/pm_on_brand</item>
+        <item name="colorPrimaryContainer">@color/pm_coral_14</item>
+        <item name="colorOnPrimaryContainer">@color/pm_text_primary</item>
+        <item name="colorSecondary">@color/pm_tangerine</item>
+        <item name="colorOnSecondary">@color/pm_on_brand</item>
+        <item name="colorSecondaryContainer">@color/pm_coral_14</item>
+        <item name="colorOnSecondaryContainer">@color/pm_text_primary</item>
+        <item name="colorError">@color/pm_danger</item>
+        <item name="android:colorBackground">@color/pm_ink</item>
+        <item name="colorOnBackground">@color/pm_text_primary</item>
+        <item name="colorSurface">@color/pm_surface</item>
+        <item name="colorOnSurface">@color/pm_text_primary</item>
+        <item name="colorSurfaceVariant">@color/pm_surface_hi</item>
+        <item name="colorOnSurfaceVariant">@color/pm_text_secondary</item>
+        <item name="colorOutline">@color/pm_stroke_strong</item>
+        <item name="colorOutlineVariant">@color/pm_stroke</item>
+        <item name="android:textColorPrimary">@color/pm_text_primary</item>
+        <item name="android:textColorSecondary">@color/pm_text_secondary</item>
+        <item name="android:textColorHint">@color/pm_text_tertiary</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.PushMart.BottomSheet</item>
+    </style>
+
+    <style name="ThemeOverlay.PushMart.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.PushMart.BottomSheet</item>
+    </style>
+
+    <style name="Widget.PushMart.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">@color/pm_ink2</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.PushMart.Sheet</item>
+    </style>
+
+    <style name="ShapeAppearance.PushMart.Sheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">22dp</item>
+        <item name="cornerSizeTopRight">22dp</item>
+    </style>
+</resources>

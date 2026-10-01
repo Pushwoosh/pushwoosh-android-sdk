@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">PushMart</string>
+    <string name="pushwoosh_api_token">24NqYqWwtXuV7qXwMrm2SCTB2ncxZHV3gWmJ6eVyQwlMHXkFqiJ39TC2LGPe1aCyuoCb2fJplXulcvennDpV</string>
+    <string name="tab_home">Home</string>
+    <string name="tab_shop">Shop</string>
+    <string name="tab_offers">Offers</string>
+    <string name="tab_profile">Profile</string>
+</resources>

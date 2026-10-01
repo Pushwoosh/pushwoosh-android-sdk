@@ -93,34 +93,64 @@ public class InboxDbHelper extends SQLiteOpenHelper {
     }
 
     Collection<String> changeStatus(Collection<String> ids, InboxMessageStatus status) {
-        Collection<String> copyIds = new ArrayList<>(ids);
-
-        List<InboxMessageInternal> byId = getById(ids);
-        if (byId == null) {
+        if (ids == null || ids.isEmpty()) {
             return Collections.emptyList();
         }
-
-        for (InboxMessageInternal inboxMessageInternal : byId) {
-            if (!inboxMessageInternal.getInboxMessageStatus().isLowerStatus(status)) {
-                copyIds.remove(inboxMessageInternal.getId());
+        synchronized (mutex) {
+            try {
+                final SQLiteDatabase db = getWritableDatabase();
+                try {
+                    db.beginTransaction();
+                    try {
+                        List<String> changed = new ArrayList<>();
+                        for (String id : selectIdsBelow(db, ids, status)) {
+                            if (raiseStatus(db, id, status)) {
+                                changed.add(id);
+                            }
+                        }
+                        db.setTransactionSuccessful();
+                        return changed;
+                    } finally {
+                        db.endTransaction();
+                    }
+                } finally {
+                    db.close();
+                }
+            } catch (Exception e) {
+                PWLog.error("Problem with db executing", e);
+                return Collections.emptyList();
             }
         }
-        if (copyIds.isEmpty()) {
-            return Collections.emptyList();
+    }
+
+    private List<String> selectIdsBelow(SQLiteDatabase db, Collection<String> ids, InboxMessageStatus status) {
+        List<String> result = new ArrayList<>();
+        String[] columns = new String[] {InboxTable.Column.ID, InboxTable.Column.STATUS};
+        String selection = InboxTable.Column.ID + " IN (" + getCollectionSelectionParams(ids) + ")";
+        final Cursor cursor =
+                db.query(InboxTable.NAME, columns, selection, ids.toArray(new String[0]), null, null, null);
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    InboxMessageStatus current = InboxMessageStatus.getByCode(
+                            cursor.getInt(cursor.getColumnIndex(InboxTable.Column.STATUS)));
+                    if (current != null && current.isLowerStatus(status)) {
+                        result.add(cursor.getString(cursor.getColumnIndex(InboxTable.Column.ID)));
+                    }
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            cursor.close();
         }
+        return result;
+    }
 
-        // The ladder only climbs, and the comparison belongs in the statement: an open and a
-        // delete reported by the same tap run on separate pool threads, and a read-then-write
-        // check lets the open land last and resurrect a deleted message.
-        String raw = "UPDATE " + InboxTable.NAME + " SET "
-                + InboxTable.Column.STATUS + " = " + status.getCode() + " WHERE "
-                + InboxTable.Column.ID + " IN ('"
-                + TextUtils.join(DELIMITER, copyIds) + "') AND "
-                + InboxTable.Column.STATUS + " < " + status.getCode();
-
-        executeSqlRaw(raw);
-
-        return copyIds;
+    private boolean raiseStatus(SQLiteDatabase db, String id, InboxMessageStatus status) {
+        ContentValues values = new ContentValues();
+        values.put(InboxTable.Column.STATUS, status.getCode());
+        // The ladder only climbs: the guard also stops 5 -> 5, which isLowerStatus lets through.
+        String where = InboxTable.Column.ID + " = ? AND " + InboxTable.Column.STATUS + " < " + status.getCode();
+        return db.update(InboxTable.NAME, values, where, new String[] {id}) == 1;
     }
 
     @Nullable Collection<InboxMessageInternal> getAllActualWithStatus(Collection<InboxMessageStatus> statusList) {

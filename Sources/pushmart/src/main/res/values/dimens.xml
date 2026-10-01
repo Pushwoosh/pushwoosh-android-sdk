@@ -1,0 +1,8 @@
+<resources>
+    <dimen name="pm_radius_card">22dp</dimen>
+    <dimen name="pm_radius_field">14dp</dimen>
+    <dimen name="pm_radius_pill">100dp</dimen>
+    <dimen name="pm_screen_padding">20dp</dimen>
+    <dimen name="pm_card_padding">18dp</dimen>
+    <dimen name="pm_tab_clearance">88dp</dimen>
+</resources>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="com.pushwoosh.pushmart.ui.onboarding.WelcomeFragment"
+        android:label="Welcome" />
+
+    <fragment
+        android:id="@+id/connectFragment"
+        android:name="com.pushwoosh.pushmart.ui.onboarding.ConnectFragment"
+        android:label="Connect" />
+
+    <fragment
+        android:id="@+id/accountFragment"
+        android:name="com.pushwoosh.pushmart.ui.onboarding.AccountFragment"
+        android:label="Account" />
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.pushwoosh.pushmart.ui.home.HomeFragment"
+        android:label="Home" />
+
+    <fragment
+        android:id="@+id/shopFragment"
+        android:name="com.pushwoosh.pushmart.ui.shop.ShopFragment"
+        android:label="Shop" />
+
+    <fragment
+        android:id="@+id/offersFragment"
+        android:name="com.pushwoosh.pushmart.ui.offers.OffersFragment"
+        android:label="Offers" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.pushwoosh.pushmart.ui.profile.ProfileFragment"
+        android:label="Profile" />
+
+    <fragment
+        android:id="@+id/saleFragment"
+        android:name="com.pushwoosh.pushmart.ui.promo.SaleFragment"
+        android:label="Sale" />
+
+    <fragment
+        android:id="@+id/voucherFragment"
+        android:name="com.pushwoosh.pushmart.ui.promo.VoucherFragment"
+        android:label="Voucher">
+        <argument
+            android:name="code"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/yourDetailsFragment"
+        android:name="com.pushwoosh.pushmart.ui.profile.YourDetailsFragment"
+        android:label="Your details" />
+
+    <fragment
+        android:id="@+id/wishlistFragment"
+        android:name="com.pushwoosh.pushmart.ui.profile.WishlistFragment"
+        android:label="Wishlist" />
+
+    <fragment
+        android:id="@+id/preferencesFragment"
+        android:name="com.pushwoosh.pushmart.ui.profile.PreferencesFragment"
+        android:label="Preferences" />
+
+    <fragment
+        android:id="@+id/notificationsFragment"
+        android:name="com.pushwoosh.pushmart.ui.profile.NotificationsFragment"
+        android:label="Notifications" />
+
+    <fragment
+        android:id="@+id/playgroundFragment"
+        android:name="com.pushwoosh.pushmart.ui.playground.PlaygroundFragment"
+        android:label="Playground" />
+
+    <fragment
+        android:id="@+id/inAppShowcaseFragment"
+        android:name="com.pushwoosh.pushmart.ui.inapp.InAppShowcaseFragment"
+        android:label="In-app showcase" />
+
+    <fragment
+        android:id="@+id/richMediaFragment"
+        android:name="com.pushwoosh.pushmart.ui.richmedia.RichMediaFragment"
+        android:label="Rich media" />
+</navigation>

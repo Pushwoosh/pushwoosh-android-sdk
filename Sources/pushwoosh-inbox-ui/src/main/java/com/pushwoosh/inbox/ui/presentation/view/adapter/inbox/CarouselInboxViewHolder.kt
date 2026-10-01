@@ -253,12 +253,12 @@ class CarouselInboxViewHolder(adapter: InboxAdapter,
             itemView.setOnClickListener {
                 val model = message ?: return@setOnClickListener
                 val url = slide.url
-                if (url != null) {
-                    // Not performAction: the slide has its own URL and the message's l/rm would open a second one.
+                if (url != null && !model.carriesMessageAction()) {
+                    // Not performAction: the slide has its own URL and the message carries no l/rm.
                     PushwooshInbox.markMessageOpened(model.code)
                     openCardUrl(url)
                 } else {
-                    // No destination of its own — behave like a tap on the card itself.
+                    // No destination of its own, or the message's l/rm wins — behave like a tap on the card.
                     this@CarouselInboxViewHolder.itemView.performClick()
                 }
             }

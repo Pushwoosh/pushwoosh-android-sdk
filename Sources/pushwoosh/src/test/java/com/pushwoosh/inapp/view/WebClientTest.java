@@ -56,6 +56,7 @@ import org.robolectric.shadows.ShadowPackageManager;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.util.Collections;
 
 @RunWith(RobolectricTestRunner.class)
@@ -322,6 +323,70 @@ public class WebClientTest {
         WebResourceResponse response = webClient.shouldInterceptRequest(webView, webResourceRequest);
 
         assertNull(response);
+    }
+
+    // Verifies the WebView's default favicon probe on the synthetic origin gets an empty 200 stub instead of a
+    // network load that can never resolve.
+    @Test
+    public void shouldInterceptRequest_faviconOnAssetHost_returnsEmptyStub() throws Exception {
+        File folder = new File(application.getCacheDir(), "richmedia");
+        folder.mkdirs();
+        when(inAppFolderProvider.getInAppFolder("CODE")).thenReturn(folder);
+        when(webResourceRequest.getUrl()).thenReturn(Uri.parse("https://appassets.androidplatform.net/favicon.ico"));
+
+        WebResourceResponse response = webClient.shouldInterceptRequest(webView, webResourceRequest);
+
+        assertNotNull("expected favicon on asset host to be stubbed", response);
+        assertEquals("image/x-icon", response.getMimeType());
+        InputStream body = response.getData();
+        assertNotNull("stub must carry a readable body", body);
+        assertEquals("stub body must be empty", -1, body.read());
+    }
+
+    // Verifies the favicon stub does not depend on the asset loader: with no in-app folder it is still returned.
+    @Test
+    public void shouldInterceptRequest_faviconOnAssetHost_withoutInAppFolder_stillStubbed() {
+        when(inAppFolderProvider.getInAppFolder("CODE")).thenReturn(null);
+        when(webResourceRequest.getUrl()).thenReturn(Uri.parse("https://appassets.androidplatform.net/favicon.ico"));
+
+        WebResourceResponse response = webClient.shouldInterceptRequest(webView, webResourceRequest);
+
+        assertNotNull("favicon must be stubbed even when the asset loader is unavailable", response);
+        assertEquals("image/x-icon", response.getMimeType());
+    }
+
+    // Verifies only the synthetic origin is affected: an external site's favicon still goes to the network.
+    @Test
+    public void shouldInterceptRequest_faviconOnExternalHost_returnsNull() {
+        File folder = new File(application.getCacheDir(), "richmedia");
+        folder.mkdirs();
+        when(inAppFolderProvider.getInAppFolder("CODE")).thenReturn(folder);
+        when(webResourceRequest.getUrl()).thenReturn(Uri.parse("https://example.com/favicon.ico"));
+
+        WebResourceResponse response = webClient.shouldInterceptRequest(webView, webResourceRequest);
+
+        assertNull(response);
+    }
+
+    // Verifies a favicon the bundle ships under the registered prefix is served from disk, not replaced by the stub.
+    @Test
+    public void shouldInterceptRequest_faviconUnderRegisteredPrefix_servedFromDisk() throws Exception {
+        File folder = new File(application.getCacheDir(), "richmedia");
+        folder.mkdirs();
+        File icon = new File(folder, "favicon.ico");
+        try (FileWriter w = new FileWriter(icon)) {
+            w.write("ICODATA");
+        }
+        when(inAppFolderProvider.getInAppFolder("CODE")).thenReturn(folder);
+        when(webResourceRequest.getUrl())
+                .thenReturn(Uri.parse("https://appassets.androidplatform.net/pushwoosh_richmedia/CODE/favicon.ico"));
+
+        WebResourceResponse response = webClient.shouldInterceptRequest(webView, webResourceRequest);
+
+        assertNotNull("expected bundled favicon to be intercepted", response);
+        InputStream body = response.getData();
+        assertNotNull(body);
+        assertEquals("bundled favicon must be served with its content, not the empty stub", 'I', body.read());
     }
 
     // Verifies that after release() a lifecycle callback is a no-op: no inAppView callback, no phantom present event.

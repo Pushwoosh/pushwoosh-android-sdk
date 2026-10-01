@@ -36,7 +36,7 @@ if (isDokkaTask) {
     }
 
     // Add dokka dependencies for multi-module aggregation
-    def docModules = subprojects.findAll { it.name != 'demoapp' && !it.name.contains('stub') }
+    def docModules = subprojects.findAll { !(it.name in ['demoapp', 'pushmart']) && !it.name.contains('stub') }
 
     dependencies {
         docModules.each { dokka(project(":${it.name}")) }

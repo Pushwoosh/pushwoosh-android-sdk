@@ -57,6 +57,11 @@ object PushwooshInboxStyle {
     var richCardsHeuristicEnabled: Boolean = false
 
     /**
+     * When true, messages are marked read once they are on screen: after the list loads and when a scroll settles.
+     */
+    var automaticReadOnDisplay: Boolean = true
+
+    /**
      * Item appearing animation. Set {@link #EMPTY_ANIMATION} for clear animation
      */
     @AnimRes

@@ -38,6 +38,7 @@ fun fakeInboxMessage(
     message: String = "message",
     bannerUrl: String? = null,
     actionParams: String? = null,
+    type: InboxMessageType = InboxMessageType.PLAIN,
     read: Boolean = false,
     actionPerformed: Boolean = false
 ): InboxMessage = object : InboxMessage {
@@ -47,7 +48,7 @@ fun fakeInboxMessage(
     override fun getMessage(): String = message
     override fun getSendDate(): Date = Date(0L)
     override fun getISO8601SendDate(): String = "1970-01-01T00:00:00Z"
-    override fun getType(): InboxMessageType = InboxMessageType.PLAIN
+    override fun getType(): InboxMessageType = type
     override fun getBannerUrl(): String? = bannerUrl
     override fun getActionParams(): String? = actionParams
     override fun isRead(): Boolean = read

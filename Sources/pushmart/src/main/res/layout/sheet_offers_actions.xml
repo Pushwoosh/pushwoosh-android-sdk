@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/pm_screen_padding">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Inbox"
+        android:textAppearance="@style/TextAppearance.PushMart.Display"
+        android:textSize="28sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Housekeeping for your offers. Changes are sent to Pushwoosh right away."
+        android:textAppearance="@style/TextAppearance.PushMart.Body"
+        android:textColor="@color/pm_text_secondary"
+        android:textSize="14sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/mark_all_read"
+        style="@style/Widget.PushMart.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:drawableStart="@drawable/ic_check"
+        android:text="Mark all as read" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/clear_read"
+        style="@style/Widget.PushMart.Button.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:drawableStart="@drawable/ic_remove"
+        android:text="Clear read" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/delete_all"
+        style="@style/Widget.PushMart.Button.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:drawableStart="@drawable/ic_close"
+        android:drawableTint="@color/pm_danger"
+        android:text="Delete all"
+        android:textColor="@color/pm_danger" />
+</LinearLayout>

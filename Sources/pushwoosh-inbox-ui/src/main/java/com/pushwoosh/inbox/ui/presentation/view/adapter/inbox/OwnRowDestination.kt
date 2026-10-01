@@ -26,6 +26,9 @@
 
 package com.pushwoosh.inbox.ui.presentation.view.adapter.inbox
 
+import com.pushwoosh.inbox.data.InboxMessage
+import com.pushwoosh.inbox.data.InboxMessageType
+
 /**
  * A card kind that carries its own destination — a video to play, a pass to add — and therefore
  * owns the whole row: the destination opens wherever the tap lands, and the message-level
@@ -39,3 +42,6 @@ internal interface OwnRowDestination {
     /** Returns true when the card handled the tap and the row action must not run. */
     fun handleRowTap(): Boolean
 }
+
+/** True when the message carries an action of its own (`l` or `rm`), the one performAction runs. */
+internal fun InboxMessage.carriesMessageAction(): Boolean = type != InboxMessageType.PLAIN

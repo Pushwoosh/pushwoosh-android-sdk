@@ -91,7 +91,7 @@ class VideoInboxViewHolder(adapter: InboxAdapter,
                 .into(posterView)
 
         playBadgeView.visibility = if (content == null) View.GONE else View.VISIBLE
-        posterHostView.setOnClickListener { handleRowTap() }
+        posterHostView.setOnClickListener { if (!handleRowTap()) itemView.performClick() }
 
         val hasText = bindTextBlock(model, titleRowView, titleTextView, bodyTextView, dateTextView, textBlockView)
 
@@ -109,6 +109,8 @@ class VideoInboxViewHolder(adapter: InboxAdapter,
      */
     override fun handleRowTap(): Boolean {
         val model = boundModel ?: return false
+        // A message with its own l/rm leaves the row to the presenter, which runs that action.
+        if (model.carriesMessageAction()) return false
         PushwooshInbox.markMessageOpened(model.code)
         // The host still hears about the tap, exactly as it does for a row that goes through
         // the presenter — only the message payload is left out.

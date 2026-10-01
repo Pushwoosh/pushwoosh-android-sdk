@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/pm_screen_padding">
+
+        <include
+            android:id="@+id/back_button"
+            layout="@layout/view_back_button" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Playground"
+            android:textAppearance="@style/TextAppearance.PushMart.Display"
+            android:textSize="32sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Post events and set tags"
+            android:textAppearance="@style/TextAppearance.PushMart.Body"
+            android:textColor="@color/pm_text_secondary"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="@dimen/pm_card_padding">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Post event"
+                android:textAppearance="@style/TextAppearance.PushMart.Headline" />
+
+            <EditText
+                android:id="@+id/event_name"
+                style="@style/Widget.PushMart.Field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:drawableStart="@drawable/ic_bolt"
+                android:hint="EVENT NAME"
+                android:inputType="text|textNoSuggestions" />
+
+            <EditText
+                android:id="@+id/attr_key"
+                style="@style/Widget.PushMart.Field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:drawableStart="@drawable/ic_tag"
+                android:hint="ATTRIBUTE KEY"
+                android:inputType="text|textNoSuggestions" />
+
+            <EditText
+                android:id="@+id/attr_value"
+                style="@style/Widget.PushMart.Field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="ATTRIBUTE VALUE"
+                android:imeOptions="actionDone"
+                android:inputType="text|textNoSuggestions" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/post_event"
+                style="@style/Widget.PushMart.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:drawableStart="@drawable/ic_bolt"
+                android:text="Post event" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="@dimen/pm_card_padding">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Set tag"
+                android:textAppearance="@style/TextAppearance.PushMart.Headline" />
+
+            <EditText
+                android:id="@+id/tag_key"
+                style="@style/Widget.PushMart.Field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:drawableStart="@drawable/ic_tag"
+                android:hint="TAG KEY"
+                android:inputType="text|textNoSuggestions" />
+
+            <EditText
+                android:id="@+id/tag_value"
+                style="@style/Widget.PushMart.Field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="TAG VALUE"
+                android:imeOptions="actionDone"
+                android:inputType="text|textNoSuggestions" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/set_tag"
+                style="@style/Widget.PushMart.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:drawableStart="@drawable/ic_tag"
+                android:text="Set tag" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
