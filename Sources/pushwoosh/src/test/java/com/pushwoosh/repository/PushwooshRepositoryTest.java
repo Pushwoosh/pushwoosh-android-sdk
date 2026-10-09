@@ -46,6 +46,8 @@ import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.network.InAppRepository;
+import com.pushwoosh.internal.event.DeviceDataRemovedEvent;
+import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.RequestManager;
@@ -65,9 +67,12 @@ import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
@@ -111,6 +116,7 @@ public class PushwooshRepositoryTest {
     @After
     public void tearDown() {
         NetworkModule.setRequestManager(null);
+        EventBus.clearSubscribersMap();
     }
 
     private PushwooshRepository repositoryWithoutNetwork() {
@@ -125,6 +131,17 @@ public class PushwooshRepositoryTest {
         verify(notificationPrefs.tags()).set(null);
         verify(registrationPrefs.advertisingId()).set("");
         verify(registrationPrefs.removeAllDeviceData()).set(true);
+    }
+
+    @Test
+    public void removeAllDeviceData_sendsDeviceDataRemovedEvent() {
+        List<DeviceDataRemovedEvent> received = new ArrayList<>();
+        EventBus.subscribe(DeviceDataRemovedEvent.class, received::add);
+
+        pushwooshRepository.removeAllDeviceData();
+        ShadowLooper.idleMainLooper();
+
+        assertEquals(1, received.size());
     }
 
     // ---------- sendTags ----------

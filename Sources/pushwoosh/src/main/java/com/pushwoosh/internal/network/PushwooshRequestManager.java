@@ -164,6 +164,48 @@ class PushwooshRequestManager implements RequestManager {
         return true;
     }
 
+    @Override
+    public <Response> void sendRequestToEndpoint(
+            @NonNull final PushRequest<Response> request,
+            @NonNull final String endpointUrl,
+            @Nullable final Callback<Response, NetworkException> callback) {
+        BackgroundExecutor.network(() -> deliverOnMain(callback, sendRequestToEndpointSync(request, endpointUrl)));
+    }
+
+    @NonNull <Response> Result<Response, NetworkException> sendRequestToEndpointSync(
+            PushRequest<Response> request, @NonNull String endpointUrl) {
+        ReverseProxy proxy = reverseProxy;
+        if (reverseProxyRequired && proxy == null) {
+            return blockedByMissingProxy(request);
+        }
+        Map<String, String> headers = proxy != null ? proxy.headers : Collections.<String, String>emptyMap();
+        return sendThroughDeviceGates(request, new Endpoint(endpointUrl, headers, false));
+    }
+
+    @Override
+    @Nullable public String getReverseProxyUrl() {
+        ReverseProxy proxy = reverseProxy;
+        return proxy != null ? proxy.url : null;
+    }
+
+    @NonNull private static <Response> Result<Response, NetworkException> blockedByMissingProxy(PushRequest<Response> request) {
+        PWLog.error(TAG, "Reverse proxy is required but not configured. Request blocked: " + request.getMethod());
+        return Result.fromException(new NetworkException("Reverse proxy is required but not configured"));
+    }
+
+    @NonNull private <Response> Result<Response, NetworkException> sendThroughDeviceGates(
+            PushRequest<Response> request, Endpoint endpoint) {
+        if (registrationPrefs.removeAllDeviceData().get()) {
+            PWLog.warn(TAG, DEVICE_REMOVED_MSG + ". Request blocked: " + request.getMethod());
+            return Result.fromException(new NetworkException(DEVICE_REMOVED_MSG));
+        }
+        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
+            PWLog.warn(TAG, COMMUNICATION_STOPPED_MSG + ". Request blocked: " + request.getMethod());
+            return Result.fromException(new NetworkException(COMMUNICATION_STOPPED_MSG));
+        }
+        return executeRequest(request, endpoint);
+    }
+
     /**
      * Runs pre-flight gating and dispatches to {@link #executeRequest} on success.
      * <p>
@@ -182,24 +224,14 @@ class PushwooshRequestManager implements RequestManager {
         }
         ReverseProxy proxy = reverseProxy;
         if (reverseProxyRequired && proxy == null) {
-            PWLog.error(TAG, "Reverse proxy is required but not configured. Request blocked: " + request.getMethod());
-            return Result.fromException(new NetworkException("Reverse proxy is required but not configured"));
+            return blockedByMissingProxy(request);
         }
         Endpoint endpoint = resolveEndpoint(baseUrl, proxy);
         if (endpoint == null) {
             PWLog.error(TAG, "Base URL is not configured. Request blocked: " + request.getMethod());
             return Result.fromException(new NetworkException("Base URL is not configured"));
         }
-        if (registrationPrefs.removeAllDeviceData().get()) {
-            PWLog.warn(TAG, DEVICE_REMOVED_MSG + ". Request blocked: " + request.getMethod());
-            return Result.fromException(new NetworkException(DEVICE_REMOVED_MSG));
-        }
-        if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
-            PWLog.warn(TAG, COMMUNICATION_STOPPED_MSG + ". Request blocked: " + request.getMethod());
-            return Result.fromException(new NetworkException(COMMUNICATION_STOPPED_MSG));
-        }
-
-        return executeRequest(request, endpoint);
+        return sendThroughDeviceGates(request, endpoint);
     }
 
     /**

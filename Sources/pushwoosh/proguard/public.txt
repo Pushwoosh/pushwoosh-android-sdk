@@ -198,3 +198,22 @@
     public *;
     protected *;
 }
+
+-keep public class com.pushwoosh.featureflags.PushwooshFeatureFlags {
+    public *;
+    protected *;
+}
+
+-keep public class com.pushwoosh.featureflags.FeatureFlag {
+    public *;
+    protected *;
+}
+
+-keep public class com.pushwoosh.featureflags.FeatureFlagsException {
+    public *;
+    protected *;
+}
+
+-keep public interface com.pushwoosh.featureflags.FeatureFlagsUpdateListener {
+    *;
+}

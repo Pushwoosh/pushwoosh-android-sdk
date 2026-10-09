@@ -43,6 +43,14 @@
 
         </LinearLayout>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonFeatureFlags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="Feature Flags"
+            style="@style/Widget.Demoapp.Button.Outlined" />
+
         <!-- Tags Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"

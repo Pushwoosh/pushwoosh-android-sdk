@@ -1,0 +1,224 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>PushwooshFcmRouterService</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script><link href="../../../styles/pushwoosh-docs.css" rel="Stylesheet">
+</head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    Pushwoosh Android SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":pushwoosh-firebase/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":pushwoosh-firebase/main" data-filter=":pushwoosh-firebase/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Pushwoosh Android SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="pushwoosh-firebase::com.pushwoosh.firebase/PushwooshFcmRouterService///PointingToDeclaration//-555745950">
+  <div class="breadcrumbs"><a href="../../index.html">pushwoosh-firebase</a><span class="delimiter">/</span><a href="../index.html">com.pushwoosh.firebase</a><span class="delimiter">/</span><span class="current">PushwooshFcmRouterService</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Pushwoosh</span><wbr><span>Fcm</span><wbr><span>Router</span><wbr><span><span>Service</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-firebase/main"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="index.html">PushwooshFcmRouterService</a></div><p class="paragraph">FCM service base class for apps that need their own push routing next to Pushwoosh. </p><p class="paragraph"> Extend this class instead of FirebaseMessagingService and register your subclass in the manifest as the FCM service. Forwarding to Pushwoosh is built in and cannot be bypassed: both callbacks and the FCM dispatcher <code class="lang-kotlin">handleIntent</code> are <code class="lang-kotlin">final</code>. </p><p class="paragraph"> Message dispatch is exclusive. A Pushwoosh message goes to the Pushwoosh SDK and never reaches <a href="on-app-message-received.html">onAppMessageReceived</a>; any other message goes to <a href="on-app-message-received.html">onAppMessageReceived</a> only. To observe Pushwoosh pushes as they arrive, override <code class="lang-kotlin">NotificationServiceExtension#onMessageReceived(PushMessage)</code>: it fires for every Pushwoosh push whichever FCM service received it, and its return value decides whether the notification is shown. To route Pushwoosh pushes to screens, handle the <strong>open</strong>, not the receive: use <code class="lang-kotlin">NotificationServiceExtension</code> and the notification open handler chain. </p><p class="paragraph"> Contract: </p><ul><li>on a new token the Pushwoosh SDK is notified first, then <a href="on-app-token-refresh.html">onAppTokenRefresh</a>;</li><li>both callbacks run on the FCM background executor, like the native <code class="lang-kotlin">onMessageReceived</code> and <code class="lang-kotlin">onNewToken</code>;</li><li>an exception thrown by the Pushwoosh SDK on a Pushwoosh message is logged and swallowed; an exception inside <a href="on-app-message-received.html">onAppMessageReceived</a> is the app's own.</li></ul> Recommended manifest registration — the priority keeps the service winning the resolve even if another library ships its own FCM service: <div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
+&lt;service android:name=".YourRouterService" android:exported="false"&gt;
+    &lt;intent-filter android:priority="1"&gt;
+        &lt;action android:name="com.google.firebase.MESSAGING_EVENT" /&gt;
+    &lt;/intent-filter&gt;
+&lt;/service&gt;
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div> Other FirebaseMessagingService callbacks (<code class="lang-kotlin">onDeletedMessages</code>, <code class="lang-kotlin">onMessageSent</code>, <code class="lang-kotlin">onSendError</code>) are not sealed — override them as usual.</div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="1138082575%2FConstructors%2F-555745950" anchor-label="PushwooshFcmRouterService" id="1138082575%2FConstructors%2F-555745950" data-filterable-set=":pushwoosh-firebase/main"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":pushwoosh-firebase/main" data-filterable-set=":pushwoosh-firebase/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-pushwoosh-fcm-router-service.html"><span>Pushwoosh</span><wbr><span>Fcm</span><wbr><span>Router</span><wbr><span><span>Service</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1138082575%2FConstructors%2F-555745950"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-firebase/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="628818569%2FFunctions%2F-555745950" anchor-label="handleIntent" id="628818569%2FFunctions%2F-555745950" data-filterable-set=":pushwoosh-firebase/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-firebase/main" data-filterable-set=":pushwoosh-firebase/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="handle-intent.html"><span>handle</span><wbr><span><span>Intent</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="628818569%2FFunctions%2F-555745950"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-firebase/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="handle-intent.html"><span class="token function">handleIntent</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">intent<span class="token operator">: </span><span data-unresolved-link="android.content/Intent///PointingToDeclaration/">Intent</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="63387658%2FFunctions%2F-555745950" anchor-label="onAppMessageReceived" id="63387658%2FFunctions%2F-555745950" data-filterable-set=":pushwoosh-firebase/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-firebase/main" data-filterable-set=":pushwoosh-firebase/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-app-message-received.html"><span>on</span><wbr><span>App</span><wbr><span>Message</span><wbr><span><span>Received</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="63387658%2FFunctions%2F-555745950"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-firebase/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="on-app-message-received.html"><span class="token function">onAppMessageReceived</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span>RemoteMessage</span></span><span class="token punctuation">)</span></div><div class="brief ">Called for every FCM message that is not a Pushwoosh message.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2071184300%2FFunctions%2F-555745950" anchor-label="onAppTokenRefresh" id="-2071184300%2FFunctions%2F-555745950" data-filterable-set=":pushwoosh-firebase/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-firebase/main" data-filterable-set=":pushwoosh-firebase/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-app-token-refresh.html"><span>on</span><wbr><span>App</span><wbr><span>Token</span><wbr><span><span>Refresh</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2071184300%2FFunctions%2F-555745950"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-firebase/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="on-app-token-refresh.html"><span class="token function">onAppTokenRefresh</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief ">Called after the new FCM token has been passed to the Pushwoosh SDK.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1737966899%2FFunctions%2F-555745950" anchor-label="onMessageReceived" id="-1737966899%2FFunctions%2F-555745950" data-filterable-set=":pushwoosh-firebase/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-firebase/main" data-filterable-set=":pushwoosh-firebase/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-message-received.html"><span>on</span><wbr><span>Message</span><wbr><span><span>Received</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1737966899%2FFunctions%2F-555745950"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-firebase/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="on-message-received.html"><span class="token function">onMessageReceived</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">remoteMessage<span class="token operator">: </span>RemoteMessage</span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1646563296%2FFunctions%2F-555745950" anchor-label="onNewToken" id="1646563296%2FFunctions%2F-555745950" data-filterable-set=":pushwoosh-firebase/main"></a>
+          <div class="table-row" data-filterable-current=":pushwoosh-firebase/main" data-filterable-set=":pushwoosh-firebase/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-new-token.html"><span>on</span><wbr><span>New</span><wbr><span><span>Token</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1646563296%2FFunctions%2F-555745950"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh-firebase/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="on-new-token.html"><span class="token function">onNewToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -47,7 +47,6 @@ open class InboxActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // Set system bars to match inbox background color for consistency
         setupSystemBars()
 
         setContentView(R.layout.pw_activity_inbox)
@@ -65,24 +64,36 @@ open class InboxActivity : AppCompatActivity() {
     }
 
     private fun setupSystemBars() {
-        val backgroundColor = PushwooshInboxStyle.backgroundColor
-        if (backgroundColor != null) {
-            // statusBarColor / navigationBarColor are no-ops on API 35+ (edge-to-edge enforced).
-            // Keep assigning them on older APIs so clients that rely on
-            // PushwooshInboxStyle.backgroundColor
-            // still see coloured system bars.
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                @Suppress("DEPRECATION")
-                window.statusBarColor = backgroundColor
-                @Suppress("DEPRECATION")
-                window.navigationBarColor = backgroundColor
-            }
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        val belowEdgeToEdge = Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM
 
-            // Determine if we need light or dark status bar icons based on background brightness
-            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-            val isLightBackground = isColorLight(backgroundColor)
-            windowInsetsController.isAppearanceLightStatusBars = isLightBackground
-            windowInsetsController.isAppearanceLightNavigationBars = isLightBackground
+        statusBarColor()?.let { color ->
+            if (belowEdgeToEdge) {
+                @Suppress("DEPRECATION")
+                window.statusBarColor = color
+            }
+            insetsController.isAppearanceLightStatusBars = isColorLight(color)
+        }
+
+        PushwooshInboxStyle.backgroundColor?.let { color ->
+            if (belowEdgeToEdge) {
+                @Suppress("DEPRECATION")
+                window.navigationBarColor = color
+            }
+            insetsController.isAppearanceLightNavigationBars = isColorLight(color)
+        }
+    }
+
+    /**
+     * The color sitting under the status bar: the toolbar covers it when shown, otherwise the
+     * screen reaches it. Null leaves the bar as the theme painted it.
+     */
+    private fun statusBarColor(): Int? {
+        val toolbarShown = PushwooshInboxStyle.showToolbar ?: true
+        return if (toolbarShown) {
+            PushwooshInboxStyle.barBackgroundColor
+        } else {
+            PushwooshInboxStyle.backgroundColor
         }
     }
 

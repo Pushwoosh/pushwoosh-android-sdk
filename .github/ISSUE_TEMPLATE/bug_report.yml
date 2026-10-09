@@ -53,67 +53,12 @@ body:
         This happens only if dependency XYZ v.1.2.3 is installed
     validations:
       required: true
-  - type: dropdown
+  - type: input
     id: affected-version
     attributes:
       label: Your Pushwoosh Android SDK version
       description: Your Android SDK version which was integrated to the app. You may find it on the [releases page](https://github.com/Pushwoosh/pushwoosh-android-sdk/releases)
-      options:
-        - 6.15.1
-        - 6.15.0
-        - 6.14.0
-        - 6.13.0
-        - 6.12.0
-        - 6.11.1
-        - 6.11.0
-        - 6.10.2
-        - 6.10.1
-        - 6.10.0
-        - 6.9.6
-        - 6.9.5
-        - 6.9.4
-        - 6.9.3
-        - 6.9.2
-        - 6.9.1
-        - 6.9.0
-        - 6.8.1
-        - 6.8.0
-        - 6.7.67
-        - 6.7.66
-        - 6.7.65
-        - 6.7.64
-        - 6.7.63
-        - 6.7.62
-        - 6.7.61
-        - 6.7.60
-        - 6.7.59
-        - 6.7.58
-        - 6.7.57
-        - 6.7.56
-        - 6.7.56
-        - 6.7.55
-        - 6.7.54
-        - 6.7.53
-        - 6.7.52
-        - 6.7.51
-        - 6.7.50
-        - 6.7.49
-        - 6.7.48
-        - 6.7.47
-        - 6.7.46
-        - 6.7.45
-        - 6.7.44
-        - 6.7.43
-        - 6.7.42
-        - 6.7.41
-        - 6.7.40
-        - 6.7.39
-        - 6.7.38
-        - 6.7.37
-        - 6.7.36
-        - 6.7.35
-        - 6.7.34
-        - Other — specify it in the description
+      placeholder: "6.16.0"
     validations:
       required: true
   - type: input

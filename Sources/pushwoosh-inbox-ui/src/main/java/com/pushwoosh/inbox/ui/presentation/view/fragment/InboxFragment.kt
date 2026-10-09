@@ -29,6 +29,9 @@ package com.pushwoosh.inbox.ui.presentation.view.fragment
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.core.app.ActivityOptionsCompat
@@ -152,10 +155,7 @@ open class InboxFragment : BaseFragment(), InboxView {
                 activity?.finish()
             }
 
-            // Apply navigation icon tint after it's created
-            PushwooshInboxStyle.barTextColor?.let { textColor ->
-                inboxToolbar.navigationIcon?.setTint(textColor)
-            }
+            applyBarStyle()
         } else {
             // Hide toolbar when host Activity already has one
             inboxAppBarLayout.visibility = View.GONE
@@ -182,24 +182,12 @@ open class InboxFragment : BaseFragment(), InboxView {
             }
         })
 
-        val backgroundColor = PushwooshInboxStyle.backgroundColor
-        if (backgroundColor != null) {
-            // Apply background color to all container views for consistency
-            view.setBackgroundColor(backgroundColor)
-            inboxSwipeRefreshLayout.setBackgroundColor(backgroundColor)
-            inboxRecyclerView.setBackgroundColor(backgroundColor)
-            inboxEmpty.setBackgroundColor(backgroundColor)
-            inboxError.setBackgroundColor(backgroundColor)
-            
-            // Apply background color to toolbar and app bar (use specific bar color if available)
-            val appBarColor = PushwooshInboxStyle.barBackgroundColor ?: backgroundColor
-            inboxToolbar.setBackgroundColor(appBarColor)
-            inboxAppBarLayout.setBackgroundColor(appBarColor)
-            
-            // Apply bar text color if available
-            PushwooshInboxStyle.barTextColor?.let { textColor ->
-                inboxToolbar.setTitleTextColor(textColor)
-            }
+        PushwooshInboxStyle.backgroundColor?.let { color ->
+            view.setBackgroundColor(color)
+            inboxSwipeRefreshLayout.setBackgroundColor(color)
+            inboxRecyclerView.setBackgroundColor(color)
+            inboxEmpty.setBackgroundColor(color)
+            inboxError.setBackgroundColor(color)
         }
 
         val divider = colorSchemeProvider.divider
@@ -217,6 +205,8 @@ open class InboxFragment : BaseFragment(), InboxView {
             inboxPresenter.refreshItems()
             callback?.setTouchable(false)
         }
+        inboxSwipeRefreshLayout.setColorSchemeColors(colorSchemeProvider.accentColor)
+        inboxTotalProgressBar.indeterminateTintList = ColorStateList.valueOf(colorSchemeProvider.accentColor)
 
         if (PushwooshInboxStyle.listErrorImageDrawable == null) {
             inboxErrorImageView.setImageResource(PushwooshInboxStyle.listErrorImage)
@@ -236,6 +226,30 @@ open class InboxFragment : BaseFragment(), InboxView {
             inboxErrorImageView.setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN)
         }
         
+    }
+
+    /**
+     * Applies the three toolbar keys of [PushwooshInboxStyle]. Each key paints one thing and is
+     * independent of the others and of [PushwooshInboxStyle.backgroundColor], which never reaches
+     * the bar.
+     */
+    private fun applyBarStyle() {
+        PushwooshInboxStyle.barBackgroundColor?.let { color ->
+            inboxToolbar.setBackgroundColor(color)
+            inboxAppBarLayout.setBackgroundColor(color)
+        }
+
+        PushwooshInboxStyle.barTextColor?.let { color ->
+            inboxToolbar.setTitleTextColor(color)
+        }
+
+        PushwooshInboxStyle.barAccentColor?.let { color ->
+            // a color filter, not setTint: Drawable exposes a getter for it, so the result is readable back
+            // mutate() first: AppCompatDrawableManager caches ConstantState, so an unmutated filter leaks onto other back arrows
+            val navigationIcon = inboxToolbar.navigationIcon?.mutate()
+            navigationIcon?.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+            inboxToolbar.navigationIcon = navigationIcon
+        }
     }
 
     override fun showSwipeRefreshProgress() {

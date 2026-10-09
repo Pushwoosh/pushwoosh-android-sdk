@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.appevents.PushwooshDefaultEvents;
+import com.pushwoosh.featureflags.FeatureFlagsManager;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.inapp.PushwooshInAppServiceImpl;
 import com.pushwoosh.inapp.view.strategy.ResourceViewStrategyFactory;
@@ -58,6 +59,7 @@ public class PushwooshPlatform {
     private final PushwooshRepository pushwooshRepository;
     private final RegistrationPrefs registrationPrefs;
     private final PushwooshInAppImpl pushwooshInApp;
+    private final FeatureFlagsManager featureFlagsManager;
     private final ServerCommunicationManager serverCommunicationManager;
     private NotificationServiceExtension notificationServiceExtension;
     private RichMediaController richMediaController;
@@ -119,6 +121,8 @@ public class PushwooshPlatform {
         NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
         pushwooshRepository =
                 new PushwooshRepository(requestManager, sendTagsProcessor, registrationPrefs, notificationPrefs);
+        featureFlagsManager = FeatureFlagsManager.create(config, registrationPrefs, requestManager, pushwooshInApp);
+        featureFlagsManager.start();
 
         richMediaStyle = new RichMediaStyle(0, new RichMediaAnimationSlideBottom());
         richMediaController =
@@ -155,6 +159,10 @@ public class PushwooshPlatform {
 
     public PushwooshInAppImpl pushwooshInApp() {
         return pushwooshInApp;
+    }
+
+    @NonNull public FeatureFlagsManager featureFlags() {
+        return featureFlagsManager;
     }
 
     public RichMediaController getRichMediaController() {

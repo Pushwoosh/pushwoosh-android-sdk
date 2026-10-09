@@ -3,3 +3,7 @@
  -keep public class com.pushwoosh.firebase.PushwooshFcmHelper {
      *;
  }
+
+ -keep public class com.pushwoosh.firebase.PushwooshFcmRouterService {
+     *;
+ }

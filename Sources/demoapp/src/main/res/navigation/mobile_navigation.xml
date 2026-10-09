@@ -34,4 +34,10 @@
             app:argType="string" />
 
     </fragment>
+
+    <fragment
+        android:id="@+id/navigation_feature_flags"
+        android:name="com.pushwoosh.demoapp.ui.featureflags.FeatureFlagsFragment"
+        android:label="@string/title_feature_flags"
+        tools:layout="@layout/fragment_feature_flags" />
 </navigation>

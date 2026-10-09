@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -73,7 +74,9 @@ import org.robolectric.shadows.ShadowLooper;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.SocketTimeoutException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -949,5 +952,98 @@ public class PushwooshRequestManagerTest {
 
         assertThat(result.isSuccess(), is(true));
         assertEquals(1, injected.count());
+    }
+
+    private static final String FLAGS_ENDPOINT = "https://proxy.test.pushwoosh.local/pw/api/v2/device-api/";
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestToEndpoint_proxyActive_urlIsNotReplacedAndProxyHeadersSent() throws Exception {
+        Map<String, String> headers = Collections.singletonMap("X-Proxy-Auth", "secret");
+        requestManager.setReverseProxyUrl("https://proxy.test.pushwoosh.local/pw/json/1.3/", headers);
+        transport.respondWith(200, "{\"status_code\":200,\"response\":{}}");
+
+        Result<Void, NetworkException> result =
+                requestManager.sendRequestToEndpointSync(new FlatPayloadTestRequest("v"), FLAGS_ENDPOINT);
+
+        assertThat(result.isSuccess(), is(true));
+        assertEquals(FLAGS_ENDPOINT, transport.last().url);
+        assertEquals("flatMethod", transport.last().method);
+        assertEquals("secret", transport.last().headers.get("X-Proxy-Auth"));
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestToEndpoint_baseUrlInResponse_isNotApplied() throws Exception {
+        transport.respondWith(
+                200,
+                "{\"status_code\":200,\"base_url\":\"https://rotated.test.pushwoosh.local/json/1.3/\",\"response\":{}}");
+
+        requestManager.sendRequestToEndpointSync(new FlatPayloadTestRequest("v"), FLAGS_ENDPOINT);
+
+        assertEquals(BASE_URL, registrationPrefs.baseUrl().get());
+        transport.respondWith(200, OK_BODY);
+        requestManager.sendRequestSync(new TestRequest("p", "r"));
+        assertEquals(BASE_URL, transport.last().url);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestToEndpoint_deviceDataRemoved_isBlocked() throws Exception {
+        registrationPrefs.removeAllDeviceData().set(true);
+
+        Result<Void, NetworkException> result =
+                requestManager.sendRequestToEndpointSync(new FlatPayloadTestRequest("v"), FLAGS_ENDPOINT);
+
+        assertThat(result.isSuccess(), is(false));
+        assertEquals(0, transport.count());
+        registrationPrefs.removeAllDeviceData().set(false);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestToEndpoint_proxyRequiredButMissing_isBlocked() throws Exception {
+        ServerCommunicationManager allowed = mock(ServerCommunicationManager.class);
+        when(allowed.isServerCommunicationAllowed()).thenReturn(true);
+        PushwooshRequestManager strict = new PushwooshRequestManager(registrationPrefs, allowed, true, transport);
+
+        Result<Void, NetworkException> result =
+                strict.sendRequestToEndpointSync(new FlatPayloadTestRequest("v"), FLAGS_ENDPOINT);
+
+        assertThat(result.isSuccess(), is(false));
+        assertEquals(0, transport.count());
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestToEndpoint_http500_isConnectionExceptionWithStatus() throws Exception {
+        transport.respondWith(500, "Internal Server Error", "");
+
+        Result<Void, NetworkException> result =
+                requestManager.sendRequestToEndpointSync(new FlatPayloadTestRequest("v"), FLAGS_ENDPOINT);
+
+        assertThat(result.getException(), instanceOf(ConnectionException.class));
+        assertEquals(500, ((ConnectionException) result.getException()).getStatusCode());
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void getReverseProxyUrl_reflectsCurrentProxy() {
+        assertNull(requestManager.getReverseProxyUrl());
+        requestManager.setReverseProxyUrl("https://proxy.test.pushwoosh.local/pw/json/1.3/", null);
+        assertEquals("https://proxy.test.pushwoosh.local/pw/json/1.3/", requestManager.getReverseProxyUrl());
+        requestManager.setReverseProxyUrl(null, null);
+        assertNull(requestManager.getReverseProxyUrl());
+    }
+
+    // GetFeatureFlagsRequest is package-private in featureflags and this manager in network: reflection bridges them.
+    @Test(timeout = TIMEOUT_TEST)
+    public void sendRequestToEndpoint_getFeatureFlagsRequest_bodyIsExactlyApplicationAndHwid() throws Exception {
+        Constructor<?> ctor = Class.forName("com.pushwoosh.featureflags.GetFeatureFlagsRequest")
+                .getDeclaredConstructor(String.class, String.class, String.class);
+        ctor.setAccessible(true);
+        PushRequest<?> flagsRequest = (PushRequest<?>) ctor.newInstance("70699-8A0F4", "hwid-1", "");
+        transport.respondWith(200, "{\"status_code\":200,\"response\":{\"flags\":{}}}");
+
+        requestManager.sendRequestToEndpointSync(flagsRequest, FLAGS_ENDPOINT);
+
+        assertEquals(FLAGS_ENDPOINT, transport.last().url);
+        assertEquals("getFeatureFlags", transport.last().method);
+        JSONAssert.assertEquals(
+                "{\"application\":\"70699-8A0F4\",\"hwid\":\"hwid-1\"}", transport.last().payload, true);
     }
 }

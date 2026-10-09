@@ -99,12 +99,19 @@ object PushwooshInboxStyle {
     var listEmptyText: CharSequence? = "Currently there are no messages in the Inbox."
 
     /**
-     * Accent color of inbox cell. By default used AppCompat R.attr.colorAccent
+     * Accent of the inbox: the action icon of an unread message, the unread dot and the buttons of
+     * rich cards, the avatar background of an unread classic row, the pinned-message icon of a
+     * classic row, the swipe-to-delete background, the pull-to-refresh spinner and the first-load
+     * indicator. Defaults to the theme attribute inboxAccentColor, which resolves to the theme's
+     * colorAccent.
      */
     var accentColor: Int? = null
 
     /**
-     * The color of cell background. By default used Android android.R.attr.windowBackground
+     * Background of the inbox screen: the list, the message rows, the empty state and the error
+     * state, and below API 35 the navigation bar. Does not paint the toolbar. Defaults to the theme
+     * attribute inboxBackgroundColor, which PwInboxTheme sets to white; only a host theme that
+     * leaves that attribute undefined falls through to android.R.attr.windowBackground.
      */
     var backgroundColor: Int? = null
     /**
@@ -113,11 +120,15 @@ object PushwooshInboxStyle {
     var highlightColor: Int? = null
 
     /**
-     * The color of the unread message action icon (Deep Link, URL, etc.). By default used {@link #accentColor}
+     * The action icon (Deep Link, URL, etc.) of an unread message. Defaults to [accentColor], and
+     * with neither key set to the theme attribute inboxImageTypeColor, which resolves to the
+     * theme's colorAccent.
      */
     var imageTypeColor: Int? = null
     /**
-     * The color of the read message action icon. By default used {@link #readDateColor}
+     * The action icon of a read message. Defaults to [readDateColor], and with neither key set to
+     * the theme attribute inboxReadImageTypeColor, which resolves to the theme's
+     * android.R.attr.textColorSecondary.
      */
     var readImageTypeColor: Int? = null
 
@@ -140,12 +151,14 @@ object PushwooshInboxStyle {
     var readDescriptionColor: Int? = null
 
     /**
-     * The date color of unread messages. By default used Android android.R.attr.textColorSecondary
+     * The date of an unread message. Defaults to the theme attribute inboxDateColor, which resolves
+     * to the theme's android.R.attr.textColorSecondary.
      */
     var dateColor: Int? = null
 
     /**
-     * The date color of read messages. By default used Android android.R.attr.textColorSecondary
+     * The date of a read message. Defaults to the theme attribute inboxReadDateColor, which
+     * resolves to the theme's android.R.attr.textColorSecondary.
      */
     var readDateColor: Int? = null
 
@@ -155,17 +168,21 @@ object PushwooshInboxStyle {
     var dividerColor: Int? = null
 
     /**
-     * The bar color. By default used Android android.R.attr.textColorSecondary
+     * Background of the toolbar and the app bar, and below API 35 of the status bar. Independent of
+     * [backgroundColor]. Defaults to android.R.attr.colorPrimary — the platform attribute the
+     * toolbar layout points at, not AppCompat's colorPrimary.
      */
     var barBackgroundColor: Int? = null
 
     /**
-     * The bar accent color. By default used Android android.R.attr.textColorSecondary
+     * The toolbar navigation icon — the back arrow. Nothing else. With the key unset we apply no
+     * tint of our own, so the icon keeps the one AppCompat gives it from the activity theme's
+     * AppCompat colorControlNormal.
      */
     var barAccentColor: Int? = null
 
     /**
-     * The bar text color. By default used Android android.R.attr.textColorPrimary
+     * The toolbar title. Nothing else. Defaults to white.
      */
     var barTextColor: Int? = null
 
@@ -233,7 +250,8 @@ object PushwooshInboxStyle {
     internal fun getDescriptionFont(): Typeface? = descriptionFont
 
     /**
-     * Clear all setting colors
+     * Resets every color key of this object back to its default, the three toolbar keys included,
+     * and puts [showToolbar] back to auto-detect. [barTitle] is not a color and is left alone.
      */
     fun clearColors() {
         accentColor = null
@@ -248,6 +266,9 @@ object PushwooshInboxStyle {
         dateColor = null
         readDateColor = null
         dividerColor = null
+        barBackgroundColor = null
+        barAccentColor = null
+        barTextColor = null
         showToolbar = null
     }
 }

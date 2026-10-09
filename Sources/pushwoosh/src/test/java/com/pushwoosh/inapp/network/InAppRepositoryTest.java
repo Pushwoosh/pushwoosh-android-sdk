@@ -1049,28 +1049,11 @@ public class InAppRepositoryTest {
         Assert.assertTrue(value.getException().getMessage().contains("/registerUser"));
     }
 
-    // Verifies that setUser logs warning and skips request when userId is empty.
+    // Verifies that setUserEmails invokes callback with success after RegisterEmail + RegisterEmailUser succeed.
     @Test
-    public void setUser_emptyUserId_logsWarningAndDoesNotSendRequest() {
+    public void setUserEmails_allEmailsSucceed_callbackReceivesTrue() {
         Callback<Boolean, SetUserException> callback = CallbackWrapper.spy();
-
-        inAppRepository.setUser("", Collections.singletonList("a@x.com"), callback);
-
-        verify(requestManagerMock, never()).sendRequest(any(), any(Callback.class));
-        verify(callback, never()).process(any());
-    }
-
-    // Verifies that setUser invokes callback with success after RegisterUser + RegisterEmail + RegisterEmailUser all
-    // succeed.
-    @Test
-    public void setUser_userIdSuccessAndAllEmailsSuccess_callbackReceivesTrue() {
-        Callback<Boolean, SetUserException> callback = CallbackWrapper.spy();
-        inAppRepository.setUser("u", Collections.singletonList("a@x.com"), callback);
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Callback> registerUserCb = ArgumentCaptor.forClass(Callback.class);
-        verify(requestManagerMock).sendRequest(any(RegisterUserRequest.class), registerUserCb.capture());
-        registerUserCb.getValue().process(Result.fromData(null));
+        inAppRepository.setUserEmails(Collections.singletonList("a@x.com"), callback);
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Callback> registerEmailCb = ArgumentCaptor.forClass(Callback.class);
@@ -1090,38 +1073,11 @@ public class InAppRepositoryTest {
         Assert.assertEquals(Boolean.TRUE, value.getData());
     }
 
-    // Verifies that setUser stops chain and yields SetUserException when RegisterUser fails.
+    // Verifies that setUserEmails yields SetUserException with the registerEmail message when the email step fails.
     @Test
-    public void setUser_userIdFails_callbackReceivesSetUserException() {
+    public void setUserEmails_emailFails_callbackReceivesSetUserException() {
         Callback<Boolean, SetUserException> callback = CallbackWrapper.spy();
-        inAppRepository.setUser("u", Collections.singletonList("a@x.com"), callback);
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Callback> registerUserCb = ArgumentCaptor.forClass(Callback.class);
-        verify(requestManagerMock).sendRequest(any(RegisterUserRequest.class), registerUserCb.capture());
-        registerUserCb.getValue().process(Result.fromException(new NetworkException("user-err")));
-
-        verify(requestManagerMock, never()).sendRequest(any(RegisterEmailRequest.class), any(Callback.class));
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Result<Boolean, SetUserException>> resultCaptor = ArgumentCaptor.forClass(Result.class);
-        verify(callback).process(resultCaptor.capture());
-        Result<Boolean, SetUserException> value = resultCaptor.getValue();
-        Assert.assertFalse(value.isSuccess());
-        Assert.assertTrue(value.getException() instanceof SetUserException);
-        Assert.assertEquals("user-err", value.getException().getMessage());
-    }
-
-    // Verifies that setUser yields SetUserException with default registerEmail message when email step fails.
-    @Test
-    public void setUser_userIdSuccessButEmailFails_callbackReceivesSetUserException() {
-        Callback<Boolean, SetUserException> callback = CallbackWrapper.spy();
-        inAppRepository.setUser("u", Collections.singletonList("a@x.com"), callback);
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Callback> registerUserCb = ArgumentCaptor.forClass(Callback.class);
-        verify(requestManagerMock).sendRequest(any(RegisterUserRequest.class), registerUserCb.capture());
-        registerUserCb.getValue().process(Result.fromData(null));
+        inAppRepository.setUserEmails(Collections.singletonList("a@x.com"), callback);
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Callback> registerEmailCb = ArgumentCaptor.forClass(Callback.class);

@@ -8,6 +8,7 @@ import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.snackbar.Snackbar;
@@ -229,6 +230,8 @@ public class HomeFragment extends Fragment {
          * feeding a config map — the same shape a push carries in its `u` custom data —
          * without a server round-trip. See InAppPresets for the configs.
          */
+        binding.buttonFeatureFlags.setOnClickListener(
+                v -> NavHostFragment.findNavController(this).navigate(R.id.navigation_feature_flags));
         binding.buttonInAppBanner.setOnClickListener(v -> presentInApp("Banner", InAppPresets.BANNER));
         binding.buttonInAppModal.setOnClickListener(v -> presentInApp("Modal", InAppPresets.MODAL));
         binding.buttonInAppModalFloating.setOnClickListener(

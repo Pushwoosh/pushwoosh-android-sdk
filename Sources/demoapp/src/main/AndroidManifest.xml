@@ -38,6 +38,15 @@
             android:name="com.pushwoosh.LIVE_UPDATE_STYLE_PROVIDER"
             android:value="com.pushwoosh.demoapp.liveupdate.DemoLiveUpdateStyleProvider" />
 
+        <!-- Priority 1 beats the SDK's PushFcmIntentService on resolve: the demo dogfoods the router path. -->
+        <service
+            android:name="com.pushwoosh.demoapp.DemoFcmRouterService"
+            android:exported="false">
+            <intent-filter android:priority="1">
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name="com.pushwoosh.demoapp.MainActivity"
             android:launchMode="singleTop"

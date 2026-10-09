@@ -28,6 +28,7 @@ package com.pushwoosh.inbox.ui.presentation.view.adapter.inbox
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.PorterDuff
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.text.Spannable
@@ -89,7 +90,8 @@ class InboxViewHolder(adapter: InboxAdapter,
         } else {
             colorSchemeProvider.imageColor.defaultColor
         }
-        inboxStatusImageView.setColorFilter(imageColor)
+        // SRC_IN: the default SRC_ATOP blends translucent theme colors into the black glyph.
+        inboxStatusImageView.setColorFilter(imageColor, PorterDuff.Mode.SRC_IN)
 
         inboxDescriptionTextView.text = model.message
         inboxStatusImageView.setImageResource(model.type.getResource())

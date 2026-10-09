@@ -111,8 +111,10 @@ class ContextColorSchemeProvider(private val context: Context) : ColorSchemeProv
         }
 
         _imageColor = generateStateList(arrayOf(
-            Pair(PushwooshInboxStyle.imageTypeColor, provideColorByAttr(R.attr.inboxImageTypeColor)),
-            Pair(PushwooshInboxStyle.readImageTypeColor, provideColorByAttr(R.attr.inboxReadImageTypeColor))
+            Pair(PushwooshInboxStyle.imageTypeColor ?: PushwooshInboxStyle.accentColor,
+                provideColorByAttr(R.attr.inboxImageTypeColor)),
+            Pair(PushwooshInboxStyle.readImageTypeColor ?: PushwooshInboxStyle.readDateColor,
+                provideColorByAttr(R.attr.inboxReadImageTypeColor))
         ))
 
         _titleColor = generateStateList(arrayOf(

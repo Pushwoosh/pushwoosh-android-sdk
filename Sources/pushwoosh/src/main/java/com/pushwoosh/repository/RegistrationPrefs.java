@@ -73,6 +73,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private static final String PROPERTY_IS_REGISTERED_FOR_NOTIFICATION = "pw_registered_for_push";
     private static final String PROPERTY_LANGUAGE = "pw_language";
     private static final String PROPERTY_DENIED_NOTIFICATIONS = "pw_user_denied_notification_permission";
+    private static final String PROPERTY_FCM_MESSAGE_RECEIVED = "pw_fcm_message_received_since_app_update";
 
     private static final String PROPERTY_ADVERTISING_ID = "pw_advertising_id";
     private static final String COMMUNICATION_ENABLE = "pw_communication_enable";
@@ -99,6 +100,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private final DeviceRegistrar deviceRegistrar;
     private PreferenceBooleanValue registeredForPush;
     private PreferenceBooleanValue userDeniedNotificationPermission;
+    private PreferenceBooleanValue fcmMessageReceivedSinceInstallOrUpdate;
 
     RegistrationPrefs(Config config, DeviceRegistrar deviceRegistrar) {
         PWLog.noise("RegistrationPrefs()...");
@@ -122,6 +124,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         forceRegister = new PreferenceBooleanValue(preferences, PROPERTY_FORCE_REGISTER, false);
         userDeniedNotificationPermission =
                 new PreferenceBooleanValue(preferences, PROPERTY_DENIED_NOTIFICATIONS, false);
+        fcmMessageReceivedSinceInstallOrUpdate =
+                new PreferenceBooleanValue(preferences, PROPERTY_FCM_MESSAGE_RECEIVED, false);
 
         int newVersion = GeneralUtils.getAppVersion();
         if (appVersion.get() != newVersion) {
@@ -132,6 +136,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
                     "App version changed from " + appVersion.get() + " to " + newVersion
                             + "; resetting registration id");
             this.pushToken.set("");
+            fcmMessageReceivedSinceInstallOrUpdate.set(false);
             appVersion.set(newVersion);
         }
 
@@ -191,6 +196,16 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
     public PreferenceBooleanValue forceRegister() {
         return forceRegister;
+    }
+
+    /**
+     * True if PushwooshFcmHelper has recognized at least one Pushwoosh message since install or update.
+     * <p>
+     * Messages that belong to another push provider do not set it, even when the host app forwards every
+     * incoming FCM message to the helper.
+     */
+    public PreferenceBooleanValue fcmMessageReceivedSinceInstallOrUpdate() {
+        return fcmMessageReceivedSinceInstallOrUpdate;
     }
 
     public PreferenceStringValue userId() {
@@ -371,6 +386,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_DEVICE_ID);
         migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_LOG_LEVEL);
         migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_BASE_URL);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.BOOLEAN, PROPERTY_FCM_MESSAGE_RECEIVED);
 
         final SharedPreferences sharedPreferences = prefsProvider.providePrefs(PREFERENCE);
         if (sharedPreferences == null) {

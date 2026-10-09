@@ -1,6 +1,7 @@
 package com.pushwoosh.internal.network;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
@@ -67,5 +68,18 @@ class NotInitializedRequestManager implements RequestManager {
     public boolean setReverseProxyUrl(String url, Map<String, String> headers) {
         PWLog.error(TAG, NOT_INITIALIZED_MSG + ", reverse proxy not set");
         return false;
+    }
+
+    @Override
+    public <Response> void sendRequestToEndpoint(
+            @NonNull PushRequest<Response> request,
+            @NonNull String endpointUrl,
+            @Nullable Callback<Response, NetworkException> callback) {
+        sendRequest(request, endpointUrl, callback);
+    }
+
+    @Override
+    @Nullable public String getReverseProxyUrl() {
+        return null;
     }
 }

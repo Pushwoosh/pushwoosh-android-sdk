@@ -259,33 +259,21 @@ public class InAppRepository {
         return getResultErrorMessage(result, "an error occurred during /registerUser request");
     }
 
-    public void setUser(String userId, @NonNull List<String> emails, Callback<Boolean, SetUserException> callback) {
-        if (!TextUtils.isEmpty(userId)) {
-            setUserId(userId, result -> {
-                if (result.isSuccess()) {
-                    RepositoryModule.getRegistrationPreferences().userId().set(userId);
-                    EventBus.sendEvent(new UserIdUpdatedEvent());
-                    setEmail(emails, setEmailResult -> {
-                        if (callback == null) {
-                            return;
-                        }
-                        if (setEmailResult.isSuccess()) {
-                            callback.process(Result.fromData(true));
-                        } else if (!setEmailResult.isSuccess()) {
-                            String errorMessage = getRegisterEmailErrorMessage(setEmailResult);
-                            callback.process(Result.fromException(new SetUserException(errorMessage)));
-                        }
-                    });
-                } else {
-                    String errorMessage = getRegisterUserErrorMessage(result);
-                    if (callback != null) {
-                        callback.process(Result.fromException(new SetUserException(errorMessage)));
-                    }
-                }
-            });
-        } else {
-            PWLog.warn("userId cannot be empty");
-        }
+    /**
+     * Registers the emails of a user the server already has, without /registerUser.
+     */
+    public void setUserEmails(@NonNull List<String> emails, @Nullable Callback<Boolean, SetUserException> callback) {
+        setEmail(emails, setEmailResult -> {
+            if (callback == null) {
+                return;
+            }
+            if (setEmailResult.isSuccess()) {
+                callback.process(Result.fromData(true));
+            } else {
+                String errorMessage = getRegisterEmailErrorMessage(setEmailResult);
+                callback.process(Result.fromException(new SetUserException(errorMessage)));
+            }
+        });
     }
 
     private String getRegisterEmailErrorMessage(Result result) {

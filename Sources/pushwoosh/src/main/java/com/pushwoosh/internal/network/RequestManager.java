@@ -27,6 +27,7 @@
 package com.pushwoosh.internal.network;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
@@ -80,4 +81,19 @@ public interface RequestManager {
      *           or the manager is not initialized
      */
     boolean setReverseProxyUrl(String url, Map<String, String> headers);
+
+    /**
+     * Sends {@code request} to {@code endpointUrl + request.getMethod()} exactly as given: the reverse proxy
+     * URL does not replace it, and a {@code base_url} in the response is not applied. Reverse proxy headers are
+     * attached when a proxy is configured. The callback is invoked on the main thread.
+     */
+    <Response> void sendRequestToEndpoint(
+            @NonNull PushRequest<Response> request,
+            @NonNull String endpointUrl,
+            @Nullable Callback<Response, NetworkException> callback);
+
+    /**
+     * @return the normalized reverse proxy URL, or {@code null} when no proxy is configured
+     */
+    @Nullable String getReverseProxyUrl();
 }

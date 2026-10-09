@@ -41,6 +41,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 
 import com.pushwoosh.PushwooshWorkManagerHelper;
+import com.pushwoosh.firebase.internal.checker.FcmServiceValidator;
 import com.pushwoosh.firebase.internal.checker.FirebaseChecker;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
@@ -64,6 +65,9 @@ public class FcmRegistrar implements PushRegistrar {
     public void init() {
         new FirebaseChecker().check();
         context = AndroidPlatformModule.getApplicationContext();
+        // Hooked here, not in the module's plugin init: registration prefs exist only after the core
+        // provider, and the transport slot is settled only once this registrar has won it.
+        FcmServiceValidator.scheduleValidation();
     }
 
     @Override

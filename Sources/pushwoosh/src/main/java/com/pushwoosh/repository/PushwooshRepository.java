@@ -38,6 +38,8 @@ import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.network.InAppRepository;
+import com.pushwoosh.internal.event.DeviceDataRemovedEvent;
+import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.utils.PWLog;
@@ -331,6 +333,7 @@ public class PushwooshRepository {
         notificationPrefs.tags().set(null);
         registrationPrefs.advertisingId().set("");
         registrationPrefs.removeAllDeviceData().set(true);
+        EventBus.sendEvent(new DeviceDataRemovedEvent());
     }
 
     public boolean isDeviceDataRemoved() {

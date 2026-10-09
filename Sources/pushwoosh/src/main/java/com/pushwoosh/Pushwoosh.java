@@ -14,6 +14,8 @@ import com.pushwoosh.exception.SetEmailException;
 import com.pushwoosh.exception.SetUserException;
 import com.pushwoosh.exception.SetUserIdException;
 import com.pushwoosh.exception.UnregisterForPushNotificationException;
+import com.pushwoosh.featureflags.FeatureFlagsManager;
+import com.pushwoosh.featureflags.PushwooshFeatureFlags;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.InAppModule;
@@ -194,6 +196,18 @@ public class Pushwoosh {
         if (callback != null) {
             callback.process(result);
         }
+    }
+
+    // The stored User ID means "the server knows this user" and the same-ID short-circuits in setUserId and
+    // setUser trust it, so a failed /registerUser must not leave an unconfirmed ID behind.
+    private <E extends PushwooshException> Callback<Boolean, E> restoreUserIdOnFailure(
+            String oldUserId, Callback<Boolean, E> callback) {
+        return result -> {
+            if (!result.isSuccess()) {
+                registrationPrefs.userId().set(oldUserId);
+            }
+            safeProcessCallback(callback, result);
+        };
     }
 
     /**
@@ -1732,7 +1746,7 @@ public class Pushwoosh {
             }
             registrationPrefs.userId().set(userId);
             SdkStateProvider.getInstance().executeOrQueue(() -> {
-                inAppRepository.setUserId(userId, callback);
+                inAppRepository.setUserId(userId, restoreUserIdOnFailure(oldUserId, callback));
             });
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set user id", e);
@@ -1834,9 +1848,28 @@ public class Pushwoosh {
                 return;
             }
 
+            // same user: only the emails are new, a /registerUser would re-announce the user to every listener
+            String oldUserId = registrationPrefs.userId().get();
+            if (TextUtils.equals(userId, oldUserId)) {
+                SdkStateProvider.getInstance().executeOrQueue(() -> {
+                    inAppRepository.setUserEmails(emails, callback);
+                });
+                return;
+            }
+
             registrationPrefs.userId().set(userId);
             SdkStateProvider.getInstance().executeOrQueue(() -> {
-                inAppRepository.setUser(userId, emails, callback);
+                // the ID is confirmed once /registerUser succeeds; a later /registerEmail failure must not undo it
+                inAppRepository.setUserId(userId, restoreUserIdOnFailure(oldUserId, idResult -> {
+                    if (!idResult.isSuccess()) {
+                        safeProcessCallback(
+                                callback,
+                                Result.fromException(new SetUserException(
+                                        idResult.getException().getMessage())));
+                        return;
+                    }
+                    inAppRepository.setUserEmails(emails, callback);
+                }));
             });
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set user", e);
@@ -2087,6 +2120,29 @@ public class Pushwoosh {
             PWLog.error("Pushwoosh", "can't get user id", e);
         }
         return null;
+    }
+
+    /**
+     * Returns the feature flags API.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *   PushwooshFeatureFlags flags = Pushwoosh.getInstance().getFeatureFlags();
+     *   boolean newCheckout = flags.isEnabled("new_checkout", false);
+     *   flags.logImpression("new_checkout"); // both branches: the disabled one is the control group
+     *   if (newCheckout) {
+     *       showNewCheckout();
+     *   } else {
+     *       showOldCheckout();
+     *   }
+     * }
+     * </pre>
+     *
+     * @return the feature flags API, one instance per process; safe to call and to keep before the SDK is initialized
+     */
+    @NonNull public PushwooshFeatureFlags getFeatureFlags() {
+        return FeatureFlagsManager.publicApi();
     }
 
     /**

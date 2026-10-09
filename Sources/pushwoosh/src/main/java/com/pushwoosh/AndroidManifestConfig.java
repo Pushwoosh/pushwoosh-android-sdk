@@ -80,6 +80,7 @@ class AndroidManifestConfig implements Config {
     private boolean isCollectingLifecycleEventsAllowed = true;
     private boolean shouldShowFullscreenRichMedia = false;
     private boolean reverseProxyAllowed = false;
+    private boolean featureFlagsThrottleDisabled = false;
     private int idleTimeoutSeconds = 0;
     private int exitIntentTimeoutSeconds = 0;
 
@@ -140,6 +141,8 @@ class AndroidManifestConfig implements Config {
         shouldShowFullscreenRichMedia =
                 applicationInfo.metaData.getBoolean("com.pushwoosh.show_fullscreen_richmedia", true);
         reverseProxyAllowed = applicationInfo.metaData.getBoolean("com.pushwoosh.allow_reverse_proxy", false);
+        featureFlagsThrottleDisabled =
+                applicationInfo.metaData.getBoolean("com.pushwoosh.feature_flags.disable_throttle", false);
 
         String notificationIconPath = applicationInfo.metaData.getString("com.pushwoosh.notification_icon");
         if (notificationIconPath != null) {
@@ -410,6 +413,11 @@ class AndroidManifestConfig implements Config {
     @Override
     public boolean isReverseProxyAllowed() {
         return reverseProxyAllowed;
+    }
+
+    @Override
+    public boolean isFeatureFlagsThrottleDisabled() {
+        return featureFlagsThrottleDisabled;
     }
 
     @Override

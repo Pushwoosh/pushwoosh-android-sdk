@@ -45,6 +45,7 @@ public class RegistrationPrefsTest {
     private static final String PROPERTY_APP_VERSION = "app_version";
     private static final String PROPERTY_USER_ID = "user_id";
     private static final String PROPERTY_IS_REGISTERED_FOR_NOTIFICATION = "pw_registered_for_push";
+    private static final String PROPERTY_FCM_MESSAGE_RECEIVED = "pw_fcm_message_received_since_app_update";
 
     private RegistrationPrefs registrationPrefs;
     private DeviceRegistrar deviceRegistrar;
@@ -275,6 +276,33 @@ public class RegistrationPrefsTest {
                 "app_version must be rewritten to current after divergent reset",
                 GeneralUtils.getAppVersion(),
                 prefs.getInt(PROPERTY_APP_VERSION, -1));
+    }
+
+    @Test
+    public void constructor_appVersionDiverges_resetsFcmMessageReceivedFlag() {
+        SharedPreferences prefs = installFreshTestPrefsProvider();
+        prefs.edit().putBoolean(PROPERTY_FCM_MESSAGE_RECEIVED, true).apply();
+        // Plant a clearly-bogus version code so it cannot accidentally match getAppVersion().
+        new PreferenceIntValue(prefs, PROPERTY_APP_VERSION, 0).set(987654);
+
+        Config config = MockConfig.createMock("APP");
+        registrationPrefs = new RegistrationPrefs(config, deviceRegistrar);
+
+        assertFalse(
+                "flag must reset together with push token on app update",
+                registrationPrefs.fcmMessageReceivedSinceInstallOrUpdate().get());
+    }
+
+    @Test
+    public void constructor_sameAppVersion_keepsFcmMessageReceivedFlag() {
+        SharedPreferences prefs = installFreshTestPrefsProvider();
+        prefs.edit().putBoolean(PROPERTY_FCM_MESSAGE_RECEIVED, true).apply();
+        new PreferenceIntValue(prefs, PROPERTY_APP_VERSION, 0).set(GeneralUtils.getAppVersion());
+
+        Config config = MockConfig.createMock("APP");
+        registrationPrefs = new RegistrationPrefs(config, deviceRegistrar);
+
+        assertTrue(registrationPrefs.fcmMessageReceivedSinceInstallOrUpdate().get());
     }
 
     // setLanguage with non-null value persists language, resets lastPushRegistration, calls updateRegistration.

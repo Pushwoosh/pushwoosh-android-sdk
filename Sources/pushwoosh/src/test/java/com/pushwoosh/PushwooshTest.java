@@ -4,6 +4,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -21,8 +24,14 @@ import androidx.work.testing.TestDriver;
 import androidx.work.testing.WorkManagerTestInitHelper;
 
 import com.pushwoosh.exception.RegisterForPushNotificationsException;
+import com.pushwoosh.exception.SetUserException;
+import com.pushwoosh.exception.SetUserIdException;
+import com.pushwoosh.featureflags.PushwooshFeatureFlags;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
+import com.pushwoosh.inapp.InAppModule;
+import com.pushwoosh.inapp.network.InAppRepository;
+import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
 import com.pushwoosh.internal.event.Subscription;
@@ -37,6 +46,7 @@ import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.testutil.CallbackWrapper;
 import com.pushwoosh.testutil.PlatformTestManager;
 
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +61,7 @@ import org.robolectric.shadows.ShadowLooper;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -113,6 +124,7 @@ public class PushwooshTest {
         // after every test. Re-point the cached fields at the current sandbox instances.
         setField(Pushwoosh.getInstance(), "registrationPrefs", platformTestManager.getRegistrationPrefs());
         setField(Pushwoosh.getInstance(), "notificationManager", notificationManagerSpy);
+        setField(Pushwoosh.getInstance(), "inAppRepository", InAppModule.getInAppRepository());
 
         sendPushStat = Pushwoosh.class.getDeclaredMethod("sendPushStat", Bundle.class);
         sendMessageDelivery = Pushwoosh.class.getDeclaredMethod("sendMessageDelivery", Bundle.class);
@@ -135,6 +147,173 @@ public class PushwooshTest {
             messagingServiceHelperMock.close();
         }
         platformTestManager.tearDown();
+    }
+
+    private static InAppRepository mockInAppRepository() throws Exception {
+        InAppRepository repository = Mockito.mock(InAppRepository.class);
+        setField(Pushwoosh.getInstance(), "inAppRepository", repository);
+        setField(Pushwoosh.getInstance(), "isInitialized", true);
+        SdkStateProvider.getInstance().setReady();
+        return repository;
+    }
+
+    private static void answerSetUserId(
+            InAppRepository repository, String userId, Result<Boolean, SetUserIdException> result) {
+        Mockito.doAnswer(invocation -> {
+                    Callback<Boolean, SetUserIdException> callback = invocation.getArgument(1);
+                    callback.process(result);
+                    return null;
+                })
+                .when(repository)
+                .setUserId(Mockito.eq(userId), Mockito.any());
+    }
+
+    private static void answerSetUserEmails(InAppRepository repository, Result<Boolean, SetUserException> result) {
+        Mockito.doAnswer(invocation -> {
+                    Callback<Boolean, SetUserException> callback = invocation.getArgument(1);
+                    if (callback != null) {
+                        callback.process(result);
+                    }
+                    return null;
+                })
+                .when(repository)
+                .setUserEmails(Mockito.anyList(), Mockito.any());
+    }
+
+    // Verifies that setUser with the stored User ID only registers the emails: /registerUser would fire
+    // UserIdUpdatedEvent, and feature flags refetch without etag on every such event.
+    @Test
+    public void setUser_sameUserId_registersEmailsWithoutRegisterUser() throws Exception {
+        InAppRepository repository = mockInAppRepository();
+        try {
+            registrationPrefs.userId().set("u1");
+            List<String> emails = Collections.singletonList("a@x.com");
+
+            Pushwoosh.getInstance().setUser("u1", emails);
+
+            Mockito.verify(repository).setUserEmails(Mockito.eq(emails), Mockito.isNull());
+            Mockito.verify(repository, Mockito.never()).setUserId(Mockito.anyString(), Mockito.any());
+        } finally {
+            SdkStateProvider.getInstance().resetForTesting();
+        }
+    }
+
+    // Verifies that setUser with a new User ID goes through /registerUser and registers the emails after it.
+    @Test
+    public void setUser_newUserId_registersUserThenEmails() throws Exception {
+        InAppRepository repository = mockInAppRepository();
+        try {
+            registrationPrefs.userId().set("u1");
+            List<String> emails = Collections.singletonList("a@x.com");
+            answerSetUserId(repository, "u2", Result.fromData(true));
+
+            Pushwoosh.getInstance().setUser("u2", emails);
+
+            Mockito.verify(repository).setUserId(Mockito.eq("u2"), Mockito.any());
+            Mockito.verify(repository).setUserEmails(Mockito.eq(emails), Mockito.isNull());
+            assertThat(registrationPrefs.userId().get(), equalTo("u2"));
+        } finally {
+            SdkStateProvider.getInstance().resetForTesting();
+        }
+    }
+
+    // Verifies that a failed /registerUser restores the previous User ID, so the next setUser with the same ID
+    // goes through /registerUser again instead of the same-user short-circuit.
+    @Test
+    public void setUser_registerUserFails_restoresPreviousUserId() throws Exception {
+        InAppRepository repository = mockInAppRepository();
+        try {
+            registrationPrefs.userId().set("u1");
+            List<String> emails = Collections.singletonList("a@x.com");
+            answerSetUserId(repository, "u2", Result.fromException(new SetUserIdException("offline")));
+            List<Result<Boolean, SetUserException>> results = new ArrayList<>();
+
+            Pushwoosh.getInstance().setUser("u2", emails, results::add);
+
+            assertThat(registrationPrefs.userId().get(), equalTo("u1"));
+            assertThat(results.size(), equalTo(1));
+            assertThat(results.get(0).getException().getMessage(), equalTo("offline"));
+            Mockito.verify(repository, Mockito.never()).setUserEmails(Mockito.anyList(), Mockito.any());
+
+            Pushwoosh.getInstance().setUser("u2", emails);
+
+            Mockito.verify(repository, Mockito.times(2)).setUserId(Mockito.eq("u2"), Mockito.any());
+        } finally {
+            SdkStateProvider.getInstance().resetForTesting();
+        }
+    }
+
+    // Verifies that a /registerEmail failure after a successful /registerUser keeps the new User ID: the server
+    // already knows it, and rolling back would make the next setUser re-register the user.
+    @Test
+    public void setUser_registerEmailFails_keepsNewUserId() throws Exception {
+        InAppRepository repository = mockInAppRepository();
+        try {
+            registrationPrefs.userId().set("u1");
+            List<String> emails = Collections.singletonList("a@x.com");
+            answerSetUserId(repository, "u2", Result.fromData(true));
+            answerSetUserEmails(repository, Result.fromException(new SetUserException("bad email")));
+            List<Result<Boolean, SetUserException>> results = new ArrayList<>();
+
+            Pushwoosh.getInstance().setUser("u2", emails, results::add);
+
+            assertThat(registrationPrefs.userId().get(), equalTo("u2"));
+            assertThat(results.size(), equalTo(1));
+            assertThat(results.get(0).isSuccess(), equalTo(false));
+
+            Pushwoosh.getInstance().setUser("u2", emails);
+
+            Mockito.verify(repository, Mockito.times(1)).setUserId(Mockito.eq("u2"), Mockito.any());
+            Mockito.verify(repository, Mockito.times(2)).setUserEmails(Mockito.eq(emails), Mockito.any());
+        } finally {
+            SdkStateProvider.getInstance().resetForTesting();
+        }
+    }
+
+    // Verifies that a failed /registerUser from setUserId restores the previous User ID the same way.
+    @Test
+    public void setUserId_registerUserFails_restoresPreviousUserId() throws Exception {
+        InAppRepository repository = mockInAppRepository();
+        try {
+            registrationPrefs.userId().set("u1");
+            answerSetUserId(repository, "u2", Result.fromException(new SetUserIdException("offline")));
+            List<Result<Boolean, SetUserIdException>> results = new ArrayList<>();
+
+            Pushwoosh.getInstance().setUserId("u2", results::add);
+
+            assertThat(registrationPrefs.userId().get(), equalTo("u1"));
+            assertThat(results.size(), equalTo(1));
+            assertThat(results.get(0).isSuccess(), equalTo(false));
+
+            Pushwoosh.getInstance().setUserId("u2");
+
+            Mockito.verify(repository, Mockito.times(2)).setUserId(Mockito.eq("u2"), Mockito.any());
+        } finally {
+            SdkStateProvider.getInstance().resetForTesting();
+        }
+    }
+
+    @Test
+    public void getFeatureFlags_isOneInstanceThatReadsThePlatformManager() throws Exception {
+        PushwooshFeatureFlags flags = Pushwoosh.getInstance().getFeatureFlags();
+        assertNull(flags.get("new_checkout"));
+        RegistrationPrefs prefs = PushwooshPlatform.getInstance().getRegistrationPrefs();
+        prefs.applicationId().set("70699-8A0F4");
+        prefs.hwid().set("hwid-1");
+        prefs.baseUrl().set("https://api.pushwoosh.com/json/1.3/");
+        SdkStateProvider.getInstance().setReady();
+        platformTestManager
+                .getRequestManager()
+                .respondWith(
+                        "getFeatureFlags",
+                        new JSONObject("{\"flags\":{\"new_checkout\":{\"enabled\":true,\"rule_id\":\"r_1\"}},"
+                                + "\"etag\":\"e1\",\"not_modified\":false,\"partial\":false}"));
+
+        flags.refresh(null);
+        ShadowLooper.idleMainLooper();
+
+        assertSame(flags, Pushwoosh.getInstance().getFeatureFlags());
+        assertTrue(flags.isEnabled("new_checkout", false));
     }
 
     @Test

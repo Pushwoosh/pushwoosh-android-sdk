@@ -11,8 +11,8 @@
         <item name="inboxBackgroundColor">@android:color/white</item>
         <item name="inboxHighlightColor">?attr/colorControlHighlight</item>
 
-        <item name="inboxImageTypeColor">?android:textColorSecondary</item>
-        <item name="inboxReadImageTypeColor">?android:textColorSecondary</item>
+        <item name="inboxImageTypeColor">?attr/inboxAccentColor</item>
+        <item name="inboxReadImageTypeColor">?attr/inboxReadDateColor</item>
 
         <item name="inboxTitleColor">?android:textColorPrimary</item>
         <item name="inboxReadTitleColor">?android:textColorSecondary</item>
@@ -20,7 +20,7 @@
         <item name="inboxDescriptionColor">?android:textColorSecondary</item>
         <item name="inboxReadDescriptionColor">?android:textColorSecondary</item>
 
-        <item name="inboxDateColor">?attr/inboxAccentColor</item>
+        <item name="inboxDateColor">?android:textColorSecondary</item>
         <item name="inboxReadDateColor">?android:textColorSecondary</item>
 
         <item name="inboxDividerColor">?android:textColorPrimary</item>

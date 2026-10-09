@@ -41,6 +41,7 @@ import androidx.work.testing.SynchronousExecutor;
 import androidx.work.testing.WorkManagerTestInitHelper;
 
 import com.pushwoosh.PushwooshPlatform;
+import com.pushwoosh.featureflags.FeatureFlagsManager;
 import com.pushwoosh.inapp.InAppModule;
 import com.pushwoosh.inapp.PushwooshInAppImpl;
 import com.pushwoosh.inapp.PushwooshInAppServiceImpl;
@@ -229,6 +230,7 @@ public class PlatformTestManager {
     }
 
     public void tearDown() {
+        FeatureFlagsManager.resetForTests();
         PrefsHelper.tearDownPrefs();
         SdkStateProvider.getInstance().resetForTesting();
         NetworkModule.setRequestManager(null);

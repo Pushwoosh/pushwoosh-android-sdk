@@ -177,6 +177,12 @@ public interface Config {
     boolean isReverseProxyAllowed();
 
     /**
+     * @return If true, the 5-minute feature flags refresh throttle is off
+     *         (meta-data {@code com.pushwoosh.feature_flags.disable_throttle}). Intended for tests.
+     */
+    boolean isFeatureFlagsThrottleDisabled();
+
+    /**
      * @return Idle timeout in seconds. 0 means idle detection is disabled.
      */
     int getIdleTimeoutSeconds();

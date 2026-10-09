@@ -28,10 +28,14 @@ package com.pushwoosh.inbox.ui.presentation.view.adapter.inbox
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.PorterDuffColorFilter
 import android.graphics.drawable.Drawable
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.view.View
 import android.widget.TextView
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.ui.R
@@ -47,6 +51,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.LooperMode
 
 /**
@@ -67,8 +72,8 @@ class InboxViewHolderReadStateTest {
 
     private fun ctx(): Context = RuntimeEnvironment.getApplication()
 
-    /** Two-colour icon tint so the selected (unread) and default (read) colours differ. */
-    private fun fakeColorScheme(): ColorSchemeProvider = object : ColorSchemeProvider {
+    /** Two-color icon tint so the selected (unread) and default (read) colors differ. */
+    private fun fakeColorScheme(readTint: Int = READ_TINT): ColorSchemeProvider = object : ColorSchemeProvider {
         override val cellBackground: Drawable? = null
         override val titleColor: ColorStateList = ColorStateList.valueOf(0)
         override val descriptionColor: ColorStateList = ColorStateList.valueOf(0)
@@ -77,7 +82,7 @@ class InboxViewHolderReadStateTest {
         override val accentColor: Int = UNREAD_TINT
         override val imageColor: ColorStateList = ColorStateList(
             arrayOf(intArrayOf(android.R.attr.state_selected), intArrayOf()),
-            intArrayOf(UNREAD_TINT, READ_TINT)
+            intArrayOf(UNREAD_TINT, readTint)
         )
         override val defaultIcon: Drawable? = null
         override val backgroundColor: Int = 0
@@ -90,8 +95,8 @@ class InboxViewHolderReadStateTest {
         actionPerformed = actionPerformed
     )
 
-    private fun legacyRow(): BaseRecyclerAdapter.ViewHolder<InboxMessage> {
-        val adapter = InboxAdapter(ctx(), fakeColorScheme()) { _, _ -> }
+    private fun legacyRow(scheme: ColorSchemeProvider = fakeColorScheme()): BaseRecyclerAdapter.ViewHolder<InboxMessage> {
+        val adapter = InboxAdapter(ctx(), scheme) { _, _ -> }
         val holder = adapter.onCreateViewHolder(FrameLayout(ctx()), InboxAdapter.TEXT_VIEW_TYPE)
         assertTrue(holder is InboxViewHolder)
         return holder
@@ -177,5 +182,33 @@ class InboxViewHolderReadStateTest {
         holder.fillView(msg(read = false, actionPerformed = true), 0)
         assertTrue(label(holder).isSelected)
         assertEquals(UNREAD_TINT, tintOf(statusIcon(holder)))
+    }
+
+    /** Darkest channel value the view paints over a white background. */
+    private fun darkestOnWhite(view: View): Int {
+        val size = 96
+        view.measure(View.MeasureSpec.makeMeasureSpec(size, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(size, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, size, size)
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(Color.WHITE)
+        view.draw(canvas)
+        val pixels = IntArray(size * size)
+        bitmap.getPixels(pixels, 0, size, 0, 0, size, size)
+        return pixels.minOf { minOf(Color.red(it), Color.green(it), Color.blue(it)) }
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun fillView_translucentReadTint_paintsIconLikeTextOnWhite() {
+        // textColorSecondary is translucent black; read title and date render it gray over white.
+        val translucentBlack = 0x99000000.toInt()
+        val holder = legacyRow(fakeColorScheme(readTint = translucentBlack))
+        holder.fillView(msg(read = true, actionPerformed = true), 0)
+
+        val darkest = darkestOnWhite(statusIcon(holder))
+
+        assertEquals(0x66.toDouble(), darkest.toDouble(), 2.0)
     }
 }

@@ -4,6 +4,7 @@ $dokka.linkExtension:html
 module:pushwoosh
 com.pushwoosh
 com.pushwoosh.exception
+com.pushwoosh.featureflags
 com.pushwoosh.function
 com.pushwoosh.inapp
 com.pushwoosh.inapp.view.config

@@ -37,6 +37,7 @@ import com.pushwoosh.firebase.internal.mapper.RemoteMessageMapper;
 import com.pushwoosh.firebase.internal.specific.FcmDeviceSpecificIniter;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
 /**
@@ -48,6 +49,16 @@ import com.pushwoosh.repository.RepositoryModule;
  * <p>
  * <b>Important:</b> Use this helper ONLY if you need a custom {@link FirebaseMessagingService}.
  * For customizing notifications, use {@link com.pushwoosh.notification.NotificationServiceExtension} instead.
+ * <p>
+ * Prefer {@link PushwooshFcmRouterService} over calling this helper by hand: forwarding is built in
+ * and the dispatch chain is sealed, so the calls below cannot be dropped in a later refactor. Use
+ * this helper directly only when your service must extend a different base class.
+ * <p>
+ * Once messages are forwarded, Pushwoosh renders the notification and your own renderer no longer
+ * runs for Pushwoosh pushes — that is the intended split. Match the appearance through the manifest:
+ * {@code com.pushwoosh.notification_icon}, {@code com.pushwoosh.notification_icon_color} and
+ * {@code com.pushwoosh.multi_notification_mode}; reach for
+ * {@link com.pushwoosh.notification.NotificationServiceExtension} only where those are not enough.
  * <p>
  * <b>Critical Integration Steps:</b>
  * <ol>
@@ -80,6 +91,7 @@ import com.pushwoosh.repository.RepositoryModule;
  *         // CRITICAL: Route Pushwoosh messages to Pushwoosh
  *         if (PushwooshFcmHelper.isPushwooshMessage(remoteMessage)) {
  *             PushwooshFcmHelper.onMessageReceived(this, remoteMessage);
+ *             return;
  *         } else {
  *             // Handle other providers
  *             OtherProvider.handleMessage(remoteMessage);
@@ -115,8 +127,13 @@ public class PushwooshFcmHelper {
      * Notifies Pushwoosh when Firebase Cloud Messaging token is refreshed.
      * <p>
      * <b>CRITICAL:</b> Call this method from your custom {@link FirebaseMessagingService#onNewToken(String)}
-     * callback to forward the new FCM token to Pushwoosh. Without this call, Pushwoosh will NOT be able
-     * to send notifications to the device after token refresh.
+     * callback to forward the new FCM token to Pushwoosh. Without this call Pushwoosh keeps the token it
+     * obtained at registration and silently stops reaching the device once Firebase rotates it.
+     * <p>
+     * The call is a no-op for a device that is not registered for push: a token change arriving before
+     * {@link com.pushwoosh.Pushwoosh#registerForPushNotifications()} succeeds, or after
+     * {@link com.pushwoosh.Pushwoosh#unregisterForPushNotifications()}, is dropped with a warning by
+     * design.
      * <br><br>
      * Example:
      * <pre>
@@ -143,7 +160,8 @@ public class PushwooshFcmHelper {
         }
 
         try {
-            String previousToken = RepositoryModule.getRegistrationPreferences().pushToken().get();
+            String previousToken =
+                    RepositoryModule.getRegistrationPreferences().pushToken().get();
             if (token == null || token.equals(previousToken)) {
                 PWLog.debug(TAG, "token is null or equals previous token");
                 return;
@@ -158,7 +176,22 @@ public class PushwooshFcmHelper {
      * Processes incoming Firebase Cloud Messaging push notifications for Pushwoosh.
      * <p>
      * <b>CRITICAL:</b> Call this method from your custom {@link FirebaseMessagingService#onMessageReceived(RemoteMessage)}
-     * callback to let Pushwoosh handle its messages. Without this call, Pushwoosh notifications will NOT be displayed.
+     * callback to let Pushwoosh handle its messages.
+     * <p>
+     * Without this call the SDK never sees the push. If your service renders the notification itself, the
+     * push still appears on screen and the integration looks healthy, while everything Pushwoosh does with
+     * a message is lost:
+     * <ul>
+     * <li>delivery and open statistics are never reported;</li>
+     * <li>Rich Media attached to the push is not shown;</li>
+     * <li>in-app messages triggered by the push are not displayed;</li>
+     * <li>{@link com.pushwoosh.notification.NotificationServiceExtension} callbacks never fire;</li>
+     * <li>silent system commands carried by the push are not executed.</li>
+     * </ul>
+     * <p>
+     * Detect Pushwoosh messages with {@link #isPushwooshMessage(RemoteMessage)} and return right after
+     * forwarding: this method shows the notification itself, so falling through to your own renderer
+     * produces a duplicate.
      * <br><br>
      * Example:
      * <pre>
@@ -170,6 +203,7 @@ public class PushwooshFcmHelper {
      *     // CRITICAL: Route Pushwoosh messages to Pushwoosh
      *     if (PushwooshFcmHelper.isPushwooshMessage(remoteMessage)) {
      *         PushwooshFcmHelper.onMessageReceived(this, remoteMessage);
+     *         return;
      *     } else {
      *         // Handle other providers
      *     }
@@ -197,8 +231,12 @@ public class PushwooshFcmHelper {
             return false;
         }
 
+        markPushwooshMessageReceived();
+
         try {
-            PWLog.info(TAG, String.format("Received message: %s from: %s", remoteMessage.getData(), remoteMessage.getFrom()));
+            PWLog.info(
+                    TAG,
+                    String.format("Received message: %s from: %s", remoteMessage.getData(), remoteMessage.getFrom()));
 
             Bundle pushBundle = RemoteMessageMapper.mapToBundle(remoteMessage);
 
@@ -236,6 +274,18 @@ public class PushwooshFcmHelper {
         }
 
         return true;
+    }
+
+    private static void markPushwooshMessageReceived() {
+        try {
+            RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
+            if (prefs == null || prefs.fcmMessageReceivedSinceInstallOrUpdate().get()) {
+                return;
+            }
+            prefs.fcmMessageReceivedSinceInstallOrUpdate().set(true);
+        } catch (Exception e) {
+            PWLog.error(TAG, "can't mark received flag", e);
+        }
     }
 
     /**

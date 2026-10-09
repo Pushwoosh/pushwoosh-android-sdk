@@ -403,4 +403,21 @@ public class AndroidManifestConfigTest {
 
         assertEquals(RichMediaColorScheme.APP, config.getRichMediaColorScheme());
     }
+
+    @Test
+    public void featureFlagsThrottle_enabledByDefault() {
+        Bundle metaData = new Bundle();
+        metaData.putString("com.pushwoosh.appid", "XXXXX-XXXXX");
+
+        assertFalse(configWithMetaData(metaData).isFeatureFlagsThrottleDisabled());
+    }
+
+    @Test
+    public void featureFlagsThrottle_disabledByMetaData() {
+        Bundle metaData = new Bundle();
+        metaData.putString("com.pushwoosh.appid", "XXXXX-XXXXX");
+        metaData.putBoolean("com.pushwoosh.feature_flags.disable_throttle", true);
+
+        assertTrue(configWithMetaData(metaData).isFeatureFlagsThrottleDisabled());
+    }
 }
