@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
+
 import com.pushwoosh.internal.utils.JsonUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushBundleDataProvider;
@@ -204,6 +206,27 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
             } catch (Exception e) {
                 PWLog.error("Failed to obtain the last status bar notification", e);
                 throw e;
+            }
+        }
+    }
+
+    @Override
+    @Nullable public String getGroupPushBundleGroupId(long rowId) {
+        synchronized (mutex) {
+            try (SQLiteDatabase db = getWritableDatabase()) {
+                String[] columns = {Column.GROUP_ID};
+                String selection = Column.ROW_ID + " = ?";
+                String[] selectionArgs = {Long.toString(rowId)};
+                try (Cursor cursor =
+                        db.query(TABLE_GROUP_PUSH_BUNDLES, columns, selection, selectionArgs, null, null, null)) {
+                    if (!cursor.moveToFirst()) {
+                        return null;
+                    }
+                    return cursor.getString(cursor.getColumnIndexOrThrow(Column.GROUP_ID));
+                }
+            } catch (Exception e) {
+                PWLog.error(TAG, "Failed to read the group of push bundle row " + rowId, e);
+                return null;
             }
         }
     }

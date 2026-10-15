@@ -97,35 +97,35 @@
     <h1 class="cover"><span>is</span><wbr><span><span>Silent</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-silent.html"><span class="token function">isSilent</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><p class="paragraph">Checks if this is a silent (data-only) push notification. </p><p class="paragraph"> Silent pushes do not display notifications to the user but can trigger background processing in your app. Use this to deliver data updates, sync content, or perform background tasks without interrupting the user.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	  
-	  protected boolean onMessageReceived(PushMessage message) {
-	      if (message.isSilent()) {
-	          // Handle silent push - update data without notification
-	          String customData = message.getCustomData();
-	
-	          try {
-	              JSONObject data = new JSONObject(customData);
-	              String action = data.optString("action");
-	
-	              if ("sync_messages".equals(action)) {
-	                  // Sync messages in background
-	                  syncMessagesFromServer();
-	              } else if ("update_config".equals(action)) {
-	                  // Update app configuration
-	                  updateAppConfig(data);
-	              }
-	
-	              Log.d("App", "Silent push processed: " + action);
-	          } catch (JSONException e) {
-	              Log.e("App", "Failed to parse silent push data", e);
-	          }
-	
-	          return true; // Already handled, don't show notification
-	      }
-	
-	      return false; // Regular push, show notification
-	  }
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">true if this is a silent push that should not display a notification</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-custom-data.html"><span>get</span><wbr><span>Custom</span><wbr><span><span>Data()</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  
+  protected boolean onMessageReceived(PushMessage message) {
+      if (message.isSilent()) {
+          // Handle silent push - update data without notification
+          String customData = message.getCustomData();
+
+          try {
+              JSONObject data = new JSONObject(customData);
+              String action = data.optString("action");
+
+              if ("sync_messages".equals(action)) {
+                  // Sync messages in background
+                  syncMessagesFromServer();
+              } else if ("update_config".equals(action)) {
+                  // Update app configuration
+                  updateAppConfig(data);
+              }
+
+              Log.d("App", "Silent push processed: " + action);
+          } catch (JSONException e) {
+              Log.e("App", "Failed to parse silent push data", e);
+          }
+
+          return true; // Already handled, don't show notification
+      }
+
+      return false; // Regular push, show notification
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">true if this is a silent push that should not display a notification</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-custom-data.html"><span>get</span><wbr><span>Custom</span><wbr><span><span>Data()</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

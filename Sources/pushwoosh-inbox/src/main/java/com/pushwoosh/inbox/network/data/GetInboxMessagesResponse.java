@@ -26,6 +26,8 @@
 
 package com.pushwoosh.inbox.network.data;
 
+import androidx.annotation.Nullable;
+
 import com.pushwoosh.inbox.internal.data.InboxMessageInternal;
 
 import org.json.JSONArray;
@@ -38,56 +40,68 @@ import java.util.Collections;
 import java.util.List;
 
 public class GetInboxMessagesResponse {
-	private static final String NEW_INBOX = "new_inbox";
-	private static final String DELETED_INBOX = "deleted";
-	private static final String MESSAGES_INBOX = "messages";
+    private static final String NEW_INBOX = "new_inbox";
+    private static final String DELETED_INBOX = "deleted";
+    private static final String MESSAGES_INBOX = "messages";
+    private static final String INBOX_TABS = "inbox_tabs";
 
-	private Collection<String> deleted;
-	private int newInboxCount;
-	private List<InboxMessageInternal> messages;
+    private Collection<String> deleted;
+    private int newInboxCount;
+    private List<InboxMessageInternal> messages;
+    private final String inboxTabsJson;
 
-	GetInboxMessagesResponse(JSONObject jsonObject) throws JSONException {
-		if (!jsonObject.isNull(NEW_INBOX)) {
-			newInboxCount = jsonObject.getInt(NEW_INBOX);
-		}
+    GetInboxMessagesResponse(JSONObject jsonObject) throws JSONException {
+        if (!jsonObject.isNull(NEW_INBOX)) {
+            newInboxCount = jsonObject.getInt(NEW_INBOX);
+        }
 
-		if (!jsonObject.isNull(DELETED_INBOX)) {
-			final JSONArray deletedJson = jsonObject.getJSONArray(DELETED_INBOX);
-			deleted = new ArrayList<>(deletedJson.length());
-			for (int i = 0; i < deletedJson.length(); i++) {
-				deleted.add(deletedJson.getString(i));
-			}
-		} else {
-			deleted = Collections.emptyList();
-		}
+        if (!jsonObject.isNull(DELETED_INBOX)) {
+            final JSONArray deletedJson = jsonObject.getJSONArray(DELETED_INBOX);
+            deleted = new ArrayList<>(deletedJson.length());
+            for (int i = 0; i < deletedJson.length(); i++) {
+                deleted.add(deletedJson.getString(i));
+            }
+        } else {
+            deleted = Collections.emptyList();
+        }
 
+        if (!jsonObject.isNull(MESSAGES_INBOX)) {
+            final JSONArray messagesJson = jsonObject.getJSONArray(MESSAGES_INBOX);
+            messages = new ArrayList<>(messagesJson.length());
+            for (int i = 0; i < messagesJson.length(); i++) {
+                try {
+                    messages.add(new InboxMessageInternal.Builder()
+                            .setJsonObject(messagesJson.getJSONObject(i))
+                            .build());
+                } catch (InboxMessageInternal.InboxInvalidArgumentException ignore) {
 
-		if (!jsonObject.isNull(MESSAGES_INBOX)) {
-			final JSONArray messagesJson = jsonObject.getJSONArray(MESSAGES_INBOX);
-			messages = new ArrayList<>(messagesJson.length());
-			for (int i = 0; i < messagesJson.length(); i++) {
-				try {
-					messages.add(new InboxMessageInternal.Builder()
-										 .setJsonObject(messagesJson.getJSONObject(i))
-										 .build());
-				} catch (InboxMessageInternal.InboxInvalidArgumentException ignore) {
+                }
+            }
+        } else {
+            messages = Collections.emptyList();
+        }
 
-				}
-			}
-		} else {
-			messages = Collections.emptyList();
-		}
-	}
+        final JSONObject inboxTabsObject = jsonObject.optJSONObject(INBOX_TABS);
+        inboxTabsJson = inboxTabsObject == null ? null : inboxTabsObject.toString();
+    }
 
-	public Collection<String> getDeleted() {
-		return deleted;
-	}
+    public Collection<String> getDeleted() {
+        return deleted;
+    }
 
-	public int getNewInboxCount() {
-		return newInboxCount;
-	}
+    public int getNewInboxCount() {
+        return newInboxCount;
+    }
 
-	public List<InboxMessageInternal> getMessages() {
-		return messages;
-	}
+    public List<InboxMessageInternal> getMessages() {
+        return messages;
+    }
+
+    /**
+     * @return the raw inbox_tabs object as text for the cache, or null when the field was absent
+     *         or was not an object
+     */
+    @Nullable public String getInboxTabsJson() {
+        return inboxTabsJson;
+    }
 }

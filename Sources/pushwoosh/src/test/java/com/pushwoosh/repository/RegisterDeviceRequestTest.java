@@ -2,9 +2,11 @@ package com.pushwoosh.repository;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
+import com.pushwoosh.notification.PushPermissionStatusTracker;
 import com.pushwoosh.testutil.PlatformTestManager;
 
 import org.json.JSONException;
@@ -109,6 +111,35 @@ public class RegisterDeviceRequestTest {
             JSONObject params = buildParams(request);
 
             assertFalse("tags must be omitted for tagsJson=" + label, params.has("tags"));
+        }
+    }
+
+    @Test
+    public void buildParams_sendsPushPermissionStatus() throws Exception {
+        RegisterDeviceRequest request = new RegisterDeviceRequest("dev-1", null, 3);
+
+        JSONObject params = buildParams(request);
+
+        assertEquals(PushPermissionStatusTracker.getStatus(), params.getString("push_permission_status"));
+    }
+
+    @Test
+    public void buildParams_smsRegistrationCarriesNoPushPermissionStatus() throws Exception {
+        RegisterDeviceRequest request = new RegisterDeviceRequest("+15551234567", null, DeviceRegistrar.PLATFORM_SMS);
+
+        JSONObject params = buildParams(request);
+
+        assertFalse(params.has("push_permission_status"));
+    }
+
+    @Test
+    public void getSentPushPermissionStatus_smsAndWhatsappCarryNone() throws Exception {
+        int[] platforms = new int[] {DeviceRegistrar.PLATFORM_SMS, DeviceRegistrar.PLATFORM_WHATSAPP};
+        for (int platform : platforms) {
+            RegisterDeviceRequest request = new RegisterDeviceRequest("+15551234567", null, platform);
+            buildParams(request);
+
+            assertNull("platform " + platform, request.getSentPushPermissionStatus());
         }
     }
 }

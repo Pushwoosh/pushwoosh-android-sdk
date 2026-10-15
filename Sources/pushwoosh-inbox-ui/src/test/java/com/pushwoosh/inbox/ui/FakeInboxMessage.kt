@@ -38,20 +38,35 @@ fun fakeInboxMessage(
     message: String = "message",
     bannerUrl: String? = null,
     actionParams: String? = null,
+    tabId: String? = null,
     type: InboxMessageType = InboxMessageType.PLAIN,
     read: Boolean = false,
     actionPerformed: Boolean = false
-): InboxMessage = object : InboxMessage {
-    override fun getCode(): String = code
-    override fun getTitle(): String? = title
-    override fun getImageUrl(): String? = imageUrl
-    override fun getMessage(): String = message
-    override fun getSendDate(): Date = Date(0L)
-    override fun getISO8601SendDate(): String = "1970-01-01T00:00:00Z"
-    override fun getType(): InboxMessageType = type
-    override fun getBannerUrl(): String? = bannerUrl
-    override fun getActionParams(): String? = actionParams
-    override fun isRead(): Boolean = read
-    override fun isActionPerformed(): Boolean = actionPerformed
-    override fun compareTo(other: InboxMessage): Int = code.compareTo(other.code)
-}
+): InboxMessage =
+    object : InboxMessage {
+        override fun getCode(): String = code
+
+        override fun getTitle(): String? = title
+
+        override fun getImageUrl(): String? = imageUrl
+
+        override fun getMessage(): String = message
+
+        override fun getSendDate(): Date = Date(0L)
+
+        override fun getISO8601SendDate(): String = "1970-01-01T00:00:00Z"
+
+        override fun getType(): InboxMessageType = type
+
+        override fun getBannerUrl(): String? = bannerUrl
+
+        override fun getActionParams(): String? = actionParams
+
+        override fun getTabId(): String? = tabId
+
+        override fun isRead(): Boolean = read
+
+        override fun isActionPerformed(): Boolean = actionPerformed
+
+        override fun compareTo(other: InboxMessage): Int = code.compareTo(other.code)
+    }

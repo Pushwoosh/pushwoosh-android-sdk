@@ -224,6 +224,9 @@ def configureDokkaSourceSet(sourceSet) {
     if (moduleDoc.exists()) {
         sourceSet.includes.from(moduleDoc)
     }
+
+    // Links to Java getters in these docs 404 silently (Dokka strips get-* from some filenames):
+    // read llm/docs/dokka-java-getter-links.md before editing Sources/docs/*.md.
 }
 
 // ============================================

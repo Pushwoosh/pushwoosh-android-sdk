@@ -26,6 +26,7 @@
 
 package com.pushwoosh.inbox.repository;
 
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -41,6 +42,7 @@ import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inbox.data.InboxMessage;
+import com.pushwoosh.inbox.data.InboxTabs;
 import com.pushwoosh.inbox.event.InboxMessagesUpdatedEvent;
 import com.pushwoosh.inbox.event.InboxMessagesUpdatedEventBuilder;
 import com.pushwoosh.inbox.exception.InboxMessagesException;
@@ -49,6 +51,7 @@ import com.pushwoosh.inbox.internal.data.InboxMessageImpl;
 import com.pushwoosh.inbox.internal.data.InboxMessageInternal;
 import com.pushwoosh.inbox.internal.data.InboxMessageSource;
 import com.pushwoosh.inbox.internal.data.InboxMessageStatus;
+import com.pushwoosh.inbox.internal.data.InboxTabsFactory;
 import com.pushwoosh.inbox.internal.mapping.InternalInboxMessagesToInboxMessagesMapper;
 import com.pushwoosh.inbox.network.checker.NeedUpdateChecker;
 import com.pushwoosh.inbox.network.data.GetInboxMessagesRequest;
@@ -73,7 +76,13 @@ import java.util.Map;
 
 public class InboxRepository {
 
+    private static final String PREF_INBOX_TABS = "inboxTabs";
+
     private final InboxStorage inboxStorage;
+
+    @Nullable private final SharedPreferences prefs;
+
+    private volatile InboxTabs inboxTabs;
 
     private final InternalInboxMessagesToInboxMessagesMapper mapper = new InternalInboxMessagesToInboxMessagesMapper();
     private final NeedUpdateChecker needUpdateMessages = new NeedUpdateChecker(InboxConfig.getInboxUpdateTime());
@@ -88,8 +97,10 @@ public class InboxRepository {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    public InboxRepository(InboxStorage inboxStorage) {
+    public InboxRepository(InboxStorage inboxStorage, @Nullable SharedPreferences prefs) {
         this.inboxStorage = inboxStorage;
+        this.prefs = prefs;
+        this.inboxTabs = InboxTabsFactory.fromRawJson(prefs == null ? null : prefs.getString(PREF_INBOX_TABS, null));
 
         initListenerHelpers();
         initObserverHelpers();
@@ -239,6 +250,37 @@ public class InboxRepository {
         inboxCountObservers.removeObserver(callback);
     }
 
+    /**
+     * @return the tab bar from the last successful sync, or null when the application has no tabs
+     */
+    @Nullable public InboxTabs getTabs() {
+        return inboxTabs;
+    }
+
+    /**
+     * Drops the cached tab bar before any repository exists — the app-code-change path in module init.
+     */
+    public static void clearCachedTabs(@Nullable SharedPreferences prefs) {
+        if (prefs == null) {
+            return;
+        }
+        prefs.edit().remove(PREF_INBOX_TABS).apply();
+    }
+
+    private void storeTabs(@Nullable String rawJson) {
+        inboxTabs = InboxTabsFactory.fromRawJson(rawJson);
+        if (prefs == null) {
+            return;
+        }
+        SharedPreferences.Editor editor = prefs.edit();
+        if (rawJson == null) {
+            editor.remove(PREF_INBOX_TABS);
+        } else {
+            editor.putString(PREF_INBOX_TABS, rawJson);
+        }
+        editor.apply();
+    }
+
     public Collection<InboxMessage> loadCachedMessages(@Nullable InboxMessage inboxMessage, int limit)
             throws InboxMessagesException {
         if (inboxMessage != null && !(inboxMessage instanceof InboxMessageImpl)) {
@@ -325,6 +367,8 @@ public class InboxRepository {
 
                     final LoadResult data = new LoadResult(
                             mergeResult.getNewItems(), mergeResult.getUpdatedItems(), response.getDeleted());
+                    // Written before the event so a subscriber with fresh messages reads fresh tabs.
+                    storeTabs(response.getInboxTabsJson());
                     notifyEventBus(data);
 
                     result = Result.fromData(data);
@@ -463,6 +507,7 @@ public class InboxRepository {
     }
 
     public void clearAllInboxMessages() {
+        storeTabs(null);
         // A user-initiated wipe — the fresh-push grace must not keep rows alive here.
         new MergeStateTask(this, Collections.emptyList(), true, false, mergeStateTaskResult -> {
                     MergeResult mergeResult = mergeStateTaskResult.getData();

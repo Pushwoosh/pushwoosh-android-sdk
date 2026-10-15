@@ -97,26 +97,26 @@
     <h1 class="cover"><span>get</span><wbr><span>Big</span><wbr><span><span>Picture</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-big-picture.html"><span class="token function">getBigPicture</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pushData<span class="token operator">: </span><a href="../-push-message/index.html">PushMessage</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="android.graphics/Bitmap///PointingToDeclaration/">Bitmap</span></div><p class="paragraph">Loads and returns the big picture image for expanded notification style. </p><p class="paragraph"> This method downloads the image from the URL specified in the push payload's "pw_big_picture" attribute. The image is displayed when the user expands the notification. This method runs on a worker thread, so network operations are safe. </p><p class="paragraph"><strong>Image Requirements:</strong></p><ul><li>Recommended size: 2:1 aspect ratio (e.g., 1024x512)</li><li>Supported formats: JPEG, PNG</li><li>The image should be optimized for mobile</li></ul><p class="paragraph"> Override this method to customize image loading, such as using a different image library (Glide, Picasso), applying transformations, or loading from local storage.  Example - Custom image loading with caching: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	  
-	  protected Bitmap getBigPicture(PushMessage pushData) {
-	      String imageUrl = pushData.getBigPictureUrl();
-	      if (imageUrl == null) {
-	          return null;
-	      }
-	
-	      try {
-	          // Use Glide with caching
-	          return Glide.with(getApplicationContext())
-	              .asBitmap()
-	              .load(imageUrl)
-	              .submit(1024, 512)
-	              .get();
-	      } catch (Exception e) {
-	          Log.e("NotificationFactory", "Failed to load big picture", e);
-	          return null;
-	      }
-	  }
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">Bitmap to display in expanded notification, or null if URL is not specified or loading fails</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>push</span><wbr><span><span>Data</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Push notification data containing the big picture URL</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-big-picture-url.html"><span>Push</span><wbr><span><span>Message</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-large-icon.html"><span>get</span><wbr><span>Large</span><wbr><span>Icon(Push</span><wbr><span><span>Message)</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  
+  protected Bitmap getBigPicture(PushMessage pushData) {
+      String imageUrl = pushData.getBigPictureUrl();
+      if (imageUrl == null) {
+          return null;
+      }
+
+      try {
+          // Use Glide with caching
+          return Glide.with(getApplicationContext())
+              .asBitmap()
+              .load(imageUrl)
+              .submit(1024, 512)
+              .get();
+      } catch (Exception e) {
+          Log.e("NotificationFactory", "Failed to load big picture", e);
+          return null;
+      }
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">Bitmap to display in expanded notification, or null if URL is not specified or loading fails</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>push</span><wbr><span><span>Data</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Push notification data containing the big picture URL</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-big-picture-url.html"><span>Push</span><wbr><span><span>Message</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-large-icon.html"><span>get</span><wbr><span>Large</span><wbr><span>Icon(Push</span><wbr><span><span>Message)</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

@@ -103,6 +103,11 @@ public class InboxMessageImpl implements InboxMessage {
         return inboxMessageInternal.getActionParams();
     }
 
+    @Nullable @Override
+    public String getTabId() {
+        return inboxMessageInternal.getTabId();
+    }
+
     public InboxMessageInternal getInboxMessageInternal() {
         return inboxMessageInternal;
     }

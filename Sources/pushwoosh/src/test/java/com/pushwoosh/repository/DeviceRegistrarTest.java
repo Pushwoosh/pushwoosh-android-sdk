@@ -45,9 +45,11 @@ import com.pushwoosh.internal.event.Subscription;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.PushRequest;
+import com.pushwoosh.internal.network.PushRequestHelper;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.notification.PushPermissionStatusTracker;
 import com.pushwoosh.notification.event.DeregistrationErrorEvent;
 import com.pushwoosh.notification.event.DeregistrationSuccessEvent;
 import com.pushwoosh.notification.event.RegistrationErrorEvent;
@@ -63,6 +65,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -428,5 +432,73 @@ public class DeviceRegistrarTest {
         deviceRegistrar.updateRegistration();
 
         Assert.assertFalse(registrationPrefs.forceRegister().get());
+    }
+
+    private MockedStatic<PushPermissionStatusTracker> mockPushPermissionStatus(String status) {
+        MockedStatic<PushPermissionStatusTracker> tracker =
+                Mockito.mockStatic(PushPermissionStatusTracker.class, Mockito.CALLS_REAL_METHODS);
+        tracker.when(PushPermissionStatusTracker::getStatus).thenReturn(status);
+        return tracker;
+    }
+
+    // Verifies that updateRegistrationNow sends registerDevice inside the cooldown where updateRegistration stays
+    // silent, carrying the tracker's status, which is remembered once the server took it.
+    @Test
+    public void updateRegistrationNowSendsWithinCooldown() throws Exception {
+        registrationPrefs.pushToken().set(TEST_ID);
+        registrationPrefs.forceRegister().set(false);
+        registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 60_000L);
+        registrationPrefs.pushPermissionLastSent().set("not_determined");
+        try (MockedStatic<PushPermissionStatusTracker> ignored = mockPushPermissionStatus("granted_explicit")) {
+            deviceRegistrar.updateRegistrationNow(() -> {});
+
+            verify(requestManager).sendRequest(pushRequestArgumentCaptor.capture(), callbackArgumentCaptor.capture());
+            PushRequest<?> request = pushRequestArgumentCaptor.getValue();
+            Assert.assertEquals("registerDevice", request.getMethod());
+            Assert.assertEquals(
+                    "granted_explicit", PushRequestHelper.getParams(request).getString("push_permission_status"));
+            callbackArgumentCaptor.getValue().process(Result.fromData(null));
+        }
+
+        Assert.assertEquals(
+                "granted_explicit", registrationPrefs.pushPermissionLastSent().get());
+        Assert.assertTrue(registrationPrefs.registeredOnServer().get());
+    }
+
+    // Verifies that onDone runs once the request completes, also when it failed.
+    @Test
+    public void updateRegistrationNowRunsOnDoneAfterFailedRequest() {
+        registrationPrefs.pushToken().set(TEST_ID);
+        boolean[] done = {false};
+
+        deviceRegistrar.updateRegistrationNow(() -> done[0] = true);
+        Assert.assertFalse(done[0]);
+        verify(requestManager).sendRequest(any(PushRequest.class), callbackArgumentCaptor.capture());
+        callbackArgumentCaptor.getValue().process(Result.fromException(EXCEPTION));
+
+        Assert.assertTrue(done[0]);
+    }
+
+    // Verifies that without a push token nothing is sent and onDone runs right away.
+    @Test
+    public void updateRegistrationNowWithoutTokenSendsNothing() {
+        registrationPrefs.pushToken().set("");
+        boolean[] done = {false};
+
+        deviceRegistrar.updateRegistrationNow(() -> done[0] = true);
+
+        verify(requestManager, never()).sendRequest(any(PushRequest.class), any(Callback.class));
+        Assert.assertTrue(done[0]);
+    }
+
+    // Verifies that updateRegistrationNow leaves a pending forceRegister for the scheduled updateRegistration.
+    @Test
+    public void updateRegistrationNowKeepsForceRegisterFlag() {
+        registrationPrefs.pushToken().set(TEST_ID);
+        registrationPrefs.forceRegister().set(true);
+
+        deviceRegistrar.updateRegistrationNow(() -> {});
+
+        Assert.assertTrue(registrationPrefs.forceRegister().get());
     }
 }

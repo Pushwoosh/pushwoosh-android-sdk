@@ -26,6 +26,16 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/inboxTabLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/inboxAppBarLayout"
+        app:tabMode="scrollable" />
+
     <ProgressBar
         android:id="@+id/inboxTotalProgressBar"
         style="?android:attr/progressBarStyle"
@@ -35,7 +45,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/inboxAppBarLayout" />
+        app:layout_constraintTop_toBottomOf="@id/inboxTabLayout" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/inboxSwipeRefreshLayout"
@@ -44,7 +54,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/inboxAppBarLayout">
+        app:layout_constraintTop_toBottomOf="@id/inboxTabLayout">
 
         <FrameLayout
             android:layout_width="match_parent"

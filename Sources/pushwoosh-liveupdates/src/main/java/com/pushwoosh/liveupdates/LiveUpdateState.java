@@ -38,6 +38,7 @@ import java.util.List;
  *             └─ chronometerCountDown=true ───────────► counts down ("5:00" falling)
  * </pre>
  */
+@SuppressWarnings("deprecation")
 public final class LiveUpdateState {
 
     @NonNull private final String activityId;

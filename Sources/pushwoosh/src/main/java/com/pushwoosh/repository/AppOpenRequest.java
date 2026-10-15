@@ -33,6 +33,7 @@ import com.pushwoosh.PermissionController;
 import com.pushwoosh.internal.network.PushRequest;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.utils.DeviceUtils;
+import com.pushwoosh.notification.PushPermissionStatusTracker;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,22 +43,33 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 class AppOpenRequest extends PushRequest<Void> {
+    @Nullable private String sentPushPermissionStatus;
+
     public String getMethod() {
         return "applicationOpen";
     }
+
     @Override
     protected void buildParams(JSONObject params) throws JSONException {
-        params.put("language", RepositoryModule.getRegistrationPreferences().language().get());
-        params.put("timezone", TimeUnit.SECONDS.convert(TimeZone.getDefault().getOffset(new Date().getTime()), TimeUnit.MILLISECONDS));
+        params.put(
+                "language",
+                RepositoryModule.getRegistrationPreferences().language().get());
+        params.put(
+                "timezone",
+                TimeUnit.SECONDS.convert(TimeZone.getDefault().getOffset(new Date().getTime()), TimeUnit.MILLISECONDS));
 
         String packageName = AndroidPlatformModule.getAppInfoProvider().getPackageName();
         params.put("android_package", packageName);
 
-        if (RepositoryModule.getNotificationPreferences().isCollectingDeviceModelAllowed().get()) {
+        if (RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceModelAllowed()
+                .get()) {
             params.put("device_model", DeviceUtils.getDeviceName());
             params.put("device_name", DeviceUtils.isTablet() ? "Tablet" : "Phone");
         }
-        if (RepositoryModule.getNotificationPreferences().isCollectingDeviceOsVersionAllowed().get()) {
+        if (RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceOsVersionAllowed()
+                .get()) {
             String androidVersion = android.os.Build.VERSION.RELEASE;
             params.put("os_version", androidVersion);
         }
@@ -67,14 +79,30 @@ class AppOpenRequest extends PushRequest<Void> {
             params.put("app_version", versionName);
         }
 
-        PermissionController permissionController = AndroidPlatformModule.getInstance().getPermissionController();
+        PermissionController permissionController =
+                AndroidPlatformModule.getInstance().getPermissionController();
         if (permissionController != null) {
             params.put("notificationTypes", permissionController.getBitMaskPermission());
         }
+
+        sentPushPermissionStatus = reportsPushPermissionStatus() ? PushPermissionStatusTracker.getStatus() : null;
+        if (sentPushPermissionStatus != null) {
+            params.put("push_permission_status", sentPushPermissionStatus);
+        }
     }
 
-    @Nullable
-    @Override
+    protected boolean reportsPushPermissionStatus() {
+        return true;
+    }
+
+    /**
+     * The push permission status this request put on the wire, or null if it carried none.
+     */
+    @Nullable String getSentPushPermissionStatus() {
+        return sentPushPermissionStatus;
+    }
+
+    @Nullable @Override
     public Void parseResponse(@NonNull JSONObject response) throws JSONException {
         return super.parseResponse(response);
     }

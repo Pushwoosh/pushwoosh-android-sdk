@@ -32,10 +32,9 @@ import android.graphics.drawable.Drawable
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.pushwoosh.inbox.data.InboxMessage
-import com.pushwoosh.inbox.data.InboxMessageType
+import com.pushwoosh.inbox.ui.fakeInboxMessage
 import com.pushwoosh.inbox.ui.presentation.view.adapter.inbox.InboxAdapter
 import com.pushwoosh.inbox.ui.presentation.view.style.ColorSchemeProvider
-import java.util.Date
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -48,15 +47,14 @@ import org.robolectric.annotation.Config
 /**
  * Regression guard for candidate #28 crash-inboxadapter-getitem-position-ioobe.
  *
- * Was: [BaseRecyclerAdapter.getItem] did `return mDataList[position]` with no bounds
- * check, so any out-of-range index (-1 from a cleared ViewHolder, or a stale captured
- * click index >= size) threw [IndexOutOfBoundsException] through two unwrapped
- * RecyclerView/ItemTouchHelper callbacks ([InboxAdapter.onItemSwiped] / the click
- * closure built in [InboxAdapter.onBindViewHolder]).
+ * Was: [BaseRecyclerAdapter.getItem] did `return mDataList[position]` with no bounds check, so any
+ * out-of-range index (-1 from a cleared ViewHolder, or a stale captured click index >= size) threw
+ * [IndexOutOfBoundsException] through two unwrapped RecyclerView/ItemTouchHelper callbacks
+ * ([InboxAdapter.onItemSwiped] / the click closure built in [InboxAdapter.onBindViewHolder]).
  *
- * Fix: `getItem` now returns `mDataList.getOrNull(position)` (it is already `Model?`),
- * and [InboxAdapter.onItemSwiped] ignores an out-of-range position before touching the
- * backing list. These tests assert the graceful behaviour the fix introduced — no throw.
+ * Fix: `getItem` now returns `mDataList.getOrNull(position)` (it is already `Model?`), and
+ * [InboxAdapter.onItemSwiped] ignores an out-of-range position before touching the backing list.
+ * These tests assert the graceful behaviour the fix introduced — no throw.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -64,36 +62,25 @@ class InboxAdapterGetItemPositionIoobeTest {
 
     private fun ctx(): Context = RuntimeEnvironment.getApplication()
 
-    /** A no-op ColorSchemeProvider so we can build a real InboxAdapter / callback without a theme. */
-    private fun fakeColorScheme(): ColorSchemeProvider = object : ColorSchemeProvider {
-        override val cellBackground: Drawable? = null
-        override val titleColor: ColorStateList = ColorStateList.valueOf(0)
-        override val descriptionColor: ColorStateList = ColorStateList.valueOf(0)
-        override val dateColor: ColorStateList = ColorStateList.valueOf(0)
-        override val divider: Drawable? = null
-        override val accentColor: Int = 0
-        override val imageColor: ColorStateList = ColorStateList.valueOf(0)
-        override val defaultIcon: Drawable? = null
-        override val backgroundColor: Int = 0
-    }
+    /**
+     * A no-op ColorSchemeProvider so we can build a real InboxAdapter / callback without a theme.
+     */
+    private fun fakeColorScheme(): ColorSchemeProvider =
+        object : ColorSchemeProvider {
+            override val cellBackground: Drawable? = null
+            override val titleColor: ColorStateList = ColorStateList.valueOf(0)
+            override val descriptionColor: ColorStateList = ColorStateList.valueOf(0)
+            override val dateColor: ColorStateList = ColorStateList.valueOf(0)
+            override val divider: Drawable? = null
+            override val accentColor: Int = 0
+            override val imageColor: ColorStateList = ColorStateList.valueOf(0)
+            override val defaultIcon: Drawable? = null
+            override val backgroundColor: Int = 0
+        }
 
-    private fun msg(code: String): InboxMessage = object : InboxMessage {
-        override fun getCode(): String = code
-        override fun getTitle(): String? = null
-        override fun getImageUrl(): String? = null
-        override fun getMessage(): String = "m-$code"
-        override fun getSendDate(): Date = Date(0L)
-        override fun getISO8601SendDate(): String = "1970-01-01T00:00:00Z"
-        override fun getType(): InboxMessageType = InboxMessageType.PLAIN
-        override fun getBannerUrl(): String? = null
-        override fun getActionParams(): String? = null
-        override fun isRead(): Boolean = false
-        override fun isActionPerformed(): Boolean = false
-        override fun compareTo(other: InboxMessage): Int = code.compareTo(other.code)
-    }
+    private fun msg(code: String): InboxMessage = fakeInboxMessage(code = code, message = "m-$code")
 
-    private fun newAdapter(): InboxAdapter =
-        InboxAdapter(ctx(), fakeColorScheme()) { _, _ -> }
+    private fun newAdapter(): InboxAdapter = InboxAdapter(ctx(), fakeColorScheme()) { _, _ -> }
 
     /** An unowned RecyclerView.ViewHolder — mBindingAdapter is null, so adapterPosition == -1. */
     private fun unownedHolder(): RecyclerView.ViewHolder {
@@ -101,7 +88,8 @@ class InboxAdapterGetItemPositionIoobeTest {
         return object : RecyclerView.ViewHolder(v) {}
     }
 
-    // ---- Path 1 (swipe NO_POSITION): real onSwiped(unownedHolder) -> onItemSwiped(-1) is a no-op ----
+    // ---- Path 1 (swipe NO_POSITION): real onSwiped(unownedHolder) -> onItemSwiped(-1) is a no-op
+    // ----
 
     @Test
     fun path1_swipeNoPosition_isIgnoredGracefully() {
@@ -159,7 +147,8 @@ class InboxAdapterGetItemPositionIoobeTest {
 
     // ---- Path 2 (stale click >= size): the captured closure now reads null, no throw ----
     // Mirrors InboxAdapter.onBindViewHolder:74 `{ onItemClick?.invoke(getItem(position)) }`:
-    // the closure captures bind-time `position` and later reads getItem(position) on the mutated list.
+    // the closure captures bind-time `position` and later reads getItem(position) on the mutated
+    // list.
 
     @Test
     fun path2_staleClickPosition_yieldsNullGracefully() {
@@ -170,7 +159,9 @@ class InboxAdapterGetItemPositionIoobeTest {
         val capturedPosition = 2 // bind-time position of the last item
 
         // The exact closure onBindViewHolder builds (it calls the adapter's inherited getItem).
-        val staleClickListener: () -> Unit = { adapter.onItemClick?.invoke(adapter.getItem(capturedPosition)) }
+        val staleClickListener: () -> Unit = {
+            adapter.onItemClick?.invoke(adapter.getItem(capturedPosition))
+        }
 
         // Refresh shrinks the list (showList -> setCollection); the click listener is now stale.
         adapter.setCollection(listOf(msg("a"))) // size 1; index 2 now out of range
@@ -205,7 +196,8 @@ class InboxAdapterGetItemPositionIoobeTest {
         assertEquals(1, adapter.itemCount)
     }
 
-    // ---- Negative control 2: in-range click still resolves the item (necessary condition: stale index) ----
+    // ---- Negative control 2: in-range click still resolves the item (necessary condition: stale
+    // index) ----
 
     @Test
     fun negativeControl_validClickPosition_stillResolvesItem() {

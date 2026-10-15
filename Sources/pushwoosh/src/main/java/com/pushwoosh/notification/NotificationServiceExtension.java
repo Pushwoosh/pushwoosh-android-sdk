@@ -331,22 +331,91 @@ public class NotificationServiceExtension {
             PWLog.info("open null notification");
             return;
         }
+        openNotification(pushBundle, null);
+    }
+
+    /**
+     * Entry point for a tap on an action button, called by the SDK when a button
+     * {@code PendingIntent} fires.
+     * <p>
+     * Everything a body tap does except the push link, the Rich Media and the {@code launch} key
+     * happens here: the open handler chain runs (statistics with the button id, session hash, inbox
+     * status), and {@link #onMessageOpened(PushMessage)} is called with a message whose
+     * {@link PushMessage#getTappedButtonId()} returns {@code buttonId}. Whether the application is
+     * brought forward depends on the button action.
+     *
+     * @param pushBundle the push payload taken out of the button intent
+     * @param buttonId   the id of the tapped {@link ActionButton}
+     *
+     * @see #onMessageOpened(PushMessage)
+     * @see PushMessage#getTappedButtonId()
+     */
+    public final void handleNotificationButton(@Nullable Bundle pushBundle, @Nullable String buttonId) {
+        if (pushBundle == null) {
+            PWLog.info("open null notification");
+            return;
+        }
+        if (buttonId == null) {
+            PWLog.info("open notification with null button id");
+            return;
+        }
+        // Copy: the caller's bundle may be the live one push history and group storage share.
+        Bundle tappedBundle = new Bundle(pushBundle);
+        PushBundleDataProvider.setTappedButtonId(tappedBundle, buttonId);
+        openNotification(tappedBundle, buttonId);
+    }
+
+    private void openNotification(Bundle pushBundle, @Nullable String buttonId) {
         PushMessage message = new PushMessage(pushBundle);
 
         try {
-            if (preHandleNotificationsWithUrl()) {
-                if (notificationOpenHandler.preHandleNotification(pushBundle)) {
+            if (buttonId == null) {
+                if (preHandleNotificationsWithUrl()
+                        && notificationOpenHandler.openLink(PushBundleDataProvider.getLink(pushBundle))) {
                     return;
                 }
+                launchApp(message);
+                return;
             }
 
-            pushNotificationManager.setLaunchNotification(message);
+            ActionButton button = findButton(message, buttonId);
+            if (button == null) {
+                PWLog.warn(TAG, "tapped button " + buttonId + " is not in the message, opening nothing");
+                return;
+            }
 
-            startActivityForPushMessage(message);
+            switch (button.getAction()) {
+                case OPEN:
+                    launchApp(message);
+                    break;
+                case URL:
+                case DEEPLINK:
+                    if (preHandleNotificationsWithUrl() && notificationOpenHandler.openLink(button.getUrl())) {
+                        break;
+                    }
+                    launchApp(message);
+                    break;
+                case CUSTOM:
+                    break;
+            }
         } finally {
             notificationOpenHandler.postHandleNotification(pushBundle);
             onMessageOpened(message);
         }
+    }
+
+    private void launchApp(PushMessage message) {
+        pushNotificationManager.setLaunchNotification(message);
+        startActivityForPushMessage(message);
+    }
+
+    @Nullable private static ActionButton findButton(PushMessage message, String buttonId) {
+        for (ActionButton button : message.getButtons()) {
+            if (buttonId.equals(button.getId())) {
+                return button;
+            }
+        }
+        return null;
     }
 
     /**
@@ -431,10 +500,15 @@ public class NotificationServiceExtension {
      * Callback invoked when a user taps on a notification.
      * <p>
      * Override this method to handle notification open events, such as tracking analytics,
-     * updating application state, or triggering custom logic. This callback is called after
-     * the activity is launched but provides an opportunity to perform additional processing.
+     * updating application state, or triggering custom logic.
      * <p>
-     * This method is called on the main thread after {@link #startActivityForPushMessage(PushMessage)}.
+     * This method is called on the main thread. For a tap on the notification body or on an
+     * {@code open}, {@code url} or {@code deeplink} action button it runs after
+     * {@link #startActivityForPushMessage(PushMessage)}. For a {@code custom} action button it runs
+     * inside a broadcast receiver with no activity started and roughly ten seconds of budget: move
+     * long work off this thread yourself, and do not start an activity from here — Android 12+
+     * forbids it. Check {@link PushMessage#getTappedButtonId()} and the matching
+     * {@link ActionButton#getAction()} before navigating.
      * <br><br>
      * Example:
      * <pre>

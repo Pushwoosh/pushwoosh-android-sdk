@@ -2,6 +2,7 @@ package com.pushwoosh.notification;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -145,7 +146,7 @@ public class NotificationServiceExtensionTest {
 
     @Test
     public void handleNotification_callsPostHandleInFinally_evenWhenPreHandled() {
-        Mockito.when(notificationOpenHandler.preHandleNotification(pushBundle)).thenReturn(true);
+        Mockito.when(notificationOpenHandler.openLink(any())).thenReturn(true);
 
         notificationServiceExtension.handleNotification(pushBundle);
 
@@ -154,7 +155,7 @@ public class NotificationServiceExtensionTest {
 
     @Test
     public void handleNotification_callsOnMessageOpenedInFinally() {
-        Mockito.when(notificationOpenHandler.preHandleNotification(pushBundle)).thenReturn(false);
+        Mockito.when(notificationOpenHandler.openLink(any())).thenReturn(false);
         NotificationServiceExtension sNotificationServiceExtension = spy(notificationServiceExtension);
 
         sNotificationServiceExtension.handleNotification(pushBundle);
@@ -168,7 +169,7 @@ public class NotificationServiceExtensionTest {
     // outside the no-preHandle branch survives all existing tests).
     @Test
     public void handleNotification_preHandleFalse_setsLaunchAndStartsActivity() {
-        Mockito.when(notificationOpenHandler.preHandleNotification(pushBundle)).thenReturn(false);
+        Mockito.when(notificationOpenHandler.openLink(any())).thenReturn(false);
         NotificationServiceExtension sNotificationServiceExtension = spy(notificationServiceExtension);
 
         sNotificationServiceExtension.handleNotification(pushBundle);
@@ -208,12 +209,24 @@ public class NotificationServiceExtensionTest {
         WhiteboxHelper.setInternalState(noUrlExtension, "pushNotificationManager", pushNotificationManager);
         WhiteboxHelper.setInternalState(
                 noUrlExtension, "pushStatNotificationOpenHandler", pushStatNotificationOpenHandler);
-        Mockito.when(notificationOpenHandler.preHandleNotification(pushBundle)).thenReturn(true);
+        Mockito.when(notificationOpenHandler.openLink(any())).thenReturn(true);
 
         noUrlExtension.handleNotification(pushBundle);
 
-        verify(notificationOpenHandler, never()).preHandleNotification(any());
+        verify(notificationOpenHandler, never()).openLink(any());
         verify(pushNotificationManager).setLaunchNotification(any());
+    }
+
+    @Test
+    public void handleNotificationButton_leavesTheCallerBundleWithoutTappedButtonId() {
+        NotificationServiceExtension sNotificationServiceExtension = spy(notificationServiceExtension);
+
+        sNotificationServiceExtension.handleNotificationButton(pushBundle, "cancel_order");
+
+        ArgumentCaptor<PushMessage> captor = ArgumentCaptor.forClass(PushMessage.class);
+        verify(sNotificationServiceExtension).onMessageOpened(captor.capture());
+        assertEquals("cancel_order", captor.getValue().getTappedButtonId());
+        assertNull(PushBundleDataProvider.getTappedButtonId(pushBundle));
     }
 
     @Test

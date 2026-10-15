@@ -97,43 +97,43 @@
     <h1 class="cover"><span>get</span><wbr><span>Campaign</span><wbr><span><span>Id</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-campaign-id.html"><span class="token function">getCampaignId</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div><p class="paragraph">Gets the campaign ID for this push notification. </p><p class="paragraph"> The campaign ID uniquely identifies the push campaign that sent this notification. Use this for analytics, A/B testing tracking, campaign performance measurement, and correlating user actions with specific marketing campaigns.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	  
-	  protected void onMessageOpened(PushMessage message) {
-	      long campaignId = message.getCampaignId();
-	      long messageId = message.getMessageId();
-	
-	      // Track campaign conversion
-	      analytics.trackCampaignConversion(campaignId);
-	
-	      // Log detailed campaign metrics
-	      Log.d("Analytics", String.format(
-	          "Campaign: %d, Message: %d opened at %s",
-	          campaignId, messageId, new Date()
-	      ));
-	
-	      // Check if this is from a special campaign
-	      if (isBlackFridayCampaign(campaignId)) {
-	          // Show special Black Friday offers
-	          showBlackFridayDeals();
-	      }
-	  }
-	
-	  // Track campaign performance in e-commerce
-	  
-	  protected boolean onMessageReceived(PushMessage message) {
-	      if (!message.isSilent()) {
-	          long campaignId = message.getCampaignId();
-	
-	          // Store campaign info for attribution
-	          SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
-	          prefs.edit()
-	              .putLong("last_campaign_id", campaignId)
-	              .putLong("campaign_received_time", System.currentTimeMillis())
-	              .apply();
-	      }
-	      return false;
-	  }
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">campaign ID as a long value, or 0 if not available</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-message-id.html"><span>get</span><wbr><span>Message</span><wbr><span><span>Id()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-message-code.html"><span>get</span><wbr><span>Message</span><wbr><span><span>Code()</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  
+  protected void onMessageOpened(PushMessage message) {
+      long campaignId = message.getCampaignId();
+      long messageId = message.getMessageId();
+
+      // Track campaign conversion
+      analytics.trackCampaignConversion(campaignId);
+
+      // Log detailed campaign metrics
+      Log.d("Analytics", String.format(
+          "Campaign: %d, Message: %d opened at %s",
+          campaignId, messageId, new Date()
+      ));
+
+      // Check if this is from a special campaign
+      if (isBlackFridayCampaign(campaignId)) {
+          // Show special Black Friday offers
+          showBlackFridayDeals();
+      }
+  }
+
+  // Track campaign performance in e-commerce
+  
+  protected boolean onMessageReceived(PushMessage message) {
+      if (!message.isSilent()) {
+          long campaignId = message.getCampaignId();
+
+          // Store campaign info for attribution
+          SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
+          prefs.edit()
+              .putLong("last_campaign_id", campaignId)
+              .putLong("campaign_received_time", System.currentTimeMillis())
+              .apply();
+      }
+      return false;
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">campaign ID as a long value, or 0 if not available</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-message-id.html"><span>get</span><wbr><span>Message</span><wbr><span><span>Id()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-message-code.html"><span>get</span><wbr><span>Message</span><wbr><span><span>Code()</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

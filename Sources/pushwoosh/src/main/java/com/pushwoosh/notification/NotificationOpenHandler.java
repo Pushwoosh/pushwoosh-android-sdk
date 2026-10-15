@@ -62,8 +62,14 @@ class NotificationOpenHandler {
         this.notificationOpenHandlerChain = notificationOpenHandlerChain;
     }
 
-    boolean preHandleNotification(Bundle pushBundle) {
-        String link = PushBundleDataProvider.getLink(pushBundle);
+    /**
+     * Opens a link the way a push link {@code l} is opened: an allowed external host goes out to the
+     * system, a link the app itself resolves is delivered inside the app with CLEAR_TOP, and a link
+     * nobody resolves is left to the caller.
+     *
+     * @return true when the link was handed to an activity, false when the caller must launch the app
+     */
+    boolean openLink(@Nullable String link) {
         if (TextUtils.isEmpty(link) || context == null) {
             return false;
         }

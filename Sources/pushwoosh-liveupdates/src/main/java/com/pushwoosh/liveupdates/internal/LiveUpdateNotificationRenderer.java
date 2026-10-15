@@ -85,6 +85,7 @@ public class LiveUpdateNotificationRenderer {
      * swiping a live update reach {@code NotificationServiceExtension} exactly like a regular push.
      */
     @WorkerThread
+    @SuppressWarnings("deprecation")
     public void render(@NonNull LiveUpdateState state, @NonNull Bundle pushBundle) {
         PWLog.noise(TAG, "render(activityId=" + state.getActivityId() + ", op=" + state.getOperation() + ")");
         Context context = AndroidPlatformModule.getApplicationContext();

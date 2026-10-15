@@ -1,5 +1,7 @@
 package com.pushwoosh.notification;
 
+import static com.pushwoosh.repository.NotificationPrefs.DEFAULT_GROUP_CHANNEL_NAME;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -21,21 +23,20 @@ import com.pushwoosh.notification.channel.NotificationChannelManager;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 
-import static com.pushwoosh.repository.NotificationPrefs.DEFAULT_GROUP_CHANNEL_NAME;
-
 public class SummaryNotificationUtils {
-    private final static Object MUTEX = new Object();
-    private final static NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+    private static final Object MUTEX = new Object();
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     @RestrictTo(RestrictTo.Scope.LIBRARY)
-    @Nullable
-    public static Notification getSummaryNotification(int activeNotificationsCount, String notificationChannelId, String groupId) {
+    @Nullable public static Notification getSummaryNotification(
+            int activeNotificationsCount, String notificationChannelId, String groupId) {
         Context context = AndroidPlatformModule.getApplicationContext();
         if (context == null) {
             PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
             return null;
         }
-        Notification summaryNotification = provideSummaryNotificationFactory().onGenerateSummaryNotification(activeNotificationsCount, notificationChannelId, groupId);
+        Notification summaryNotification = provideSummaryNotificationFactory()
+                .onGenerateSummaryNotification(activeNotificationsCount, notificationChannelId, groupId);
         if (summaryNotification == null) {
             return null;
         }
@@ -44,9 +45,17 @@ public class SummaryNotificationUtils {
         Intent summaryContentIntent = SummaryNotificationFactory.getNotificationIntent();
         summaryContentIntent.putExtra(NotificationIntentHelper.EXTRA_GROUP_ID, messageId);
         summaryContentIntent.putExtra(NotificationIntentHelper.EXTRA_IS_SUMMARY_NOTIFICATION, true);
-        summaryNotification.extras.putBoolean(NotificationIntentHelper.EXTRA_IS_SUMMARY_NOTIFICATION,true);
-        summaryNotification.contentIntent = PendingIntent.getActivity(context, messageId, summaryContentIntent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
-        summaryNotification.deleteIntent = PendingIntent.getBroadcast(context, messageId, getSummaryDeleteIntent(), PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
+        summaryNotification.extras.putBoolean(NotificationIntentHelper.EXTRA_IS_SUMMARY_NOTIFICATION, true);
+        summaryNotification.contentIntent = PendingIntent.getActivity(
+                context,
+                messageId,
+                summaryContentIntent,
+                PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
+        summaryNotification.deleteIntent = PendingIntent.getBroadcast(
+                context,
+                messageId,
+                getSummaryDeleteIntent(),
+                PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
         return summaryNotification;
     }
 
@@ -65,15 +74,15 @@ public class SummaryNotificationUtils {
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notification = Notification.Builder.recoverBuilder(context, notification)
-                    .setChannelId(new NotificationChannelManager(context).addGroupNotificationsChannel(DEFAULT_GROUP_CHANNEL_NAME))
+                    .setChannelId(new NotificationChannelManager(context)
+                            .addGroupNotificationsChannel(DEFAULT_GROUP_CHANNEL_NAME))
                     .build();
         }
 
         manager.notify(getOrGenerateNotificationIdForGroup(notification.getGroup()), notification);
     }
 
-    @NonNull
-    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    @NonNull @RestrictTo(RestrictTo.Scope.LIBRARY)
     private static Intent getSummaryDeleteIntent() {
         Context applicationContext = AndroidPlatformModule.getApplicationContext();
         Intent deleteIntent = new Intent(applicationContext, NotificationUpdateReceiver.class);
@@ -101,6 +110,7 @@ public class SummaryNotificationUtils {
         int messageId = getNotificationIdForGroup(groupId);
         if (messageId == -1) {
             synchronized (MUTEX) {
+                NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
                 messageId = notificationPrefs.messageId().get();
 
                 if (notificationPrefs.multiMode().get()) {

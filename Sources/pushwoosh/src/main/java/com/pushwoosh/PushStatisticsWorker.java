@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.work.Data;
 import androidx.work.WorkerParameters;
 
@@ -47,6 +48,8 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
     public static final String DATA_PUSH_HASH = "DATA_PUSH_HASH";
     /** Key for the push notification metadata in WorkManager input data. */
     public static final String DATA_METADATA = "DATA_METADATA";
+    /** Key for the tapped action button id in WorkManager input data. */
+    public static final String DATA_BUTTON_ID = "DATA_BUTTON_ID";
 
     // Event types supported by this worker
     /** Event type constant for push notification delivery events. */
@@ -71,10 +74,24 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
      * @return Data object ready to be used with WorkManager requests
      */
     public static Data createInputData(String eventType, String pushHash, String metadata) {
+        return createInputData(eventType, pushHash, metadata, null);
+    }
+
+    /**
+     * Creates input data for statistics WorkManager task, including a tapped action button id.
+     *
+     * @param eventType the type of statistics event (EVENT_DELIVERY or EVENT_OPEN)
+     * @param pushHash the unique hash identifier of the push notification
+     * @param metadata additional metadata associated with the push notification, may be null
+     * @param buttonId the id of the tapped action button, may be null
+     * @return Data object ready to be used with WorkManager requests
+     */
+    public static Data createInputData(String eventType, String pushHash, String metadata, @Nullable String buttonId) {
         return new Data.Builder()
                 .putString(DATA_EVENT_TYPE, eventType)
                 .putString(DATA_PUSH_HASH, pushHash)
                 .putString(DATA_METADATA, metadata)
+                .putString(DATA_BUTTON_ID, buttonId)
                 .build();
     }
 
@@ -122,6 +139,7 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
         String eventType = getInputData().getString(DATA_EVENT_TYPE);
         String pushHash = getInputData().getString(DATA_PUSH_HASH);
         String metadata = getInputData().getString(DATA_METADATA);
+        String buttonId = getInputData().getString(DATA_BUTTON_ID);
 
         // Check eventType and pushHash is not empty
         if (TextUtils.isEmpty(eventType) || TextUtils.isEmpty(pushHash)) {
@@ -148,7 +166,7 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
             }
 
             com.pushwoosh.function.Result<Void, NetworkException> result =
-                    sendStatisticsEventSync(eventType, pushHash, metadata);
+                    sendStatisticsEventSync(eventType, pushHash, metadata, buttonId);
 
             if (result.isSuccess()) {
                 return Result.success();
@@ -184,10 +202,11 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
      * @param eventType the type of statistics event (EVENT_DELIVERY or EVENT_OPEN)
      * @param hash the unique hash identifier of the push notification
      * @param metadata additional metadata associated with the push notification, may be null
+     * @param buttonId the id of the tapped action button, may be null
      * @return Result containing success or NetworkException with error details
      */
     private com.pushwoosh.function.Result<Void, NetworkException> sendStatisticsEventSync(
-            String eventType, String hash, String metadata) {
+            String eventType, String hash, String metadata, @Nullable String buttonId) {
         PWLog.noise(TAG, "sendStatisticsEventSync(), eventType: " + eventType);
         try {
             PushwooshRepository repository = getPushwooshRepository();
@@ -198,7 +217,7 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
 
             return EVENT_DELIVERY.equals(eventType)
                     ? repository.sendPushDeliveredSync(hash, metadata)
-                    : repository.sendPushOpenedSync(hash, metadata);
+                    : repository.sendPushOpenedSync(hash, metadata, buttonId);
 
         } catch (Exception e) {
             PWLog.error(TAG, "Failed to send " + eventType + " event", e);

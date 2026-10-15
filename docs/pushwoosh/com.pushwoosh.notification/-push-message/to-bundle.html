@@ -97,26 +97,26 @@
     <h1 class="cover"><span>to</span><wbr><span><span>Bundle</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="to-bundle.html"><span class="token function">toBundle</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="android.os/Bundle///PointingToDeclaration/">Bundle</span></div><p class="paragraph">Converts this push message to a Bundle. </p><p class="paragraph"> Returns the raw push payload as an Android Bundle containing all the notification data received from FCM/HMS. This is useful when you need to access fields that don't have dedicated getter methods or when passing the push data to other components.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	  
-	  protected void onMessageOpened(PushMessage message) {
-	      // Get raw bundle for advanced processing
-	      Bundle bundle = message.toBundle();
-	
-	      // Access all bundle keys
-	      for (String key : bundle.keySet()) {
-	          Log.d("App", "Key: " + key + " = " + bundle.get(key));
-	      }
-	
-	      // Pass to analytics service
-	      analytics.trackNotificationOpened(bundle);
-	
-	      // Store for later processing
-	      SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
-	      prefs.edit()
-	          .putString("last_notification", bundle.toString())
-	          .apply();
-	  }
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">Bundle containing the complete push notification payload</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="to-json.html"><span>to</span><wbr><span><span>Json()</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  
+  protected void onMessageOpened(PushMessage message) {
+      // Get raw bundle for advanced processing
+      Bundle bundle = message.toBundle();
+
+      // Access all bundle keys
+      for (String key : bundle.keySet()) {
+          Log.d("App", "Key: " + key + " = " + bundle.get(key));
+      }
+
+      // Pass to analytics service
+      analytics.trackNotificationOpened(bundle);
+
+      // Store for later processing
+      SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
+      prefs.edit()
+          .putString("last_notification", bundle.toString())
+          .apply();
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">Bundle containing the complete push notification payload</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="to-json.html"><span>to</span><wbr><span><span>Json()</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

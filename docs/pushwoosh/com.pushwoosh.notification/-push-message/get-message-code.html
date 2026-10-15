@@ -97,21 +97,21 @@
     <h1 class="cover"><span>get</span><wbr><span>Message</span><wbr><span><span>Code</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-message-code.html"><span class="token function">getMessageCode</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a></div><p class="paragraph">Gets the message code for this push notification. </p><p class="paragraph"> The message code is a unique identifier extracted from the push hash. It can be used for tracking and identifying specific messages in your analytics or logging systems.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	  
-	  protected void onMessageOpened(PushMessage message) {
-	      String messageCode = message.getMessageCode();
-	      long campaignId = message.getCampaignId();
-	
-	      // Track in analytics with detailed identifiers
-	      analytics.trackEvent("notification_opened", new HashMap&lt;String, Object&gt;() {{
-	          put("message_code", messageCode);
-	          put("campaign_id", campaignId);
-	          put("title", message.getHeader());
-	      }});
-	
-	      Log.d("App", "Opened message: " + messageCode);
-	  }
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">message code string, or null if not available</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-campaign-id.html"><span>get</span><wbr><span>Campaign</span><wbr><span><span>Id()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-message-id.html"><span>get</span><wbr><span>Message</span><wbr><span><span>Id()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-push-hash.html"><span>get</span><wbr><span>Push</span><wbr><span><span>Hash()</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  
+  protected void onMessageOpened(PushMessage message) {
+      String messageCode = message.getMessageCode();
+      long campaignId = message.getCampaignId();
+
+      // Track in analytics with detailed identifiers
+      analytics.trackEvent("notification_opened", new HashMap&lt;String, Object&gt;() {{
+          put("message_code", messageCode);
+          put("campaign_id", campaignId);
+          put("title", message.getHeader());
+      }});
+
+      Log.d("App", "Opened message: " + messageCode);
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">message code string, or null if not available</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-campaign-id.html"><span>get</span><wbr><span>Campaign</span><wbr><span><span>Id()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-message-id.html"><span>get</span><wbr><span>Message</span><wbr><span><span>Id()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-push-hash.html"><span>get</span><wbr><span>Push</span><wbr><span><span>Hash()</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

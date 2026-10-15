@@ -15,6 +15,30 @@ notification. Extend [NotificationServiceExtension] to intercept notifications b
 suppress them in foreground, or override launch behavior. Use [NotificationFactory] to build
 fully custom notification layouts.
 
+### Action buttons
+
+The server can attach up to three action buttons to a push through the `pw_buttons` field. Each
+button has an `id`, a `label` and an `action`:
+
+| `action` | What a tap does |
+|---|---|
+| `open` | Brings the app forward exactly like a tap on the notification body |
+| `url` / `deeplink` | Opens the button's `url` the way the push link does: an allowed external host goes to the system, a link your app resolves is delivered inside the app, otherwise the app is launched |
+| `custom` | Delivers the tap to your code in the background without opening any screen |
+
+The SDK renders the buttons itself — a custom [NotificationFactory] must not render
+[PushMessage.buttons] again — and it owns the tap: the notification is dismissed, an open
+event carrying the button id is reported, and [NotificationServiceExtension.onMessageOpened] is
+called with a message whose [PushMessage.tappedButtonId] returns the tapped button's id. There
+is no separate callback. Rich Media, the push link `l` and the `launch` key apply to a tap on the
+notification body only.
+
+A `custom` tap runs in a broadcast receiver: there is no activity, the budget is about ten
+seconds, and Android 12+ forbids starting an activity from there.
+
+The legacy Android-only `pw_actions` contract (`Action`, `PushMessage.getActions()`) is deprecated.
+A push that carries `pw_buttons` never renders `pw_actions`.
+
 # Package com.pushwoosh.inapp
 
 In-app messaging. Use [InAppManager] to post events that trigger in-app message campaigns

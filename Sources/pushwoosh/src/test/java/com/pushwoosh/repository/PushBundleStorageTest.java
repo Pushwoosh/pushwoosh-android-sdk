@@ -320,4 +320,26 @@ public class PushBundleStorageTest {
         List<Bundle> rows = storage.getGroupPushBundles();
         assertEquals(4, rows.size());
     }
+
+    @Test
+    public void getGroupPushBundleGroupId_returnsTheGroupTheRowWasStoredWith() throws Exception {
+        long ordersRowId = storage.putGroupPushBundle(bundleWithTag("tag-A", "orders"), 0, "orders");
+        long promosRowId = storage.putGroupPushBundle(bundleWithTag("tag-B", "promos"), 0, "promos");
+
+        assertEquals("orders", storage.getGroupPushBundleGroupId(ordersRowId));
+        assertEquals("promos", storage.getGroupPushBundleGroupId(promosRowId));
+    }
+
+    @Test
+    public void getGroupPushBundleGroupId_unknownRow_returnsNull() {
+        assertNull(storage.getGroupPushBundleGroupId(424242L));
+    }
+
+    @Test
+    public void getGroupPushBundleGroupId_removedRow_returnsNull() throws Exception {
+        long rowId = storage.putGroupPushBundle(bundleWithTag("tag-A", "orders"), 0, "orders");
+        storage.removeGroupPushBundle(rowId);
+
+        assertNull(storage.getGroupPushBundleGroupId(rowId));
+    }
 }

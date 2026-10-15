@@ -97,21 +97,21 @@
     <h1 class="cover"><span>Push</span><wbr><span><span>Message</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">extras<span class="token operator">: </span><span data-unresolved-link="android.os/Bundle///PointingToDeclaration/">Bundle</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Creates a PushMessage from a push notification payload Bundle. </p><p class="paragraph"> This constructor is used internally by the SDK to create PushMessage instances from FCM/HMS push payloads. You typically don't need to call this constructor directly - PushMessage instances are automatically created and passed to your <a href="../-notification-service-extension/index.html">NotificationServiceExtension</a> callback methods.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	  // Advanced use case: Creating PushMessage from saved Bundle
-	  public void reprocessSavedNotification() {
-	      SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
-	      String bundleString = prefs.getString("saved_notification", null);
-	
-	      if (bundleString != null) {
-	          // Reconstruct bundle and create PushMessage
-	          Bundle bundle = bundleFromString(bundleString);
-	          PushMessage message = new PushMessage(bundle);
-	
-	          // Process the saved notification
-	          processNotification(message);
-	      }
-	  }
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>extras</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Bundle containing the push notification payload from FCM/HMS</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-notification-service-extension/on-message-received.html"><span>Notification</span><wbr><span>Service</span><wbr><span><span>Extension</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  // Advanced use case: Creating PushMessage from saved Bundle
+  public void reprocessSavedNotification() {
+      SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
+      String bundleString = prefs.getString("saved_notification", null);
+
+      if (bundleString != null) {
+          // Reconstruct bundle and create PushMessage
+          Bundle bundle = bundleFromString(bundleString);
+          PushMessage message = new PushMessage(bundle);
+
+          // Process the saved notification
+          processNotification(message);
+      }
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>extras</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Bundle containing the push notification payload from FCM/HMS</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-notification-service-extension/on-message-received.html"><span>Notification</span><wbr><span>Service</span><wbr><span><span>Extension</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

@@ -34,6 +34,7 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
 import androidx.core.app.ActivityOptionsCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -45,6 +46,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import com.pushwoosh.inbox.PushwooshInbox
 import com.pushwoosh.inbox.data.InboxMessage
+import com.pushwoosh.inbox.data.InboxTabs
 import com.pushwoosh.inbox.ui.PushwooshInboxStyle
 import com.pushwoosh.inbox.ui.R
 import com.pushwoosh.inbox.ui.presentation.data.UserError
@@ -58,6 +60,10 @@ import com.pushwoosh.inbox.ui.presentation.view.style.ColorSchemeProviderFactory
 
 
 open class InboxFragment : BaseFragment(), InboxView {
+
+    private companion object {
+        const val KEY_SELECTED_TAB_ID = "pw_inbox_selected_tab_id"
+    }
 
     private lateinit var inboxAdapter: InboxAdapter
     private lateinit var inboxPresenter: InboxPresenter
@@ -74,6 +80,16 @@ open class InboxFragment : BaseFragment(), InboxView {
     private lateinit var inboxErrorTextView: android.widget.TextView
     private lateinit var inboxEmptyImageView: android.widget.ImageView
     private lateinit var inboxErrorImageView: android.widget.ImageView
+    /**
+     * Null when the host app overrides pw_fragment_inbox.xml with a layout that predates the tabs:
+     * no panel, and the Inbox stays the plain feed it was before the update.
+     */
+    private var inboxTabLayout: TabLayout? = null
+
+    private val allMessages = mutableListOf<InboxMessage>()
+    private var inboxTabs: InboxTabs? = null
+    private var selectedTabId: String? = null
+    private var tabSelectionIsBeingRebuilt = false
 
 
     private var attachmentClickListener: ((String, View) -> Unit) = {url : String, view : View -> onAttachmentClicked(url, view)}
@@ -104,6 +120,10 @@ open class InboxFragment : BaseFragment(), InboxView {
         inboxErrorTextView = view.findViewById(R.id.inboxErrorTextView)
         inboxEmptyImageView = view.findViewById(R.id.inboxEmptyImageView)
         inboxErrorImageView = view.findViewById(R.id.inboxErrorImageView)
+        inboxTabLayout = view.findViewById(R.id.inboxTabLayout)
+
+        // before onViewCreated: the presenter calls showList from super.onViewCreated, already filtered
+        selectedTabId = savedInstanceState?.getString(KEY_SELECTED_TAB_ID)
         
         return view
     }
@@ -161,10 +181,26 @@ open class InboxFragment : BaseFragment(), InboxView {
             inboxAppBarLayout.visibility = View.GONE
         }
 
-        inboxAdapter.onItemRemoved = { inboxMessage ->
-            if (inboxAdapter.itemCount == 0) {
-                showEmptyView()
+        inboxTabLayout?.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                if (tabSelectionIsBeingRebuilt) return
+                selectedTabId = tab.tag as? String
+                applyFilter()
             }
+
+            override fun onTabUnselected(tab: TabLayout.Tab) = Unit
+
+            override fun onTabReselected(tab: TabLayout.Tab) = Unit
+        })
+
+        inboxAdapter.onItemRemoved = { inboxMessage ->
+            if (inboxMessage != null) {
+                allMessages.remove(inboxMessage)
+            }
+            if (messagesForSelectedTab().isEmpty()) {
+                renderEmptyState()
+            }
+            updateTabCounters()
 
             inboxSwipeRefreshLayout.isEnabled = true
             inboxPresenter.removeItem(inboxMessage)
@@ -188,7 +224,11 @@ open class InboxFragment : BaseFragment(), InboxView {
             inboxRecyclerView.setBackgroundColor(color)
             inboxEmpty.setBackgroundColor(color)
             inboxError.setBackgroundColor(color)
+            inboxTabLayout?.setBackgroundColor(color)
         }
+
+        inboxTabLayout?.setSelectedTabIndicatorColor(colorSchemeProvider.accentColor)
+        inboxTabLayout?.setTabTextColors(colorSchemeProvider.titleColor.defaultColor, colorSchemeProvider.accentColor)
 
         val divider = colorSchemeProvider.divider
         if (divider != null) {
@@ -252,6 +292,19 @@ open class InboxFragment : BaseFragment(), InboxView {
         }
     }
 
+    /**
+     * The selected tab outlives a configuration change and nothing else: leaving the Inbox and
+     * coming back is an open, and an open starts on "All". A host that keeps the Inbox in a
+     * navigation graph hands the fragment the same saved state on re-entry, so the two are told
+     * apart here, where only a relaunch reports [android.app.Activity.isChangingConfigurations].
+     */
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (activity?.isChangingConfigurations == true) {
+            outState.putString(KEY_SELECTED_TAB_ID, selectedTabId)
+        }
+    }
+
     override fun showSwipeRefreshProgress() {
         inboxSwipeRefreshLayout.isRefreshing = true
     }
@@ -265,32 +318,124 @@ open class InboxFragment : BaseFragment(), InboxView {
         callback?.setTouchable(true)
     }
 
+    /**
+     * An inbox that holds messages keeps its content and reports the failure in a snackbar; the
+     * full-screen error belongs to an inbox with nothing in it, not to an empty tab.
+     */
     override fun failedLoadingInboxList(userError: UserError) {
-        val localView = view
+        val localView = view ?: return
 
-        if (localView != null) {
-            if (inboxAdapter.itemCount != 0) {
-                if (TextUtils.isEmpty(userError.message)) {
-                    return
-                }
-                Snackbar.make(localView, userError.message!!, Snackbar.LENGTH_LONG)
-                        .show()
-            } else {
-                updateContent(isError = true)
-                updateMessageTextView(inboxErrorTextView, userError.message)
-                
-                // Apply proper styling to error state text
-                PushwooshInboxStyle.titleColor?.let { color ->
-                    inboxErrorTextView.setTextColor(color)
-                }
+        if (allMessages.isNotEmpty()) {
+            if (TextUtils.isEmpty(userError.message)) {
+                return
             }
+            Snackbar.make(localView, userError.message!!, Snackbar.LENGTH_LONG)
+                    .show()
+            return
+        }
+
+        updateContent(isError = true)
+        updateMessageTextView(inboxErrorTextView, userError.message)
+        PushwooshInboxStyle.titleColor?.let { color ->
+            inboxErrorTextView.setTextColor(color)
         }
     }
 
     override fun showList(inboxList: Collection<InboxMessage>) {
-        inboxAdapter.setCollection(inboxList)
-        updateContent(isEmpty = false)
-        inboxRecyclerView.post { markDisplayedAsRead() }
+        allMessages.clear()
+        allMessages.addAll(inboxList)
+        syncTabs()
+        applyFilter()
+    }
+
+    /**
+     * Brings the panel in line with the tabs the backend last sent: no tabs hides it, a changed
+     * list redraws it, and a selection that no longer exists falls back to "All".
+     */
+    private fun syncTabs() {
+        val tabLayout = inboxTabLayout
+        if (tabLayout == null) {
+            selectedTabId = null
+            return
+        }
+
+        val tabs = PushwooshInbox.getTabs()
+        val changed = tabs != inboxTabs
+        inboxTabs = tabs
+
+        if (tabs == null) {
+            tabLayout.visibility = View.GONE
+            tabLayout.removeAllTabs()
+            selectedTabId = null
+            return
+        }
+
+        if (selectedTabId != null && tabs.tabs.none { it.id == selectedTabId }) {
+            selectedTabId = null
+        }
+
+        if (changed || tabLayout.tabCount != tabs.tabs.size + 1) {
+            rebuildTabs(tabLayout, tabs)
+        }
+        tabLayout.visibility = View.VISIBLE
+        updateTabCounters()
+    }
+
+    private fun rebuildTabs(tabLayout: TabLayout, tabs: InboxTabs) {
+        tabSelectionIsBeingRebuilt = true
+        try {
+            tabLayout.removeAllTabs()
+            tabLayout.addTab(
+                tabLayout.newTab().setText(tabLabel(tabs.allTitle, unreadCountFor(null))).setTag(null)
+            )
+            tabs.tabs.forEach { tab ->
+                tabLayout.addTab(
+                    tabLayout.newTab().setText(tabLabel(tab.title, unreadCountFor(tab.id))).setTag(tab.id)
+                )
+            }
+            val selected = tabs.tabs.indexOfFirst { it.id == selectedTabId }
+            tabLayout.selectTab(tabLayout.getTabAt(if (selected < 0) 0 else selected + 1))
+        } finally {
+            tabSelectionIsBeingRebuilt = false
+        }
+    }
+
+    private fun tabLabel(title: String, unread: Int): String = if (unread > 0) "$title  $unread" else title
+
+    private fun unreadCountFor(tabId: String?): Int =
+        if (tabId == null) allMessages.count { !it.isRead } else allMessages.count { !it.isRead && it.tabId == tabId }
+
+    private fun updateTabCounters() {
+        val tabLayout = inboxTabLayout ?: return
+        val tabs = inboxTabs ?: return
+        tabLayout.getTabAt(0)?.text = tabLabel(tabs.allTitle, unreadCountFor(null))
+        tabs.tabs.forEachIndexed { index, tab ->
+            tabLayout.getTabAt(index + 1)?.text = tabLabel(tab.title, unreadCountFor(tab.id))
+        }
+    }
+
+    /** "All" shows everything, including a message whose tab the backend no longer lists. */
+    private fun messagesForSelectedTab(): List<InboxMessage> {
+        val tabId = selectedTabId ?: return allMessages.toList()
+        return allMessages.filter { it.tabId == tabId }
+    }
+
+    private fun applyFilter() {
+        val visible = messagesForSelectedTab()
+        inboxAdapter.setCollection(visible)
+        if (visible.isEmpty()) {
+            renderEmptyState()
+        } else {
+            updateContent(isEmpty = false)
+            inboxRecyclerView.post { markDisplayedAsRead() }
+        }
+    }
+
+    private fun renderEmptyState() {
+        updateContent(isEmpty = true)
+        inboxSwipeRefreshLayout.isEnabled = true
+        updateMessageTextView(inboxEmptyTextView, PushwooshInboxStyle.listEmptyText)
+        PushwooshInboxStyle.titleColor?.let { color -> inboxEmptyTextView.setTextColor(color) }
     }
 
     override fun onResume() {
@@ -310,14 +455,10 @@ open class InboxFragment : BaseFragment(), InboxView {
     }
 
     override fun showEmptyView() {
-        updateContent(isEmpty = true)
-        inboxSwipeRefreshLayout.isEnabled = true
-        updateMessageTextView(inboxEmptyTextView, PushwooshInboxStyle.listEmptyText)
-        
-        // Apply proper styling to empty state text
-        PushwooshInboxStyle.titleColor?.let { color ->
-            inboxEmptyTextView.setTextColor(color)
-        }
+        allMessages.clear()
+        syncTabs()
+        inboxAdapter.setCollection(emptyList())
+        renderEmptyState()
     }
 
     private fun updateContent(showProgress: Boolean = false, isEmpty: Boolean = false, swipeRefresh: Boolean = false, isError: Boolean = false) {

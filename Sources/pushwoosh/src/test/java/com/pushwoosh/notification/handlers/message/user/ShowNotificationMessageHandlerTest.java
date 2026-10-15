@@ -27,6 +27,10 @@
 package com.pushwoosh.notification.handlers.message.user;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -38,20 +42,27 @@ import static org.mockito.Mockito.when;
 
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 
+import com.pushwoosh.NotificationUpdateReceiver;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.platform.app.AppInfoProvider;
 import com.pushwoosh.internal.platform.manager.ManagerProvider;
+import com.pushwoosh.internal.platform.resource.ResourceProvider;
 import com.pushwoosh.internal.preference.PreferenceArrayListValue;
 import com.pushwoosh.internal.preference.PreferenceBooleanValue;
 import com.pushwoosh.internal.preference.PreferenceIntValue;
 import com.pushwoosh.internal.utils.NotificationUtils;
+import com.pushwoosh.notification.ActionButtonIntents;
 import com.pushwoosh.notification.LocalNotificationReceiver;
+import com.pushwoosh.notification.NotificationIntentHelper;
+import com.pushwoosh.notification.NotificationOpenActivity;
 import com.pushwoosh.notification.PushMessage;
 import com.pushwoosh.notification.PushMessageTestTool;
 import com.pushwoosh.notification.PushwooshNotificationFactory;
@@ -62,6 +73,8 @@ import com.pushwoosh.repository.LocalNotificationStorage;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.PushBundleStorage;
 import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.testutil.NotificationServiceMock;
+import com.pushwoosh.testutil.PlatformTestManager;
 import com.pushwoosh.testutil.WhiteboxHelper;
 
 import org.junit.After;
@@ -73,7 +86,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowPendingIntent;
 import org.robolectric.util.ReflectionHelpers;
 
 import java.io.Serializable;
@@ -1183,5 +1198,260 @@ public class ShowNotificationMessageHandlerTest {
         repositoryModuleMockedStatic
                 .when(RepositoryModule::getNotificationPreferences)
                 .thenReturn(notificationPrefsMock);
+    }
+
+    private static final String BUTTONS_JSON = "[{\"id\":\"open_order\",\"label\":\"Open order\",\"action\":\"open\"},"
+            + "{\"id\":\"site\",\"label\":\"Site\",\"action\":\"url\",\"url\":\"https://shop.com/42\"},"
+            + "{\"id\":\"cancel_order\",\"label\":\"Cancel\",\"action\":\"custom\"}]";
+
+    /**
+     * Real (non-mock) PushMessage carrying pw_buttons, so the handler sees real buttons.
+     * <p>
+     * Construction itself (outside any test's try-with-resources) still reaches into
+     * AndroidPlatformModule/RepositoryModule for unrelated fields (header, icon); this gives it a
+     * throwaway mock of its own so the real buttons it returns are unaffected by those lookups.
+     */
+    private static PushMessage pushMessageWith(String buttonsJson) {
+        Bundle bundle = new Bundle();
+        bundle.putString("pw_msg_tag", "order-42");
+        if (buttonsJson != null) {
+            bundle.putString("pw_buttons", buttonsJson);
+        }
+
+        try (MockedStatic<AndroidPlatformModule> platformModuleMockedStatic =
+                        Mockito.mockStatic(AndroidPlatformModule.class);
+                MockedStatic<RepositoryModule> repositoryModuleMockedStatic =
+                        Mockito.mockStatic(RepositoryModule.class)) {
+            AppInfoProvider appInfoProvider = mock(AppInfoProvider.class);
+            when(appInfoProvider.getApplicationLabel()).thenReturn("App");
+            platformModuleMockedStatic
+                    .when(AndroidPlatformModule::getAppInfoProvider)
+                    .thenReturn(appInfoProvider);
+
+            ResourceProvider resourceProvider = mock(ResourceProvider.class);
+            when(resourceProvider.getIdentifier(anyString(), anyString())).thenReturn(0);
+            platformModuleMockedStatic
+                    .when(AndroidPlatformModule::getResourceProvider)
+                    .thenReturn(resourceProvider);
+
+            NotificationPrefs prefs = mock(NotificationPrefs.class);
+            PreferenceIntValue iconColor = mock(PreferenceIntValue.class);
+            when(iconColor.get()).thenReturn(0);
+            when(prefs.iconBackgroundColor()).thenReturn(iconColor);
+            repositoryModuleMockedStatic
+                    .when(RepositoryModule::getNotificationPreferences)
+                    .thenReturn(prefs);
+
+            return new PushMessage(bundle);
+        }
+    }
+
+    /**
+     * Runs the show handler against a real Robolectric NotificationManager and returns what was
+     * published under (tag, id). Same mock set as handleNotification() above.
+     */
+    private Notification publish(
+            PushMessage pushMessage, Notification factoryNotification, boolean multiMode, int publishedId) {
+        return publish(pushMessage, factoryNotification, multiMode, publishedId, new Intent());
+    }
+
+    /** Same as {@link #publish(PushMessage, Notification, boolean, int)}, with a caller-supplied factory content intent. */
+    private Notification publish(
+            PushMessage pushMessage,
+            Notification factoryNotification,
+            boolean multiMode,
+            int publishedId,
+            Intent factoryContentIntent) {
+        try (MockedStatic<NotificationUtils> notificationUtilsMockedStatic =
+                        Mockito.mockStatic(NotificationUtils.class);
+                MockedStatic<AndroidPlatformModule> platformModuleMockedStatic =
+                        Mockito.mockStatic(AndroidPlatformModule.class);
+                MockedStatic<EventBus> eventBusMockedStatic = Mockito.mockStatic(EventBus.class);
+                MockedStatic<RepositoryModule> repositoryModuleMockedStatic =
+                        Mockito.mockStatic(RepositoryModule.class);
+                MockedStatic<SummaryNotificationUtils> summaryNotificationUtils =
+                        Mockito.mockStatic(SummaryNotificationUtils.class)) {
+            notificationUtilsMockedStatic
+                    .when(() -> NotificationUtils.rebuildWithDefaultValuesIfNeeded(Mockito.any(Notification.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
+            platformModuleMockedStatic
+                    .when(AndroidPlatformModule::getApplicationContext)
+                    .thenReturn(RuntimeEnvironment.application);
+            summaryNotificationUtils
+                    .when(() -> SummaryNotificationUtils.getNotificationIdForGroup(anyString()))
+                    .thenReturn(7);
+
+            NotificationManager notificationManager =
+                    (NotificationManager) RuntimeEnvironment.application.getSystemService(Context.NOTIFICATION_SERVICE);
+            ManagerProvider managerProviderMock = mock(ManagerProvider.class);
+            when(managerProviderMock.getNotificationManager()).thenReturn(notificationManager);
+            platformModuleMockedStatic
+                    .when(AndroidPlatformModule::getManagerProvider)
+                    .thenReturn(managerProviderMock);
+
+            notificationPrefsMock = mock(NotificationPrefs.class);
+            PreferenceBooleanValue enabled = mock(PreferenceBooleanValue.class);
+            when(enabled.get()).thenReturn(true);
+            PreferenceBooleanValue multi = mock(PreferenceBooleanValue.class);
+            when(multi.get()).thenReturn(multiMode);
+            when(notificationPrefsMock.notificationEnabled()).thenReturn(enabled);
+            when(notificationPrefsMock.multiMode()).thenReturn(multi);
+            when(notificationPrefsMock.lightScreenOn()).thenReturn(enabled);
+            when(notificationPrefsMock.pushHistory()).thenReturn(mock(PreferenceArrayListValue.class));
+            when(notificationPrefsMock.messageId()).thenReturn(mock(PreferenceIntValue.class));
+            repositoryModuleMockedStatic
+                    .when(RepositoryModule::getNotificationPreferences)
+                    .thenReturn(notificationPrefsMock);
+            repositoryModuleMockedStatic
+                    .when(RepositoryModule::getLocalNotificationStorage)
+                    .thenReturn(mock(LocalNotificationStorage.class));
+            repositoryModuleMockedStatic
+                    .when(RepositoryModule::getPushBundleStorage)
+                    .thenReturn(mock(PushBundleStorage.class));
+
+            showNotificationMessageHandler = new ShowNotificationMessageHandler();
+            pushwooshNotificationFactoryMock = mock(PushwooshNotificationFactory.class);
+            WhiteboxHelper.setInternalState(
+                    showNotificationMessageHandler, "notificationFactory", pushwooshNotificationFactoryMock);
+            when(pushwooshNotificationFactoryMock.onGenerateNotification(pushMessage))
+                    .thenReturn(factoryNotification);
+            when(pushwooshNotificationFactoryMock.getNotificationIntent(pushMessage))
+                    .thenReturn(factoryContentIntent);
+
+            showNotificationMessageHandler.handleNotification(pushMessage);
+
+            return Shadows.shadowOf(notificationManager).getNotification("order-42", publishedId);
+        }
+    }
+
+    @Test
+    public void handleNotification_pushWithButtons_publishesThreeActionsWithTheGivenLabels() {
+        Notification published = publish(pushMessageWith(BUTTONS_JSON), new Notification(), false, 0);
+
+        assertNotNull(published);
+        assertEquals(3, published.actions.length);
+        assertEquals("Open order", published.actions[0].title);
+        assertEquals("Site", published.actions[1].title);
+        assertEquals("Cancel", published.actions[2].title);
+    }
+
+    @Test
+    public void handleNotification_factoryAlreadyAddedItsOwnAction_keepsItAndAppendsButtons() {
+        Notification factoryNotification = new Notification();
+        factoryNotification.actions =
+                new Notification.Action[] {new Notification.Action.Builder(0, "Factory", null).build()};
+
+        Notification published = publish(pushMessageWith(BUTTONS_JSON), factoryNotification, false, 0);
+
+        assertEquals(4, published.actions.length);
+        assertEquals("Factory", published.actions[0].title);
+        assertEquals("Open order", published.actions[1].title);
+    }
+
+    @Test
+    public void handleNotification_openAndUrlButtons_targetTheOpenActivity_customTargetsTheReceiver() {
+        Notification published = publish(pushMessageWith(BUTTONS_JSON), new Notification(), false, 0);
+
+        ShadowPendingIntent open = Shadows.shadowOf(published.actions[0].actionIntent);
+        assertTrue(open.isActivityIntent());
+        assertEquals(
+                NotificationOpenActivity.class.getName(),
+                open.getSavedIntent().getComponent().getClassName());
+
+        ShadowPendingIntent url = Shadows.shadowOf(published.actions[1].actionIntent);
+        assertTrue(url.isActivityIntent());
+        assertEquals(
+                NotificationOpenActivity.class.getName(),
+                url.getSavedIntent().getComponent().getClassName());
+
+        ShadowPendingIntent custom = Shadows.shadowOf(published.actions[2].actionIntent);
+        assertTrue(custom.isBroadcastIntent());
+        assertEquals(
+                NotificationUpdateReceiver.class.getName(),
+                custom.getSavedIntent().getComponent().getClassName());
+    }
+
+    @Test
+    public void handleNotification_buttonIntent_carriesBundleButtonIdTagAndNotificationId() {
+        Notification published = publish(pushMessageWith(BUTTONS_JSON), new Notification(), false, 0);
+        Intent saved = Shadows.shadowOf(published.actions[2].actionIntent).getSavedIntent();
+
+        assertEquals("cancel_order", saved.getStringExtra(ActionButtonIntents.EXTRA_BUTTON_ID));
+        assertEquals("order-42", saved.getStringExtra(ActionButtonIntents.EXTRA_NOTIFICATION_TAG));
+        assertEquals(0, saved.getIntExtra(ActionButtonIntents.EXTRA_NOTIFICATION_ID, -1));
+        Bundle carried = saved.getBundleExtra(NotificationIntentHelper.EXTRA_NOTIFICATION_BUNDLE);
+        assertNotNull(carried);
+        assertEquals("order-42", carried.getString("pw_msg_tag"));
+    }
+
+    @Test
+    public void handleNotification_contentIntentAlreadyCarriesABundle_buttonIntentKeepsThatSameBundle() {
+        Bundle factoryBundle = new Bundle();
+        factoryBundle.putString("pw_msg_tag", "order-42");
+        factoryBundle.putString("marker", "from-custom-factory");
+        Intent factoryContentIntent = new Intent();
+        factoryContentIntent.putExtra(NotificationIntentHelper.EXTRA_NOTIFICATION_BUNDLE, factoryBundle);
+
+        Notification published =
+                publish(pushMessageWith(BUTTONS_JSON), new Notification(), false, 0, factoryContentIntent);
+        Intent saved = Shadows.shadowOf(published.actions[0].actionIntent).getSavedIntent();
+
+        Bundle carried = saved.getBundleExtra(NotificationIntentHelper.EXTRA_NOTIFICATION_BUNDLE);
+        assertNotNull(carried);
+        assertEquals("from-custom-factory", carried.getString("marker"));
+    }
+
+    // Three buttons of one render pass must not collapse into one PendingIntent.
+    @Test
+    public void handleNotification_twoButtons_produceDistinctPendingIntents() {
+        Notification published = publish(pushMessageWith(BUTTONS_JSON), new Notification(), false, 0);
+
+        PendingIntent first = published.actions[0].actionIntent;
+        PendingIntent second = published.actions[1].actionIntent;
+        assertNotEquals(first, second);
+        assertNotEquals(
+                Shadows.shadowOf(first).getSavedIntent().getAction(),
+                Shadows.shadowOf(second).getSavedIntent().getAction());
+    }
+
+    @Test
+    public void handleMultiModeNotification_pushWithButtons_buttonIntentCarriesTheSummaryGroupId() {
+        Notification published = publish(pushMessageWith(BUTTONS_JSON), new Notification(), true, 0);
+        Intent saved = Shadows.shadowOf(published.actions[0].actionIntent).getSavedIntent();
+
+        assertEquals(3, published.actions.length);
+        assertEquals(7, saved.getIntExtra(NotificationIntentHelper.EXTRA_GROUP_ID, 0));
+    }
+
+    // The one test that crosses the render/tap seam: the PendingIntent published by the render path
+    // is fed straight back into the dispatcher, so the notification id travels for real instead of
+    // being hand-written identically on both sides.
+    @Test
+    public void handleNotification_publishedButtonIntentFedBackIn_closesTheNotificationAndReportsTheButton() {
+        PlatformTestManager sdk = new PlatformTestManager();
+        sdk.onApplicationCreated();
+        try {
+            Notification published = publish(pushMessageWith(BUTTONS_JSON), new Notification(), false, 0);
+            NotificationManager manager =
+                    (NotificationManager) RuntimeEnvironment.application.getSystemService(Context.NOTIFICATION_SERVICE);
+            assertNotNull(Shadows.shadowOf(manager).getNotification("order-42", 0));
+
+            Intent tap = Shadows.shadowOf(published.actions[2].actionIntent).getSavedIntent();
+            NotificationIntentHelper.processIntent(RuntimeEnvironment.application, tap, () -> {});
+
+            assertNull(Shadows.shadowOf(manager).getNotification("order-42", 0));
+            ArgumentCaptor<PushMessage> captor = ArgumentCaptor.forClass(PushMessage.class);
+            verify(NotificationServiceMock.callbackMock()).onMessageOpened(captor.capture());
+            assertEquals("cancel_order", captor.getValue().getTappedButtonId());
+        } finally {
+            sdk.tearDown();
+        }
+    }
+
+    @Test
+    public void handleNotification_pushWithoutButtons_leavesActionsUntouched() {
+        Notification published = publish(pushMessageWith(null), new Notification(), false, 0);
+
+        assertNull(published.actions);
     }
 }

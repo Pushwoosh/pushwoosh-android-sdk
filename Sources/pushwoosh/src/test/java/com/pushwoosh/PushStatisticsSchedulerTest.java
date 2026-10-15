@@ -1,6 +1,7 @@
 package com.pushwoosh;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -78,15 +79,23 @@ public class PushStatisticsSchedulerTest {
     public void testScheduleDeliveryEventSuccess() {
         Bundle pushBundle = createValidPushBundle();
 
-        try (MockedStatic<PushBundleDataProvider> bundleProviderMock = Mockito.mockStatic(PushBundleDataProvider.class);
-             MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock = Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
 
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushHash(pushBundle)).thenReturn(TEST_HASH);
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushMetadata(pushBundle)).thenReturn(TEST_METADATA);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(TEST_HASH);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
 
             // Mock constraints
             Constraints mockConstraints = mock(Constraints.class);
-            workManagerHelperMock.when(PushwooshWorkManagerHelper::getStatisticsConstraints).thenReturn(mockConstraints);
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mockConstraints);
 
             PushStatisticsScheduler.scheduleDeliveryEvent(pushBundle);
 
@@ -94,25 +103,25 @@ public class PushStatisticsSchedulerTest {
             ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
             ArgumentCaptor<ExistingWorkPolicy> policyCaptor = ArgumentCaptor.forClass(ExistingWorkPolicy.class);
 
-            workManagerHelperMock.verify(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                    requestCaptor.capture(),
-                    nameCaptor.capture(),
-                    policyCaptor.capture()
-                ), times(1));
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                            requestCaptor.capture(), nameCaptor.capture(), policyCaptor.capture()),
+                    times(1));
 
             // Verify work request parameters
             OneTimeWorkRequest capturedRequest = requestCaptor.getValue();
-            assertEquals(PushStatisticsWorker.EVENT_DELIVERY, 
-                capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_EVENT_TYPE));
-            assertEquals(TEST_HASH, 
-                capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_PUSH_HASH));
-            assertEquals(TEST_METADATA, 
-                capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_METADATA));
+            assertEquals(
+                    PushStatisticsWorker.EVENT_DELIVERY,
+                    capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_EVENT_TYPE));
+            assertEquals(TEST_HASH, capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_PUSH_HASH));
+            assertEquals(
+                    TEST_METADATA, capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_METADATA));
 
             // Verify unique work name contains event type and hash
             String capturedName = nameCaptor.getValue();
-            assertTrue("Work name should contain event type", capturedName.startsWith(PushStatisticsWorker.EVENT_DELIVERY));
+            assertTrue(
+                    "Work name should contain event type",
+                    capturedName.startsWith(PushStatisticsWorker.EVENT_DELIVERY));
             assertTrue("Work name should contain hash", capturedName.contains(TEST_HASH));
 
             // Verify policy
@@ -133,36 +142,42 @@ public class PushStatisticsSchedulerTest {
     public void testScheduleOpenEventSuccess() {
         Bundle pushBundle = createValidPushBundle();
 
-        try (MockedStatic<PushBundleDataProvider> bundleProviderMock = Mockito.mockStatic(PushBundleDataProvider.class);
-             MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock = Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
 
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushHash(pushBundle)).thenReturn(TEST_HASH);
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushMetadata(pushBundle)).thenReturn(TEST_METADATA);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(TEST_HASH);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
 
             // Mock constraints
             Constraints mockConstraints = mock(Constraints.class);
-            workManagerHelperMock.when(PushwooshWorkManagerHelper::getStatisticsConstraints).thenReturn(mockConstraints);
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mockConstraints);
 
             PushStatisticsScheduler.scheduleOpenEvent(pushBundle);
 
             ArgumentCaptor<OneTimeWorkRequest> requestCaptor = ArgumentCaptor.forClass(OneTimeWorkRequest.class);
             ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
 
-            workManagerHelperMock.verify(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                    requestCaptor.capture(),
-                    nameCaptor.capture(),
-                    eq(ExistingWorkPolicy.KEEP)
-                ), times(1));
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                            requestCaptor.capture(), nameCaptor.capture(), eq(ExistingWorkPolicy.KEEP)),
+                    times(1));
 
             // Verify work request parameters
             OneTimeWorkRequest capturedRequest = requestCaptor.getValue();
-            assertEquals(PushStatisticsWorker.EVENT_OPEN, 
-                capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_EVENT_TYPE));
-            assertEquals(TEST_HASH, 
-                capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_PUSH_HASH));
-            assertEquals(TEST_METADATA, 
-                capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_METADATA));
+            assertEquals(
+                    PushStatisticsWorker.EVENT_OPEN,
+                    capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_EVENT_TYPE));
+            assertEquals(TEST_HASH, capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_PUSH_HASH));
+            assertEquals(
+                    TEST_METADATA, capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_METADATA));
 
             // Verify unique work name
             String capturedName = nameCaptor.getValue();
@@ -178,18 +193,23 @@ public class PushStatisticsSchedulerTest {
     public void testScheduleDeliveryEventWithNullHash() {
         Bundle pushBundle = createPushBundleWithoutHash();
 
-        try (MockedStatic<PushBundleDataProvider> bundleProviderMock = Mockito.mockStatic(PushBundleDataProvider.class);
-             MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock = Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
 
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushHash(pushBundle)).thenReturn(null);
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushMetadata(pushBundle)).thenReturn(TEST_METADATA);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(null);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
 
             PushStatisticsScheduler.scheduleDeliveryEvent(pushBundle);
 
             // Verify no work was scheduled
-            workManagerHelperMock.verify(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()),
-                never());
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()), never());
         }
     }
 
@@ -200,18 +220,23 @@ public class PushStatisticsSchedulerTest {
     public void testScheduleDeliveryEventWithEmptyHash() {
         Bundle pushBundle = createPushBundleWithEmptyHash();
 
-        try (MockedStatic<PushBundleDataProvider> bundleProviderMock = Mockito.mockStatic(PushBundleDataProvider.class);
-             MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock = Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
 
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushHash(pushBundle)).thenReturn("");
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushMetadata(pushBundle)).thenReturn(TEST_METADATA);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn("");
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
 
             PushStatisticsScheduler.scheduleDeliveryEvent(pushBundle);
 
             // Verify no work was scheduled
-            workManagerHelperMock.verify(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()),
-                never());
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()), never());
         }
     }
 
@@ -222,18 +247,23 @@ public class PushStatisticsSchedulerTest {
     public void testScheduleOpenEventWithNullHash() {
         Bundle pushBundle = createPushBundleWithoutHash();
 
-        try (MockedStatic<PushBundleDataProvider> bundleProviderMock = Mockito.mockStatic(PushBundleDataProvider.class);
-             MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock = Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
 
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushHash(pushBundle)).thenReturn(null);
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushMetadata(pushBundle)).thenReturn(TEST_METADATA);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(null);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
 
             PushStatisticsScheduler.scheduleOpenEvent(pushBundle);
 
             // Verify no work was scheduled
-            workManagerHelperMock.verify(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()),
-                never());
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()), never());
         }
     }
 
@@ -244,33 +274,37 @@ public class PushStatisticsSchedulerTest {
     public void testScheduleDeliveryEventWithNullMetadata() {
         Bundle pushBundle = createPushBundleWithOnlyHash();
 
-        try (MockedStatic<PushBundleDataProvider> bundleProviderMock = Mockito.mockStatic(PushBundleDataProvider.class);
-             MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock = Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
 
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushHash(pushBundle)).thenReturn(TEST_HASH);
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushMetadata(pushBundle)).thenReturn(null);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(TEST_HASH);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(null);
 
             // Mock constraints
             Constraints mockConstraints = mock(Constraints.class);
-            workManagerHelperMock.when(PushwooshWorkManagerHelper::getStatisticsConstraints).thenReturn(mockConstraints);
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mockConstraints);
 
             PushStatisticsScheduler.scheduleDeliveryEvent(pushBundle);
 
             ArgumentCaptor<OneTimeWorkRequest> requestCaptor = ArgumentCaptor.forClass(OneTimeWorkRequest.class);
 
-            workManagerHelperMock.verify(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                    requestCaptor.capture(),
-                    anyString(),
-                    eq(ExistingWorkPolicy.KEEP)
-                ), times(1));
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                            requestCaptor.capture(), anyString(), eq(ExistingWorkPolicy.KEEP)),
+                    times(1));
 
             // Verify work request parameters - metadata should be null
             OneTimeWorkRequest capturedRequest = requestCaptor.getValue();
-            assertEquals(TEST_HASH, 
-                capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_PUSH_HASH));
-            assertEquals(null, 
-                capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_METADATA));
+            assertEquals(TEST_HASH, capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_PUSH_HASH));
+            assertEquals(null, capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_METADATA));
         }
     }
 
@@ -281,33 +315,37 @@ public class PushStatisticsSchedulerTest {
     public void testScheduleOpenEventWithNullMetadata() {
         Bundle pushBundle = createPushBundleWithOnlyHash();
 
-        try (MockedStatic<PushBundleDataProvider> bundleProviderMock = Mockito.mockStatic(PushBundleDataProvider.class);
-             MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock = Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
 
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushHash(pushBundle)).thenReturn(TEST_HASH);
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushMetadata(pushBundle)).thenReturn(null);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(TEST_HASH);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(null);
 
             // Mock constraints
             Constraints mockConstraints = mock(Constraints.class);
-            workManagerHelperMock.when(PushwooshWorkManagerHelper::getStatisticsConstraints).thenReturn(mockConstraints);
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mockConstraints);
 
             PushStatisticsScheduler.scheduleOpenEvent(pushBundle);
 
             ArgumentCaptor<OneTimeWorkRequest> requestCaptor = ArgumentCaptor.forClass(OneTimeWorkRequest.class);
 
-            workManagerHelperMock.verify(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                    requestCaptor.capture(),
-                    anyString(),
-                    eq(ExistingWorkPolicy.KEEP)
-                ), times(1));
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                            requestCaptor.capture(), anyString(), eq(ExistingWorkPolicy.KEEP)),
+                    times(1));
 
             // Verify work request parameters - metadata should be null
             OneTimeWorkRequest capturedRequest = requestCaptor.getValue();
-            assertEquals(TEST_HASH, 
-                capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_PUSH_HASH));
-            assertEquals(null, 
-                capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_METADATA));
+            assertEquals(TEST_HASH, capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_PUSH_HASH));
+            assertEquals(null, capturedRequest.getWorkSpec().input.getString(PushStatisticsWorker.DATA_METADATA));
         }
     }
 
@@ -318,28 +356,35 @@ public class PushStatisticsSchedulerTest {
     public void testScheduleDeliveryEventWithWorkManagerException() {
         Bundle pushBundle = createValidPushBundle();
 
-        try (MockedStatic<PushBundleDataProvider> bundleProviderMock = Mockito.mockStatic(PushBundleDataProvider.class);
-             MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock = Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
 
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushHash(pushBundle)).thenReturn(TEST_HASH);
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushMetadata(pushBundle)).thenReturn(TEST_METADATA);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(TEST_HASH);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
 
             // Mock constraints
             Constraints mockConstraints = mock(Constraints.class);
-            workManagerHelperMock.when(PushwooshWorkManagerHelper::getStatisticsConstraints).thenReturn(mockConstraints);
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mockConstraints);
 
             // Mock WorkManager to throw exception
-            workManagerHelperMock.when(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()))
-                .thenThrow(new RuntimeException("WorkManager failed"));
+            workManagerHelperMock
+                    .when(() -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()))
+                    .thenThrow(new RuntimeException("WorkManager failed"));
 
             // This should not throw exception - errors are handled internally
             PushStatisticsScheduler.scheduleDeliveryEvent(pushBundle);
 
             // Verify that enqueue was attempted despite the exception
-            workManagerHelperMock.verify(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()),
-                times(1));
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()), times(1));
         }
     }
 
@@ -350,28 +395,131 @@ public class PushStatisticsSchedulerTest {
     public void testScheduleOpenEventWithWorkManagerException() {
         Bundle pushBundle = createValidPushBundle();
 
-        try (MockedStatic<PushBundleDataProvider> bundleProviderMock = Mockito.mockStatic(PushBundleDataProvider.class);
-             MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock = Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
 
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushHash(pushBundle)).thenReturn(TEST_HASH);
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushMetadata(pushBundle)).thenReturn(TEST_METADATA);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(TEST_HASH);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
 
             // Mock constraints
             Constraints mockConstraints = mock(Constraints.class);
-            workManagerHelperMock.when(PushwooshWorkManagerHelper::getStatisticsConstraints).thenReturn(mockConstraints);
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mockConstraints);
 
             // Mock WorkManager to throw exception
-            workManagerHelperMock.when(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()))
-                .thenThrow(new RuntimeException("WorkManager failed"));
+            workManagerHelperMock
+                    .when(() -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()))
+                    .thenThrow(new RuntimeException("WorkManager failed"));
 
             // This should not throw exception - errors are handled internally
             PushStatisticsScheduler.scheduleOpenEvent(pushBundle);
 
             // Verify that enqueue was attempted despite the exception
-            workManagerHelperMock.verify(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()),
-                times(1));
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), anyString(), any()), times(1));
+        }
+    }
+
+    @Test
+    public void scheduleOpenEvent_bundleCarriesTappedButtonId_putsItInTheWorkData() {
+        Bundle pushBundle = createValidPushBundle();
+
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(TEST_HASH);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getTappedButtonId(pushBundle))
+                    .thenReturn("cancel_order");
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mock(Constraints.class));
+
+            PushStatisticsScheduler.scheduleOpenEvent(pushBundle);
+
+            ArgumentCaptor<OneTimeWorkRequest> requestCaptor = ArgumentCaptor.forClass(OneTimeWorkRequest.class);
+            ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                            requestCaptor.capture(), nameCaptor.capture(), any(ExistingWorkPolicy.class)),
+                    times(1));
+
+            assertEquals(
+                    "cancel_order",
+                    requestCaptor.getValue().getWorkSpec().input.getString(PushStatisticsWorker.DATA_BUTTON_ID));
+            // KEEP would drop this event if "open_<hash>" from a foreground display were already queued.
+            assertEquals(PushStatisticsWorker.EVENT_OPEN + "_" + TEST_HASH + "|cancel_order", nameCaptor.getValue());
+        }
+    }
+
+    @Test
+    public void scheduleOpenEvent_noTappedButtonId_keepsTheOldWorkName() {
+        Bundle pushBundle = createValidPushBundle();
+
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(TEST_HASH);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getTappedButtonId(pushBundle))
+                    .thenReturn(null);
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mock(Constraints.class));
+
+            PushStatisticsScheduler.scheduleOpenEvent(pushBundle);
+
+            ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                            any(OneTimeWorkRequest.class), nameCaptor.capture(), any(ExistingWorkPolicy.class)),
+                    times(1));
+
+            assertEquals(PushStatisticsWorker.EVENT_OPEN + "_" + TEST_HASH, nameCaptor.getValue());
+        }
+    }
+
+    @Test
+    public void scheduleStatisticsEvent_hashAndButtonIdAmbiguousUnderUnderscore_stillGetDistinctWorkNames() {
+        // Both inputs render as open_pw_1_2_a_b if the button id is joined with an underscore, and
+        // ExistingWorkPolicy.KEEP would then drop the second click without a word in the log.
+        try (MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mock(Constraints.class));
+
+            PushStatisticsScheduler.scheduleStatisticsEvent(
+                    PushStatisticsWorker.EVENT_OPEN, "pw_1_2_a", TEST_METADATA, "b");
+            PushStatisticsScheduler.scheduleStatisticsEvent(
+                    PushStatisticsWorker.EVENT_OPEN, "pw_1_2", TEST_METADATA, "a_b");
+
+            ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), nameCaptor.capture(), any()),
+                    times(2));
+
+            assertNotEquals(
+                    nameCaptor.getAllValues().get(0), nameCaptor.getAllValues().get(1));
         }
     }
 
@@ -382,45 +530,52 @@ public class PushStatisticsSchedulerTest {
     public void testWorkNames() throws InterruptedException {
         Bundle pushBundle = createValidPushBundle();
 
-        try (MockedStatic<PushBundleDataProvider> bundleProviderMock = Mockito.mockStatic(PushBundleDataProvider.class);
-             MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock = Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
 
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushHash(pushBundle)).thenReturn(TEST_HASH);
-            bundleProviderMock.when(() -> PushBundleDataProvider.getPushMetadata(pushBundle)).thenReturn(TEST_METADATA);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(TEST_HASH);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
 
             // Mock constraints
             Constraints mockConstraints = mock(Constraints.class);
-            workManagerHelperMock.when(PushwooshWorkManagerHelper::getStatisticsConstraints).thenReturn(mockConstraints);
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mockConstraints);
 
             PushStatisticsScheduler.scheduleDeliveryEvent(pushBundle);
-            
+
             // Wait to ensure different timestamp
             Thread.sleep(5);
-            
+
             PushStatisticsScheduler.scheduleDeliveryEvent(pushBundle);
 
             ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
 
-            workManagerHelperMock.verify(() -> 
-                PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                    any(),
-                    nameCaptor.capture(),
-                    any()
-                ), times(2));
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(any(), nameCaptor.capture(), any()),
+                    times(2));
 
             // Verify that work names are different
             java.util.List<String> capturedNames = nameCaptor.getAllValues();
             assertEquals(2, capturedNames.size());
-            
+
             String firstName = capturedNames.get(0);
             String secondName = capturedNames.get(1);
-            
+
             // Both should start with event type and contain hash
-            assertTrue("First name should contain event and hash", 
-                firstName.startsWith(PushStatisticsWorker.EVENT_DELIVERY) && firstName.contains(TEST_HASH));
-            assertTrue("Second name should contain event and hash", 
-                secondName.startsWith(PushStatisticsWorker.EVENT_DELIVERY) && secondName.contains(TEST_HASH));
-            
+            assertTrue(
+                    "First name should contain event and hash",
+                    firstName.startsWith(PushStatisticsWorker.EVENT_DELIVERY) && firstName.contains(TEST_HASH));
+            assertTrue(
+                    "Second name should contain event and hash",
+                    secondName.startsWith(PushStatisticsWorker.EVENT_DELIVERY) && secondName.contains(TEST_HASH));
+
             // But names should be different due to timestamp
             assertTrue("Work names should be the same", firstName.equals(secondName));
         }

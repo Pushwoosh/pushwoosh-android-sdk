@@ -56,6 +56,21 @@
     protected *;
 }
 
+-keep public class com.pushwoosh.notification.ActionButton {
+    public *;
+    protected *;
+}
+
+-keep public class com.pushwoosh.notification.ActionButton$ActionType {
+    public *;
+    protected *;
+}
+
+-keep public class com.pushwoosh.notification.ActionButton$Style {
+    public *;
+    protected *;
+}
+
 # Referenced by :pushwoosh-liveupdates (LiveUpdateStateParser).
 -keep public class com.pushwoosh.notification.PushBundleDataProvider {
     public *;

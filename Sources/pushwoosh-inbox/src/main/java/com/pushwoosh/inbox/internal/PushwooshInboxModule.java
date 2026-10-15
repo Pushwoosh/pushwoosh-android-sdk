@@ -44,13 +44,14 @@ public class PushwooshInboxModule {
 
     private static volatile InboxStorage sInboxStorage;
     private static final Object sStorageMutex = new Object();
-    private static InboxDbHelper sInboxDbHelper;
+    private static volatile InboxDbHelper sInboxDbHelper;
+    private static volatile SharedPreferences sPrefs;
 
     public static InboxRepository getInboxRepository() {
         if (sInboxRepository == null) {
             synchronized (sRepositoryMutex) {
                 if (sInboxRepository == null) {
-                    sInboxRepository = new InboxRepository(getInboxStorage());
+                    sInboxRepository = new InboxRepository(getInboxStorage(), sPrefs);
                 }
             }
         }
@@ -75,9 +76,10 @@ public class PushwooshInboxModule {
     }
 
     public static void init(InboxDbHelper inboxDbHelper, PrefsProvider prefsProvider) {
-        sInboxDbHelper = inboxDbHelper;
-
         SharedPreferences sharedPreferences = prefsProvider.providePrefs(TAG);
+        // sPrefs first: getInboxRepository() gates on sInboxDbHelper, so this order closes the null-prefs window.
+        sPrefs = sharedPreferences;
+        sInboxDbHelper = inboxDbHelper;
 
         String currentAppId = Pushwoosh.getInstance().getApplicationCode();
         String prevAppId = sharedPreferences == null ? currentAppId : sharedPreferences.getString(APP_ID, currentAppId);
@@ -88,6 +90,7 @@ public class PushwooshInboxModule {
 
         if (!prevAppId.equals(currentAppId)) {
             sInboxDbHelper.dropDb();
+            InboxRepository.clearCachedTabs(sharedPreferences);
         }
     }
 }

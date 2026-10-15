@@ -97,43 +97,43 @@
     <h1 class="cover"><span>get</span><wbr><span>Message</span><wbr><span><span>Id</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-message-id.html"><span class="token function">getMessageId</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div><p class="paragraph">Gets the unique message ID for this push notification. </p><p class="paragraph"> The message ID uniquely identifies this specific push message instance. Use this for detailed tracking, deduplication, message history, and correlating user interactions with specific message deliveries.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	  
-	  protected boolean onMessageReceived(PushMessage message) {
-	      long messageId = message.getMessageId();
-	      long campaignId = message.getCampaignId();
-	
-	      // Deduplicate messages
-	      if (isMessageAlreadyProcessed(messageId)) {
-	          Log.d("App", "Message " + messageId + " already processed");
-	          return true; // Suppress duplicate
-	      }
-	
-	      // Store in message history
-	      saveMessageHistory(messageId, campaignId, message.toJson().toString());
-	
-	      // Track delivery in analytics
-	      analytics.trackEvent("push_delivered", new HashMap&lt;String, Object&gt;() {{
-	          put("message_id", messageId);
-	          put("campaign_id", campaignId);
-	          put("is_silent", message.isSilent());
-	      }});
-	
-	      return false;
-	  }
-	
-	  // Track user journey from notification to conversion
-	  protected void trackPurchaseAttribution(String orderId, double amount) {
-	      SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
-	      long lastMessageId = prefs.getLong("last_opened_message_id", 0);
-	      long lastCampaignId = prefs.getLong("last_opened_campaign_id", 0);
-	
-	      if (lastMessageId != 0) {
-	          // Attribute purchase to the notification
-	          analytics.trackPurchase(orderId, amount, lastCampaignId, lastMessageId);
-	          Log.d("Analytics", "Purchase attributed to message: " + lastMessageId);
-	      }
-	  }
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">message ID as a long value, or 0 if not available</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-campaign-id.html"><span>get</span><wbr><span>Campaign</span><wbr><span><span>Id()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-message-code.html"><span>get</span><wbr><span>Message</span><wbr><span><span>Code()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-pushwoosh-notification-id.html"><span>get</span><wbr><span>Pushwoosh</span><wbr><span>Notification</span><wbr><span><span>Id()</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  
+  protected boolean onMessageReceived(PushMessage message) {
+      long messageId = message.getMessageId();
+      long campaignId = message.getCampaignId();
+
+      // Deduplicate messages
+      if (isMessageAlreadyProcessed(messageId)) {
+          Log.d("App", "Message " + messageId + " already processed");
+          return true; // Suppress duplicate
+      }
+
+      // Store in message history
+      saveMessageHistory(messageId, campaignId, message.toJson().toString());
+
+      // Track delivery in analytics
+      analytics.trackEvent("push_delivered", new HashMap&lt;String, Object&gt;() {{
+          put("message_id", messageId);
+          put("campaign_id", campaignId);
+          put("is_silent", message.isSilent());
+      }});
+
+      return false;
+  }
+
+  // Track user journey from notification to conversion
+  protected void trackPurchaseAttribution(String orderId, double amount) {
+      SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
+      long lastMessageId = prefs.getLong("last_opened_message_id", 0);
+      long lastCampaignId = prefs.getLong("last_opened_campaign_id", 0);
+
+      if (lastMessageId != 0) {
+          // Attribute purchase to the notification
+          analytics.trackPurchase(orderId, amount, lastCampaignId, lastMessageId);
+          Log.d("Analytics", "Purchase attributed to message: " + lastMessageId);
+      }
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">message ID as a long value, or 0 if not available</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-campaign-id.html"><span>get</span><wbr><span>Campaign</span><wbr><span><span>Id()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-message-code.html"><span>get</span><wbr><span>Message</span><wbr><span><span>Code()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-pushwoosh-notification-id.html"><span>get</span><wbr><span>Pushwoosh</span><wbr><span>Notification</span><wbr><span><span>Id()</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

@@ -53,6 +53,11 @@ public class RegisterDeviceRequest extends AppOpenRequest {
     }
 
     @Override
+    protected boolean reportsPushPermissionStatus() {
+        return platform != DeviceRegistrar.PLATFORM_SMS && platform != DeviceRegistrar.PLATFORM_WHATSAPP;
+    }
+
+    @Override
     protected void buildParams(JSONObject params) throws JSONException {
         super.buildParams(params);
 

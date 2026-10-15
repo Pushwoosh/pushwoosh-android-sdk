@@ -30,6 +30,7 @@ import androidx.annotation.Nullable;
 
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.inbox.data.InboxMessage;
+import com.pushwoosh.inbox.data.InboxTabs;
 import com.pushwoosh.inbox.exception.InboxMessagesException;
 import com.pushwoosh.inbox.internal.PushwooshInboxModule;
 import com.pushwoosh.inbox.internal.action.InboxPerformActionStrategyFactory;
@@ -125,6 +126,24 @@ public class PushwooshInbox {
      */
     public static void unregisterMessagesCountObserver(Callback<Integer, InboxMessagesException> callback) {
         PushwooshInboxModule.getInboxRepository().removeMessagesCountObserver(callback);
+    }
+
+    /**
+     * Returns the Inbox tab bar configured in the Pushwoosh Control Panel.
+     *
+     * <p>The value is read from memory and is safe to call on the main thread. Like every
+     * {@link PushwooshInbox} method, it throws when the Pushwoosh plugin has not been initialized
+     * yet.
+     *
+     * <p>Freshness: the list is already up to date once a
+     * {@link #loadMessages(Callback, InboxMessage, int)} callback has fired or an
+     * {@link com.pushwoosh.inbox.event.InboxMessagesUpdatedEvent} has been delivered. There is no
+     * separate "tabs changed" event.
+     *
+     * @return the tab bar, or null when the application has no tabs and the Inbox is one feed
+     */
+    @Nullable public static InboxTabs getTabs() {
+        return PushwooshInboxModule.getInboxRepository().getTabs();
     }
 
     /**

@@ -38,33 +38,38 @@ import com.pushwoosh.richmedia.RichMediaController;
 
 class RichMediaPushNotificationOpenHandler implements PushNotificationOpenHandler {
 
-	private final NotificationPrefs notificationPrefs;
+    private final NotificationPrefs notificationPrefs;
 
-	RichMediaPushNotificationOpenHandler() {
-		notificationPrefs = RepositoryModule.getNotificationPreferences();
-	}
+    RichMediaPushNotificationOpenHandler() {
+        notificationPrefs = RepositoryModule.getNotificationPreferences();
+    }
 
-	/**
-	 * Handles user click on push notification containing Rich Media.
-	 * Builds ResourceWrapper and triggers display via RichMediaController.
-	 */
-	@Override
-	public void postHandleNotification(final Bundle pushBundle) {
-		String richMedia = PushBundleDataProvider.getRichMedia(pushBundle);
-		if (TextUtils.isEmpty(richMedia)) {
-			return;
-		}
+    /**
+     * Handles user click on push notification containing Rich Media.
+     * Builds ResourceWrapper and triggers display via RichMediaController.
+     */
+    @Override
+    public void postHandleNotification(final Bundle pushBundle) {
+        // Rich Media belongs to a tap on the body: a button's label is its own promise.
+        if (PushBundleDataProvider.getTappedButtonId(pushBundle) != null) {
+            return;
+        }
 
-		ResourceWrapper resourceWrapper = new ResourceWrapper.Builder()
-				.setRichMedia(richMedia)
-				.setDelay(notificationPrefs.richMediaDelayMs().get())
-				.build();
+        String richMedia = PushBundleDataProvider.getRichMedia(pushBundle);
+        if (TextUtils.isEmpty(richMedia)) {
+            return;
+        }
 
-		String customData = PushBundleDataProvider.getCustomData(pushBundle);
-		RepositoryModule.getNotificationPreferences().customData().set(customData);
+        ResourceWrapper resourceWrapper = new ResourceWrapper.Builder()
+                .setRichMedia(richMedia)
+                .setDelay(notificationPrefs.richMediaDelayMs().get())
+                .build();
 
-		RichMediaController richMediaController = PushwooshPlatform.getInstance().getRichMediaController();
-		if (richMediaController != null)
-			richMediaController.showResourceWrapper(resourceWrapper);
-	}
+        String customData = PushBundleDataProvider.getCustomData(pushBundle);
+        RepositoryModule.getNotificationPreferences().customData().set(customData);
+
+        RichMediaController richMediaController =
+                PushwooshPlatform.getInstance().getRichMediaController();
+        if (richMediaController != null) richMediaController.showResourceWrapper(resourceWrapper);
+    }
 }

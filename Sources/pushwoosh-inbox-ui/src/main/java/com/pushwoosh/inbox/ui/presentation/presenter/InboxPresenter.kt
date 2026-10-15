@@ -136,12 +136,16 @@ class InboxPresenter(inboxView: InboxView) : BasePresenter() {
 
     private fun loadInboxMessages() {
         messageList.clear()
-        var messages = InboxRepository.loadCachedInbox(null, 40)
+        val messages = InboxRepository.loadCachedInbox(null, 40)
         if (messages.isNotEmpty()) {
             messageList.addAll(messages)
+            showList()
+        } else {
+            // Nothing cached is not an empty Inbox yet: the screen waits for the load instead of claiming it.
+            swipeToRefresh = false
+            inboxViewRef.get()?.showTotalProgress()
         }
 
-        showList()
         InboxRepository.loadCachedInboxAsync(null, -1)
     }
 

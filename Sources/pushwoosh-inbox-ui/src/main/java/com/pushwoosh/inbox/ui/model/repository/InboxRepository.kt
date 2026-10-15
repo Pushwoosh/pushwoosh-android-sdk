@@ -70,6 +70,8 @@ object InboxRepository {
                 currentInboxMessages.addAll(added)
 
                 if (currentInboxMessages.isEmpty()) {
+                    // Only an empty screen redraws: it picks up tabs from this sync without the loading blink.
+                    if (currentInboxEvent is InboxEvent.InboxEmpty) updateEvent(InboxEvent.InboxEmpty())
                     return@subscribe
                 }
 
@@ -96,29 +98,31 @@ object InboxRepository {
 
     private fun getLoadMessagesCallback(isLoadingCachedMessages : Boolean) : Callback<Collection<InboxMessage>, InboxMessagesException> {
         return Callback{ result ->
-            PWLog.noise(TAG, "loadInbox result isSuccess: " + result.isSuccess)
+            val source = if (isLoadingCachedMessages) "loadCachedInbox" else "loadInbox"
+            PWLog.noise(TAG, "$source result isSuccess: " + result.isSuccess)
             updateEvent(InboxEvent.FinishLoading())
             val data = result.data
+            val error = result.exception
 
             currentInboxMessages.clear()
             data?.let{
                 currentInboxMessages.addAll(ArrayList(data))
             }
 
-            if (data != null && data.isNotEmpty()) {
-                if (isLoadingCachedMessages) {
+            if (isLoadingCachedMessages) {
+                // An empty cache is a cache read like any other: only the sync it starts may call the Inbox empty.
+                if (error == null) {
                     updateEvent(InboxEvent.SuccessLoadingCache(currentInboxMessages))
-                } else {
-                    updateEvent(InboxEvent.SuccessLoading(currentInboxMessages))
                 }
+            } else if (data != null && data.isNotEmpty()) {
+                updateEvent(InboxEvent.SuccessLoading(currentInboxMessages))
             }
-            val error = result.exception
 
             if (error != null) {
                 updateEvent(InboxEvent.FailedLoading(error))
             }
 
-            if (error == null && (data == null || data.isEmpty())) {
+            if (error == null && !isLoadingCachedMessages && (data == null || data.isEmpty())) {
                 updateEvent(InboxEvent.InboxEmpty())
             }
         }

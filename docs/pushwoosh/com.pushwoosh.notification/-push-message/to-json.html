@@ -97,47 +97,47 @@
     <h1 class="cover"><span>to</span><wbr><span><span>Json</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="to-json.html"><span class="token function">toJson</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="org.json/JSONObject///PointingToDeclaration/">JSONObject</span></div><p class="paragraph">Converts this push message to JSON. </p><p class="paragraph"> Returns the raw push payload as a JSONObject containing all the notification data received from FCM/HMS. This is useful for logging, debugging, sending data to analytics, or when you need to access the complete push payload in JSON format.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	  
-	  protected boolean onMessageReceived(PushMessage message) {
-	      // Log complete push payload for debugging
-	      JSONObject json = message.toJson();
-	      Log.d("App", "Push received: " + json.toString());
-	
-	      // Send to analytics
-	      analytics.logEvent("push_received", new Bundle() {{
-	          putString("payload", json.toString());
-	          putLong("campaign_id", message.getCampaignId());
-	      }});
-	
-	      // Check for specific custom fields
-	      if (json.has("priority_delivery")) {
-	          boolean isPriority = json.optBoolean("priority_delivery");
-	          if (isPriority) {
-	              // Handle high-priority notification
-	              showImmediateNotification(message);
-	              return true;
-	          }
-	      }
-	
-	      return false;
-	  }
-	
-	  // Storing notification history
-	  protected void saveNotificationHistory(PushMessage message) {
-	      JSONObject json = message.toJson();
-	
-	      try {
-	          // Add timestamp
-	          json.put("received_at", System.currentTimeMillis());
-	
-	          // Save to database or file
-	          saveToDatabase(json.toString());
-	
-	      } catch (JSONException e) {
-	          Log.e("App", "Failed to save notification", e);
-	      }
-	  }
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">JSONObject containing the complete push notification payload</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="to-bundle.html"><span>to</span><wbr><span><span>Bundle()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-custom-data.html"><span>get</span><wbr><span>Custom</span><wbr><span><span>Data()</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  
+  protected boolean onMessageReceived(PushMessage message) {
+      // Log complete push payload for debugging
+      JSONObject json = message.toJson();
+      Log.d("App", "Push received: " + json.toString());
+
+      // Send to analytics
+      analytics.logEvent("push_received", new Bundle() {{
+          putString("payload", json.toString());
+          putLong("campaign_id", message.getCampaignId());
+      }});
+
+      // Check for specific custom fields
+      if (json.has("priority_delivery")) {
+          boolean isPriority = json.optBoolean("priority_delivery");
+          if (isPriority) {
+              // Handle high-priority notification
+              showImmediateNotification(message);
+              return true;
+          }
+      }
+
+      return false;
+  }
+
+  // Storing notification history
+  protected void saveNotificationHistory(PushMessage message) {
+      JSONObject json = message.toJson();
+
+      try {
+          // Add timestamp
+          json.put("received_at", System.currentTimeMillis());
+
+          // Save to database or file
+          saveToDatabase(json.toString());
+
+      } catch (JSONException e) {
+          Log.e("App", "Failed to save notification", e);
+      }
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">JSONObject containing the complete push notification payload</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="to-bundle.html"><span>to</span><wbr><span><span>Bundle()</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-custom-data.html"><span>get</span><wbr><span>Custom</span><wbr><span><span>Data()</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

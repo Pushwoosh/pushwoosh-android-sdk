@@ -39,6 +39,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -51,6 +52,7 @@ import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.notification.PushPermissionStatusTracker;
 import com.pushwoosh.notification.event.DeregistrationErrorEvent;
 import com.pushwoosh.notification.event.DeregistrationSuccessEvent;
 import com.pushwoosh.notification.event.RegistrationErrorEvent;
@@ -84,6 +86,15 @@ public class DeviceRegistrar {
 
         // Main registration
         RegisterDeviceRequest request = new RegisterDeviceRequest(token, tags, platform);
+        Callback<Void, NetworkException> resultCallback = callback;
+        callback = result -> {
+            if (result.isSuccess()) {
+                PushPermissionStatusTracker.onStatusDelivered(request.getSentPushPermissionStatus());
+            }
+            if (resultCallback != null) {
+                resultCallback.process(result);
+            }
+        };
         if (withRetries) {
             callback = new RetriableRequestCallback<>(callback, request);
         }
@@ -147,22 +158,48 @@ public class DeviceRegistrar {
         prefs.forceRegister().set(false);
 
         if (forceRegister || neededToRequestPushwooshServer()) {
-            registerWithServer(
-                    pushToken, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
-                        if (result.isSuccess()) {
-                            PWLog.info(TAG, "Device has been updated on server: " + pushToken);
-
-                            prefs.registeredOnServer().set(true);
-                            prefs.lastPushRegistration().set(new Date().getTime());
-
-                            EventBus.sendEvent(new RegistrationSuccessEvent(
-                                    new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
-                        } else {
-                            PWLog.error(TAG, "Can't update device on server: " + result.getException());
-                            EventBus.sendEvent(new RegistrationErrorEvent("Can't update device on server"));
-                        }
-                    });
+            sendRegistrationUpdate(pushToken);
         }
+    }
+
+    /**
+     * Sends registerDevice right away, bypassing the cooldown of {@link #updateRegistration()}.
+     *
+     * @param onDone runs when the request completes, or right away when there is no push token
+     */
+    public void updateRegistrationNow(@NonNull Runnable onDone) {
+        PWLog.noise(TAG, "updateRegistrationNow()");
+
+        RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
+        String pushToken = prefs == null ? null : prefs.pushToken().get();
+        if (TextUtils.isEmpty(pushToken)) {
+            onDone.run();
+            return;
+        }
+        sendRegistrationUpdate(pushToken, onDone);
+    }
+
+    private void sendRegistrationUpdate(String pushToken) {
+        sendRegistrationUpdate(pushToken, () -> {});
+    }
+
+    private void sendRegistrationUpdate(String pushToken, Runnable onDone) {
+        RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
+        registerWithServer(pushToken, null, DeviceSpecificProvider.getInstance().deviceType(), result -> {
+            onDone.run();
+            if (result.isSuccess()) {
+                PWLog.info(TAG, "Device has been updated on server: " + pushToken);
+
+                prefs.registeredOnServer().set(true);
+                prefs.lastPushRegistration().set(new Date().getTime());
+
+                EventBus.sendEvent(new RegistrationSuccessEvent(
+                        new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
+            } else {
+                PWLog.error(TAG, "Can't update device on server: " + result.getException());
+                EventBus.sendEvent(new RegistrationErrorEvent("Can't update device on server"));
+            }
+        });
     }
 
     private static boolean neededToRequestPushwooshServer() {

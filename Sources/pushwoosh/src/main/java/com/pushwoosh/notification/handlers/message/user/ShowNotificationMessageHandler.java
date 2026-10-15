@@ -49,6 +49,7 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.NotificationUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.PendingIntentUtils;
+import com.pushwoosh.notification.ActionButtonIntents;
 import com.pushwoosh.notification.LocalNotificationReceiver;
 import com.pushwoosh.notification.NotificationFactory;
 import com.pushwoosh.notification.NotificationIntentHelper;
@@ -65,198 +66,215 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 class ShowNotificationMessageHandler extends NotificationMessageHandler {
-	private final static String TAG = ShowNotificationMessageHandler.class.getSimpleName();
-	private final static Object MUTEX = new Object();
+    private static final String TAG = "ShowNotificationMessageHandler";
+    private static final Object MUTEX = new Object();
 
-	private final NotificationFactory notificationFactory;
-	private final NotificationPrefs notificationPrefs;
+    private final NotificationFactory notificationFactory;
+    private final NotificationPrefs notificationPrefs;
 
-	ShowNotificationMessageHandler() {
-		notificationPrefs = RepositoryModule.getNotificationPreferences();
-		this.notificationFactory = provideNotificationFactory();
-	}
+    ShowNotificationMessageHandler() {
+        notificationPrefs = RepositoryModule.getNotificationPreferences();
+        this.notificationFactory = provideNotificationFactory();
+    }
 
-	@Override
-	protected void handleNotification(final PushMessage pushMessage) {
-		if (!pushMessage.isSilent()) {
-			if (notificationPrefs.multiMode().get()) {
-				handleMultiModeNotification(pushMessage);
-				return;
-			}
+    @Override
+    protected void handleNotification(final PushMessage pushMessage) {
+        if (!pushMessage.isSilent()) {
+            if (notificationPrefs.multiMode().get()) {
+                handleMultiModeNotification(pushMessage);
+                return;
+            }
 
-			Notification notification = notificationFactory.onGenerateNotification(pushMessage);
-			if (notification == null) {
-				return;
-			}
+            Notification notification = notificationFactory.onGenerateNotification(pushMessage);
+            if (notification == null) {
+                return;
+            }
 
-			Intent notifyIntent = notificationFactory.getNotificationIntent(pushMessage);
-			// Samsung devices with Android 13+ update existing notification incorrectly (sometimes old banner remains)
-			// so we have to cancel existing notification before showing a new one, see
-			// https://jira.corp.pushwoosh.com/browse/PUSH-33434
-			NotificationManagerCompat.from(getApplicationContext()).cancelAll();
-			fireNotification(notification, notifyIntent, pushMessage); // deleteIntent is null as
-			                                                           // handleNotification method does not
-																	   // store push bundles in database
-		}
-	}
+            Intent notifyIntent = notificationFactory.getNotificationIntent(pushMessage);
+            // Samsung devices with Android 13+ update existing notification incorrectly (sometimes old banner remains)
+            // so we have to cancel existing notification before showing a new one, see
+            // https://jira.corp.pushwoosh.com/browse/PUSH-33434
+            NotificationManagerCompat.from(getApplicationContext()).cancelAll();
+            fireNotification(notification, notifyIntent, pushMessage); // deleteIntent is null as
+            // handleNotification method does not
+            // store push bundles in database
+        }
+    }
 
-	protected void handleMultiModeNotification(PushMessage pushMessage) {
-		Notification notification = notificationFactory.onGenerateNotification(pushMessage);
-		if (notification == null) {
-			return;
-		}
-		notification = NotificationUtils.rebuildWithDefaultValuesIfNeeded(notification);
-		// generate summary notification only for Android.N and newer versions
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-			List<StatusBarNotification> activeNotifications = NotificationBuilderManager.getActiveNotifications();
+    protected void handleMultiModeNotification(PushMessage pushMessage) {
+        Notification notification = notificationFactory.onGenerateNotification(pushMessage);
+        if (notification == null) {
+            return;
+        }
+        notification = NotificationUtils.rebuildWithDefaultValuesIfNeeded(notification);
+        // generate summary notification only for Android.N and newer versions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            List<StatusBarNotification> activeNotifications = NotificationBuilderManager.getActiveNotifications();
 
-			// notification has to be effectively final to call Notification.getGroup()
-			Notification finalNotification = notification;
-			List<StatusBarNotification> notificationsWithGroupId = activeNotifications.stream()
-					.filter(statusBarNotification -> TextUtils.equals(statusBarNotification.getNotification().getGroup(), finalNotification.getGroup()))
-					.collect(Collectors.toList());
+            // notification has to be effectively final to call Notification.getGroup()
+            Notification finalNotification = notification;
+            List<StatusBarNotification> notificationsWithGroupId = activeNotifications.stream()
+                    .filter(statusBarNotification -> TextUtils.equals(
+                            statusBarNotification.getNotification().getGroup(), finalNotification.getGroup()))
+                    .collect(Collectors.toList());
 
-			if (notificationsWithGroupId.size() >= 1) {
-				int notificationsWithGroupIdCount = NotificationBuilderManager.isReplacingMessage(pushMessage, notificationsWithGroupId)
-						? notificationsWithGroupId.size() : notificationsWithGroupId.size() + 1;
-				String notificationChannelId = (Build.VERSION.SDK_INT >= 26)
-						? notification.getChannelId() : SummaryNotificationFactory.NEED_TO_ADD_NEW_NOTIFICATION_CHANNEL_ID;
-				Notification summaryNotification = SummaryNotificationUtils.getSummaryNotification(notificationsWithGroupIdCount, notificationChannelId, notification.getGroup());
-				if (summaryNotification != null) {
-					SummaryNotificationUtils.fireSummaryNotification(summaryNotification);
-				}
-			}
-		}
+            if (notificationsWithGroupId.size() >= 1) {
+                int notificationsWithGroupIdCount =
+                        NotificationBuilderManager.isReplacingMessage(pushMessage, notificationsWithGroupId)
+                                ? notificationsWithGroupId.size()
+                                : notificationsWithGroupId.size() + 1;
+                String notificationChannelId = (Build.VERSION.SDK_INT >= 26)
+                        ? notification.getChannelId()
+                        : SummaryNotificationFactory.NEED_TO_ADD_NEW_NOTIFICATION_CHANNEL_ID;
+                Notification summaryNotification = SummaryNotificationUtils.getSummaryNotification(
+                        notificationsWithGroupIdCount, notificationChannelId, notification.getGroup());
+                if (summaryNotification != null) {
+                    SummaryNotificationUtils.fireSummaryNotification(summaryNotification);
+                }
+            }
+        }
 
-		Intent contentIntent = notificationFactory.getNotificationIntent(pushMessage);
-		int summaryNotificationId = getNotificationIdForGroup(pushMessage.getGroupId());
-		contentIntent.putExtra(NotificationIntentHelper.EXTRA_GROUP_ID, summaryNotificationId);
+        Intent contentIntent = notificationFactory.getNotificationIntent(pushMessage);
+        int summaryNotificationId = getNotificationIdForGroup(pushMessage.getGroupId());
+        contentIntent.putExtra(NotificationIntentHelper.EXTRA_GROUP_ID, summaryNotificationId);
 
-		fireNotification(notification, contentIntent, pushMessage);
-	}
+        fireNotification(notification, contentIntent, pushMessage);
+    }
 
-	private void fireNotification(final Notification notification, Intent contentIntent, PushMessage data) {
-		Context context = getApplicationContext();
-		if (context == null) {
-			PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
-			return;
-		}
+    private void fireNotification(final Notification notification, Intent contentIntent, PushMessage data) {
+        Context context = getApplicationContext();
+        if (context == null) {
+            PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
+            return;
+        }
 
-		String tag = data.getTag();
-		int messageId = getMessageId(tag);
-		Intent deleteIntent = null;
+        String tag = data.getTag();
+        int messageId = getMessageId(tag);
+        Intent deleteIntent = null;
 
-		try {
-			long notificationId = RepositoryModule.getPushBundleStorage().putGroupPushBundle(data.toBundle(), messageId, notification.getGroup());
-			int summaryNotificationId = getNotificationIdForGroup(notification.getGroup());
-			contentIntent.putExtra(EXTRA_NOTIFICATION_ROW_ID, notificationId);
-			deleteIntent = getDeleteIntent(notificationId, summaryNotificationId, data);
-		} catch (Exception e) {
-			PWLog.error(TAG, "Failed to register group push bundle for tag=" + tag, e);
-		}
+        try {
+            long notificationId = RepositoryModule.getPushBundleStorage()
+                    .putGroupPushBundle(data.toBundle(), messageId, notification.getGroup());
+            int summaryNotificationId = getNotificationIdForGroup(notification.getGroup());
+            contentIntent.putExtra(EXTRA_NOTIFICATION_ROW_ID, notificationId);
+            deleteIntent = getDeleteIntent(notificationId, summaryNotificationId, data);
+        } catch (Exception e) {
+            PWLog.error(TAG, "Failed to register group push bundle for tag=" + tag, e);
+        }
 
-		notification.contentIntent = PendingIntent.getActivity(context, messageId, contentIntent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
-		if (deleteIntent != null) {
-			long pushwooshNotificationUID = data.getPushwooshNotificationId();
-			if (pushwooshNotificationUID != -1) {
-				deleteIntent.putExtra(NotificationIntentHelper.EXTRA_PUSHWOOSH_NOTIFICATION_ID, pushwooshNotificationUID);
-			}
-			notification.deleteIntent = PendingIntent.getBroadcast(context, messageId, deleteIntent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
-		}
-		notifyNotificationCreated(contentIntent, tag, messageId);
+        notification.contentIntent = PendingIntent.getActivity(
+                context,
+                messageId,
+                contentIntent,
+                PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
+        if (deleteIntent != null) {
+            long pushwooshNotificationUID = data.getPushwooshNotificationId();
+            if (pushwooshNotificationUID != -1) {
+                deleteIntent.putExtra(
+                        NotificationIntentHelper.EXTRA_PUSHWOOSH_NOTIFICATION_ID, pushwooshNotificationUID);
+            }
+            notification.deleteIntent = PendingIntent.getBroadcast(
+                    context,
+                    messageId,
+                    deleteIntent,
+                    PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_CANCEL_CURRENT));
+        }
+        ActionButtonIntents.attachActionButtons(context, notification, data, contentIntent, tag, messageId);
+        notifyNotificationCreated(contentIntent, tag, messageId);
 
-		android.app.NotificationManager manager = AndroidPlatformModule.getManagerProvider().getNotificationManager();
+        android.app.NotificationManager manager =
+                AndroidPlatformModule.getManagerProvider().getNotificationManager();
 
-		if (manager == null) {
-			return;
-		}
+        if (manager == null) {
+            return;
+        }
 
-		// Store notification id to remove notification from notificationManager on Android 5 or less
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-			saveNotificationIdAndTag(data, messageId, tag);
-		}
-		manager.notify(tag, messageId, notification);
-		tryTurnScreenOn();
+        // Store notification id to remove notification from notificationManager on Android 5 or less
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            saveNotificationIdAndTag(data, messageId, tag);
+        }
+        manager.notify(tag, messageId, notification);
+        tryTurnScreenOn();
 
-		addToPushHistory(data);
+        addToPushHistory(data);
 
-		EventBus.sendEvent(new NotificationCreatedEvent(messageId, tag, data));
-	}
+        EventBus.sendEvent(new NotificationCreatedEvent(messageId, tag, data));
+    }
 
-	private void saveNotificationIdAndTag(PushMessage pushMessage, int notificationId, String tag) {
-		try {
-			Bundle bundle = pushMessage.toBundle();
-			String pushInboxId = bundle.getString("pw_inbox");
-			if (!TextUtils.isEmpty(pushInboxId)) {
-				RepositoryModule.getInboxNotificationStorage().putNotificationIdAndTag(pushInboxId, notificationId, tag);
-			}
-		} catch (Exception e) {
-			PWLog.error(TAG, e);
-		}
-	}
+    private void saveNotificationIdAndTag(PushMessage pushMessage, int notificationId, String tag) {
+        try {
+            Bundle bundle = pushMessage.toBundle();
+            String pushInboxId = bundle.getString("pw_inbox");
+            if (!TextUtils.isEmpty(pushInboxId)) {
+                RepositoryModule.getInboxNotificationStorage()
+                        .putNotificationIdAndTag(pushInboxId, notificationId, tag);
+            }
+        } catch (Exception e) {
+            PWLog.error(TAG, e);
+        }
+    }
 
-	private void tryTurnScreenOn() {
-		NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
-		if (notificationPrefs.lightScreenOn().get()) {
-			NotificationUtils.turnScreenOn();
-		}
-	}
+    private void tryTurnScreenOn() {
+        NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+        if (notificationPrefs.lightScreenOn().get()) {
+            NotificationUtils.turnScreenOn();
+        }
+    }
 
-	private void addToPushHistory(final PushMessage data) {
-		String message = data.toJson().toString();
-		notificationPrefs.pushHistory().add(message);
-	}
+    private void addToPushHistory(final PushMessage data) {
+        String message = data.toJson().toString();
+        notificationPrefs.pushHistory().add(message);
+    }
 
-	private void notifyNotificationCreated(final Intent intent, final String tag, final int messageId) {
-		LocalNotificationStorage localNotificationStorage = RepositoryModule.getLocalNotificationStorage();
-		localNotificationStorage.removeLocalNotificationShown(messageId, tag);
+    private void notifyNotificationCreated(final Intent intent, final String tag, final int messageId) {
+        LocalNotificationStorage localNotificationStorage = RepositoryModule.getLocalNotificationStorage();
+        localNotificationStorage.removeLocalNotificationShown(messageId, tag);
 
-		if (intent.hasExtra(LocalNotificationReceiver.EXTRA_NOTIFICATION_ID)) {
-			int localNotificationId = intent.getIntExtra(LocalNotificationReceiver.EXTRA_NOTIFICATION_ID, 0);
-			localNotificationStorage.addLocalNotificationShown(localNotificationId, messageId, tag);
-		}
-	}
+        if (intent.hasExtra(LocalNotificationReceiver.EXTRA_NOTIFICATION_ID)) {
+            int localNotificationId = intent.getIntExtra(LocalNotificationReceiver.EXTRA_NOTIFICATION_ID, 0);
+            localNotificationStorage.addLocalNotificationShown(localNotificationId, messageId, tag);
+        }
+    }
 
-	private int getMessageId(final String tag) {
-		int messageId = 0;
+    private int getMessageId(final String tag) {
+        int messageId = 0;
 
-		if (TextUtils.isEmpty(tag)) {
-			synchronized (MUTEX) {
-				messageId = notificationPrefs.messageId().get();
+        if (TextUtils.isEmpty(tag)) {
+            synchronized (MUTEX) {
+                messageId = notificationPrefs.messageId().get();
 
-				if (notificationPrefs.multiMode().get()) {
-					messageId++;
-					notificationPrefs.messageId().set(messageId);
-				}
-			}
-		}
-		return messageId;
-	}
+                if (notificationPrefs.multiMode().get()) {
+                    messageId++;
+                    notificationPrefs.messageId().set(messageId);
+                }
+            }
+        }
+        return messageId;
+    }
 
-	private NotificationFactory provideNotificationFactory() {
-		NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
-		try {
-			Class<?> clazz = notificationPrefs.notificationFactoryClass().get();
-			if (clazz != null) {
-				return (NotificationFactory) clazz.newInstance();
-			}
-		} catch (Exception e) {
-			PWLog.exception(e);
-			// fallback to default
-		}
+    private NotificationFactory provideNotificationFactory() {
+        NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
+        try {
+            Class<?> clazz = notificationPrefs.notificationFactoryClass().get();
+            if (clazz != null) {
+                return (NotificationFactory) clazz.newInstance();
+            }
+        } catch (Exception e) {
+            PWLog.exception(e);
+            // fallback to default
+        }
 
-		return new PushwooshNotificationFactory();
-	}
+        return new PushwooshNotificationFactory();
+    }
 
-	@NonNull
-	private Intent getDeleteIntent(long rowId, int summaryNotificationId, PushMessage data) {
-		Context applicationContext = getApplicationContext();
-		Intent deleteIntent = new Intent(applicationContext, NotificationUpdateReceiver.class);
-		deleteIntent.putExtra(NotificationIntentHelper.EXTRA_NOTIFICATION_ROW_ID, rowId);
-		deleteIntent.putExtra(NotificationIntentHelper.EXTRA_IS_DELETE_INTENT, true);
-		deleteIntent.putExtra(NotificationIntentHelper.EXTRA_NOTIFICATION_BUNDLE, data.toBundle());
-		deleteIntent.putExtra(EXTRA_GROUP_ID, summaryNotificationId);
-		deleteIntent.setAction(Long.toString(System.currentTimeMillis()));
-		return deleteIntent;
-	}
+    @NonNull private Intent getDeleteIntent(long rowId, int summaryNotificationId, PushMessage data) {
+        Context applicationContext = getApplicationContext();
+        Intent deleteIntent = new Intent(applicationContext, NotificationUpdateReceiver.class);
+        deleteIntent.putExtra(NotificationIntentHelper.EXTRA_NOTIFICATION_ROW_ID, rowId);
+        deleteIntent.putExtra(NotificationIntentHelper.EXTRA_IS_DELETE_INTENT, true);
+        deleteIntent.putExtra(NotificationIntentHelper.EXTRA_NOTIFICATION_BUNDLE, data.toBundle());
+        deleteIntent.putExtra(EXTRA_GROUP_ID, summaryNotificationId);
+        deleteIntent.setAction(Long.toString(System.currentTimeMillis()));
+        return deleteIntent;
+    }
 }

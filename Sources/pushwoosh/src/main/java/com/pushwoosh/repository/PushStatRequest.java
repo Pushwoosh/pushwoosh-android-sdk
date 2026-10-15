@@ -26,39 +26,54 @@
 
 package com.pushwoosh.repository;
 
+import androidx.annotation.Nullable;
+
 import com.pushwoosh.internal.network.PushRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class PushStatRequest extends PushRequest<Void> {
-	private String hash;
-	private String metadata;
+    private String hash;
+    private String metadata;
+    private String buttonId;
 
-	public PushStatRequest(String hash, String metadata) {
-		this.hash = hash;
-		this.metadata = metadata;
-	}
+    public PushStatRequest(String hash, String metadata) {
+        this(hash, metadata, null);
+    }
 
-	public String getMethod() {
-		return "pushStat";
-	}
+    public PushStatRequest(String hash, String metadata, @Nullable String buttonId) {
+        this.hash = hash;
+        this.metadata = metadata;
+        this.buttonId = buttonId;
+    }
 
-	public String getHash() {
-		return hash;
-	}
+    public String getMethod() {
+        return "pushStat";
+    }
 
-	public String getMetaData() {
-		return metadata;
-	}
+    public String getHash() {
+        return hash;
+    }
 
-	@Override
-	protected void buildParams(JSONObject params) throws JSONException {
-		if (hash != null) {
-			params.put("hash", hash);
-		}
-		if (metadata != null) {
-			params.put("metaData", metadata);
-		}
-	}
+    public String getMetaData() {
+        return metadata;
+    }
+
+    @Nullable public String getButtonId() {
+        return buttonId;
+    }
+
+    @Override
+    protected void buildParams(JSONObject params) throws JSONException {
+        if (hash != null) {
+            params.put("hash", hash);
+        }
+        if (metadata != null) {
+            params.put("metaData", metadata);
+        }
+        if (buttonId != null) {
+            params.put("button_id", buttonId);
+        }
+    }
 }

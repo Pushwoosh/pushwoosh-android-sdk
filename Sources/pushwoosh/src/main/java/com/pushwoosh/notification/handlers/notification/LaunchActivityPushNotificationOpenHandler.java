@@ -33,36 +33,42 @@ import android.os.Bundle;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.notification.PushBundleDataProvider;
 
 class LaunchActivityPushNotificationOpenHandler implements PushNotificationOpenHandler {
 
+    LaunchActivityPushNotificationOpenHandler() {
+        /*do nothing*/
+    }
 
-	LaunchActivityPushNotificationOpenHandler() {/*do nothing*/}
+    @Override
+    public void postHandleNotification(final Bundle pushBundle) {
+        // temporary disable this code until the server supports it
+        Context applicationContext = AndroidPlatformModule.getApplicationContext();
+        if (applicationContext == null) {
+            PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
+            return;
+        }
 
-	@Override
-	public void postHandleNotification(final Bundle pushBundle) {
-		//temporary disable this code until the server supports it
-		Context applicationContext = AndroidPlatformModule.getApplicationContext();
-		if (applicationContext == null) {
-			PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
-			return;
-		}
+        if (PushBundleDataProvider.getTappedButtonId(pushBundle) != null) {
+            return;
+        }
 
-		String packageName = (String) pushBundle.get("launch");
-		if (packageName != null) {
-			Intent launchIntent = null;
-			try {
-				PackageManager packageManager = AndroidPlatformModule.getManagerProvider().getPackageManager();
-				launchIntent = packageManager == null ? null : packageManager.getLaunchIntentForPackage(packageName);
-			} catch (Exception e) {
-				PWLog.error("Application not found", e);
-			}
+        String packageName = (String) pushBundle.get("launch");
+        if (packageName != null) {
+            Intent launchIntent = null;
+            try {
+                PackageManager packageManager =
+                        AndroidPlatformModule.getManagerProvider().getPackageManager();
+                launchIntent = packageManager == null ? null : packageManager.getLaunchIntentForPackage(packageName);
+            } catch (Exception e) {
+                PWLog.error("Application not found", e);
+            }
 
-			if (launchIntent != null) {
-				launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				applicationContext.startActivity(launchIntent);
-			}
-		}
-
-	}
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                applicationContext.startActivity(launchIntent);
+            }
+        }
+    }
 }

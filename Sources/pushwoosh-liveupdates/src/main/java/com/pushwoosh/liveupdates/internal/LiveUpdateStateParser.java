@@ -10,6 +10,7 @@ import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.liveupdates.LiveUpdateOperation;
 import com.pushwoosh.liveupdates.LiveUpdateSegment;
 import com.pushwoosh.liveupdates.LiveUpdateState;
+import com.pushwoosh.notification.Action;
 import com.pushwoosh.notification.PushBundleDataProvider;
 
 import org.json.JSONArray;
@@ -52,7 +53,8 @@ public final class LiveUpdateStateParser {
      * @return the parsed state, or {@code null} if {@code bundle} is {@code null}, {@code pw_live}
      *         is absent / malformed, or the required {@code op} / {@code id} are missing or invalid
      */
-    @Nullable public static LiveUpdateState parse(@Nullable Bundle bundle) {
+    @Nullable @SuppressWarnings("deprecation")
+    public static LiveUpdateState parse(@Nullable Bundle bundle) {
         if (bundle == null) {
             return null;
         }
@@ -86,7 +88,8 @@ public final class LiveUpdateStateParser {
                 .progressIndeterminate(json.optBoolean(LiveUpdateBundleKeys.PROGRESS_INDETERMINATE, false))
                 .showProgressBar(json.optBoolean(LiveUpdateBundleKeys.PROGRESS_BAR, true))
                 .segments(parseSegments(json.optJSONArray(LiveUpdateBundleKeys.SEGMENTS)))
-                .actions(new ArrayList<>(PushBundleDataProvider.getActions(bundle)))
+                // .actions(new ArrayList<>(PushBundleDataProvider.getActions(bundle)))
+                .actions(parseActions(bundle.getString("pw_actions")))
                 .extras(json.optJSONObject(LiveUpdateBundleKeys.EXTRAS))
                 .when(optLongOrNull(json, LiveUpdateBundleKeys.WHEN))
                 .chronometer(json.optBoolean(LiveUpdateBundleKeys.CHRONOMETER, false))
@@ -137,5 +140,22 @@ public final class LiveUpdateStateParser {
             }
         }
         return result;
+    }
+
+    // Live Updates stay on pw_actions; the core reader hides them when pw_buttons is present.
+    @NonNull private static List<Action> parseActions(@Nullable String raw) {
+        List<Action> actions = new ArrayList<>();
+        if (raw == null) {
+            return actions;
+        }
+        try {
+            JSONArray array = new JSONArray(raw);
+            for (int i = 0; i < array.length(); i++) {
+                actions.add(new Action(array.getJSONObject(i)));
+            }
+        } catch (JSONException e) {
+            PWLog.warn(TAG, "pw_actions is not valid JSON, rendering without: " + e.getMessage());
+        }
+        return actions;
     }
 }

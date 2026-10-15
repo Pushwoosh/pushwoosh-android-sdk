@@ -157,6 +157,10 @@ public class PushwooshPlatform {
         return pushwooshRepository;
     }
 
+    public DeviceRegistrar deviceRegistrar() {
+        return deviceRegistrar;
+    }
+
     public PushwooshInAppImpl pushwooshInApp() {
         return pushwooshInApp;
     }

@@ -74,6 +74,11 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private static final String PROPERTY_LANGUAGE = "pw_language";
     private static final String PROPERTY_DENIED_NOTIFICATIONS = "pw_user_denied_notification_permission";
     private static final String PROPERTY_FCM_MESSAGE_RECEIVED = "pw_fcm_message_received_since_app_update";
+    private static final String PROPERTY_PUSH_PERMISSION_FIRST_OBSERVED = "pw_push_permission_first_observed_granted";
+    private static final String PROPERTY_PUSH_PERMISSION_EVER_GRANTED = "pw_push_permission_ever_granted";
+    private static final String PROPERTY_PUSH_PERMISSION_VIA_SDK_PROMPT = "pw_push_permission_granted_via_sdk_prompt";
+    private static final String PROPERTY_PUSH_PERMISSION_RATIONALE_SEEN = "pw_push_permission_rationale_seen";
+    private static final String PROPERTY_PUSH_PERMISSION_LAST_SENT = "pw_push_permission_last_sent";
 
     private static final String PROPERTY_ADVERTISING_ID = "pw_advertising_id";
     private static final String COMMUNICATION_ENABLE = "pw_communication_enable";
@@ -101,6 +106,11 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private PreferenceBooleanValue registeredForPush;
     private PreferenceBooleanValue userDeniedNotificationPermission;
     private PreferenceBooleanValue fcmMessageReceivedSinceInstallOrUpdate;
+    private PreferenceIntValue pushPermissionFirstObservedGranted;
+    private PreferenceBooleanValue pushPermissionEverGranted;
+    private PreferenceBooleanValue pushPermissionGrantedViaSdkPrompt;
+    private PreferenceBooleanValue pushPermissionRationaleSeen;
+    private PreferenceStringValue pushPermissionLastSent;
 
     RegistrationPrefs(Config config, DeviceRegistrar deviceRegistrar) {
         PWLog.noise("RegistrationPrefs()...");
@@ -126,6 +136,15 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
                 new PreferenceBooleanValue(preferences, PROPERTY_DENIED_NOTIFICATIONS, false);
         fcmMessageReceivedSinceInstallOrUpdate =
                 new PreferenceBooleanValue(preferences, PROPERTY_FCM_MESSAGE_RECEIVED, false);
+        pushPermissionFirstObservedGranted =
+                new PreferenceIntValue(preferences, PROPERTY_PUSH_PERMISSION_FIRST_OBSERVED, -1);
+        pushPermissionEverGranted =
+                new PreferenceBooleanValue(preferences, PROPERTY_PUSH_PERMISSION_EVER_GRANTED, false);
+        pushPermissionGrantedViaSdkPrompt =
+                new PreferenceBooleanValue(preferences, PROPERTY_PUSH_PERMISSION_VIA_SDK_PROMPT, false);
+        pushPermissionRationaleSeen =
+                new PreferenceBooleanValue(preferences, PROPERTY_PUSH_PERMISSION_RATIONALE_SEEN, false);
+        pushPermissionLastSent = new PreferenceStringValue(preferences, PROPERTY_PUSH_PERMISSION_LAST_SENT, "");
 
         int newVersion = GeneralUtils.getAppVersion();
         if (appVersion.get() != newVersion) {
@@ -363,6 +382,29 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
     public PreferenceBooleanValue hasUserDeniedNotificationPermission() {
         return userDeniedNotificationPermission;
+    }
+
+    /**
+     * -1 until the SDK first sees the notification permission, then 1 if it was granted at that moment, else 0.
+     */
+    public PreferenceIntValue pushPermissionFirstObservedGranted() {
+        return pushPermissionFirstObservedGranted;
+    }
+
+    public PreferenceBooleanValue pushPermissionEverGranted() {
+        return pushPermissionEverGranted;
+    }
+
+    public PreferenceBooleanValue pushPermissionGrantedViaSdkPrompt() {
+        return pushPermissionGrantedViaSdkPrompt;
+    }
+
+    public PreferenceBooleanValue pushPermissionRationaleSeen() {
+        return pushPermissionRationaleSeen;
+    }
+
+    public PreferenceStringValue pushPermissionLastSent() {
+        return pushPermissionLastSent;
     }
 
     /**

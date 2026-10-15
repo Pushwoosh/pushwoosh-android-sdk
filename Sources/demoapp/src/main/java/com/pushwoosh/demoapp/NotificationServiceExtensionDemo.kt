@@ -1,7 +1,5 @@
 package com.pushwoosh.demoapp
 
-import android.os.Handler
-import android.util.Log
 import androidx.annotation.MainThread
 import com.pushwoosh.internal.utils.PWLog
 import com.pushwoosh.notification.NotificationServiceExtension
@@ -17,6 +15,13 @@ class NotificationServiceExtensionDemo : NotificationServiceExtension() {
     override fun startActivityForPushMessage(message: PushMessage) {
         super.startActivityForPushMessage(message)
         handlePush(message)
+    }
+
+    override fun onMessageOpened(message: PushMessage) {
+        super.onMessageOpened(message)
+        val tappedId = message.tappedButtonId
+        val action = message.buttons.firstOrNull { it.id == tappedId }?.action
+        PWLog.debug(TAG, "PushMessage opened: tappedButtonId=$tappedId, action=$action")
     }
 
     @MainThread

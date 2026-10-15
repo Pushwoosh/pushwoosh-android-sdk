@@ -35,6 +35,7 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.LockScreenReceiver;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.notification.PushPermissionStatusTracker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -90,6 +91,7 @@ public class PushwooshInitializer {
         pushwooshPlatform.onApplicationCreated();
         AndroidPlatformModule.getApplicationOpenDetector()
                 .onApplicationCreated(pushwooshPlatform.getAppVersionProvider().isFirstLaunch());
+        PushPermissionStatusTracker.register(context);
 
         // lock screen receiver
         LockScreenReceiver lockScreenReceiver = new LockScreenReceiver();

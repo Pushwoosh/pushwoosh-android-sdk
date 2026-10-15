@@ -33,10 +33,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -371,6 +373,37 @@ public class PushwooshRepositoryTest {
     }
 
     // ---------- sendPushOpenedSync ----------
+
+    @Test
+    public void sendPushOpenedSync_sameHashAlreadySent_withButtonId_stillSendsTheRequest() {
+        when(lastNotificationHashPref.get()).thenReturn("hash-1");
+        when(requestManager.sendRequestSync(any(PushStatRequest.class))).thenReturn(Result.fromData(null));
+
+        Result<Void, NetworkException> result =
+                pushwooshRepository.sendPushOpenedSync("hash-1", "meta", "cancel_order");
+
+        assertTrue(result.isSuccess());
+        verify(requestManager, times(1)).sendRequestSync(any(PushStatRequest.class));
+    }
+
+    // A button tap already counts as an open on the backend, so a later inbox open of the same
+    // message must not be reported a second time. The work names differ, so KEEP cannot catch it.
+    @Test
+    public void sendPushOpenedSync_buttonOpenThenPlainOpenOfTheSamePush_sendsOneRequest() {
+        when(lastNotificationHashPref.get()).thenReturn(null);
+        when(requestManager.sendRequestSync(any(PushStatRequest.class))).thenReturn(Result.fromData(null));
+        doAnswer(invocation -> {
+                    when(lastNotificationHashPref.get()).thenReturn(invocation.getArgument(0));
+                    return null;
+                })
+                .when(lastNotificationHashPref)
+                .set(any());
+
+        pushwooshRepository.sendPushOpenedSync("hash-1", "meta", "cancel_order");
+        pushwooshRepository.sendPushOpenedSync("hash-1", "meta");
+
+        verify(requestManager, times(1)).sendRequestSync(any(PushStatRequest.class));
+    }
 
     @Test
     public void sendPushOpenedSync_storesHashOnSuccess() {

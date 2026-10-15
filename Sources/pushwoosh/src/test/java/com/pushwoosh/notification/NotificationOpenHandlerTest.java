@@ -26,6 +26,7 @@
 
 package com.pushwoosh.notification;
 
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -154,28 +155,35 @@ public class NotificationOpenHandlerTest {
     }
 
     @Test
-    public void preHandleNotification_noLinkKey_returnsFalse() {
+    public void openLink_nullLink_returnsFalse() {
         Context context = AndroidPlatformModule.getApplicationContext();
         Mockito.clearInvocations(context);
 
-        boolean result = notificationOpenHandler.preHandleNotification(new Bundle());
+        assertFalse(notificationOpenHandler.openLink(null));
 
-        Assert.assertFalse(result);
         verify(context, never()).startActivity(any(Intent.class));
     }
 
     @Test
-    public void preHandleNotification_whitelistedHost_firesExternalViewIntent() {
+    public void openLink_emptyLink_returnsFalse() {
         Context context = AndroidPlatformModule.getApplicationContext();
         Mockito.clearInvocations(context);
-        Bundle bundle = new Bundle();
-        bundle.putString("l", "https://allowed.example.com/promo");
+
+        assertFalse(notificationOpenHandler.openLink(""));
+
+        verify(context, never()).startActivity(any(Intent.class));
+    }
+
+    @Test
+    public void openLink_whitelistedHost_firesExternalViewIntent() {
+        Context context = AndroidPlatformModule.getApplicationContext();
+        Mockito.clearInvocations(context);
         ArrayList<String> allowed = new ArrayList<>();
-        allowed.add("allowed.example.com");
+        allowed.add("external.example.com");
 
         boolean result;
         try (MockedStatic<RepositoryModule> mocked = stubAllowedExternalHosts(allowed)) {
-            result = notificationOpenHandler.preHandleNotification(bundle);
+            result = notificationOpenHandler.openLink("https://external.example.com/promo");
         }
 
         Assert.assertTrue(result);
@@ -183,21 +191,19 @@ public class NotificationOpenHandlerTest {
         verify(context, times(1)).startActivity(captor.capture());
         Intent intent = captor.getValue();
         Assert.assertEquals(Intent.ACTION_VIEW, intent.getAction());
-        Assert.assertEquals("https://allowed.example.com/promo", intent.getDataString());
+        Assert.assertEquals("https://external.example.com/promo", intent.getDataString());
         Assert.assertEquals(Intent.FLAG_ACTIVITY_NEW_TASK, intent.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK);
     }
 
     @Test
-    public void preHandleNotification_unresolvableLink_returnsFalse() {
+    public void openLink_unresolvableLink_returnsFalse() {
         Context context = AndroidPlatformModule.getApplicationContext();
         Mockito.clearInvocations(context);
-        Bundle bundle = new Bundle();
-        bundle.putString("l", "https://unknown.example.com/path");
         // Whitelist empty + Robolectric has no resolver for this URI by default → resolveActivity == null.
 
         boolean result;
         try (MockedStatic<RepositoryModule> mocked = stubAllowedExternalHosts(new ArrayList<>())) {
-            result = notificationOpenHandler.preHandleNotification(bundle);
+            result = notificationOpenHandler.openLink("myapp://nowhere");
         }
 
         Assert.assertFalse(result);
@@ -205,16 +211,14 @@ public class NotificationOpenHandlerTest {
     }
 
     @Test
-    public void preHandleNotification_nonWhitelistedResolvableLink_firesClearTopViewIntent() {
+    public void openLink_nonWhitelistedResolvableLink_firesClearTopViewIntent() {
         Context context = AndroidPlatformModule.getApplicationContext();
         Mockito.clearInvocations(context);
-        Bundle bundle = new Bundle();
-        bundle.putString("l", "myapp://deep/link");
 
         // Register a resolver for the deep link so resolveActivity returns non-null.
         PackageManager pm = context.getPackageManager();
         ShadowPackageManager shadowPm = Shadows.shadowOf(pm);
-        Intent matcher = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("myapp://deep/link"));
+        Intent matcher = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("myapp://screen?id=42"));
         ResolveInfo info = new ResolveInfo();
         info.activityInfo = new android.content.pm.ActivityInfo();
         info.activityInfo.packageName = "com.pushwoosh.test";
@@ -223,7 +227,7 @@ public class NotificationOpenHandlerTest {
 
         boolean result;
         try (MockedStatic<RepositoryModule> mocked = stubAllowedExternalHosts(new ArrayList<>())) {
-            result = notificationOpenHandler.preHandleNotification(bundle);
+            result = notificationOpenHandler.openLink("myapp://screen?id=42");
         }
 
         Assert.assertTrue(result);
@@ -235,7 +239,7 @@ public class NotificationOpenHandlerTest {
         Intent started = Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
         Assert.assertNotNull("expected deep link ACTION_VIEW intent fired via PendingIntent.send()", started);
         Assert.assertEquals(Intent.ACTION_VIEW, started.getAction());
-        Assert.assertEquals("myapp://deep/link", started.getDataString());
+        Assert.assertEquals("myapp://screen?id=42", started.getDataString());
         Assert.assertEquals(
                 "deep link intent must carry exactly NEW_TASK | CLEAR_TOP: CLEAR_TOP is what lets a"
                         + " singleTop activity behind the SDK's NotificationOpenActivity receive the"

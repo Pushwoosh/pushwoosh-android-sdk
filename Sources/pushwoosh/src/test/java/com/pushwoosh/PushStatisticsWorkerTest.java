@@ -31,6 +31,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -128,6 +129,11 @@ public class PushStatisticsWorkerTest {
                 .build();
     }
 
+    private Data createOpenEventDataWithButton(String buttonId) {
+        return PushStatisticsWorker.createInputData(
+                PushStatisticsWorker.EVENT_OPEN, TEST_HASH, TEST_METADATA, buttonId);
+    }
+
     private Data createInvalidData() {
         return new Data.Builder()
                 .putString(PushStatisticsWorker.DATA_EVENT_TYPE, "")
@@ -174,13 +180,30 @@ public class PushStatisticsWorkerTest {
         try (MockedStatic<PushwooshPlatform> platformMock = Mockito.mockStatic(PushwooshPlatform.class)) {
             platformMock.when(PushwooshPlatform::getInstance).thenReturn(pushwooshPlatformMock);
 
-            when(pushwooshRepositoryMock.sendPushOpenedSync(TEST_HASH, TEST_METADATA))
+            when(pushwooshRepositoryMock.sendPushOpenedSync(TEST_HASH, TEST_METADATA, null))
                     .thenReturn(Result.fromData(null));
 
             ListenableWorker.Result result = pushStatisticsWorker.doWork();
 
             assertEquals(ListenableWorker.Result.success(), result);
-            verify(pushwooshRepositoryMock, times(1)).sendPushOpenedSync(TEST_HASH, TEST_METADATA);
+            verify(pushwooshRepositoryMock, times(1)).sendPushOpenedSync(TEST_HASH, TEST_METADATA, null);
+        }
+    }
+
+    @Test
+    public void doWork_openEventWithButtonId_passesItToTheRepository() throws Exception {
+        setupWorkerWithData(createOpenEventDataWithButton("cancel_order"));
+        ensureSdkReady();
+
+        try (MockedStatic<PushwooshPlatform> platformMock = Mockito.mockStatic(PushwooshPlatform.class)) {
+            platformMock.when(PushwooshPlatform::getInstance).thenReturn(pushwooshPlatformMock);
+            when(pushwooshRepositoryMock.sendPushOpenedSync(TEST_HASH, TEST_METADATA, "cancel_order"))
+                    .thenReturn(Result.fromData(null));
+
+            ListenableWorker.Result result = pushStatisticsWorker.doWork();
+
+            assertEquals(ListenableWorker.Result.success(), result);
+            verify(pushwooshRepositoryMock, times(1)).sendPushOpenedSync(TEST_HASH, TEST_METADATA, "cancel_order");
         }
     }
 
@@ -192,7 +215,7 @@ public class PushStatisticsWorkerTest {
 
         assertEquals(ListenableWorker.Result.failure(), result);
         verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString());
-        verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString());
+        verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString(), nullable(String.class));
     }
 
     @Test
@@ -208,7 +231,7 @@ public class PushStatisticsWorkerTest {
 
         assertEquals(ListenableWorker.Result.failure(), result);
         verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString());
-        verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString());
+        verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString(), nullable(String.class));
     }
 
     @Test
@@ -219,7 +242,7 @@ public class PushStatisticsWorkerTest {
 
         assertEquals(ListenableWorker.Result.retry(), result);
         verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString());
-        verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString());
+        verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString(), nullable(String.class));
     }
 
     @Test
@@ -331,6 +354,6 @@ public class PushStatisticsWorkerTest {
 
         assertEquals(ListenableWorker.Result.failure(), result);
         verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString());
-        verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString());
+        verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString(), nullable(String.class));
     }
 }

@@ -44,6 +44,7 @@ import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushMessage;
+import com.pushwoosh.notification.PushPermissionStatusTracker;
 import com.pushwoosh.tags.Tags;
 import com.pushwoosh.tags.TagsBundle;
 
@@ -110,7 +111,11 @@ public class PushwooshRepository {
     public void sendAppOpen() {
         PWLog.noise(TAG, "sendAppOpen()");
         AppOpenRequest request = new AppOpenRequest();
-        requestManager.sendRequest(request);
+        requestManager.sendRequest(request, result -> {
+            if (result.isSuccess()) {
+                PushPermissionStatusTracker.onStatusDelivered(request.getSentPushPermissionStatus());
+            }
+        });
     }
 
     public void sendTags(@NonNull TagsBundle tags, Callback<Void, PushwooshException> listener) {
@@ -254,16 +259,24 @@ public class PushwooshRepository {
     }
 
     public Result<Void, NetworkException> sendPushOpenedSync(String hash, String metadata) {
-        PWLog.info(TAG, "Sending PushStatRequest sync, hash: " + hash);
+        return sendPushOpenedSync(hash, metadata, null);
+    }
 
-        if (hash != null
+    public Result<Void, NetworkException> sendPushOpenedSync(String hash, String metadata, @Nullable String buttonId) {
+        PWLog.info(TAG, "Sending PushStatRequest sync, hash: " + hash + ", buttonId: " + buttonId);
+
+        // A button click is its own event and must not be swallowed by the last opened push.
+        boolean shouldDeduplicate = TextUtils.isEmpty(buttonId);
+
+        if (shouldDeduplicate
+                && hash != null
                 && TextUtils.equals(
                         hash, notificationPrefs.lastNotificationHash().get())) {
             PWLog.warn(TAG, "Push stat for (" + hash + ") already sent");
             return Result.fromData(null); // Already sent - success
         }
 
-        PushStatRequest request = new PushStatRequest(hash, metadata);
+        PushStatRequest request = new PushStatRequest(hash, metadata, buttonId);
 
         try {
             Result<Void, NetworkException> result = requestManager.sendRequestSync(request);

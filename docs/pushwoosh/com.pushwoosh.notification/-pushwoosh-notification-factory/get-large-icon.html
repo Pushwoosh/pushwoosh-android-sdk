@@ -97,32 +97,32 @@
     <h1 class="cover"><span>get</span><wbr><span>Large</span><wbr><span><span>Icon</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">protected </span><span class="token keyword">open </span><span class="token keyword">fun </span><a href="get-large-icon.html"><span class="token function">getLargeIcon</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">pushData<span class="token operator">: </span><a href="../-push-message/index.html">PushMessage</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="android.graphics/Bitmap///PointingToDeclaration/">Bitmap</span></div><p class="paragraph">Loads and returns the large icon image for the notification. </p><p class="paragraph"> The large icon appears on the right side of the notification (or left on some devices) and provides a visual identifier for your app or the notification content. This method downloads the image from the URL specified in the push payload's "pw_large_icon" attribute. </p><p class="paragraph"> The image is automatically sized to match the system's notification_large_icon_height dimension (typically 64dp x 64dp). This method runs on a worker thread, so network operations are safe. </p><p class="paragraph"><strong>Image Requirements:</strong></p><ul><li>Recommended size: 256x256 (will be scaled down)</li><li>Should be square or circular</li><li>Supported formats: JPEG, PNG</li><li>Transparent backgrounds work well</li></ul><p class="paragraph"> Override this method to customize image loading or apply circular cropping, rounded corners, or other transformations.  Example - Custom image with circular crop: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	  
-	  protected Bitmap getLargeIcon(PushMessage pushData) {
-	      String iconUrl = pushData.getLargeIconUrl();
-	      if (iconUrl == null) {
-	          // Fall back to app icon
-	          return BitmapFactory.decodeResource(
-	              getApplicationContext().getResources(),
-	              R.drawable.ic_launcher
-	          );
-	      }
-	
-	      try {
-	          // Load and apply circular transformation
-	          Bitmap bitmap = Glide.with(getApplicationContext())
-	              .asBitmap()
-	              .load(iconUrl)
-	              .transform(new CircleCrop())
-	              .submit(256, 256)
-	              .get();
-	          return bitmap;
-	      } catch (Exception e) {
-	          Log.e("NotificationFactory", "Failed to load large icon", e);
-	          return null;
-	      }
-	  }
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">Bitmap to display as notification large icon, or null if URL is not specified or loading fails</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>push</span><wbr><span><span>Data</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Push notification data containing the large icon URL</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-large-icon-url.html"><span>Push</span><wbr><span><span>Message</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-big-picture.html"><span>get</span><wbr><span>Big</span><wbr><span>Picture(Push</span><wbr><span><span>Message)</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  
+  protected Bitmap getLargeIcon(PushMessage pushData) {
+      String iconUrl = pushData.getLargeIconUrl();
+      if (iconUrl == null) {
+          // Fall back to app icon
+          return BitmapFactory.decodeResource(
+              getApplicationContext().getResources(),
+              R.drawable.ic_launcher
+          );
+      }
+
+      try {
+          // Load and apply circular transformation
+          Bitmap bitmap = Glide.with(getApplicationContext())
+              .asBitmap()
+              .load(iconUrl)
+              .transform(new CircleCrop())
+              .submit(256, 256)
+              .get();
+          return bitmap;
+      } catch (Exception e) {
+          Log.e("NotificationFactory", "Failed to load large icon", e);
+          return null;
+      }
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">Bitmap to display as notification large icon, or null if URL is not specified or loading fails</p></span><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>push</span><wbr><span><span>Data</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Push notification data containing the large icon URL</p></div></div></div></div></div><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../pushwoosh/com.pushwoosh.notification/-push-message/get-large-icon-url.html"><span>Push</span><wbr><span><span>Message</span></span></a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="get-big-picture.html"><span>get</span><wbr><span>Big</span><wbr><span>Picture(Push</span><wbr><span><span>Message)</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

@@ -7,6 +7,17 @@ import com.pushwoosh.internal.utils.PWLog;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Legacy Android-only notification action, described by the {@code pw_actions} payload field.
+ * <p>
+ * Its tap fires a {@code PendingIntent} straight into an application component: the SDK does not
+ * see it, the notification is not dismissed and no open event is reported.
+ *
+ * @deprecated Use {@link ActionButton} and {@link PushMessage#getButtons()} instead. A push that
+ *             carries {@code pw_buttons} never renders {@code pw_actions}. Support for
+ *             {@code pw_actions} in regular pushes will be removed in the next major release.
+ */
+@Deprecated
 public class Action {
     public enum Type {
         ACTIVITY,

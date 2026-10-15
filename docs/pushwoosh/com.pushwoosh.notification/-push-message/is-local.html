@@ -97,26 +97,26 @@
     <h1 class="cover"><span>is</span><wbr><span><span>Local</span></span></h1>
   </div>
   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":pushwoosh/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="is-local.html"><span class="token function">isLocal</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><p class="paragraph">Checks if this is a local notification. </p><p class="paragraph"> Local notifications are scheduled by the app itself using <a href="../-local-notification/index.html">LocalNotification</a> rather than being sent from Pushwoosh servers. This method helps distinguish between remote and local notifications.  Example: </p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">
-	  
-	  protected boolean onMessageReceived(PushMessage message) {
-	      if (message.isLocal()) {
-	          Log.d("App", "Local notification triggered");
-	
-	          // Handle local notification
-	          String customData = message.getCustomData();
-	          // Process reminder or scheduled task
-	
-	      } else {
-	          Log.d("App", "Remote notification from Pushwoosh");
-	
-	          // Track delivery for remote notifications
-	          long campaignId = message.getCampaignId();
-	          analytics.trackNotificationReceived(campaignId);
-	      }
-	
-	      return false; // Show notification
-	  }
-	</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">true if this is a local notification scheduled by the app</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-local-notification/index.html"><span>Local</span><wbr><span><span>Notification</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  
+  protected boolean onMessageReceived(PushMessage message) {
+      if (message.isLocal()) {
+          Log.d("App", "Local notification triggered");
+
+          // Handle local notification
+          String customData = message.getCustomData();
+          // Process reminder or scheduled task
+
+      } else {
+          Log.d("App", "Remote notification from Pushwoosh");
+
+          // Track delivery for remote notifications
+          long campaignId = message.getCampaignId();
+          analytics.trackNotificationReceived(campaignId);
+      }
+
+      return false; // Show notification
+  }
+</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><span class="kdoc-tag"><h4 class="">Return</h4><p class="paragraph">true if this is a local notification scheduled by the app</p></span><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":pushwoosh/main" data-filterable-set=":pushwoosh/main"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-local-notification/index.html"><span>Local</span><wbr><span><span>Notification</span></span></a></div></span></div><div></div></div></div></div></div></div>
 </div>
     <div class="footer">
         <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>

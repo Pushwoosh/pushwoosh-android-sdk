@@ -3,6 +3,7 @@ package com.pushwoosh;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import androidx.annotation.Nullable;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.Data;
@@ -56,7 +57,15 @@ public class PushStatisticsScheduler {
 
     /** Random instance for generating jitter delays. */
     private static final Random RANDOM = new Random();
-    
+
+    /**
+     * Separates the tapped button id from the push hash in a unique work name. A push hash is
+     * base62 plus {@code _} and {@code -}, so this character cannot occur in it and the boundary
+     * stays unambiguous however the server names its buttons; {@code _} would not, and a collision
+     * under {@link ExistingWorkPolicy#KEEP} drops a click silently.
+     */
+    private static final String BUTTON_ID_SEPARATOR = "|";
+
     /**
      * Schedules a push notification delivery event for reliable statistics reporting.
      * <p>
@@ -78,16 +87,16 @@ public class PushStatisticsScheduler {
         PWLog.noise(TAG, "scheduleDeliveryEvent()");
         String hash = PushBundleDataProvider.getPushHash(pushBundle);
         String metadata = PushBundleDataProvider.getPushMetadata(pushBundle);
-        
+
         if (TextUtils.isEmpty(hash)) {
             PWLog.warn(TAG, "Push hash is null, skipping delivery event");
             return;
         }
-        
+
         PWLog.debug(TAG, "Scheduling delivery event for hash: " + hash);
         scheduleStatisticsEvent(PushStatisticsWorker.EVENT_DELIVERY, hash, metadata);
     }
-    
+
     /**
      * Schedules a push notification open event for reliable statistics reporting.
      * <p>
@@ -110,16 +119,17 @@ public class PushStatisticsScheduler {
         PWLog.noise(TAG, "scheduleOpenEvent()");
         String hash = PushBundleDataProvider.getPushHash(pushBundle);
         String metadata = PushBundleDataProvider.getPushMetadata(pushBundle);
-        
+        String buttonId = PushBundleDataProvider.getTappedButtonId(pushBundle);
+
         if (TextUtils.isEmpty(hash)) {
             PWLog.warn(TAG, "Push hash is null, skipping open event");
             return;
         }
-        
+
         PWLog.debug(TAG, "Scheduling open event for hash: " + hash);
-        scheduleStatisticsEvent(PushStatisticsWorker.EVENT_OPEN, hash, metadata);
+        scheduleStatisticsEvent(PushStatisticsWorker.EVENT_OPEN, hash, metadata, buttonId);
     }
-    
+
     /**
      * Public method for scheduling statistics events with WorkManager.
      * <p>
@@ -140,33 +150,50 @@ public class PushStatisticsScheduler {
      * @param metadata additional metadata associated with the push notification, may be null
      */
     public static void scheduleStatisticsEvent(String eventType, String hash, String metadata) {
-        PWLog.noise(TAG, "scheduleStatisticsEvent(), eventType: " + eventType + ", hash: " + hash + ", metadata: " + metadata);
+        scheduleStatisticsEvent(eventType, hash, metadata, null);
+    }
+
+    /**
+     * Public method for scheduling statistics events with WorkManager, carrying a tapped action
+     * button id when the event originates from a button tap.
+     *
+     * @param eventType the type of statistics event (use {@link PushStatisticsWorker#EVENT_DELIVERY} or {@link PushStatisticsWorker#EVENT_OPEN})
+     * @param hash the unique hash identifier of the push notification
+     * @param metadata additional metadata associated with the push notification, may be null
+     * @param buttonId the id of the tapped action button, may be null
+     */
+    public static void scheduleStatisticsEvent(
+            String eventType, String hash, String metadata, @Nullable String buttonId) {
+        PWLog.noise(
+                TAG,
+                "scheduleStatisticsEvent(), eventType: " + eventType + ", hash: " + hash + ", metadata: " + metadata
+                        + ", buttonId: " + buttonId);
         try {
             // Clean and concise Data creation using helper method
-            Data inputData = PushStatisticsWorker.createInputData(eventType, hash, metadata);
-                    
+            Data inputData = PushStatisticsWorker.createInputData(eventType, hash, metadata, buttonId);
+
             OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(PushStatisticsWorker.class)
                     .setInputData(inputData)
                     .setConstraints(getStatisticsConstraints())
                     .setInitialDelay(getJitterDelay(), TimeUnit.MILLISECONDS)
-                    .setBackoffCriteria(getBackoffPolicy(eventType), getInitialBackoffDelay(eventType), TimeUnit.SECONDS)
+                    .setBackoffCriteria(
+                            getBackoffPolicy(eventType), getInitialBackoffDelay(eventType), TimeUnit.SECONDS)
                     .build();
-                    
-            String uniqueWorkName = eventType + "_" + hash;
-            
-            PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                request, 
-                uniqueWorkName, 
-                ExistingWorkPolicy.KEEP
-            );
-            
+
+            // The button id is part of the work name so a queued open for the same hash cannot swallow the click.
+            String uniqueWorkName = TextUtils.isEmpty(buttonId)
+                    ? eventType + "_" + hash
+                    : eventType + "_" + hash + BUTTON_ID_SEPARATOR + buttonId;
+
+            PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(request, uniqueWorkName, ExistingWorkPolicy.KEEP);
+
             PWLog.debug(TAG, "Successfully scheduled " + eventType + " event for hash: " + hash);
-            
+
         } catch (Exception e) {
             PWLog.error(TAG, "Failed to schedule " + eventType + " event", e);
         }
     }
-    
+
     /**
      * Retrieves WorkManager constraints for statistics delivery tasks.
      * <p>
@@ -179,7 +206,7 @@ public class PushStatisticsScheduler {
     private static Constraints getStatisticsConstraints() {
         return PushwooshWorkManagerHelper.getStatisticsConstraints();
     }
-    
+
     /**
      * Determines the appropriate backoff policy based on event type.
      * <p>
@@ -206,7 +233,7 @@ public class PushStatisticsScheduler {
             return BackoffPolicy.EXPONENTIAL;
         }
     }
-    
+
     /**
      * Determines the initial backoff delay based on event type.
      * <p>

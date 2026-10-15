@@ -26,17 +26,15 @@
 
 package com.pushwoosh.testutil;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import android.os.Bundle;
 
 import com.pushwoosh.notification.NotificationServiceExtension;
 import com.pushwoosh.notification.PushMessage;
 
-import org.mockito.Mock;
 import org.mockito.Mockito;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 
 public class NotificationServiceMock extends NotificationServiceExtension {
 
@@ -46,6 +44,8 @@ public class NotificationServiceMock extends NotificationServiceExtension {
         void startActivityForPushMessage(PushMessage message);
 
         void handleMessage(Bundle pushBundle);
+
+        void onMessageOpened(PushMessage message);
     }
 
     private static NotificationServiceMock INSTANCE;
@@ -55,7 +55,6 @@ public class NotificationServiceMock extends NotificationServiceExtension {
         return MOCK;
     }
 
-
     public NotificationServiceMock() {
         INSTANCE = this;
         MOCK = Mockito.mock(Callback.class);
@@ -63,13 +62,11 @@ public class NotificationServiceMock extends NotificationServiceExtension {
         when(MOCK.onMessageReceived(any())).thenReturn(false);
     }
 
-
     @Override
     protected boolean onMessageReceived(PushMessage data) {
         super.onMessageReceived(data);
         return MOCK.onMessageReceived(data);
     }
-
 
     @Override
     protected void startActivityForPushMessage(PushMessage message) {
@@ -77,4 +74,9 @@ public class NotificationServiceMock extends NotificationServiceExtension {
         MOCK.startActivityForPushMessage(message);
     }
 
+    @Override
+    protected void onMessageOpened(PushMessage message) {
+        super.onMessageOpened(message);
+        MOCK.onMessageOpened(message);
+    }
 }

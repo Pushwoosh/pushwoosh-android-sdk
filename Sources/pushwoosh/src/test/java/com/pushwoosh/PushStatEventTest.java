@@ -1,6 +1,7 @@
 package com.pushwoosh;
 
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
@@ -238,6 +239,30 @@ public class PushStatEventTest {
 
         // Verify no additional attempts were made (should still be exactly 1)
         assertEquals(1, fake.count("pushStat"));
+        fake.assertAllScripted();
+    }
+
+    @Test
+    public void pushStat_buttonIdSet_sendsButtonIdParam() throws Exception {
+        fake.alwaysRespondWith("pushStat", new JSONObject());
+
+        sdk.getPushwooshRepository().sendPushOpenedSync(TEST_HASH, TEST_METADATA, "cancel_order");
+
+        assertEquals(1, fake.count("pushStat"));
+        JSONObject params = fake.last("pushStat").params;
+        assertEquals("cancel_order", params.getString("button_id"));
+        assertEquals(TEST_HASH, params.getString("hash"));
+        fake.assertAllScripted();
+    }
+
+    @Test
+    public void pushStat_noButtonId_omitsButtonIdParam() throws Exception {
+        fake.alwaysRespondWith("pushStat", new JSONObject());
+
+        sdk.getPushwooshRepository().sendPushOpenedSync(TEST_HASH, TEST_METADATA);
+
+        assertEquals(1, fake.count("pushStat"));
+        assertFalse(fake.last("pushStat").params.has("button_id"));
         fake.assertAllScripted();
     }
 }

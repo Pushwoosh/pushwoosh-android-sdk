@@ -26,16 +26,10 @@
 
 package com.pushwoosh.internal.event;
 
-import com.pushwoosh.repository.RepositoryModule;
-
 import java.util.List;
 
 public class NotificationPermissionEvent extends PermissionEvent {
-	public NotificationPermissionEvent(List<String> grantedPermissions, List<String> deniedPermissions) {
-		super(grantedPermissions, deniedPermissions);
-
-		if (deniedPermissions.contains("android.permission.POST_NOTIFICATIONS")) {
-			RepositoryModule.getRegistrationPreferences().hasUserDeniedNotificationPermission().set(true);
-		}
-	}
+    public NotificationPermissionEvent(List<String> grantedPermissions, List<String> deniedPermissions) {
+        super(grantedPermissions, deniedPermissions);
+    }
 }

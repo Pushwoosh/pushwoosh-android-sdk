@@ -26,42 +26,51 @@
 
 package com.pushwoosh.inbox.data;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.Serializable;
+import java.util.Date;
+
 public interface InboxMessage extends Serializable, Comparable<InboxMessage> {
-	@NonNull
-	String getCode();
-	@Nullable
-	String getTitle();
-	@Nullable
-	String getImageUrl();
-	@NonNull
-	String getMessage();
-	@NonNull
-	Date getSendDate();
-	@NonNull
-	String getISO8601SendDate();
-	@NonNull
-	InboxMessageType getType();
-	@Nullable
-	String getBannerUrl();
-	@Nullable
-	String getActionParams();
+    @NonNull String getCode();
 
-	/**
-	 * Inbox Message which is read, see {@link com.pushwoosh.inbox.PushwooshInbox#readMessage(String)}
-	 * @return true if read otherwise false
-	 */
-	boolean isRead();
+    @Nullable String getTitle();
 
-	/**
-	 * Action of the Inbox Message is performed {@link com.pushwoosh.inbox.PushwooshInbox#performAction(String)}
-	 * or an action was performed on the push tap )
-	 * @return true if an action was performed in the Inbox
-	 */
-	boolean isActionPerformed();
+    @Nullable String getImageUrl();
+
+    @NonNull String getMessage();
+
+    @NonNull Date getSendDate();
+
+    @NonNull String getISO8601SendDate();
+
+    @NonNull InboxMessageType getType();
+
+    @Nullable String getBannerUrl();
+
+    @Nullable String getActionParams();
+
+    /**
+     * Tab this message belongs to, as configured in the Pushwoosh Control Panel.
+     *
+     * <p>A message with no tab, or with a tab id that is not in the current
+     * {@link com.pushwoosh.inbox.PushwooshInbox#getTabs()} list, is shown only on the "All" tab.
+     *
+     * @return tab id matching {@link InboxTab#getId()}, or null when the message has no tab
+     */
+    @Nullable String getTabId();
+
+    /**
+     * Inbox Message which is read, see {@link com.pushwoosh.inbox.PushwooshInbox#readMessage(String)}
+     * @return true if read otherwise false
+     */
+    boolean isRead();
+
+    /**
+     * Action of the Inbox Message is performed {@link com.pushwoosh.inbox.PushwooshInbox#performAction(String)}
+     * or an action was performed on the push tap )
+     * @return true if an action was performed in the Inbox
+     */
+    boolean isActionPerformed();
 }

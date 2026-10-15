@@ -29,6 +29,7 @@ package com.pushwoosh.inbox.notification;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.inbox.data.InboxMessageType;
@@ -39,6 +40,35 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class InboxPayloadDataProvider {
+
+    private static final String INBOX_TAB = "pw_inbox_tab";
+
+    /**
+     * Reads the tab a message belongs to. The key sits at the root of the payload, next to the
+     * other system keys (l, md, b); custom data (u / userdata) is never searched.
+     *
+     * @param actionParams serialized payload of the message, may be null or not JSON at all
+     * @return tab id, or null when the message belongs to no tab
+     */
+    @Nullable public static String getTabId(@Nullable String actionParams) {
+        if (TextUtils.isEmpty(actionParams)) {
+            return null;
+        }
+        try {
+            return getTabId(new JSONObject(actionParams));
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    @Nullable private static String getTabId(@NonNull JSONObject actionParams) {
+        Object value = actionParams.opt(INBOX_TAB);
+        if (!(value instanceof String)) {
+            return null;
+        }
+        String tabId = (String) value;
+        return tabId.isEmpty() ? null : tabId;
+    }
 
     @Nullable public static String getInboxId(Bundle bundle) {
         return bundle.getString("pw_inbox", null);
