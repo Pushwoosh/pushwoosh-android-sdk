@@ -221,7 +221,14 @@ public class PushwooshStartWorker {
         // attach ServerCommunicationStartedEvent
         EventBus.subscribe(ServerCommunicationStartedEvent.class, event -> {
             PWLog.noise(TAG, "onServerCommunicationStartedEvent()");
-            SdkStateProvider.getInstance().executeOrQueue(this::fixDefaultUserId);
+            SdkStateProvider.getInstance().executeOrQueue(() -> {
+                fixDefaultUserId();
+
+                String pushToken = preferences.pushToken().get();
+                if (!TextUtils.isEmpty(pushToken)) {
+                    deviceRegistrar.scheduleRegistration(null);
+                }
+            });
         });
 
         // attach knock pattern detector for test device registration shortcut

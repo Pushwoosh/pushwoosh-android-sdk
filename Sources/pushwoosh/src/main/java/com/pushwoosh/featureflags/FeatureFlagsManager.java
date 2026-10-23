@@ -20,6 +20,7 @@ import com.pushwoosh.internal.event.Subscription;
 import com.pushwoosh.internal.event.UserIdUpdatedEvent;
 import com.pushwoosh.internal.network.ConnectionException;
 import com.pushwoosh.internal.network.NetworkException;
+import com.pushwoosh.internal.network.RequestBlockedException;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.platform.ApplicationOpenDetector;
@@ -444,31 +445,29 @@ public final class FeatureFlagsManager {
             failWaitingLocked("Application code or HWID is not set");
             return null;
         }
-        String endpoint = FeatureFlagsUrl.endpoint(
-                requestManager.getReverseProxyUrl(), registrationPrefs.baseUrl().get(), application);
-        if (endpoint == null) {
-            failWaitingLocked("Reverse proxy URL does not end with json/1.3/");
-            return null;
-        }
         inFlight = true;
         final String userId = effectiveUserId();
         final int generation = cacheGeneration;
         String requestEtag = persisted && userId.equals(boundUserId) ? etag : "";
         lastSentUnregistered = !registrationPrefs.registeredOnServer().get();
+        // Stamped before the send so parallel refreshes throttle, restored by onResponse when the
+        // request manager turns out to have refused it without touching the network.
+        final long previousRequestAt = storage.lastRequestAt();
         storage.saveLastRequestAt(time.getCurrentTime());
         PWLog.debug(TAG, "Feature flags refresh sent" + (requestEtag.isEmpty() ? "" : " with etag"));
         GetFeatureFlagsRequest request = new GetFeatureFlagsRequest(application, hwid, requestEtag);
         return () -> {
             try {
-                requestManager.sendRequestToEndpoint(
-                        request, endpoint, result -> onResponse(userId, generation, result));
+                requestManager.sendRequest(
+                        request, result -> onResponse(userId, generation, previousRequestAt, result));
             } catch (RuntimeException e) {
                 PWLog.error(TAG, "Feature flags request could not be sent", e);
                 onResponse(
                         userId,
                         generation,
+                        previousRequestAt,
                         Result.<FeatureFlagsResponse, NetworkException>fromException(
-                                new NetworkException(e.getMessage())));
+                                new RequestBlockedException(e.getMessage())));
             }
         };
     }
@@ -483,9 +482,15 @@ public final class FeatureFlagsManager {
         }
     }
 
+    /**
+     * @param previousRequestAt the throttle stamp as it was before this attempt; restored when the attempt
+     *     never reached the network, so a configuration error is reported on every refresh instead of once per
+     *     throttle window
+     */
     private void onResponse(
             @NonNull String requestUserId,
             int requestGeneration,
+            long previousRequestAt,
             @NonNull Result<FeatureFlagsResponse, NetworkException> result) {
         List<Callback<Void, FeatureFlagsException>> done;
         Result<Void, FeatureFlagsException> outcome = null;
@@ -494,6 +499,9 @@ public final class FeatureFlagsManager {
         boolean handedOver;
         synchronized (lock) {
             inFlight = false;
+            if (result.getException() instanceof RequestBlockedException) {
+                storage.saveLastRequestAt(previousRequestAt);
+            }
             done = waiting;
             waiting = new ArrayList<>();
             handedOver = stopped;

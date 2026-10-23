@@ -114,8 +114,6 @@ public class FakeRequestManager implements RequestManager {
     private volatile boolean updateBaseUrlAnswer = true;
     private volatile boolean setReverseProxyUrlAnswer = true;
 
-    @Nullable private volatile String reverseProxyUrl;
-
     /** Installs a fresh fake behind {@link NetworkModule} and hands it back. */
     public static FakeRequestManager install() {
         FakeRequestManager fake = new FakeRequestManager();
@@ -217,23 +215,7 @@ public class FakeRequestManager implements RequestManager {
     @Override
     public boolean setReverseProxyUrl(String url, Map<String, String> headers) {
         reverseProxyCalls.add(new ProxyCall(url, headers));
-        if (setReverseProxyUrlAnswer) {
-            reverseProxyUrl = url;
-        }
         return setReverseProxyUrlAnswer;
-    }
-
-    @Override
-    public <Response> void sendRequestToEndpoint(
-            @NonNull PushRequest<Response> request,
-            @NonNull String endpointUrl,
-            @Nullable Callback<Response, NetworkException> callback) {
-        sendRequest(request, endpointUrl, callback);
-    }
-
-    @Override
-    @Nullable public String getReverseProxyUrl() {
-        return reverseProxyUrl;
     }
 
     // --- inspection ------------------------------------------------------------------------------

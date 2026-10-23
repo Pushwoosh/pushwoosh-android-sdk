@@ -41,7 +41,6 @@ import java.util.List;
 public abstract class FeatureFlagsManagerFixture {
     static final String APP = "70699-8A0F4";
     static final String HWID = "hwid-1";
-    static final String ENDPOINT = "https://api.pushwoosh.com/api/v2/device-api/";
     static final String METHOD = GetFeatureFlagsRequest.METHOD;
     static final String FLAGS_V1 =
             "{\"new_checkout\":{\"enabled\":true,\"rule_id\":\"r_1\",\"properties\":{\"color\":\"green\"}}}";

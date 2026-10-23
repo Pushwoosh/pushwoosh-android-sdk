@@ -1,7 +1,6 @@
 package com.pushwoosh.internal.utils;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -54,7 +53,7 @@ public class NotificationRegistrarHelperTest {
         mocks.close();
     }
 
-    // Spec test 7 (guard closed): token from a transport is dropped while the SDK does not manage the token.
+    // Guard closed: token from a transport is dropped while the SDK does not manage the token.
     @Test
     public void tokenIgnoredWhenNotRegisteredForPush() {
         registrationPrefs.isRegisteredForPush().set(false);
@@ -64,13 +63,13 @@ public class NotificationRegistrarHelperTest {
 
             NotificationRegistrarHelper.onRegisteredForRemoteNotifications(TOKEN, null);
 
-            verify(notificationManagerMock, never()).onTokenReceived(anyString(), any(), anyBoolean());
+            verify(notificationManagerMock, never()).onTokenReceived(anyString(), any());
         }
     }
 
-    // Spec test 7 (guard open): token forwarded to the manager without retries.
+    // Guard open: token forwarded to the manager.
     @Test
-    public void tokenForwardedWithoutRetriesWhenRegisteredForPush() {
+    public void tokenForwardedWhenRegisteredForPush() {
         registrationPrefs.isRegisteredForPush().set(true);
 
         try (MockedStatic<PushwooshPlatform> platformMock = Mockito.mockStatic(PushwooshPlatform.class)) {
@@ -78,7 +77,7 @@ public class NotificationRegistrarHelperTest {
 
             NotificationRegistrarHelper.onRegisteredForRemoteNotifications(TOKEN, "{}");
 
-            verify(notificationManagerMock).onTokenReceived(TOKEN, "{}", false);
+            verify(notificationManagerMock).onTokenReceived(TOKEN, "{}");
         }
     }
 }

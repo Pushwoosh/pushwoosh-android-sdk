@@ -105,7 +105,7 @@ public class RegistrationCallbackHolderTest {
         assertEquals(0, subscribersCountFor(RegistrationSuccessEvent.class));
     }
 
-    // Spec test 6: two waiting callbacks, one event - both invoked once, no subscriptions left,
+    // Two waiting callbacks, one event - both invoked once, no subscriptions left,
     // a later error event does not re-invoke.
     @Test
     public void setCallback_twoWaitingCallbacks_bothResolvedByNearestEventOnce() {

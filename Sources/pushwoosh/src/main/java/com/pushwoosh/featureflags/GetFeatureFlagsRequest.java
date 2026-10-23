@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 final class GetFeatureFlagsRequest extends PushRequest<FeatureFlagsResponse> {
     static final String METHOD = "getFeatureFlags";
+    private static final String API_PATH = "api/v2/device-api/";
 
     private final String application;
     private final String hwid;
@@ -28,6 +29,16 @@ final class GetFeatureFlagsRequest extends PushRequest<FeatureFlagsResponse> {
     @Override
     public boolean shouldWrapRequest() {
         return false;
+    }
+
+    @NonNull @Override
+    public String getApiPath() {
+        return API_PATH;
+    }
+
+    @NonNull @Override
+    public String getApplicationCode() {
+        return application;
     }
 
     @Override

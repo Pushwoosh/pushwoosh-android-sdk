@@ -37,6 +37,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+import android.content.Context;
+
+import androidx.work.Configuration;
+import androidx.work.Data;
+import androidx.work.ListenableWorker;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+import androidx.work.WorkerParameters;
+import androidx.work.testing.SynchronousExecutor;
+import androidx.work.testing.TestDriver;
+import androidx.work.testing.WorkManagerTestInitHelper;
+
 import com.ibm.icu.util.Calendar;
 import com.pushwoosh.RegisterForPushNotificationsResultData;
 import com.pushwoosh.exception.RegisterForPushNotificationsException;
@@ -48,7 +60,10 @@ import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.network.ConnectionException;
 import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkException;
+import com.pushwoosh.internal.network.RequestBlockedException;
+import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.registrar.PushRegistrar;
+import com.pushwoosh.internal.registrar.RegisterDeviceWorker;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
@@ -68,11 +83,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 
 import java.lang.reflect.Field;
+import java.util.UUID;
 
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -86,6 +103,8 @@ public class RegistrationTest {
     private RegistrationPrefs registrationPrefs;
     private PushRegistrar pushRegistrarMock;
     private PushwooshNotificationManager notificationManager;
+    private WorkManager workManager;
+    private TestDriver testDriver;
 
     @Before
     public void setUp() throws Exception {
@@ -95,6 +114,15 @@ public class RegistrationTest {
         platformTestManager.setUp();
         SdkStateProvider.getInstance().setReady();
 
+        Context context = AndroidPlatformModule.getApplicationContext();
+        Configuration workConfig = new Configuration.Builder()
+                .setExecutor(new SynchronousExecutor())
+                .setTaskExecutor(new SynchronousExecutor())
+                .build();
+        WorkManagerTestInitHelper.initializeTestWorkManager(context, workConfig);
+        workManager = WorkManager.getInstance(context);
+        testDriver = WorkManagerTestInitHelper.getTestDriver(context);
+
         fake = platformTestManager.getRequestManager();
         registrationPrefs = platformTestManager.getRegistrationPrefs();
         pushRegistrarMock = platformTestManager.getPushRegistrar();
@@ -103,7 +131,25 @@ public class RegistrationTest {
 
     @After
     public void tearDown() throws Exception {
+        RegisterDeviceWorker.sdkReadyTimeoutMillis = RegisterDeviceWorker.DEFAULT_SDK_READY_TIMEOUT_MILLIS;
         platformTestManager.tearDown();
+    }
+
+    private UUID pendingDeliveryId() throws Exception {
+        for (WorkInfo info :
+                workManager.getWorkInfosForUniqueWork(RegisterDeviceWorker.TAG).get()) {
+            if (!info.getState().isFinished()) {
+                return info.getId();
+            }
+        }
+        throw new AssertionError("no pending RegisterDeviceWorker");
+    }
+
+    private WorkInfo.State runDeliveryWorker() throws Exception {
+        UUID id = pendingDeliveryId();
+        testDriver.setAllConstraintsMet(id);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        return workManager.getWorkInfoById(id).get().getState();
     }
 
     //
@@ -163,9 +209,8 @@ public class RegistrationTest {
         notificationManager.registerForPushNotifications(callback, true, null);
         assertThat(notificationManager.getPushToken(), is(nullValue())); // intermediate condition
 
-        notificationManager.onTokenReceived(PUSH_TOKEN, null, false);
-
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+        runDeliveryWorker();
 
         // Postconditions:
         verify(pushRegistrarMock, timeout(100)).registerPW(null);
@@ -196,8 +241,8 @@ public class RegistrationTest {
 
         // Steps:
         notificationManager.registerForPushNotifications(null, true, null);
-        notificationManager.onTokenReceived(PUSH_TOKEN, null, false);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+        runDeliveryWorker();
 
         // Postcondition:
         verify(pushRegistrarMock, timeout(100)).registerPW(null);
@@ -243,8 +288,8 @@ public class RegistrationTest {
 
         // Steps:
         notificationManager.registerForPushNotifications(callback, true, null);
-        notificationManager.onTokenReceived(PUSH_TOKEN, null, false);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+        runDeliveryWorker();
 
         verify(pushRegistrarMock, timeout(1000)).registerPW(null);
         verify(callback, timeout(1000)).process(captor.capture());
@@ -262,8 +307,8 @@ public class RegistrationTest {
 
         // Steps:
         notificationManager.registerForPushNotifications(null, true, null);
-        notificationManager.onTokenReceived(PUSH_TOKEN, null, false);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+        runDeliveryWorker();
 
         // Postcondition:
         // no exception
@@ -369,92 +414,198 @@ public class RegistrationTest {
 
     // onTokenReceived() part
 
-    // Spec test 1: registerDevice carries application, push_token, tags, device_type;
-    // pushToken is persisted before the server answers.
     @Test
-    public void onTokenReceivedSendsRegisterDeviceWithTagsAndDeviceType() throws Exception {
-        fake.captureOnly("registerDevice");
+    public void deliverySendsSavedTokenWithTagsAndAppliesSuccess() throws Exception {
+        EventListener<RegistrationSuccessEvent> successListener = EventListenerWrapper.spy();
+        EventBus.subscribe(RegistrationSuccessEvent.class, successListener);
+        fake.respondWith("registerDevice", new JSONObject());
         String tagsJson = new JSONObject().put("test_tag", "test_value").toString();
 
-        notificationManager.onTokenReceived(PUSH_TOKEN, tagsJson, false);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        notificationManager.onTokenReceived(PUSH_TOKEN, tagsJson);
+        assertEquals(0, fake.count("registerDevice"));
+        assertThat(registrationPrefs.pushToken().get(), is(equalTo(PUSH_TOKEN)));
 
-        JSONObject params = fake.awaitLast("registerDevice").params;
+        WorkInfo.State state = runDeliveryWorker();
+
+        assertEquals(WorkInfo.State.SUCCEEDED, state);
+        JSONObject params = fake.last("registerDevice").params;
         assertThat(params.getString("application"), is(equalTo(APP_ID)));
         assertThat(params.getString("push_token"), is(equalTo(PUSH_TOKEN)));
         assertThat(params.getJSONObject("tags").getString("test_tag"), is(equalTo("test_value")));
         assertEquals(DeviceSpecificProvider.getInstance().deviceType(), params.getInt("device_type"));
-        // captureOnly never responds, so the request is still in flight here
-        assertThat(registrationPrefs.pushToken().get(), is(equalTo(PUSH_TOKEN)));
-    }
-
-    // Spec test 2 (success half): prefs written, RegistrationSuccessEvent carries the token.
-    @Test
-    public void onTokenReceivedSuccessWritesPrefsAndSendsSuccessEvent() throws Exception {
-        EventListener<RegistrationSuccessEvent> successListener = EventListenerWrapper.spy();
-        EventBus.subscribe(RegistrationSuccessEvent.class, successListener);
-        fake.respondWith("registerDevice", new JSONObject());
-
-        notificationManager.onTokenReceived(PUSH_TOKEN, null, false);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
+        assertThat(registrationPrefs.registeredOnServer().get(), is(true));
+        assertTrue(registrationPrefs.lastPushRegistration().get() > 0);
         ArgumentCaptor<RegistrationSuccessEvent> captor = ArgumentCaptor.forClass(RegistrationSuccessEvent.class);
         verify(successListener, timeout(1000)).onReceive(captor.capture());
         assertThat(captor.getValue().getData().getToken(), is(equalTo(PUSH_TOKEN)));
-        assertThat(registrationPrefs.registeredOnServer().get(), is(true));
-        assertTrue(registrationPrefs.lastPushRegistration().get() > 0);
         fake.assertAllScripted();
     }
 
-    // Spec test 2 (error half): RegistrationErrorEvent sent, success prefs untouched.
-    @Test
-    public void onTokenReceivedErrorSendsErrorEventAndKeepsPrefs() throws Exception {
+    private void assertTransientFailureRetries(NetworkException failure) throws Exception {
+        Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback =
+                CallbackWrapper.spy();
+        RegistrationCallbackHolder.setCallback(callback);
         EventListener<RegistrationErrorEvent> errorListener = EventListenerWrapper.spy();
         EventBus.subscribe(RegistrationErrorEvent.class, errorListener);
-        fake.alwaysFailWith("registerDevice", new NetworkException("test network fail"));
+        fake.alwaysFailWith("registerDevice", failure);
 
-        notificationManager.onTokenReceived(PUSH_TOKEN, null, false);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+        WorkInfo.State state = runDeliveryWorker();
 
+        assertEquals(WorkInfo.State.ENQUEUED, state);
+        assertEquals(1, fake.count("registerDevice"));
         verify(errorListener, timeout(1000)).onReceive(any());
+        ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
+                ArgumentCaptor.forClass(Result.class);
+        verify(callback, timeout(1000)).process(captor.capture());
+        assertThat(captor.getValue().isSuccess(), is(false));
         assertThat(registrationPrefs.registeredOnServer().get(), is(false));
         assertThat(registrationPrefs.lastPushRegistration().get(), is(equalTo(0L)));
-        fake.assertAllScripted();
     }
 
-    // Spec test 3: with retries a transient failure re-sends registerDevice
-    // (real 1 s retry delay).
     @Test
-    public void onTokenReceivedWithRetriesRetriesTransientError() throws Exception {
-        fake.failWith("registerDevice", new ConnectionException("connection reset", 0, 0));
-        fake.respondWith("registerDevice", new JSONObject());
-
-        notificationManager.onTokenReceived(PUSH_TOKEN, null, true);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-
-        fake.awaitCount("registerDevice", 2);
-        fake.assertAllScripted();
+    public void deliveryRetriesOnTransientFailure() throws Exception {
+        assertTransientFailureRetries(new ConnectionException("connection reset", 0, 0));
     }
 
-    // Spec test 4: in INITIALIZING the request waits for setReady, then goes out exactly once.
+    private void assertTerminalFailureFails(NetworkException failure) throws Exception {
+        EventListener<RegistrationErrorEvent> errorListener = EventListenerWrapper.spy();
+        EventBus.subscribe(RegistrationErrorEvent.class, errorListener);
+        fake.alwaysFailWith("registerDevice", failure);
+
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+        WorkInfo.State state = runDeliveryWorker();
+
+        assertEquals(WorkInfo.State.FAILED, state);
+        verify(errorListener, timeout(1000)).onReceive(any());
+        assertThat(registrationPrefs.registeredOnServer().get(), is(false));
+    }
+
     @Test
-    public void onTokenReceivedWaitsForSdkReady() throws Exception {
+    public void deliveryFailsOnBadRequest() throws Exception {
+        assertTerminalFailureFails(new ConnectionException("Bad Request", 400, 0));
+    }
+
+    @Test
+    public void deliveryFailsWhenRequestBlocked() throws Exception {
+        assertTerminalFailureFails(new RequestBlockedException("Server communication stopped"));
+    }
+
+    @Test
+    public void deliverySucceedsWithoutRequestWhenTokenCleared() throws Exception {
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+        registrationPrefs.pushToken().set("");
+
+        assertEquals(WorkInfo.State.SUCCEEDED, runDeliveryWorker());
+        fake.assertNoRequests();
+    }
+
+    @Test
+    public void deliveryWaitsForSdkReady() throws Exception {
         SdkStateProvider.getInstance().resetForTesting();
         fake.respondWith("registerDevice", new JSONObject());
-
-        notificationManager.onTokenReceived(PUSH_TOKEN, null, false);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
         assertEquals(0, fake.count("registerDevice"));
+        Thread ready = new Thread(() -> {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ignored) {
+            }
+            SdkStateProvider.getInstance().setReady();
+        });
+        ready.start();
 
-        SdkStateProvider.getInstance().setReady();
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        WorkInfo.State state = runDeliveryWorker();
+        ready.join();
 
-        fake.awaitLast("registerDevice");
+        assertEquals(WorkInfo.State.SUCCEEDED, state);
         assertEquals(1, fake.count("registerDevice"));
-        fake.assertAllScripted();
     }
 
-    // Spec test 5: no transport provider - error event, error callback, no request.
+    @Test
+    public void deliveryRetriesWhenSdkInError() throws Exception {
+        SdkStateProvider.getInstance().setError();
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+
+        assertEquals(WorkInfo.State.ENQUEUED, runDeliveryWorker());
+        fake.assertNoRequests();
+    }
+
+    @Test
+    public void deliveryRetriesWhenSdkReadyTimesOut() throws Exception {
+        RegisterDeviceWorker.sdkReadyTimeoutMillis = 50L;
+        SdkStateProvider.getInstance().resetForTesting();
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+
+        assertEquals(WorkInfo.State.ENQUEUED, runDeliveryWorker());
+        fake.assertNoRequests();
+    }
+
+    // setError clears the SDK task queue, so the worker must notice the
+    // state change itself instead of holding a WorkManager thread until the ready timeout.
+    @Test
+    public void deliveryRetriesWhenSdkErrorsWhileWaiting() throws Exception {
+        RegisterDeviceWorker.sdkReadyTimeoutMillis = 10_000L;
+        SdkStateProvider.getInstance().resetForTesting();
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+        Thread error = new Thread(() -> {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ignored) {
+            }
+            SdkStateProvider.getInstance().setError();
+        });
+        error.start();
+
+        long started = System.currentTimeMillis();
+        WorkInfo.State state = runDeliveryWorker();
+        long elapsed = System.currentTimeMillis() - started;
+        error.join();
+
+        assertEquals(WorkInfo.State.ENQUEUED, state);
+        assertTrue("worker waited " + elapsed + " ms for the ready timeout", elapsed < 3000);
+        fake.assertNoRequests();
+    }
+
+    // Unsubscribe and REPLACE stop a running worker but cannot interrupt a socket, so a worker that was
+    // stopped while waiting for the SDK must drop its run instead of opening the request.
+    @Test
+    public void stoppedWorkerSendsNothing() {
+        registrationPrefs.pushToken().set(PUSH_TOKEN);
+        WorkerParameters params = Mockito.mock(WorkerParameters.class);
+        Mockito.when(params.getInputData()).thenReturn(Data.EMPTY);
+        RegisterDeviceWorker worker =
+                Mockito.spy(new RegisterDeviceWorker(AndroidPlatformModule.getApplicationContext(), params));
+        Mockito.doReturn(true).when(worker).isStopped();
+
+        ListenableWorker.Result result = worker.doWork();
+
+        assertThat(result, is(ListenableWorker.Result.failure()));
+        fake.assertNoRequests();
+    }
+
+    // A worker replaced on cold start must free its WorkManager thread without waiting for the ready timeout.
+    @Test
+    public void workerStoppedWhileWaitingForSdkReturnsBeforeReadyTimeout() {
+        RegisterDeviceWorker.sdkReadyTimeoutMillis = 10_000L;
+        SdkStateProvider.getInstance().resetForTesting();
+        registrationPrefs.pushToken().set(PUSH_TOKEN);
+        WorkerParameters params = Mockito.mock(WorkerParameters.class);
+        Mockito.when(params.getInputData()).thenReturn(Data.EMPTY);
+        RegisterDeviceWorker worker =
+                Mockito.spy(new RegisterDeviceWorker(AndroidPlatformModule.getApplicationContext(), params));
+        Mockito.doReturn(true).when(worker).isStopped();
+
+        long started = System.currentTimeMillis();
+        ListenableWorker.Result result = worker.doWork();
+        long elapsed = System.currentTimeMillis() - started;
+
+        assertThat(result, is(ListenableWorker.Result.failure()));
+        assertTrue("worker waited " + elapsed + " ms for the ready timeout", elapsed < 3000);
+        fake.assertNoRequests();
+    }
+
+    // No transport provider: error event, error callback, no request.
     @Test
     public void onTokenReceivedWithoutTransportSendsErrorEvent() throws Exception {
         ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
@@ -464,20 +615,65 @@ public class RegistrationTest {
         EventListener<RegistrationErrorEvent> errorListener = EventListenerWrapper.spy();
         EventBus.subscribe(RegistrationErrorEvent.class, errorListener);
         RegistrationCallbackHolder.setCallback(callback);
-        nullDeviceSpecificProvider();
+        DeviceSpecificProvider previous = nullDeviceSpecificProvider();
 
-        notificationManager.onTokenReceived(PUSH_TOKEN, null, false);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        try {
+            notificationManager.onTokenReceived(PUSH_TOKEN, null);
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-        verify(errorListener, timeout(1000)).onReceive(any());
-        verify(callback, timeout(1000)).process(captor.capture());
-        assertThat(captor.getValue().isSuccess(), is(false));
-        assertEquals(0, fake.count("registerDevice"));
+            verify(errorListener, timeout(1000)).onReceive(any());
+            verify(callback, timeout(1000)).process(captor.capture());
+            assertThat(captor.getValue().isSuccess(), is(false));
+            fake.assertNoRequests();
+            assertTrue(workManager
+                    .getWorkInfosForUniqueWork(RegisterDeviceWorker.TAG)
+                    .get()
+                    .isEmpty());
+        } finally {
+            restoreDeviceSpecificProvider(previous);
+        }
     }
 
-    private static void nullDeviceSpecificProvider() throws Exception {
+    private static DeviceSpecificProvider nullDeviceSpecificProvider() throws Exception {
         Field f = DeviceSpecificProvider.class.getDeclaredField("instance");
         f.setAccessible(true);
+        DeviceSpecificProvider previous = (DeviceSpecificProvider) f.get(null);
         f.set(null, null);
+        return previous;
+    }
+
+    private static void restoreDeviceSpecificProvider(DeviceSpecificProvider previous) throws Exception {
+        Field f = DeviceSpecificProvider.class.getDeclaredField("instance");
+        f.setAccessible(true);
+        f.set(null, previous);
+    }
+
+    @Test
+    public void secondTokenBeforeDeliveryReplacesFirst() throws Exception {
+        fake.respondWith("registerDevice", new JSONObject());
+        notificationManager.onTokenReceived(
+                "token-1", new JSONObject().put("first", 1).toString());
+        notificationManager.onTokenReceived(
+                "token-2", new JSONObject().put("second", 2).toString());
+
+        assertEquals(WorkInfo.State.SUCCEEDED, runDeliveryWorker());
+
+        assertEquals(1, fake.count("registerDevice"));
+        JSONObject params = fake.last("registerDevice").params;
+        assertThat(params.getString("push_token"), is(equalTo("token-2")));
+        assertTrue(params.getJSONObject("tags").has("second"));
+        fake.assertAllScripted();
+    }
+
+    @Test
+    public void unregisterCancelsPendingDelivery() throws Exception {
+        notificationManager.onTokenReceived(PUSH_TOKEN, null);
+        UUID id = pendingDeliveryId();
+
+        notificationManager.unregisterForPushNotifications(null);
+
+        assertEquals(
+                WorkInfo.State.CANCELLED, workManager.getWorkInfoById(id).get().getState());
+        fake.assertNoRequests();
     }
 }

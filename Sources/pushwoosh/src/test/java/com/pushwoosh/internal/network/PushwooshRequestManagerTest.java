@@ -34,7 +34,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -43,6 +42,7 @@ import static org.mockito.Mockito.when;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
@@ -96,6 +96,7 @@ public class PushwooshRequestManagerTest {
     private static final long AWAIT_MS = 2000;
     private static final String BASE_URL = "https://requests.test.pushwoosh.local/";
     private static final String OK_BODY = "{\"response\" : {\"result\" : \"test output\"}, \"status_code\" : 200}";
+    private static final String PATH_OK_BODY = "{\"status_code\":200,\"response\":{}}";
 
     private RegistrationPrefs registrationPrefs;
     private FakeHttpTransport transport;
@@ -167,6 +168,51 @@ public class PushwooshRequestManagerTest {
             JSONObject params = new JSONObject();
             params.put("hwid", getHwid());
             params.put("custom", value);
+            return params;
+        }
+    }
+
+    private static class PathTestRequest extends PushRequest<Void> {
+
+        @Nullable private final String applicationCode;
+
+        PathTestRequest() {
+            this(null);
+        }
+
+        PathTestRequest(@Nullable String applicationCode) {
+            this.applicationCode = applicationCode;
+        }
+
+        @Override
+        public String getMethod() {
+            return "pathMethod";
+        }
+
+        @Override
+        public String getApiPath() {
+            return "api/v2/device-api/";
+        }
+
+        @Nullable @Override
+        public String getApplicationCode() {
+            return applicationCode;
+        }
+
+        @Override
+        public boolean shouldWrapRequest() {
+            return false;
+        }
+
+        @NonNull @Override
+        protected String getHwid() throws InterruptedException {
+            return "test_hwid";
+        }
+
+        @Override
+        protected JSONObject getParams() throws JSONException, InterruptedException {
+            JSONObject params = new JSONObject();
+            params.put("hwid", getHwid());
             return params;
         }
     }
@@ -509,7 +555,7 @@ public class PushwooshRequestManagerTest {
         Result<String, NetworkException> result = bare.sendRequestSync(new TestRequest("p", "r"));
 
         assertThat(result.isSuccess(), is(false));
-        assertThat(result.getException().getMessage(), is(equalTo("Base URL is not configured")));
+        assertThat(result.getException(), instanceOf(RequestBlockedException.class));
         assertEquals(0, transport.count());
     }
 
@@ -764,6 +810,7 @@ public class PushwooshRequestManagerTest {
         assertThat(
                 result.getException().getMessage(),
                 is("Server communication stopped. Call Pushwoosh.startServerCommunication() to resume"));
+        assertThat(result.getException(), instanceOf(RequestBlockedException.class));
         assertEquals(0, transport.count());
     }
 
@@ -868,7 +915,7 @@ public class PushwooshRequestManagerTest {
             ConnectionException ce = (ConnectionException) result.getException();
             assertThat(label, ce.getStatusCode(), is(0));
             assertThat(label, ce.getPushwooshStatusCode(), is(0));
-            // Zero codes are what RetriableRequestCallback and PushStatisticsWorker read as "retry".
+            // Zero codes are what RegisterDeviceWorker and PushStatisticsWorker read as "retry".
             assertTrue(label, ce.isTransient());
         }
     }
@@ -954,96 +1001,252 @@ public class PushwooshRequestManagerTest {
         assertEquals(1, injected.count());
     }
 
-    private static final String FLAGS_ENDPOINT = "https://proxy.test.pushwoosh.local/pw/api/v2/device-api/";
-
-    @Test(timeout = TIMEOUT_TEST)
-    public void sendRequestToEndpoint_proxyActive_urlIsNotReplacedAndProxyHeadersSent() throws Exception {
-        Map<String, String> headers = Collections.singletonMap("X-Proxy-Auth", "secret");
-        requestManager.setReverseProxyUrl("https://proxy.test.pushwoosh.local/pw/json/1.3/", headers);
-        transport.respondWith(200, "{\"status_code\":200,\"response\":{}}");
-
-        Result<Void, NetworkException> result =
-                requestManager.sendRequestToEndpointSync(new FlatPayloadTestRequest("v"), FLAGS_ENDPOINT);
-
-        assertThat(result.isSuccess(), is(true));
-        assertEquals(FLAGS_ENDPOINT, transport.last().url);
-        assertEquals("flatMethod", transport.last().method);
-        assertEquals("secret", transport.last().headers.get("X-Proxy-Auth"));
-    }
-
-    @Test(timeout = TIMEOUT_TEST)
-    public void sendRequestToEndpoint_baseUrlInResponse_isNotApplied() throws Exception {
-        transport.respondWith(
-                200,
-                "{\"status_code\":200,\"base_url\":\"https://rotated.test.pushwoosh.local/json/1.3/\",\"response\":{}}");
-
-        requestManager.sendRequestToEndpointSync(new FlatPayloadTestRequest("v"), FLAGS_ENDPOINT);
-
-        assertEquals(BASE_URL, registrationPrefs.baseUrl().get());
-        transport.respondWith(200, OK_BODY);
-        requestManager.sendRequestSync(new TestRequest("p", "r"));
-        assertEquals(BASE_URL, transport.last().url);
-    }
-
-    @Test(timeout = TIMEOUT_TEST)
-    public void sendRequestToEndpoint_deviceDataRemoved_isBlocked() throws Exception {
-        registrationPrefs.removeAllDeviceData().set(true);
-
-        Result<Void, NetworkException> result =
-                requestManager.sendRequestToEndpointSync(new FlatPayloadTestRequest("v"), FLAGS_ENDPOINT);
-
-        assertThat(result.isSuccess(), is(false));
-        assertEquals(0, transport.count());
-        registrationPrefs.removeAllDeviceData().set(false);
-    }
-
-    @Test(timeout = TIMEOUT_TEST)
-    public void sendRequestToEndpoint_proxyRequiredButMissing_isBlocked() throws Exception {
-        ServerCommunicationManager allowed = mock(ServerCommunicationManager.class);
-        when(allowed.isServerCommunicationAllowed()).thenReturn(true);
-        PushwooshRequestManager strict = new PushwooshRequestManager(registrationPrefs, allowed, true, transport);
-
-        Result<Void, NetworkException> result =
-                strict.sendRequestToEndpointSync(new FlatPayloadTestRequest("v"), FLAGS_ENDPOINT);
-
-        assertThat(result.isSuccess(), is(false));
-        assertEquals(0, transport.count());
-    }
-
-    @Test(timeout = TIMEOUT_TEST)
-    public void sendRequestToEndpoint_http500_isConnectionExceptionWithStatus() throws Exception {
-        transport.respondWith(500, "Internal Server Error", "");
-
-        Result<Void, NetworkException> result =
-                requestManager.sendRequestToEndpointSync(new FlatPayloadTestRequest("v"), FLAGS_ENDPOINT);
-
-        assertThat(result.getException(), instanceOf(ConnectionException.class));
-        assertEquals(500, ((ConnectionException) result.getException()).getStatusCode());
-    }
-
-    @Test(timeout = TIMEOUT_TEST)
-    public void getReverseProxyUrl_reflectsCurrentProxy() {
-        assertNull(requestManager.getReverseProxyUrl());
-        requestManager.setReverseProxyUrl("https://proxy.test.pushwoosh.local/pw/json/1.3/", null);
-        assertEquals("https://proxy.test.pushwoosh.local/pw/json/1.3/", requestManager.getReverseProxyUrl());
-        requestManager.setReverseProxyUrl(null, null);
-        assertNull(requestManager.getReverseProxyUrl());
-    }
-
     // GetFeatureFlagsRequest is package-private in featureflags and this manager in network: reflection bridges them.
     @Test(timeout = TIMEOUT_TEST)
-    public void sendRequestToEndpoint_getFeatureFlagsRequest_bodyIsExactlyApplicationAndHwid() throws Exception {
+    public void getFeatureFlagsRequest_resolvesDeviceApiAndSendsExactlyApplicationAndHwid() throws Exception {
+        requestManager.updateBaseUrl("https://api.pushwoosh.com/json/1.3/");
         Constructor<?> ctor = Class.forName("com.pushwoosh.featureflags.GetFeatureFlagsRequest")
                 .getDeclaredConstructor(String.class, String.class, String.class);
         ctor.setAccessible(true);
         PushRequest<?> flagsRequest = (PushRequest<?>) ctor.newInstance("70699-8A0F4", "hwid-1", "");
         transport.respondWith(200, "{\"status_code\":200,\"response\":{\"flags\":{}}}");
 
-        requestManager.sendRequestToEndpointSync(flagsRequest, FLAGS_ENDPOINT);
+        Result<?, NetworkException> result = requestManager.sendRequestSync(flagsRequest);
 
-        assertEquals(FLAGS_ENDPOINT, transport.last().url);
+        assertThat(result.isSuccess(), is(true));
+        assertEquals("https://api.pushwoosh.com/api/v2/device-api/", transport.last().url);
         assertEquals("getFeatureFlags", transport.last().method);
         JSONAssert.assertEquals(
                 "{\"application\":\"70699-8A0F4\",\"hwid\":\"hwid-1\"}", transport.last().payload, true);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_defaultBase_resolvesDeviceApiUnderSameRoot() throws Exception {
+        requestManager.updateBaseUrl("https://api.pushwoosh.com/json/1.3/");
+        transport.respondWith(200, PATH_OK_BODY);
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(new PathTestRequest());
+
+        assertThat(result.isSuccess(), is(true));
+        assertEquals("https://api.pushwoosh.com/api/v2/device-api/", transport.last().url);
+        assertEquals("pathMethod", transport.last().method);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_appCodeHostBase_resolvesDeviceApiUnderSameRoot() throws Exception {
+        requestManager.updateBaseUrl("https://70699-8A0F4.api.pushwoosh.com/json/1.3/");
+        transport.respondWith(200, PATH_OK_BODY);
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(new PathTestRequest());
+
+        assertThat(result.isSuccess(), is(true));
+        assertEquals("https://70699-8A0F4.api.pushwoosh.com/api/v2/device-api/", transport.last().url);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_usAndRuBases_resolveUnderTheirOwnRoots() throws Exception {
+        transport.respondWith(200, PATH_OK_BODY).respondWith(200, PATH_OK_BODY);
+
+        requestManager.updateBaseUrl("https://api.pushwoosh.us/json/1.3/");
+        requestManager.sendRequestSync(new PathTestRequest());
+
+        assertEquals("https://api.pushwoosh.us/api/v2/device-api/", transport.last().url);
+
+        requestManager.updateBaseUrl("https://api.wavesend.ru/json/1.3/");
+        requestManager.sendRequestSync(new PathTestRequest());
+
+        assertEquals(2, transport.count());
+        assertEquals("https://api.wavesend.ru/api/v2/device-api/", transport.last().url);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_proxyWithSubPath_winsOverBaseAndCarriesProxyHeaders() throws Exception {
+        requestManager.setReverseProxyUrl(
+                "https://proxy.example/pw/json/1.3/", Collections.singletonMap("X-Proxy-Auth", "secret"));
+        transport.respondWith(200, PATH_OK_BODY);
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(new PathTestRequest());
+
+        assertThat(result.isSuccess(), is(true));
+        assertEquals("https://proxy.example/pw/api/v2/device-api/", transport.last().url);
+        assertEquals("secret", transport.last().headers.get("X-Proxy-Auth"));
+    }
+
+    // The fallback host is built from the application code the request carries, not from prefs: the two
+    // can differ when setAppId runs between enqueue and send, and the body must not name another app
+    // than the host it goes to.
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_baseWithoutLegacyPath_fallsBackToHostOfTheRequestsAppCode() throws Exception {
+        registrationPrefs.applicationId().set("LATER-APPCODE");
+        requestManager.updateBaseUrl("https://www.google.com/");
+        transport.respondWith(200, PATH_OK_BODY);
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(new PathTestRequest("70699-8A0F4"));
+
+        assertThat(result.isSuccess(), is(true));
+        assertEquals("https://70699-8A0F4.api.pushwoosh.com/api/v2/device-api/", transport.last().url);
+    }
+
+    // An empty base URL is the same situation as a base URL that cannot carry the path: both route to
+    // the canonical app-code host.
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_noBaseButRequestCarriesAppCode_fallsBackToAppCodeHost() throws Exception {
+        PushwooshRequestManager bare =
+                new PushwooshRequestManager(registrationPrefs, allowingCommunication(), false, transport);
+        transport.respondWith(200, PATH_OK_BODY);
+
+        Result<Void, NetworkException> result = bare.sendRequestSync(new PathTestRequest("70699-8A0F4"));
+
+        assertThat(result.isSuccess(), is(true));
+        assertEquals("https://70699-8A0F4.api.pushwoosh.com/api/v2/device-api/", transport.last().url);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_proxyWithoutLegacyPath_isBlockedWithoutTransportCall() throws Exception {
+        requestManager.setReverseProxyUrl("https://proxy.example/pushwoosh/", null);
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(new PathTestRequest());
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getException(), instanceOf(RequestBlockedException.class));
+        assertEquals(0, transport.count());
+    }
+
+    // The app-code fallback is for a base root only: a proxy root without the legacy tail must end the
+    // request, never reroute it off the customer's proxy and onto the Pushwoosh host.
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_proxyWithoutLegacyPath_neverFallsBackToAppCodeHost() throws Exception {
+        requestManager.updateBaseUrl("https://api.pushwoosh.com/json/1.3/");
+        requestManager.setReverseProxyUrl("https://proxy.example/pushwoosh/", null);
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(new PathTestRequest("70699-8A0F4"));
+
+        assertThat(result.isSuccess(), is(false));
+        assertEquals(0, transport.count());
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_noBaseConfigured_isBlocked() throws Exception {
+        PushwooshRequestManager bare =
+                new PushwooshRequestManager(registrationPrefs, allowingCommunication(), false, transport);
+
+        Result<Void, NetworkException> result = bare.sendRequestSync(new PathTestRequest());
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getException(), instanceOf(RequestBlockedException.class));
+        assertEquals(0, transport.count());
+    }
+
+    // The counterpart of the gate tests above: a request that did reach the transport and failed there
+    // is not a RequestBlockedException, so callers that roll back "last sent at" leave it alone.
+    @Test(timeout = TIMEOUT_TEST)
+    public void transportFailure_isNotReportedAsBlocked() throws Exception {
+        requestManager.updateBaseUrl("https://api.pushwoosh.com/json/1.3/");
+        transport.failWith(new IOException("socket closed"));
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(new PathTestRequest());
+
+        assertThat(result.isSuccess(), is(false));
+        assertFalse(result.getException() instanceof RequestBlockedException);
+        assertEquals(1, transport.count());
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_baseUrlInResponse_isNotApplied() throws Exception {
+        requestManager.updateBaseUrl("https://api.pushwoosh.com/json/1.3/");
+        transport.respondWith(
+                200, "{\"status_code\":200,\"base_url\":\"https://rotated.test/json/1.3/\",\"response\":{}}");
+
+        requestManager.sendRequestSync(new PathTestRequest());
+
+        assertEquals(
+                "https://api.pushwoosh.com/json/1.3/",
+                registrationPrefs.baseUrl().get());
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_baseWithoutLegacyPathAndNoAppCodeOnRequest_isBlocked() throws Exception {
+        // A registered app code is deliberately present: it is not a source for the fallback host.
+        registrationPrefs.applicationId().set("70699-8A0F4");
+        requestManager.updateBaseUrl("https://www.google.com/");
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(new PathTestRequest());
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getException(), instanceOf(RequestBlockedException.class));
+        assertEquals(0, transport.count());
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_proxyRequiredButMissing_isBlocked() throws Exception {
+        PushwooshRequestManager strict =
+                new PushwooshRequestManager(registrationPrefs, allowingCommunication(), true, transport);
+        strict.updateBaseUrl("https://api.pushwoosh.com/json/1.3/");
+
+        Result<Void, NetworkException> result = strict.sendRequestSync(new PathTestRequest());
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getException(), instanceOf(RequestBlockedException.class));
+        assertEquals(0, transport.count());
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_deviceDataRemoved_isBlocked() throws Exception {
+        requestManager.updateBaseUrl("https://api.pushwoosh.com/json/1.3/");
+        registrationPrefs.removeAllDeviceData().set(true);
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(new PathTestRequest());
+
+        assertThat(result.isSuccess(), is(false));
+        assertThat(result.getException(), instanceOf(RequestBlockedException.class));
+        assertEquals(0, transport.count());
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_proxyRootContainingLegacyPathTwice_stripsOnlyTheTail() throws Exception {
+        requestManager.setReverseProxyUrl("https://proxy.example/json/1.3/mirror/json/1.3/", null);
+        transport.respondWith(200, PATH_OK_BODY);
+
+        requestManager.sendRequestSync(new PathTestRequest());
+
+        assertEquals("https://proxy.example/json/1.3/mirror/api/v2/device-api/", transport.last().url);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void nullPathRequest_proxyWithoutLegacyPath_stillSends() throws Exception {
+        requestManager.setReverseProxyUrl("https://proxy.example/pushwoosh/", null);
+        transport.respondWith(200, PATH_OK_BODY);
+
+        Result<Void, NetworkException> result = requestManager.sendRequestSync(new FlatPayloadTestRequest("v"));
+
+        assertThat(result.isSuccess(), is(true));
+        assertEquals("https://proxy.example/pushwoosh/", transport.last().url);
+    }
+
+    @Test(timeout = TIMEOUT_TEST)
+    public void pathRequest_proxySwitchedWhileQueued_usesNewHostAndHeaders() throws Exception {
+        requestManager.setReverseProxyUrl(
+                "https://a.proxy.test/json/1.3/", Collections.singletonMap("X-Proxy-Auth", "token-a"));
+        transport.respondWith(200, PATH_OK_BODY);
+        CountDownLatch release = new CountDownLatch(1);
+        BackgroundExecutor.network(() -> {
+            try {
+                release.await(AWAIT_MS, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        try {
+            requestManager.sendRequest(new PathTestRequest(), null);
+            requestManager.setReverseProxyUrl(
+                    "https://b.proxy.test/json/1.3/", Collections.singletonMap("X-Proxy-Auth", "token-b"));
+        } finally {
+            release.countDown();
+        }
+        awaitAsyncRoundTrip();
+
+        assertEquals(1, transport.count());
+        assertEquals("https://b.proxy.test/api/v2/device-api/", transport.last().url);
+        assertEquals("token-b", transport.last().headers.get("X-Proxy-Auth"));
     }
 }

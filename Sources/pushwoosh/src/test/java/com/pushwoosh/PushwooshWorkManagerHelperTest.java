@@ -5,14 +5,20 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import android.content.Context;
+
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 
@@ -26,16 +32,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLog;
-
-import java.lang.reflect.Method;
-
-import androidx.work.Constraints;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
 
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -63,19 +59,20 @@ public class PushwooshWorkManagerHelperTest {
         WorkManager mockWorkManager = mock(WorkManager.class);
 
         try (MockedStatic<WorkManager> workManagerMock = Mockito.mockStatic(WorkManager.class)) {
-            workManagerMock.when(() -> WorkManager.getInstance(any(Context.class))).thenReturn(mockWorkManager);
+            workManagerMock
+                    .when(() -> WorkManager.getInstance(any(Context.class)))
+                    .thenReturn(mockWorkManager);
 
             try (MockedStatic<AndroidPlatformModule> platformMock = Mockito.mockStatic(AndroidPlatformModule.class)) {
-                platformMock.when(AndroidPlatformModule::getApplicationContext).thenReturn(RuntimeEnvironment.application);
+                platformMock
+                        .when(AndroidPlatformModule::getApplicationContext)
+                        .thenReturn(RuntimeEnvironment.application);
 
                 PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                    mockRequest, 
-                    TEST_WORK_NAME, 
-                    ExistingWorkPolicy.KEEP
-                );
+                        mockRequest, TEST_WORK_NAME, ExistingWorkPolicy.KEEP);
 
                 verify(mockWorkManager, times(1))
-                    .enqueueUniqueWork(TEST_WORK_NAME, ExistingWorkPolicy.KEEP, mockRequest);
+                        .enqueueUniqueWork(TEST_WORK_NAME, ExistingWorkPolicy.KEEP, mockRequest);
             }
         }
     }
@@ -89,24 +86,26 @@ public class PushwooshWorkManagerHelperTest {
         WorkManager mockWorkManager = mock(WorkManager.class);
 
         try (MockedStatic<WorkManager> workManagerMock = Mockito.mockStatic(WorkManager.class)) {
-            workManagerMock.when(() -> WorkManager.getInstance(any(Context.class))).thenReturn(mockWorkManager);
+            workManagerMock
+                    .when(() -> WorkManager.getInstance(any(Context.class)))
+                    .thenReturn(mockWorkManager);
 
             try (MockedStatic<AndroidPlatformModule> platformMock = Mockito.mockStatic(AndroidPlatformModule.class)) {
-                platformMock.when(AndroidPlatformModule::getApplicationContext).thenReturn(RuntimeEnvironment.application);
+                platformMock
+                        .when(AndroidPlatformModule::getApplicationContext)
+                        .thenReturn(RuntimeEnvironment.application);
 
-                doThrow(new RuntimeException("WorkManager error")).when(mockWorkManager)
-                    .enqueueUniqueWork(anyString(), any(ExistingWorkPolicy.class), any(OneTimeWorkRequest.class));
+                doThrow(new RuntimeException("WorkManager error"))
+                        .when(mockWorkManager)
+                        .enqueueUniqueWork(anyString(), any(ExistingWorkPolicy.class), any(OneTimeWorkRequest.class));
 
                 // This should not throw exception - errors are handled internally
                 PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                    mockRequest, 
-                    TEST_WORK_NAME, 
-                    ExistingWorkPolicy.KEEP
-                );
+                        mockRequest, TEST_WORK_NAME, ExistingWorkPolicy.KEEP);
 
                 // Verify attempt was made despite exception
                 verify(mockWorkManager, times(1))
-                    .enqueueUniqueWork(TEST_WORK_NAME, ExistingWorkPolicy.KEEP, mockRequest);
+                        .enqueueUniqueWork(TEST_WORK_NAME, ExistingWorkPolicy.KEEP, mockRequest);
             }
         }
     }
@@ -120,19 +119,20 @@ public class PushwooshWorkManagerHelperTest {
         WorkManager mockWorkManager = mock(WorkManager.class);
 
         try (MockedStatic<WorkManager> workManagerMock = Mockito.mockStatic(WorkManager.class)) {
-            workManagerMock.when(() -> WorkManager.getInstance(any(Context.class))).thenReturn(mockWorkManager);
+            workManagerMock
+                    .when(() -> WorkManager.getInstance(any(Context.class)))
+                    .thenReturn(mockWorkManager);
 
             try (MockedStatic<AndroidPlatformModule> platformMock = Mockito.mockStatic(AndroidPlatformModule.class)) {
-                platformMock.when(AndroidPlatformModule::getApplicationContext).thenReturn(RuntimeEnvironment.application);
+                platformMock
+                        .when(AndroidPlatformModule::getApplicationContext)
+                        .thenReturn(RuntimeEnvironment.application);
 
                 PushwooshWorkManagerHelper.enqueuePeriodicUniqueWork(
-                    mockRequest, 
-                    TEST_WORK_NAME, 
-                    ExistingPeriodicWorkPolicy.KEEP
-                );
+                        mockRequest, TEST_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP);
 
                 verify(mockWorkManager, times(1))
-                    .enqueueUniquePeriodicWork(TEST_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, mockRequest);
+                        .enqueueUniquePeriodicWork(TEST_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, mockRequest);
             }
         }
     }
@@ -146,24 +146,27 @@ public class PushwooshWorkManagerHelperTest {
         WorkManager mockWorkManager = mock(WorkManager.class);
 
         try (MockedStatic<WorkManager> workManagerMock = Mockito.mockStatic(WorkManager.class)) {
-            workManagerMock.when(() -> WorkManager.getInstance(any(Context.class))).thenReturn(mockWorkManager);
+            workManagerMock
+                    .when(() -> WorkManager.getInstance(any(Context.class)))
+                    .thenReturn(mockWorkManager);
 
             try (MockedStatic<AndroidPlatformModule> platformMock = Mockito.mockStatic(AndroidPlatformModule.class)) {
-                platformMock.when(AndroidPlatformModule::getApplicationContext).thenReturn(RuntimeEnvironment.application);
+                platformMock
+                        .when(AndroidPlatformModule::getApplicationContext)
+                        .thenReturn(RuntimeEnvironment.application);
 
-                doThrow(new RuntimeException("WorkManager error")).when(mockWorkManager)
-                    .enqueueUniquePeriodicWork(anyString(), any(ExistingPeriodicWorkPolicy.class), any(PeriodicWorkRequest.class));
+                doThrow(new RuntimeException("WorkManager error"))
+                        .when(mockWorkManager)
+                        .enqueueUniquePeriodicWork(
+                                anyString(), any(ExistingPeriodicWorkPolicy.class), any(PeriodicWorkRequest.class));
 
                 // This should not throw exception - errors are handled internally
                 PushwooshWorkManagerHelper.enqueuePeriodicUniqueWork(
-                    mockRequest, 
-                    TEST_WORK_NAME, 
-                    ExistingPeriodicWorkPolicy.KEEP
-                );
+                        mockRequest, TEST_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP);
 
                 // Verify attempt was made despite exception
                 verify(mockWorkManager, times(1))
-                    .enqueueUniquePeriodicWork(TEST_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, mockRequest);
+                        .enqueueUniquePeriodicWork(TEST_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, mockRequest);
             }
         }
     }
@@ -176,10 +179,14 @@ public class PushwooshWorkManagerHelperTest {
         WorkManager mockWorkManager = mock(WorkManager.class);
 
         try (MockedStatic<WorkManager> workManagerMock = Mockito.mockStatic(WorkManager.class)) {
-            workManagerMock.when(() -> WorkManager.getInstance(any(Context.class))).thenReturn(mockWorkManager);
+            workManagerMock
+                    .when(() -> WorkManager.getInstance(any(Context.class)))
+                    .thenReturn(mockWorkManager);
 
             try (MockedStatic<AndroidPlatformModule> platformMock = Mockito.mockStatic(AndroidPlatformModule.class)) {
-                platformMock.when(AndroidPlatformModule::getApplicationContext).thenReturn(RuntimeEnvironment.application);
+                platformMock
+                        .when(AndroidPlatformModule::getApplicationContext)
+                        .thenReturn(RuntimeEnvironment.application);
 
                 PushwooshWorkManagerHelper.cancelPeriodicUniqueWork(TEST_WORK_NAME);
 
@@ -196,13 +203,18 @@ public class PushwooshWorkManagerHelperTest {
         WorkManager mockWorkManager = mock(WorkManager.class);
 
         try (MockedStatic<WorkManager> workManagerMock = Mockito.mockStatic(WorkManager.class)) {
-            workManagerMock.when(() -> WorkManager.getInstance(any(Context.class))).thenReturn(mockWorkManager);
+            workManagerMock
+                    .when(() -> WorkManager.getInstance(any(Context.class)))
+                    .thenReturn(mockWorkManager);
 
             try (MockedStatic<AndroidPlatformModule> platformMock = Mockito.mockStatic(AndroidPlatformModule.class)) {
-                platformMock.when(AndroidPlatformModule::getApplicationContext).thenReturn(RuntimeEnvironment.application);
+                platformMock
+                        .when(AndroidPlatformModule::getApplicationContext)
+                        .thenReturn(RuntimeEnvironment.application);
 
-                doThrow(new RuntimeException("WorkManager error")).when(mockWorkManager)
-                    .cancelUniqueWork(anyString());
+                doThrow(new RuntimeException("WorkManager error"))
+                        .when(mockWorkManager)
+                        .cancelUniqueWork(anyString());
 
                 // This should not throw exception - errors are handled internally
                 PushwooshWorkManagerHelper.cancelPeriodicUniqueWork(TEST_WORK_NAME);
@@ -224,10 +236,9 @@ public class PushwooshWorkManagerHelperTest {
     @Test
     public void testGetNetworkAvailableConstraints() {
         Constraints constraints = PushwooshWorkManagerHelper.getNetworkAvailableConstraints();
-        
+
         assertNotNull("Constraints should not be null", constraints);
-        assertEquals("Should require connected network", 
-            NetworkType.CONNECTED, constraints.getRequiredNetworkType());
+        assertEquals("Should require connected network", NetworkType.CONNECTED, constraints.getRequiredNetworkType());
     }
 
     /**
@@ -236,22 +247,17 @@ public class PushwooshWorkManagerHelperTest {
     @Test
     public void testGetStatisticsConstraints() {
         Constraints constraints = PushwooshWorkManagerHelper.getStatisticsConstraints();
-        
+
         assertNotNull("Constraints should not be null", constraints);
-        
+
         // Verify network requirement
-        assertEquals("Should require connected network", 
-            NetworkType.CONNECTED, constraints.getRequiredNetworkType());
-            
+        assertEquals("Should require connected network", NetworkType.CONNECTED, constraints.getRequiredNetworkType());
+
         // Verify battery optimization settings for statistics delivery
-        assertFalse("Should allow execution with low battery", 
-            constraints.requiresBatteryNotLow());
-        assertFalse("Should allow execution in device idle", 
-            constraints.requiresDeviceIdle());
-        assertFalse("Should allow execution with low storage", 
-            constraints.requiresStorageNotLow());
-        assertFalse("Should allow execution without charging", 
-            constraints.requiresCharging());
+        assertFalse("Should allow execution with low battery", constraints.requiresBatteryNotLow());
+        assertFalse("Should allow execution in device idle", constraints.requiresDeviceIdle());
+        assertFalse("Should allow execution with low storage", constraints.requiresStorageNotLow());
+        assertFalse("Should allow execution without charging", constraints.requiresCharging());
     }
 
     /**
@@ -261,21 +267,18 @@ public class PushwooshWorkManagerHelperTest {
     public void testStatisticsConstraintsMorePermissiveThanNetwork() {
         Constraints networkConstraints = PushwooshWorkManagerHelper.getNetworkAvailableConstraints();
         Constraints statisticsConstraints = PushwooshWorkManagerHelper.getStatisticsConstraints();
-        
+
         // Both require network
-        assertEquals("Both should require connected network", 
-            networkConstraints.getRequiredNetworkType(), 
-            statisticsConstraints.getRequiredNetworkType());
-            
+        assertEquals(
+                "Both should require connected network",
+                networkConstraints.getRequiredNetworkType(),
+                statisticsConstraints.getRequiredNetworkType());
+
         // Statistics constraints should be more permissive for battery/power optimizations
         // (Note: getNetworkAvailableConstraints uses defaults which may be more restrictive)
-        assertFalse("Statistics should allow low battery execution", 
-            statisticsConstraints.requiresBatteryNotLow());
-        assertFalse("Statistics should allow execution in device idle", 
-            statisticsConstraints.requiresDeviceIdle());
-        assertFalse("Statistics should allow low storage execution", 
-            statisticsConstraints.requiresStorageNotLow());
-        assertFalse("Statistics should allow execution without charging", 
-            statisticsConstraints.requiresCharging());
+        assertFalse("Statistics should allow low battery execution", statisticsConstraints.requiresBatteryNotLow());
+        assertFalse("Statistics should allow execution in device idle", statisticsConstraints.requiresDeviceIdle());
+        assertFalse("Statistics should allow low storage execution", statisticsConstraints.requiresStorageNotLow());
+        assertFalse("Statistics should allow execution without charging", statisticsConstraints.requiresCharging());
     }
 }

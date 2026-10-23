@@ -15,6 +15,12 @@ import com.pushwoosh.internal.utils.BackgroundExecutor;
  * refreshes the cache on app start, on return from background after 30 minutes, hourly while in foreground, after
  * the first registration and after {@code setUserId}.
  * Do not store personal data in flag properties.
+ * <p>
+ * Flags are requested at {@code api/v2/device-api/}. Behind a reverse proxy ({@link
+ * com.pushwoosh.Pushwoosh#setReverseProxy(String, java.util.Map)}), that path is requested under the proxy root;
+ * a proxy URL that does not end with {@code json/1.3/} means no flags are fetched at all. Without a proxy, a
+ * base URL that is missing or does not end with {@code json/1.3/} means flags go to the canonical host of the
+ * application code the request carries.
  */
 public final class PushwooshFeatureFlags {
     interface ManagerSource {

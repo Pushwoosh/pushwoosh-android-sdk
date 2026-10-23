@@ -16,15 +16,24 @@ import com.pushwoosh.internal.utils.PWLog;
 import java.lang.reflect.Method;
 
 public final class PushwooshWorkManagerHelper {
-    public static void enqueueOneTimeUniqueWork(OneTimeWorkRequest request, String uniqueWorkName, ExistingWorkPolicy policy) {
+    public static void enqueueOneTimeUniqueWork(
+            OneTimeWorkRequest request, String uniqueWorkName, ExistingWorkPolicy policy) {
+        tryEnqueueOneTimeUniqueWork(request, uniqueWorkName, policy);
+    }
+
+    public static boolean tryEnqueueOneTimeUniqueWork(
+            OneTimeWorkRequest request, String uniqueWorkName, ExistingWorkPolicy policy) {
         try {
             getWorkManager().enqueueUniqueWork(uniqueWorkName, policy, request);
+            return true;
         } catch (Exception e) {
             PWLog.error("Failed to enqueue work.", e);
+            return false;
         }
     }
 
-    public static void enqueuePeriodicUniqueWork(PeriodicWorkRequest request, String uniqueWorkName, ExistingPeriodicWorkPolicy policy) {
+    public static void enqueuePeriodicUniqueWork(
+            PeriodicWorkRequest request, String uniqueWorkName, ExistingPeriodicWorkPolicy policy) {
         try {
             getWorkManager().enqueueUniquePeriodicWork(uniqueWorkName, policy, request);
         } catch (Exception e) {
@@ -33,10 +42,14 @@ public final class PushwooshWorkManagerHelper {
     }
 
     public static void cancelPeriodicUniqueWork(String uniqueWorkName) {
+        cancelUniqueWork(uniqueWorkName);
+    }
+
+    public static void cancelUniqueWork(String uniqueWorkName) {
         try {
             getWorkManager().cancelUniqueWork(uniqueWorkName);
         } catch (Exception e) {
-            PWLog.error("Failed to cancel unique periodic work.", e);
+            PWLog.error("Failed to cancel unique work.", e);
         }
     }
 
@@ -60,26 +73,25 @@ public final class PushwooshWorkManagerHelper {
 
     /**
      * Get optimized constraints for statistics delivery.
-     * These constraints allow execution in low battery, Doze Mode, etc. 
+     * These constraints allow execution in low battery, Doze Mode, etc.
      * to ensure statistics are delivered reliably.
      */
     public static Constraints getStatisticsConstraints() {
         return new Constraints.Builder()
                 // Require network connection
                 .setRequiredNetworkType(NetworkType.CONNECTED)
-                
+
                 // Allow execution with low battery - statistics are critical
                 .setRequiresBatteryNotLow(false)
-                
+
                 // Allow execution in Doze Mode
                 .setRequiresDeviceIdle(false)
-                
+
                 // Allow execution with low storage
                 .setRequiresStorageNotLow(false)
-                
+
                 // Allow execution without charging
                 .setRequiresCharging(false)
-                
                 .build();
     }
 }

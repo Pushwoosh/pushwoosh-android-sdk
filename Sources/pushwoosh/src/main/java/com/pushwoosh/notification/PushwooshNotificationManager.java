@@ -1,7 +1,5 @@
 package com.pushwoosh.notification;
 
-import static com.pushwoosh.repository.DeviceRegistrar.areNotificationsEnabled;
-
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -10,26 +8,18 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.work.Data;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
 
-import com.pushwoosh.PushwooshWorkManagerHelper;
 import com.pushwoosh.RegisterForPushNotificationsResultData;
 import com.pushwoosh.exception.RegisterForPushNotificationsException;
 import com.pushwoosh.exception.UnregisterForPushNotificationException;
 import com.pushwoosh.function.Callback;
-import com.pushwoosh.function.Result;
-import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.AppIdChangedEvent;
 import com.pushwoosh.internal.event.Event;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.event.NotificationPermissionEvent;
-import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
-import com.pushwoosh.internal.registrar.ExistingTokenRegistrarWorker;
 import com.pushwoosh.internal.registrar.PushRegistrar;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.Config;
@@ -47,7 +37,6 @@ import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.tags.TagsBundle;
 
-import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PushwooshNotificationManager {
@@ -225,15 +214,7 @@ public class PushwooshNotificationManager {
             Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
         PWLog.noise(TAG, "RegisterExistingToken");
         RegistrationCallbackHolder.setCallback(callback);
-        Data inputData = new Data.Builder()
-                .putString(ExistingTokenRegistrarWorker.TOKEN, token)
-                .build();
-        OneTimeWorkRequest existingWorkerRequest = new OneTimeWorkRequest.Builder(ExistingTokenRegistrarWorker.class)
-                .setInputData(inputData)
-                .setConstraints(PushwooshWorkManagerHelper.getNetworkAvailableConstraints())
-                .build();
-        PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
-                existingWorkerRequest, ExistingTokenRegistrarWorker.TAG, ExistingWorkPolicy.REPLACE);
+        onTokenReceived(token, null);
     }
 
     private void registerForPushesInternal(Callback callback, boolean notificationsAllowed, TagsBundle tags) {
@@ -265,6 +246,7 @@ public class PushwooshNotificationManager {
     public void unregisterForPushNotifications(Callback<String, UnregisterForPushNotificationException> callback) {
         UnregistrationCallbackHolder.setCallback(callback);
         registrationPrefs.isRegisteredForPush().set(false);
+        deviceRegistrar.cancelScheduledRegistration();
         pushRegistrar.unregisterPW();
     }
 
@@ -290,46 +272,16 @@ public class PushwooshNotificationManager {
         this.launchNotification = launchNotification;
     }
 
-    public void onTokenReceived(@NonNull String pushToken, @Nullable String tagsJson, boolean withRetries) {
+    public void onTokenReceived(@NonNull String pushToken, @Nullable String tagsJson) {
         PWLog.noise(TAG, String.format("onTokenReceived: %s", pushToken));
-        SdkStateProvider.getInstance().executeOrQueue(() -> {
-            DeviceSpecificProvider provider = DeviceSpecificProvider.getInstance();
-            if (provider == null) {
-                PWLog.error(TAG, "can't register device: no push transport module");
-                EventBus.sendEvent(new RegistrationErrorEvent("can't register device: no push transport module"));
-                return;
-            }
-            // written before the request on purpose: updateRegistration on next app open re-sends after a failure
-            registrationPrefs.pushToken().set(pushToken);
-            if (withRetries) {
-                deviceRegistrar.registerWithServerWithRetries(
-                        pushToken, tagsJson, provider.deviceType(), provideServerRegistrationCallback(pushToken));
-            } else {
-                deviceRegistrar.registerWithServer(
-                        pushToken, tagsJson, provider.deviceType(), provideServerRegistrationCallback(pushToken));
-            }
-        });
-    }
-
-    private Callback<Void, NetworkException> provideServerRegistrationCallback(String pushToken) {
-        PWLog.noise(TAG, "provideServerRegistrationCallback");
-        return new Callback<Void, NetworkException>() {
-            @Override
-            public void process(@NonNull Result<Void, NetworkException> result) {
-                if (result.isSuccess()) {
-                    registrationPrefs.registeredOnServer().set(true);
-                    registrationPrefs.lastPushRegistration().set(new Date().getTime());
-                    EventBus.sendEvent(new RegistrationSuccessEvent(
-                            new RegisterForPushNotificationsResultData(pushToken, areNotificationsEnabled())));
-
-                    PWLog.info(TAG, String.format("successfully registered for push notifications: %s", pushToken));
-                } else {
-                    EventBus.sendEvent(new RegistrationErrorEvent("can't register device"));
-
-                    PWLog.error(TAG, "can't register device", result.getException());
-                }
-            }
-        };
+        if (DeviceSpecificProvider.getInstance() == null) {
+            PWLog.error(TAG, "can't register device: no push transport module");
+            EventBus.sendEvent(new RegistrationErrorEvent("can't register device: no push transport module"));
+            return;
+        }
+        // written before scheduling on purpose: FCM/HMS onNewToken dedup relies on it in any SDK state
+        registrationPrefs.pushToken().set(pushToken);
+        deviceRegistrar.scheduleRegistration(tagsJson);
     }
 
     public void onFailedToRegisterForRemoteNotifications(String error) {

@@ -13,6 +13,7 @@ import com.pushwoosh.internal.network.ConnectionException;
 import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.PushRequest;
+import com.pushwoosh.internal.network.RequestBlockedException;
 
 import org.json.JSONObject;
 import org.junit.Test;
@@ -36,7 +37,7 @@ public class FeatureFlagsManagerTest extends FeatureFlagsManagerFixture {
     }
 
     @Test
-    public void refresh_success_cachesFlagsAndSendsFlatBodyToEndpoint() throws Exception {
+    public void refresh_success_cachesFlagsAndSendsFlatBody() throws Exception {
         network.respondWith(METHOD, body(FLAGS_V1, "e1", false, false));
 
         List<Result<Void, FeatureFlagsException>> results = refresh();
@@ -46,20 +47,9 @@ public class FeatureFlagsManagerTest extends FeatureFlagsManagerFixture {
         assertTrue(flag.isEnabled());
         assertEquals("green", flag.getString("color", "x"));
         FakeRequestManager.Sent sent = network.last(METHOD);
-        assertEquals(ENDPOINT, sent.baseUrl);
         assertEquals(APP, sent.params.getString("application"));
         assertEquals(HWID, sent.params.getString("hwid"));
         assertFalse(sent.params.has("etag"));
-    }
-
-    @Test
-    public void refresh_usesReverseProxyBase() throws Exception {
-        network.setReverseProxyUrl("https://proxy.example/pw/json/1.3/", null);
-        network.respondWith(METHOD, body("{}", "e", false, false));
-
-        refresh();
-
-        assertEquals("https://proxy.example/pw/api/v2/device-api/", network.last(METHOD).baseUrl);
     }
 
     @Test
@@ -214,18 +204,39 @@ public class FeatureFlagsManagerTest extends FeatureFlagsManagerFixture {
     }
 
     @Test
-    public void refresh_proxyWithoutLegacyPath_failsWithoutSending() throws Exception {
+    public void refresh_networkFailure_failsWithStatusZeroAndThrottlesNextRefresh() throws Exception {
+        cacheV1();
+        pastThrottle();
+        network.failWith(METHOD, new NetworkException("socket closed"));
+
+        List<Result<Void, FeatureFlagsException>> failed = refresh();
+        long lastRequestAt = new FeatureFlagsStorage(disk).lastRequestAt();
+        List<Result<Void, FeatureFlagsException>> throttled = refresh();
+
+        assertFalse(failed.get(0).isSuccess());
+        assertEquals(0, failed.get(0).getException().getHttpStatus());
+        assertEquals(time.now, lastRequestAt);
+        assertTrue(throttled.get(0).isSuccess());
+        assertEquals(2, network.count(METHOD)); // throttling suppresses the third send (the throttled refresh)
+    }
+
+    // A request the manager refused before the transport (bad proxy root, no usable base URL, a closed
+    // gate) must not consume the throttle window: otherwise the misconfiguration is reported once and then
+    // hidden behind "success" with stale flags until the throttle expires.
+    @Test
+    public void refresh_blockedBeforeTransport_doesNotConsumeTheThrottleWindow() throws Exception {
         cacheV1();
         pastThrottle();
         long lastRequestAt = new FeatureFlagsStorage(disk).lastRequestAt();
-        network.setReverseProxyUrl("https://proxy.example/pw/", null);
+        network.alwaysFailWith(METHOD, new RequestBlockedException("Reverse proxy URL does not end with json/1.3/"));
 
-        List<Result<Void, FeatureFlagsException>> results = refresh();
+        List<Result<Void, FeatureFlagsException>> first = refresh();
+        List<Result<Void, FeatureFlagsException>> second = refresh();
 
-        assertFalse(results.get(0).isSuccess());
-        assertEquals(0, results.get(0).getException().getHttpStatus());
-        assertEquals(1, network.count(METHOD));
+        assertFalse(first.get(0).isSuccess());
+        assertFalse(second.get(0).isSuccess());
         assertEquals(lastRequestAt, new FeatureFlagsStorage(disk).lastRequestAt());
+        assertEquals(3, network.count(METHOD)); // cacheV1 + both refreshes actually reached the manager
         assertTrue(manager.get("new_checkout").isEnabled());
     }
 
@@ -396,13 +407,13 @@ public class FeatureFlagsManagerTest extends FeatureFlagsManagerFixture {
         boolean[] thrown = {false};
         FakeRequestManager throwingOnce = new FakeRequestManager() {
             @Override
-            public <Response> void sendRequestToEndpoint(
-                    PushRequest<Response> request, String endpointUrl, Callback<Response, NetworkException> callback) {
+            public <Response> void sendRequest(
+                    PushRequest<Response> request, Callback<Response, NetworkException> callback) {
                 if (!thrown[0]) {
                     thrown[0] = true;
                     throw new IllegalStateException("broken transport");
                 }
-                super.sendRequestToEndpoint(request, endpointUrl, callback);
+                super.sendRequest(request, callback);
             }
         };
         throwingOnce.respondWith(METHOD, body(FLAGS_V1, "e1", false, false));

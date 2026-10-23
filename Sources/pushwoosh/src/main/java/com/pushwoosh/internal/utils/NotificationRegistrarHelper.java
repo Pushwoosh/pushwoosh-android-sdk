@@ -64,7 +64,7 @@ public final class NotificationRegistrarHelper {
             return;
         }
 
-        PushwooshPlatform.getInstance().notificationManager().onTokenReceived(registrationId, tagsJson, false);
+        PushwooshPlatform.getInstance().notificationManager().onTokenReceived(registrationId, tagsJson);
     }
 
     public static void clearToken() {

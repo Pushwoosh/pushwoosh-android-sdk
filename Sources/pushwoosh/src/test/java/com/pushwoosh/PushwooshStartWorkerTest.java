@@ -625,6 +625,34 @@ public class PushwooshStartWorkerTest {
         Mockito.verify(pushwooshInAppMock, Mockito.times(1)).setUserId("test-hwid-12345");
     }
 
+    @Test
+    public void testServerCommunicationStartedSchedulesSavedTokenDelivery() throws InterruptedException {
+        ensureInitializingState();
+        initializeAndRunPushwooshStartWorker();
+        ensureStarted();
+        ensureReadyState();
+        when(registrationPrefsMock.pushToken().get()).thenReturn("test-push-token");
+
+        EventBus.sendEvent(new ServerCommunicationStartedEvent());
+        ShadowLooper.idleMainLooper();
+
+        Mockito.verify(deviceRegistrarMock, Mockito.times(1)).scheduleRegistration(null);
+    }
+
+    @Test
+    public void testServerCommunicationStartedWithoutTokenSchedulesNothing() throws InterruptedException {
+        ensureInitializingState();
+        initializeAndRunPushwooshStartWorker();
+        ensureStarted();
+        ensureReadyState();
+        when(registrationPrefsMock.pushToken().get()).thenReturn("");
+
+        EventBus.sendEvent(new ServerCommunicationStartedEvent());
+        ShadowLooper.idleMainLooper();
+
+        Mockito.verify(deviceRegistrarMock, Mockito.never()).scheduleRegistration(Mockito.any());
+    }
+
     // Verifies that fetched HWID is stored in preferences via preferences.hwid().set(value).
     @Test
     public void testFetchedHwidStoredInPreferences() throws InterruptedException {

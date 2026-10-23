@@ -21,6 +21,32 @@ public abstract class PushRequest<S> {
         return true;
     }
 
+    /**
+     * API path this request is served under, so the request manager can resolve the full address from one
+     * reverse-proxy snapshot at send time.
+     *
+     * @return path relative to the host root, with no leading slash and a trailing slash, applied to a root that
+     * ends with {@code json/1.3/}; {@code null} means the base URL is used as configured. An address built from a
+     * path is not rotatable: a {@code base_url} in the response is not applied to it.
+     */
+    @Nullable public String getApiPath() {
+        return null;
+    }
+
+    /**
+     * Application code this request is addressed to, read from the same field that goes into the body.
+     * <p>
+     * Used to build the canonical app-code host when the configured root cannot carry an
+     * {@link #getApiPath() API path}, so the address and the body can never name two different
+     * applications even if the registered application code changes while the request is queued.
+     *
+     * @return the application code carried by this request, or {@code null} when it carries none —
+     * a request that declares an API path and no application code cannot be rerouted and is blocked
+     */
+    @Nullable public String getApplicationCode() {
+        return null;
+    }
+
     protected JSONObject getParams() throws JSONException, InterruptedException {
         final JSONObject baseParams = new JSONObject();
 

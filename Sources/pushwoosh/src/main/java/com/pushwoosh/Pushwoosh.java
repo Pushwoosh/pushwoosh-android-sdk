@@ -684,6 +684,11 @@ public class Pushwoosh {
      * }
      * </pre>
      *
+     * <p>The callback reports the outcome of the first registration attempt, which waits for a network
+     * connection. If that attempt fails, the callback receives an error while the SDK keeps retrying the
+     * delivery in the background with WorkManager; a later success is published as
+     * {@code RegistrationSuccessEvent}. If the SDK failed to initialize, the callback is not called.
+     *
      * @param callback push registration callback
      */
     public void registerForPushNotifications(
@@ -850,6 +855,13 @@ public class Pushwoosh {
      * }
      * </pre>
      *
+     * <p>The callback reports the outcome of the first registration attempt, which waits for a network
+     * connection. If that attempt fails, the callback receives an error while the SDK keeps retrying the
+     * delivery in the background with WorkManager; a later success is published as
+     * {@code RegistrationSuccessEvent}. If the SDK failed to initialize, the callback is not called.
+     * The token in a successful result may differ from the one passed in if a newer token arrived in
+     * the meantime.
+     *
      * @param token    FCM/GCM push token
      * @param callback registration callback
      */
@@ -869,7 +881,8 @@ public class Pushwoosh {
                 return;
             }
 
-            if (token.equals(registrationPrefs.pushToken().get())) {
+            if (token.equals(registrationPrefs.pushToken().get())
+                    && registrationPrefs.registeredOnServer().get()) {
                 RegisterForPushNotificationsResultData data =
                         new RegisterForPushNotificationsResultData(token, NotificationUtils.areNotificationsEnabled());
                 safeProcessCallback(callback, Result.fromData(data));
@@ -2427,6 +2440,11 @@ public class Pushwoosh {
      *
      * <p>The URL is validated and normalized before it is applied. A rejected URL is ignored: the
      * previously configured proxy stays in place and the reason is written to the log.
+     *
+     * <p><b>Important:</b> the proxy URL must be the gateway's {@code json/1.3/} endpoint, and the
+     * gateway must also proxy {@code api/v2/device-api/} under that same root. This is a requirement
+     * on the gateway, not something this method enforces: the URL validation above accepts any valid
+     * {@code http(s)} URL regardless of its path.
      *
      * @param url the reverse proxy URL (must be a valid https:// or http:// URL)
      * @param headers optional map of custom HTTP headers (may be null)

@@ -93,6 +93,21 @@ public class NotificationsFragment extends Fragment {
             });
         });
 
+        // Bypasses the SDK on purpose: Firebase itself fires onNewToken into the SDK.
+        binding.buttonRefreshFcmToken.setOnClickListener(v -> {
+            FirebaseMessaging.getInstance()
+                    .deleteToken()
+                    .onSuccessTask(unused -> FirebaseMessaging.getInstance().getToken())
+                    .addOnCompleteListener(task -> {
+                        if (binding == null) return;
+                        String message = task.isSuccessful()
+                                ? "FCM token refreshed"
+                                : "FCM token refresh failed: " + task.getException();
+                        Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_SHORT)
+                                .show();
+                    });
+        });
+
         communicationServerEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

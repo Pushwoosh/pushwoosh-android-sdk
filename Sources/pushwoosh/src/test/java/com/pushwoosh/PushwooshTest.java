@@ -11,14 +11,9 @@ import static org.junit.Assert.assertTrue;
 import android.content.Context;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.work.Configuration;
-import androidx.work.ListenableWorker;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
-import androidx.work.WorkerFactory;
-import androidx.work.WorkerParameters;
 import androidx.work.testing.SynchronousExecutor;
 import androidx.work.testing.TestDriver;
 import androidx.work.testing.WorkManagerTestInitHelper;
@@ -35,9 +30,11 @@ import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
 import com.pushwoosh.internal.event.Subscription;
+import com.pushwoosh.internal.network.ConnectionException;
+import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
-import com.pushwoosh.internal.registrar.ExistingTokenRegistrarWorker;
+import com.pushwoosh.internal.registrar.RegisterDeviceWorker;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.notification.PushwooshNotificationManager;
@@ -63,6 +60,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 @RunWith(RobolectricTestRunner.class)
@@ -80,18 +78,6 @@ public class PushwooshTest {
     private TestDriver testDriver;
     private MockedStatic<PushwooshMessagingServiceHelper> messagingServiceHelperMock;
 
-    private final WorkerFactory testWorkerFactory = new WorkerFactory() {
-        @Nullable @Override
-        public ListenableWorker createWorker(
-                @NonNull Context appContext, @NonNull String workerClassName, @NonNull WorkerParameters params) {
-            if (workerClassName.equals(ExistingTokenRegistrarWorker.class.getName())) {
-                // Modify ctor to accept deps, or use a Service Locator inside worker.
-                return new ExistingTokenRegistrarWorker(appContext, params);
-            }
-            return null;
-        }
-    };
-
     private Method sendMessageDelivery;
     private Method sendPushStat;
 
@@ -107,7 +93,6 @@ public class PushwooshTest {
         Configuration config = new Configuration.Builder()
                 .setExecutor(new SynchronousExecutor())
                 .setTaskExecutor(new SynchronousExecutor())
-                .setWorkerFactory(testWorkerFactory)
                 .build();
 
         WorkManagerTestInitHelper.initializeTestWorkManager(context, config);
@@ -317,39 +302,89 @@ public class PushwooshTest {
     }
 
     @Test
-    public void shouldSendExistingTokenOnce() throws ExecutionException, InterruptedException {
+    public void shouldSendExistingTokenOnce() throws Exception {
         String testToken = "12345";
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+        fake.respondWith("registerDevice", new JSONObject());
         Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback =
                 CallbackWrapper.spy();
 
         Pushwoosh.getInstance().registerExistingToken(testToken, callback);
-
-        List<WorkInfo> infos = workManager
-                .getWorkInfosForUniqueWork(ExistingTokenRegistrarWorker.TAG)
-                .get();
+        List<WorkInfo> infos =
+                workManager.getWorkInfosForUniqueWork(RegisterDeviceWorker.TAG).get();
         assertThat(infos, hasSize(1));
-        WorkInfo info = infos.get(0);
-        testDriver.setAllConstraintsMet(info.getId());
+        UUID id = infos.get(0).getId();
+        testDriver.setAllConstraintsMet(id);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         Pushwoosh.getInstance().registerExistingToken(testToken, callback);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
-        infos = workManager
-                .getWorkInfosForUniqueWork(ExistingTokenRegistrarWorker.TAG)
-                .get();
-        assertThat(infos, hasSize(1));
-        info = infos.get(0);
-        testDriver.setAllConstraintsMet(info.getId());
-
+        assertThat(workManager.getWorkInfoById(id).get().getState(), equalTo(WorkInfo.State.SUCCEEDED));
+        assertThat(
+                workManager.getWorkInfosForUniqueWork(RegisterDeviceWorker.TAG).get(), hasSize(1));
+        assertThat(fake.count("registerDevice"), equalTo(1));
+        assertThat(fake.last("registerDevice").params.getString("push_token"), equalTo(testToken));
         ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
                 ArgumentCaptor.forClass(Result.class);
         Mockito.verify(callback, Mockito.times(2)).process(captor.capture());
-        Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> secondResult =
-                captor.getAllValues().get(1);
-        assertThat(secondResult.isSuccess(), equalTo(true));
-        assertThat(secondResult.getData().getToken(), equalTo(testToken));
-        Mockito.verify(notificationManagerSpy, Mockito.times(1))
-                .onTokenReceived(Mockito.eq(testToken), Mockito.isNull(), Mockito.eq(true));
+        for (Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> r :
+                captor.getAllValues()) {
+            assertThat(r.isSuccess(), equalTo(true));
+            assertThat(r.getData().getToken(), equalTo(testToken));
+        }
+    }
+
+    // The token is saved at intake, before it ever reaches the server, so "same token" alone does not mean
+    // the server knows it: after a terminal delivery failure the retry must schedule a new delivery.
+    @Test
+    public void registerExistingToken_afterTerminalFailure_schedulesDeliveryAgain() throws Exception {
+        String testToken = "12345";
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+        fake.failWith("registerDevice", new ConnectionException("Bad Request", 400, 0));
+        Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> failedCallback =
+                CallbackWrapper.spy();
+        Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> retryCallback =
+                CallbackWrapper.spy();
+
+        Pushwoosh.getInstance().registerExistingToken(testToken, failedCallback);
+        UUID failedId = pendingDeliveryId();
+        testDriver.setAllConstraintsMet(failedId);
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertThat(workManager.getWorkInfoById(failedId).get().getState(), equalTo(WorkInfo.State.FAILED));
+        assertThat(resultOf(failedCallback).isSuccess(), equalTo(false));
+
+        fake.respondWith("registerDevice", new JSONObject());
+        Pushwoosh.getInstance().registerExistingToken(testToken, retryCallback);
+        UUID retryId = pendingDeliveryId();
+        testDriver.setAllConstraintsMet(retryId);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertThat(workManager.getWorkInfoById(retryId).get().getState(), equalTo(WorkInfo.State.SUCCEEDED));
+        assertThat(fake.count("registerDevice"), equalTo(2));
+        Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> retried =
+                resultOf(retryCallback);
+        assertThat(retried.isSuccess(), equalTo(true));
+        assertThat(retried.getData().getToken(), equalTo(testToken));
+    }
+
+    private UUID pendingDeliveryId() throws Exception {
+        for (WorkInfo info :
+                workManager.getWorkInfosForUniqueWork(RegisterDeviceWorker.TAG).get()) {
+            if (!info.getState().isFinished()) {
+                return info.getId();
+            }
+        }
+        throw new AssertionError("no pending RegisterDeviceWorker");
+    }
+
+    private static Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> resultOf(
+            Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback) {
+        ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
+                ArgumentCaptor.forClass(Result.class);
+        Mockito.verify(callback).process(captor.capture());
+        return captor.getValue();
     }
 
     @Test
@@ -363,12 +398,10 @@ public class PushwooshTest {
                 ArgumentCaptor.forClass(Result.class);
         Mockito.verify(callback).process(captor.capture());
         assertThat(captor.getValue().isSuccess(), equalTo(false));
-        List<WorkInfo> infos = workManager
-                .getWorkInfosForUniqueWork(ExistingTokenRegistrarWorker.TAG)
-                .get();
+        List<WorkInfo> infos =
+                workManager.getWorkInfosForUniqueWork(RegisterDeviceWorker.TAG).get();
         assertThat(infos, hasSize(0));
-        Mockito.verify(notificationManagerSpy, Mockito.never())
-                .onTokenReceived(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+        Mockito.verify(notificationManagerSpy, Mockito.never()).onTokenReceived(Mockito.any(), Mockito.any());
     }
 
     private Pushwoosh spyWith(String appCode, String hwid) {

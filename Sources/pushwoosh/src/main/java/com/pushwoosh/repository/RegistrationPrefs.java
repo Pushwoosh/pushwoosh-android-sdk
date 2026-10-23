@@ -282,6 +282,21 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     }
 
     /**
+     * The canonical per-app-code API endpoint, always ending with {@code json/1.3/}.
+     *
+     * <p>Unlike {@link #getDefaultBaseUrl(String)} it ignores the {@code com.pushwoosh.base_url} manifest
+     * override on purpose: callers that compose an address from this root need the legacy tail to be there,
+     * and the override is the very value that may lack it.
+     *
+     * @param appId Pushwoosh application code
+     * @return the canonical base URL for the application code
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    @NonNull public static String canonicalBaseUrl(@NonNull String appId) {
+        return String.format(BASE_API_URL_FORMAT, appId);
+    }
+
+    /**
      * Single entry point for updating the persisted {@code pw_base_url}.
      *
      * <p>The raw URL is trimmed, parsed via {@link URL} for basic validity, and forced to end

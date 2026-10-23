@@ -41,6 +41,7 @@ class PushwooshRequestManager implements RequestManager {
             "Device data was removed from Pushwoosh and all interactions were stopped";
     private static final String COMMUNICATION_STOPPED_MSG =
             "Server communication stopped. Call Pushwoosh.startServerCommunication() to resume";
+    private static final String LEGACY_PATH = "json/1.3/";
 
     private final RegistrationPrefs registrationPrefs;
     private final ServerCommunicationManager serverCommunicationManager;
@@ -99,7 +100,9 @@ class PushwooshRequestManager implements RequestManager {
      * <p>
      * The callback (when provided) is delivered on the main thread.
      *
-     * @param baseUrl optional override; if {@code null}, the currently registered base URL is used
+     * @param baseUrl optional override of the root; if {@code null}, the currently registered base URL is used.
+     *     A request that declares an {@link PushRequest#getApiPath() API path} is resolved against this root
+     *     rather than sent to it as is
      */
     @Override
     public <Response> void sendRequest(
@@ -164,44 +167,27 @@ class PushwooshRequestManager implements RequestManager {
         return true;
     }
 
-    @Override
-    public <Response> void sendRequestToEndpoint(
-            @NonNull final PushRequest<Response> request,
-            @NonNull final String endpointUrl,
-            @Nullable final Callback<Response, NetworkException> callback) {
-        BackgroundExecutor.network(() -> deliverOnMain(callback, sendRequestToEndpointSync(request, endpointUrl)));
-    }
-
-    @NonNull <Response> Result<Response, NetworkException> sendRequestToEndpointSync(
-            PushRequest<Response> request, @NonNull String endpointUrl) {
-        ReverseProxy proxy = reverseProxy;
-        if (reverseProxyRequired && proxy == null) {
-            return blockedByMissingProxy(request);
-        }
-        Map<String, String> headers = proxy != null ? proxy.headers : Collections.<String, String>emptyMap();
-        return sendThroughDeviceGates(request, new Endpoint(endpointUrl, headers, false));
-    }
-
-    @Override
-    @Nullable public String getReverseProxyUrl() {
-        ReverseProxy proxy = reverseProxy;
-        return proxy != null ? proxy.url : null;
-    }
-
     @NonNull private static <Response> Result<Response, NetworkException> blockedByMissingProxy(PushRequest<Response> request) {
         PWLog.error(TAG, "Reverse proxy is required but not configured. Request blocked: " + request.getMethod());
-        return Result.fromException(new NetworkException("Reverse proxy is required but not configured"));
+        return Result.fromException(new RequestBlockedException("Reverse proxy is required but not configured"));
+    }
+
+    @NonNull private static <Response> Result<Response, NetworkException> blockedByProxyWithoutLegacyPath(
+            PushRequest<Response> request) {
+        String reason = "Reverse proxy URL does not end with " + LEGACY_PATH;
+        PWLog.error(TAG, reason + ". Request blocked: " + request.getMethod());
+        return Result.fromException(new RequestBlockedException(reason));
     }
 
     @NonNull private <Response> Result<Response, NetworkException> sendThroughDeviceGates(
             PushRequest<Response> request, Endpoint endpoint) {
         if (registrationPrefs.removeAllDeviceData().get()) {
             PWLog.warn(TAG, DEVICE_REMOVED_MSG + ". Request blocked: " + request.getMethod());
-            return Result.fromException(new NetworkException(DEVICE_REMOVED_MSG));
+            return Result.fromException(new RequestBlockedException(DEVICE_REMOVED_MSG));
         }
         if (serverCommunicationManager != null && !serverCommunicationManager.isServerCommunicationAllowed()) {
             PWLog.warn(TAG, COMMUNICATION_STOPPED_MSG + ". Request blocked: " + request.getMethod());
-            return Result.fromException(new NetworkException(COMMUNICATION_STOPPED_MSG));
+            return Result.fromException(new RequestBlockedException(COMMUNICATION_STOPPED_MSG));
         }
         return executeRequest(request, endpoint);
     }
@@ -213,6 +199,9 @@ class PushwooshRequestManager implements RequestManager {
      * <ul>
      *   <li>reverse proxy is required but not configured</li>
      *   <li>no base URL is available</li>
+     *   <li>the reverse proxy root does not end with {@code json/1.3/} for a request that declares an API path</li>
+     *   <li>the base URL root does not end with {@code json/1.3/} (or is missing) and the request carries no
+     *       application code to build the canonical host from, for a request that declares an API path</li>
      *   <li>device data has been wiped ({@code removeAllDeviceData})</li>
      *   <li>server communication is paused via {@link ServerCommunicationManager}</li>
      * </ul>
@@ -226,10 +215,14 @@ class PushwooshRequestManager implements RequestManager {
         if (reverseProxyRequired && proxy == null) {
             return blockedByMissingProxy(request);
         }
-        Endpoint endpoint = resolveEndpoint(baseUrl, proxy);
+        String apiPath = request.getApiPath();
+        if (apiPath != null && proxy != null && !proxy.url.endsWith(LEGACY_PATH)) {
+            return blockedByProxyWithoutLegacyPath(request);
+        }
+        Endpoint endpoint = resolveEndpoint(request, baseUrl, proxy, apiPath);
         if (endpoint == null) {
-            PWLog.error(TAG, "Base URL is not configured. Request blocked: " + request.getMethod());
-            return Result.fromException(new NetworkException("Base URL is not configured"));
+            // resolveEndpoint has already logged which of the roots failed and why.
+            return Result.fromException(new RequestBlockedException("No usable base URL"));
         }
         return sendThroughDeviceGates(request, endpoint);
     }
@@ -333,20 +326,67 @@ class PushwooshRequestManager implements RequestManager {
      * Picks the effective endpoint for the request.
      * <p>
      * Reverse proxy takes precedence; otherwise the caller-supplied base URL is used.
-     * Returns {@code null} when nothing is configured. The endpoint is marked rotatable
-     * only when its URL matches the currently registered {@code baseRequestUrl}.
+     * Returns {@code null} when no address can be built, after logging which root failed and why.
+     * Without an API path the root is the address itself, and it is marked rotatable only when it
+     * matches the currently registered {@code baseRequestUrl}. With an API path the address is
+     * composed by replacing the root's {@code json/1.3/} tail with the path, and such an address is
+     * never rotatable; the proxy root is already known to carry that tail, because
+     * {@link #sendRequestSync} refuses the request before it gets here otherwise, so a request routed
+     * through a proxy never silently leaves it. A base root that is missing or cannot carry the path
+     * is replaced by the canonical host of the request's own application code, with a warning logged
+     * naming the fallback address.
      *
+     * @param request the request being resolved; supplies the application code for the fallback host
+     *     and names the request in the log lines
      * @param proxy the reverse proxy snapshot taken by the caller, {@code null} when not configured
+     * @param apiPath the path declared by the request, {@code null} when it is served by the root itself
      */
-    @Nullable private Endpoint resolveEndpoint(@Nullable String callerBaseUrl, @Nullable ReverseProxy proxy) {
-        if (proxy != null) {
-            return new Endpoint(proxy.url, proxy.headers, false);
+    @Nullable private <Response> Endpoint resolveEndpoint(
+            PushRequest<Response> request,
+            @Nullable String callerBaseUrl,
+            @Nullable ReverseProxy proxy,
+            @Nullable String apiPath) {
+        if (apiPath == null) {
+            if (proxy != null) {
+                return new Endpoint(proxy.url, proxy.headers, false);
+            }
+            if (TextUtils.isEmpty(callerBaseUrl)) {
+                PWLog.error(
+                        TAG,
+                        "No base URL and no reverse proxy are configured. Request blocked: " + request.getMethod());
+                return null;
+            }
+            boolean rotatable = Objects.equals(callerBaseUrl, baseRequestUrl);
+            return new Endpoint(callerBaseUrl, Collections.emptyMap(), rotatable);
         }
-        if (TextUtils.isEmpty(callerBaseUrl)) {
+        if (proxy != null) {
+            return new Endpoint(composeUnderRoot(proxy.url, apiPath), proxy.headers, false);
+        }
+        if (!TextUtils.isEmpty(callerBaseUrl) && callerBaseUrl.endsWith(LEGACY_PATH)) {
+            return new Endpoint(
+                    composeUnderRoot(callerBaseUrl, apiPath), Collections.<String, String>emptyMap(), false);
+        }
+        String appCode = request.getApplicationCode();
+        if (TextUtils.isEmpty(appCode)) {
+            PWLog.error(
+                    TAG,
+                    "No base URL ending with " + LEGACY_PATH + " and request " + request.getMethod()
+                            + " carries no application code to fall back to. Request blocked");
             return null;
         }
-        boolean rotatable = Objects.equals(callerBaseUrl, baseRequestUrl);
-        return new Endpoint(callerBaseUrl, Collections.emptyMap(), rotatable);
+        String fallbackUrl = composeUnderRoot(RegistrationPrefs.canonicalBaseUrl(appCode), apiPath);
+        PWLog.warn(
+                TAG,
+                "No base URL ending with " + LEGACY_PATH + ", request " + request.getMethod() + " uses " + fallbackUrl);
+        return new Endpoint(fallbackUrl, Collections.<String, String>emptyMap(), false);
+    }
+
+    /**
+     * Replaces a root's {@code json/1.3/} tail with {@code apiPath}. The one place that owns this
+     * composition rule, shared by the proxy, base-URL and app-code-fallback branches of {@link #resolveEndpoint}.
+     */
+    @NonNull private static String composeUnderRoot(String root, String apiPath) {
+        return root.substring(0, root.length() - LEGACY_PATH.length()) + apiPath;
     }
 
     private static final class ReverseProxy {

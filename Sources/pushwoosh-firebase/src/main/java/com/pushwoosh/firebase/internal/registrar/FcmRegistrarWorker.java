@@ -28,28 +28,32 @@ public class FcmRegistrarWorker extends BasePushwooshWorker {
         return TAG;
     }
 
-    private static void registerPW(String tagsJson) {
+    private static Result registerPW(String tagsJson, boolean firstAttempt) {
         try {
             String savedPushToken =
                     RepositoryModule.getRegistrationPreferences().pushToken().get();
-            if (!TextUtils.isEmpty(savedPushToken)) {
+            // not on retries: by then the live token may be a newer one from onNewToken
+            if (firstAttempt && !TextUtils.isEmpty(savedPushToken)) {
                 FirebaseTokenHelper.deleteFirebaseToken();
             }
             final String token = FirebaseTokenHelper.getFirebaseToken();
-            if (token != null) {
-                PWLog.debug(TAG, "FCM token is " + token);
-                NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token, tagsJson);
-            } else {
+            if (TextUtils.isEmpty(token)) {
                 PWLog.info(TAG, "FCM token is empty");
                 NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications("FCM token is empty");
+                return Result.retry();
             }
+            PWLog.debug(TAG, "FCM token is " + token);
+            NotificationRegistrarHelper.onRegisteredForRemoteNotifications(token, tagsJson);
+            return Result.success();
         } catch (IllegalStateException e) {
             String error = "Failed to retrieve token. Is firebase configured correctly?";
             PWLog.error(TAG, "FCM registration error: " + error);
             NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(error);
+            return Result.success();
         } catch (Exception e) {
             PWLog.error(TAG, "FCM registration error", e);
             NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(e.getMessage());
+            return Result.retry();
         }
     }
 
@@ -70,7 +74,7 @@ public class FcmRegistrarWorker extends BasePushwooshWorker {
         boolean unregister = getInputData().getBoolean(DATA_UNREGISTER, false);
         String tagsJson = getInputData().getString(DATA_TAGS);
         if (register) {
-            registerPW(tagsJson);
+            return registerPW(tagsJson, getRunAttemptCount() == 0);
         } else if (unregister) {
             unregisterPW();
         }

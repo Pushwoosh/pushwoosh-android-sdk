@@ -113,8 +113,9 @@ public class FcmRegistrarWorkerTest {
                         Mockito.mockStatic(NotificationRegistrarHelper.class)) {
             tokenHelper.when(FirebaseTokenHelper::getFirebaseToken).thenReturn(null);
 
-            worker.doWork();
+            ListenableWorker.Result result = worker.doWork();
 
+            assertEquals(ListenableWorker.Result.retry(), result);
             registrar.verify(() -> NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(anyString()));
             registrar.verify(
                     () -> NotificationRegistrarHelper.onRegisteredForRemoteNotifications(any(), any()), never());
@@ -131,8 +132,9 @@ public class FcmRegistrarWorkerTest {
                     .when(FirebaseTokenHelper::getFirebaseToken)
                     .thenThrow(new ExecutionException(new Throwable("SERVICE_NOT_AVAILABLE")));
 
-            worker.doWork();
+            ListenableWorker.Result result = worker.doWork();
 
+            assertEquals(ListenableWorker.Result.retry(), result);
             ArgumentCaptor<String> error = ArgumentCaptor.forClass(String.class);
             registrar.verify(
                     () -> NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(error.capture()));
@@ -152,12 +154,52 @@ public class FcmRegistrarWorkerTest {
                     .when(FirebaseTokenHelper::getFirebaseToken)
                     .thenThrow(new IllegalStateException("Default FirebaseApp is not initialized"));
 
-            worker.doWork();
+            ListenableWorker.Result result = worker.doWork();
 
+            assertEquals(ListenableWorker.Result.success(), result);
             ArgumentCaptor<String> error = ArgumentCaptor.forClass(String.class);
             registrar.verify(
                     () -> NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(error.capture()));
             assertFalse(error.getValue().isEmpty());
+        }
+    }
+
+    @Test
+    public void register_tokenFetchThrowsWithSavedToken_retriesAfterDelete() {
+        when(savedPushToken.get()).thenReturn("old-token");
+        try (MockedStatic<RepositoryModule> repository = mockRepository();
+                MockedStatic<FirebaseTokenHelper> tokenHelper = Mockito.mockStatic(FirebaseTokenHelper.class);
+                MockedStatic<NotificationRegistrarHelper> registrar =
+                        Mockito.mockStatic(NotificationRegistrarHelper.class)) {
+            tokenHelper
+                    .when(FirebaseTokenHelper::getFirebaseToken)
+                    .thenThrow(new ExecutionException(new Throwable("SERVICE_NOT_AVAILABLE")));
+
+            ListenableWorker.Result result = worker.doWork();
+
+            assertEquals(ListenableWorker.Result.retry(), result);
+            tokenHelper.verify(FirebaseTokenHelper::deleteFirebaseToken);
+            registrar.verify(() -> NotificationRegistrarHelper.onFailedToRegisterForRemoteNotifications(anyString()));
+            registrar.verify(
+                    () -> NotificationRegistrarHelper.onRegisteredForRemoteNotifications(any(), any()), never());
+        }
+    }
+
+    @Test
+    public void register_retryWithSavedToken_fetchesWithoutDelete() {
+        when(savedPushToken.get()).thenReturn("newer-token");
+        when(workerParameters.getRunAttemptCount()).thenReturn(1);
+        try (MockedStatic<RepositoryModule> repository = mockRepository();
+                MockedStatic<FirebaseTokenHelper> tokenHelper = Mockito.mockStatic(FirebaseTokenHelper.class);
+                MockedStatic<NotificationRegistrarHelper> registrar =
+                        Mockito.mockStatic(NotificationRegistrarHelper.class)) {
+            tokenHelper.when(FirebaseTokenHelper::getFirebaseToken).thenReturn(TOKEN);
+
+            ListenableWorker.Result result = worker.doWork();
+
+            assertEquals(ListenableWorker.Result.success(), result);
+            tokenHelper.verify(FirebaseTokenHelper::deleteFirebaseToken, never());
+            registrar.verify(() -> NotificationRegistrarHelper.onRegisteredForRemoteNotifications(TOKEN, null));
         }
     }
 }

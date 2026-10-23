@@ -1,7 +1,6 @@
 package com.pushwoosh.internal.network;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
@@ -16,7 +15,7 @@ import java.util.Map;
  * <p>
  * Every request is dropped with a terminal error: without a real manager there is no endpoint to reach
  * and no amount of retrying changes that. The error is deliberately a bare {@link NetworkException} and
- * never a {@link ConnectionException}, so the retry layers ({@code RetriableRequestCallback},
+ * never a {@link ConnectionException}, so the retry layers ({@code RegisterDeviceWorker},
  * {@code PushStatisticsWorker}) treat it as final — the terminality the removed null-guards had.
  * <p>
  * Callbacks run synchronously on the calling thread, matching the removed guards, which handled the
@@ -68,18 +67,5 @@ class NotInitializedRequestManager implements RequestManager {
     public boolean setReverseProxyUrl(String url, Map<String, String> headers) {
         PWLog.error(TAG, NOT_INITIALIZED_MSG + ", reverse proxy not set");
         return false;
-    }
-
-    @Override
-    public <Response> void sendRequestToEndpoint(
-            @NonNull PushRequest<Response> request,
-            @NonNull String endpointUrl,
-            @Nullable Callback<Response, NetworkException> callback) {
-        sendRequest(request, endpointUrl, callback);
-    }
-
-    @Override
-    @Nullable public String getReverseProxyUrl() {
-        return null;
     }
 }
