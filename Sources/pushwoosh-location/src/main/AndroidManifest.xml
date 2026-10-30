@@ -24,7 +24,8 @@
   ~ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -50,15 +51,12 @@
             android:name="com.pushwoosh.location.network.GeoLocationServiceApi21"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <!-- ForegroundServiceHelper never starts it on API 31+, so FOREGROUND_SERVICE_LOCATION (34+) is never checked;
+             declaring it would put a Play declaration on every integrator -->
         <service android:name="com.pushwoosh.location.foregroundservice.ForegroundService"
-            android:foregroundServiceType="location"/>
-        <!-- uses applicationId -->
-        <receiver android:name="com.pushwoosh.location.geofencer.GeofenceReceiver" android:exported="true">
-            <intent-filter>
-                <action android:name="${applicationId}.action.PROCESS_UPDATES" />
-            </intent-filter>
-        </receiver>
-        <!-- uses applicationId end -->
+            android:foregroundServiceType="location"
+            tools:ignore="ForegroundServicePermission" />
+        <receiver android:name="com.pushwoosh.location.geofencer.GeofenceReceiver" android:exported="false" />
     </application>
 
 </manifest>

@@ -53,7 +53,7 @@ public class RepositoryModule {
     private static SilentRichMediaStorage silentRichMediaStorage;
     private static SummaryNotificationStorage summaryNotificationStorage;
 
-    public static void init(Config config, DeviceRegistrar deviceRegistrar) {
+    public static void init(Config config) {
 
         migratePrefsIfNeeded(config);
 
@@ -62,7 +62,7 @@ public class RepositoryModule {
         }
 
         if (registrationPreferences == null) {
-            registrationPreferences = new RegistrationPrefs(config, deviceRegistrar);
+            registrationPreferences = new RegistrationPrefs(config);
         }
 
         if (localNotificationStorage == null) {

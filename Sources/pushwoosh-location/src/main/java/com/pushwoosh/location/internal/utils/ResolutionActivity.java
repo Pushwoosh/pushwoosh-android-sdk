@@ -74,9 +74,8 @@ public class ResolutionActivity extends TranslucentActivity {
             finish();
             return;
         }
-        // The only way to show resolutiom dialog is to use method startResolutionForResult of
-        // ResolvableApiException. There is no better way to pass ResolvableApiException from
-        // GoogleLocationProvider to this activity so we have to make the same task again here.
+        // ResolvableApiException cannot be passed across activities, so the only way to surface the resolution
+        // dialog here is to call startResolutionForResult, which forces re-running the settings check task.
         Task<LocationSettingsResponse> task =
                 LocationServices.getSettingsClient(this).checkLocationSettings(request);
         task.addOnCompleteListener(completedTask -> {

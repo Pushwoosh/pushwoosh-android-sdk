@@ -8,7 +8,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
@@ -29,12 +28,10 @@ import org.robolectric.annotation.LooperMode;
 public class AppCodeApplierTest {
 
     private RegistrationPrefs registrationPrefs;
-    private DeviceRegistrar deviceRegistrar;
 
     @Before
     public void setUp() {
         AndroidPlatformModule.init(RuntimeEnvironment.application, true);
-        deviceRegistrar = mock(DeviceRegistrar.class);
     }
 
     @After
@@ -46,14 +43,14 @@ public class AppCodeApplierTest {
 
     private AppCodeApplier createWithAppId(String appId) {
         Config config = MockConfig.createMock(appId);
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
         return new AppCodeApplier(registrationPrefs);
     }
 
     private AppCodeApplier createWithAppIdAndRequestUrl(String appId, String requestUrl) {
         Config config = MockConfig.createMock(appId);
         when(config.getRequestUrl()).thenReturn(requestUrl);
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
         return new AppCodeApplier(registrationPrefs);
     }
 
@@ -257,21 +254,5 @@ public class AppCodeApplierTest {
         assertTrue(previous.wasRegisteredOnServer);
         assertEquals(0L, (long) registrationPrefs.lastPushRegistration().get());
         assertFalse(registrationPrefs.registeredOnServer().get());
-    }
-
-    // forceRegister mirrors the user's subscription, it is not armed unconditionally: a device that
-    // is not registered for push (unsubscribed, or a pending FCM unregister) must not be silently
-    // re-registered by an application code change. The armed case is pinned in
-    // PushwooshNotificationManagerTest#setAppId_newAppIdSameBaseUrl_runsFullChangeCycle.
-    @Test
-    public void apply_appCodeChangeWhileNotRegisteredForPush_disarmsForceRegister() {
-        AppCodeApplier applier = createWithAppId(null);
-        applier.apply("AAAAA", null);
-        registrationPrefs.isRegisteredForPush().set(false);
-        registrationPrefs.forceRegister().set(true);
-
-        applier.apply("BBBBB", null);
-
-        assertFalse(registrationPrefs.forceRegister().get());
     }
 }

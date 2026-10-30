@@ -7,9 +7,9 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.Insets
 import com.pushwoosh.inapp.ui.animation.InAppAnimations
 import com.pushwoosh.inapp.ui.animation.ReduceMotionUtil
@@ -257,7 +257,7 @@ internal class SheetInAppView(context: Context, content: SheetContent) : InAppTe
      *  `configChanges="orientation|…"`, so the view is never rebuilt and a height computed once
      *  from `displayMetrics` would be left over from the previous orientation. The fixed proportion
      *  also holds the frame on a broken image — the placeholder has no intrinsic size. */
-    private class CoverImage(context: Context) : ImageView(context) {
+    private class CoverImage(context: Context) : AppCompatImageView(context) {
         init {
             scaleType = ScaleType.CENTER_CROP
         }

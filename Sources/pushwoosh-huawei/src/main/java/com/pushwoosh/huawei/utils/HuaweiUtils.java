@@ -8,6 +8,8 @@ import com.huawei.hms.api.ConnectionResult;
 import com.huawei.hms.api.HuaweiApiAvailability;
 import com.pushwoosh.internal.utils.PWLog;
 
+import java.util.Locale;
+
 /**
  * Utility class for detecting Huawei/Honor devices that should use HMS Push Kit.
  * <p>
@@ -73,8 +75,8 @@ public class HuaweiUtils {
         String manufacturer = Build.MANUFACTURER;
         String brand = Build.BRAND;
 
-        String manufacturerLower = manufacturer != null ? manufacturer.toLowerCase() : "";
-        String brandLower = brand != null ? brand.toLowerCase() : "";
+        String manufacturerLower = manufacturer != null ? manufacturer.toLowerCase(Locale.ROOT) : "";
+        String brandLower = brand != null ? brand.toLowerCase(Locale.ROOT) : "";
 
         return manufacturerLower.contains("huawei")
                 || manufacturerLower.contains("honor")

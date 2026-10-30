@@ -1,5 +1,6 @@
 package com.pushwoosh.calls.util
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.Notification.Action
 import android.app.Notification.VISIBILITY_PUBLIC
@@ -63,17 +64,18 @@ object PushwooshCallUtils {
     private fun getRingtoneUri(): Uri {
         if (PushwooshCallPlugin.instance.callPrefs.getCallSoundName() != "default") {
             val context = AndroidPlatformModule.getApplicationContext()
+                ?: return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
             val soundName = PushwooshCallPlugin.instance.callPrefs.getCallSoundName()
 
             val resName = soundName.substringBeforeLast('.') // "sound.wav" → "sound"
-            val resId = context?.resources?.getIdentifier(resName, "raw", context.packageName)
+            val resId = AndroidPlatformModule.getResourceProvider().getIdentifier(resName, "raw")
 
             if (resId == 0) {
                 PWLog.warn("Pushwoosh", "Sound resource '$soundName' not found in /res/raw")
                 return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
             }
 
-            val uri = "android.resource://${context?.packageName}/$resId".toUri()
+            val uri = "android.resource://${context.packageName}/$resId".toUri()
             return uri
         } else {
             return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
@@ -119,6 +121,8 @@ object PushwooshCallUtils {
         mgr?.createNotificationChannel(ongoingCallChannel)
     }
 
+    // Explicit intent to our own IncomingCallActivity; the own package is always visible.
+    @SuppressLint("QueryPermissionsNeeded")
     private fun getFullscreenIntent(payload: Bundle?) : Intent {
         val context = AndroidPlatformModule.getApplicationContext() ?: return Intent(Intent.ACTION_MAIN)
                                                                                 .addCategory(Intent.CATEGORY_DEFAULT)

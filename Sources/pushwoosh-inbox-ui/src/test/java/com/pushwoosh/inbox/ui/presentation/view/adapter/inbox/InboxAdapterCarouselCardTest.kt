@@ -223,8 +223,7 @@ class InboxAdapterCarouselCardTest {
         val adapter = newAdapter()
         adapter.onItemClick = { rowClicks++ }
         adapter.setCollection(listOf(msg(actionParams = twoSlides, title = "t")))
-        val holder = holder(adapter)
-        adapter.onBindViewHolder(holder, 0)
+        val holder = attachedHolder(adapter)
 
         // Second slide carries no url of its own.
         bindSlide(holder, 1).performClick()

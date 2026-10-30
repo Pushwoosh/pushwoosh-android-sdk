@@ -102,6 +102,8 @@ public class PushwooshInitializer {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.registerReceiver(lockScreenReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
         } else {
+            // no flag exists pre-33; ContextCompat needs core>=1.9 at runtime and hosts may pin older
+            //noinspection UnspecifiedRegisterReceiverFlag
             context.registerReceiver(lockScreenReceiver, filter);
         }
 

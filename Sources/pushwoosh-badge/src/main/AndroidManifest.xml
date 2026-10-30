@@ -61,6 +61,31 @@
 	<uses-permission android:name="me.everything.badger.permission.BADGE_COUNT_READ"/>
 	<uses-permission android:name="me.everything.badger.permission.BADGE_COUNT_WRITE"/>
 
+	<!-- Broadcast badgers send only if a launcher receiver resolves; on Android 11+ it must be visible -->
+	<queries>
+		<intent>
+			<action android:name="android.intent.action.BADGE_COUNT_UPDATE"/>
+		</intent>
+		<intent>
+			<action android:name="android.intent.action.APPLICATION_MESSAGE_UPDATE"/>
+		</intent>
+		<intent>
+			<action android:name="org.adw.launcher.counter.SEND"/>
+		</intent>
+		<intent>
+			<action android:name="com.anddoes.launcher.COUNTER_CHANGED"/>
+		</intent>
+		<intent>
+			<action android:name="com.htc.launcher.action.SET_NOTIFICATION"/>
+		</intent>
+		<intent>
+			<action android:name="com.htc.launcher.action.UPDATE_SHORTCUT"/>
+		</intent>
+		<intent>
+			<action android:name="com.oppo.unsettledevent"/>
+		</intent>
+	</queries>
+
 	<application>
 		<meta-data
 			android:name="com.pushwoosh.plugin.badge"

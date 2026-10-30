@@ -41,7 +41,7 @@ public class RegisterDeviceRequest extends AppOpenRequest {
     private final String tagsJson;
     private final int platform;
 
-    RegisterDeviceRequest(String deviceId, String tagsJson, int platform) {
+    public RegisterDeviceRequest(String deviceId, String tagsJson, int platform) {
         this.deviceId = deviceId;
         this.tagsJson = tagsJson;
         this.platform = platform;

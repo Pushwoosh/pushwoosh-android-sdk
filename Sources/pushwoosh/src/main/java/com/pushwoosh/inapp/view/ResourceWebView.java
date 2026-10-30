@@ -47,6 +47,8 @@ import android.webkit.WebView;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.R;
@@ -126,6 +128,15 @@ public class ResourceWebView extends FrameLayout {
 
         setWebViewDataDirectorySuffixIfNeeded(context);
         initWebView();
+        if (inAppLayout == InAppLayout.TOP) {
+            ViewCompat.setOnApplyWindowInsetsListener(this, (view, insets) -> {
+                if (webView != null) {
+                    int statusBarTop = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                    webView.setLayoutParams(createWebViewParams(InAppLayout.TOP, statusBarTop));
+                }
+                return insets;
+            });
+        }
         if (richMediaStyle.getLoadingViewCreator() != null) {
             loadingView = richMediaStyle.getLoadingViewCreator().createLoadingView();
         } else {
@@ -154,7 +165,7 @@ public class ResourceWebView extends FrameLayout {
             webView.getSettings().setForceDark(WebSettings.FORCE_DARK_OFF);
             webView.setForceDarkAllowed(false);
         }
-        webView.setLayoutParams(createWebViewParams(inAppLayout, getStatusBarHeight()));
+        webView.setLayoutParams(createWebViewParams(inAppLayout, 0));
         webView.setBackgroundColor(Color.TRANSPARENT);
 
         // disable text selection
@@ -289,6 +300,8 @@ public class ResourceWebView extends FrameLayout {
             // WebView with a null client that lets Chromium run target=_blank itself.
             releaseWebClient();
             webView.stopLoading();
+            // A pending close animation makes removeView() defer the detach, and destroy() must see a detached view.
+            webView.clearAnimation();
             ViewGroup parent = (ViewGroup) webView.getParent();
             if (parent != null) {
                 parent.removeView(webView);
@@ -328,15 +341,6 @@ public class ResourceWebView extends FrameLayout {
                 "<head>",
                 "<head>\n<script type=\"text/javascript\">" + PushwooshJSInterface.PUSHWOOSH_JS + "</script>");
         loadDataWithBaseURL(baseUrl, htmlContentWithPushWooshInterface, "text/html", "UTF-8", null);
-    }
-
-    public int getStatusBarHeight() {
-        int result = 0;
-        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            result = getResources().getDimensionPixelSize(resourceId);
-        }
-        return result;
     }
 
     // Web-based data directories separated by process

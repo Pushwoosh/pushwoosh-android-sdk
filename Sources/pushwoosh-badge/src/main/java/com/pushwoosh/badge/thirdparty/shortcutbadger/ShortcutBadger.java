@@ -54,6 +54,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Leo Lin
@@ -175,9 +176,7 @@ public final class ShortcutBadger {
                                 lastErrorMessage = "Failed to initialize the badge counter.";
                             }
                         } catch (Exception e) {
-                            // Keep retrying as long as we can. No need to dump the stack trace here
-                            // because this error will be the norm, not exception, for unsupported
-                            // platforms. So we just save the last error message to display later.
+                            // Not logged: expected on unsupported platforms, not an error; just remember the message.
                             lastErrorMessage = e.getMessage();
                         }
                     }
@@ -232,7 +231,7 @@ public final class ShortcutBadger {
         if (resolveInfo == null
                 || resolveInfo.activityInfo == null
                 || resolveInfo.activityInfo.name == null
-                || resolveInfo.activityInfo.name.toLowerCase().contains("resolver")) return false;
+                || resolveInfo.activityInfo.name.toLowerCase(Locale.ROOT).contains("resolver")) return false;
 
         String currentHomePackage = resolveInfo.activityInfo.packageName;
 

@@ -34,9 +34,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.ui.fakeInboxMessage
 import com.pushwoosh.inbox.ui.presentation.view.adapter.inbox.InboxAdapter
+import com.pushwoosh.inbox.ui.presentation.view.adapter.inbox.attachedHolder
 import com.pushwoosh.inbox.ui.presentation.view.style.ColorSchemeProvider
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,7 +50,7 @@ import org.robolectric.annotation.Config
  * Was: [BaseRecyclerAdapter.getItem] did `return mDataList[position]` with no bounds check, so any
  * out-of-range index (-1 from a cleared ViewHolder, or a stale captured click index >= size) threw
  * [IndexOutOfBoundsException] through two unwrapped RecyclerView/ItemTouchHelper callbacks
- * ([InboxAdapter.onItemSwiped] / the click closure built in [InboxAdapter.onBindViewHolder]).
+ * ([InboxAdapter.onItemSwiped] / the row click built in [InboxAdapter.onBindViewHolder]).
  *
  * Fix: `getItem` now returns `mDataList.getOrNull(position)` (it is already `Model?`), and
  * [InboxAdapter.onItemSwiped] ignores an out-of-range position before touching the backing list.
@@ -145,31 +145,35 @@ class InboxAdapterGetItemPositionIoobeTest {
         assertEquals(false, removed)
     }
 
-    // ---- Path 2 (stale click >= size): the captured closure now reads null, no throw ----
-    // Mirrors InboxAdapter.onBindViewHolder:74 `{ onItemClick?.invoke(getItem(position)) }`:
-    // the closure captures bind-time `position` and later reads getItem(position) on the mutated
-    // list.
+    // ---- Row tap after a swipe: the click resolves the item the row shows now, not at bind time ----
+    // A swipe removes with notifyItemRemoved, so the rows below are moved, not rebound.
 
     @Test
-    fun path2_staleClickPosition_yieldsNullGracefully() {
+    fun rowTapAfterSwipeAbove_opensTheMessageTheRowShows() {
         val adapter = newAdapter()
-        adapter.setCollection(listOf(msg("a"), msg("b"), msg("c"))) // size 3
-        var clicked: InboxMessage? = msg("sentinel")
+        adapter.setCollection(listOf(msg("a"), msg("b"), msg("c")))
+        val rowB = attachedHolder(adapter, 1)
+        var clicked: InboxMessage? = null
         adapter.onItemClick = { clicked = it }
-        val capturedPosition = 2 // bind-time position of the last item
 
-        // The exact closure onBindViewHolder builds (it calls the adapter's inherited getItem).
-        val staleClickListener: () -> Unit = {
-            adapter.onItemClick?.invoke(adapter.getItem(capturedPosition))
-        }
+        adapter.onItemSwiped(0)
+        rowB.itemView.performClick()
 
-        // Refresh shrinks the list (showList -> setCollection); the click listener is now stale.
-        adapter.setCollection(listOf(msg("a"))) // size 1; index 2 now out of range
+        assertEquals("b", clicked?.code)
+    }
 
-        // Was IndexOutOfBoundsException; now the stale index degrades to null.
-        staleClickListener.invoke()
+    @Test
+    fun rowTapOnSwipedRow_isIgnored() {
+        val adapter = newAdapter()
+        adapter.setCollection(listOf(msg("a"), msg("b")))
+        val rowA = attachedHolder(adapter, 0)
+        var clicks = 0
+        adapter.onItemClick = { clicks++ }
 
-        assertNull("stale out-of-range index must read as null, not throw", clicked)
+        adapter.onItemSwiped(0)
+        rowA.itemView.performClick()
+
+        assertEquals(0, clicks)
     }
 
     // ---- Direct unit anchor: getItem(outOfRange) returns null instead of throwing ----
@@ -183,7 +187,7 @@ class InboxAdapterGetItemPositionIoobeTest {
         assertNull(adapter.getItem(99))
     }
 
-    // ---- Negative control 1: in-range swipe still removes (guard didn't degenerate to no-op) ----
+    // ---- Negative control: in-range swipe still removes (guard didn't degenerate to no-op) ----
 
     @Test
     fun negativeControl_validSwipePosition_stillRemoves() {
@@ -194,22 +198,5 @@ class InboxAdapterGetItemPositionIoobeTest {
         adapter.onItemSwiped(0) // valid index
         assertEquals("a", removed?.code)
         assertEquals(1, adapter.itemCount)
-    }
-
-    // ---- Negative control 2: in-range click still resolves the item (necessary condition: stale
-    // index) ----
-
-    @Test
-    fun negativeControl_validClickPosition_stillResolvesItem() {
-        val adapter = newAdapter()
-        adapter.setCollection(listOf(msg("a"), msg("b"), msg("c")))
-        var clicked: InboxMessage? = null
-        adapter.onItemClick = { clicked = it }
-        // After a refresh that KEEPS the index in range, the same captured position is valid.
-        adapter.setCollection(listOf(msg("x"), msg("y"), msg("z")))
-        val item = adapter.getItem(2)
-        adapter.onItemClick?.invoke(item)
-        assertNotNull(item)
-        assertEquals("z", clicked?.code)
     }
 }

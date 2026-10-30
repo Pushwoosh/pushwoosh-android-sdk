@@ -33,45 +33,52 @@ import com.pushwoosh.notification.PushBundleDataProvider;
 import com.pushwoosh.notification.PushMessage;
 import com.pushwoosh.repository.RepositoryModule;
 
+import java.util.Locale;
+
 public final class NotificationChannelInfoProvider {
-	private static final String CHANNEL_ID_PREFIX = "pushwoosh_";
-	private static final long[] DEFAULT_VIBRATION_PATTERN = new long[]{0, 150, 50, 150};
+    private static final String CHANNEL_ID_PREFIX = "pushwoosh_";
+    private static final long[] DEFAULT_VIBRATION_PATTERN = new long[] {0, 150, 50, 150};
 
-	private NotificationChannelInfoProvider() {/*do nothing*/}
+    private NotificationChannelInfoProvider() {
+        /*do nothing*/
+    }
 
-	static String channelId(String channelName) {
-		if (!channelName.contains(" ") && channelName.startsWith(CHANNEL_ID_PREFIX)) {
-			return channelName;
-		}
+    static String channelId(String channelName) {
+        if (!channelName.contains(" ") && channelName.startsWith(CHANNEL_ID_PREFIX)) {
+            return channelName;
+        }
 
-		return CHANNEL_ID_PREFIX + channelName.trim().replaceAll("\\s+", "_").toLowerCase();
-	}
+        // Existing channel ids were built with the device locale; changing it would orphan users' channel settings.
+        return CHANNEL_ID_PREFIX + channelName.trim().replaceAll("\\s+", "_").toLowerCase(Locale.getDefault());
+    }
 
-	public static String getChannelName(PushMessage pushData) {
-		final String notificationChannel = PushBundleDataProvider.getNotificationChannel(pushData.toBundle());
-		return notificationChannel == null ? RepositoryModule.getNotificationPreferences().channelName().get() : notificationChannel;
-	}
+    public static String getChannelName(PushMessage pushData) {
+        final String notificationChannel = PushBundleDataProvider.getNotificationChannel(pushData.toBundle());
+        return notificationChannel == null
+                ? RepositoryModule.getNotificationPreferences().channelName().get()
+                : notificationChannel;
+    }
 
-	static int getChannelImportance(PushMessage pushMessage) {
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-			return pushMessage.getPriority();
-		}
+    static int getChannelImportance(PushMessage pushMessage) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return pushMessage.getPriority();
+        }
 
-		switch (pushMessage.getPriority()) {
-			case -2:
-			case -1:
-				return NotificationManager.IMPORTANCE_LOW;
-			case 0:
-				return NotificationManager.IMPORTANCE_DEFAULT;
-			case 1:
-			case 2:
-				return NotificationManager.IMPORTANCE_HIGH;
-			default:
-				return NotificationManager.IMPORTANCE_UNSPECIFIED;
-		}
-	}
+        switch (pushMessage.getPriority()) {
+            case -2:
+            case -1:
+                return NotificationManager.IMPORTANCE_LOW;
+            case 0:
+                return NotificationManager.IMPORTANCE_DEFAULT;
+            case 1:
+            case 2:
+                return NotificationManager.IMPORTANCE_HIGH;
+            default:
+                return NotificationManager.IMPORTANCE_UNSPECIFIED;
+        }
+    }
 
-	static long[] getVibrationPattern() {
-		return DEFAULT_VIBRATION_PATTERN;
-	}
+    static long[] getVibrationPattern() {
+        return DEFAULT_VIBRATION_PATTERN;
+    }
 }

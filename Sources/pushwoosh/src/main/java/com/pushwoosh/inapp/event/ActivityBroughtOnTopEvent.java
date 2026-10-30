@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ActivityBroughtOnTopEvent implements Event {
     public AtomicInteger count;
-    public static ActivityBroughtOnTopEvent INSTANCE;
+    public static volatile ActivityBroughtOnTopEvent INSTANCE;
 
     public ActivityBroughtOnTopEvent() {
         this.count = new AtomicInteger();
@@ -14,12 +14,19 @@ public class ActivityBroughtOnTopEvent implements Event {
     }
 
     public static ActivityBroughtOnTopEvent getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new ActivityBroughtOnTopEvent();
-        } else {
-            INSTANCE.count.incrementAndGet();
+        ActivityBroughtOnTopEvent local = INSTANCE;
+        if (local == null) {
+            synchronized (ActivityBroughtOnTopEvent.class) {
+                local = INSTANCE;
+                if (local == null) {
+                    local = new ActivityBroughtOnTopEvent();
+                    INSTANCE = local;
+                    return local;
+                }
+            }
         }
-        return INSTANCE;
+        local.count.incrementAndGet();
+        return local;
     }
 
     public static void resetCount() {

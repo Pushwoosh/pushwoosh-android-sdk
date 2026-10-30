@@ -33,7 +33,6 @@ import com.pushwoosh.internal.preference.PreferenceJsonObjectValue;
 import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.FileUtils;
 import com.pushwoosh.internal.utils.MockConfig;
-import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.NotificationPrefs;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
@@ -301,7 +300,7 @@ public class ResourceViewStrategyFactoryTest {
     private void givenDeviceLanguagePrefs() {
         com.pushwoosh.internal.utils.Config configMock = MockConfig.createMock();
         AndroidPlatformModule.init(RuntimeEnvironment.application, true);
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(configMock, mock(DeviceRegistrar.class));
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(configMock);
         RepositoryModule.setRegistrationPreferences(registrationPrefs);
     }
 

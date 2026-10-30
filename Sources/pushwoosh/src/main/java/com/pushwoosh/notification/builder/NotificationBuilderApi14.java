@@ -33,6 +33,7 @@ import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
@@ -41,126 +42,127 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 
 @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class NotificationBuilderApi14 implements NotificationBuilder {
-	private final NotificationCompat.Builder builder;
+    private final NotificationCompat.Builder builder;
 
-	NotificationBuilderApi14(Context context, String channelId) {
-		builder = new NotificationCompat.Builder(context, channelId);
-	}
+    NotificationBuilderApi14(Context context, String channelId) {
+        builder = new NotificationCompat.Builder(context, channelId);
+    }
 
-	@Override
-	public NotificationBuilder setContentTitle(CharSequence title) {
-		builder.setContentTitle(title);
-		return this;
-	}
+    @Override
+    public NotificationBuilder setContentTitle(CharSequence title) {
+        builder.setContentTitle(title);
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setContentText(CharSequence text) {
-		builder.setContentText(text);
-		return this;
-	}
+    @Override
+    public NotificationBuilder setContentText(CharSequence text) {
+        builder.setContentText(text);
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setSmallIcon(int smallIcon) {
-		if (smallIcon == -1) {
-			ApplicationInfo applicationInfo = AndroidPlatformModule.getAppInfoProvider().getApplicationInfo();
-			smallIcon = applicationInfo == null ? -1 : applicationInfo.icon;
-		}
+    @Override
+    public NotificationBuilder setSmallIcon(int smallIcon) {
+        if (smallIcon == -1) {
+            ApplicationInfo applicationInfo =
+                    AndroidPlatformModule.getAppInfoProvider().getApplicationInfo();
+            smallIcon = applicationInfo == null ? -1 : applicationInfo.icon;
+        }
 
-		if (smallIcon == -1) {
-			return this;
-		}
+        if (smallIcon == -1) {
+            return this;
+        }
 
-		builder.setSmallIcon(smallIcon);
-		return this;
-	}
+        builder.setSmallIcon(smallIcon);
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setTicker(CharSequence ticker) {
-		builder.setTicker(ticker);
-		return this;
-	}
+    @Override
+    public NotificationBuilder setTicker(CharSequence ticker) {
+        builder.setTicker(ticker);
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setWhen(long time) {
-		builder.setWhen(time);
-		builder.setShowWhen(true);
-		return this;
-	}
+    @Override
+    public NotificationBuilder setWhen(long time) {
+        builder.setWhen(time);
+        builder.setShowWhen(true);
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setStyle(@Nullable Bitmap bigPicture, CharSequence text) {
-		final NotificationCompat.Style style;
+    /**
+     * @param bigPicture expected ~450dp wide at roughly 2:1 aspect ratio; it is center-cropped
+     *     otherwise.
+     */
+    @Override
+    public NotificationBuilder setStyle(@Nullable Bitmap bigPicture, CharSequence text) {
+        final NotificationCompat.Style style;
 
-		if (bigPicture != null) {
-			//Images should be ? 450dp wide, ~2:1 aspect (see slide 52)
-			//The image will be centerCropped
-			//here: http://commondatastorage.googleapis.com/io2012/presentations/live%20to%20website/105.pdf
-			style = new NotificationCompat.BigPictureStyle()
-					.bigPicture(bigPicture)
-					.setSummaryText(text);
-		} else {
-			style = new NotificationCompat.BigTextStyle()
-					.bigText(text);
-		}
+        if (bigPicture != null) {
+            style = new NotificationCompat.BigPictureStyle()
+                    .bigPicture(bigPicture)
+                    .setSummaryText(text);
+        } else {
+            style = new NotificationCompat.BigTextStyle().bigText(text);
+        }
 
-		builder.setStyle(style);
-		return this;
-	}
+        builder.setStyle(style);
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setColor(Integer iconBackgroundColor) {
-		if (iconBackgroundColor != null) {
-			builder.setColor(iconBackgroundColor);
-		}
-		return this;
-	}
+    @Override
+    public NotificationBuilder setColor(Integer iconBackgroundColor) {
+        if (iconBackgroundColor != null) {
+            builder.setColor(iconBackgroundColor);
+        }
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setLargeIcon(Bitmap largeIcon) {
-		if (null != largeIcon) {
-			builder.setLargeIcon(largeIcon);
-		}
-		return this;
-	}
+    @Override
+    public NotificationBuilder setLargeIcon(Bitmap largeIcon) {
+        if (null != largeIcon) {
+            builder.setLargeIcon(largeIcon);
+        }
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setPriority(int priority) {
-		builder.setPriority(priority);
-		return this;
-	}
+    @Override
+    public NotificationBuilder setPriority(int priority) {
+        builder.setPriority(priority);
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setVisibility(int visibility) {
-		builder.setVisibility(visibility);
-		return this;
-	}
+    @Override
+    public NotificationBuilder setVisibility(int visibility) {
+        builder.setVisibility(visibility);
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder addAction(int icon, CharSequence title, PendingIntent intent) {
-		builder.addAction(new NotificationCompat.Action(icon, title, intent));
-		return this;
-	}
+    @Override
+    public NotificationBuilder addAction(int icon, CharSequence title, PendingIntent intent) {
+        builder.addAction(new NotificationCompat.Action(icon, title, intent));
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setLed(int arg, int ledOnMs, int ledOffMs) {
-		builder.setLights(arg, ledOnMs, ledOffMs);
-		return this;
-	}
+    @Override
+    public NotificationBuilder setLed(int arg, int ledOnMs, int ledOffMs) {
+        builder.setLights(arg, ledOnMs, ledOffMs);
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setExtras(Bundle extras) {
-		builder.setExtras(extras);
-		return this;
-	}
+    @Override
+    public NotificationBuilder setExtras(Bundle extras) {
+        builder.setExtras(extras);
+        return this;
+    }
 
-	@Override
-	public NotificationBuilder setGroup(String groupId) {
-		builder.setGroup(groupId);
-		return this;
-	}
+    @Override
+    public NotificationBuilder setGroup(String groupId) {
+        builder.setGroup(groupId);
+        return this;
+    }
 
-	@Override
-	public Notification build() {
-		return builder.build();
-	}
+    @Override
+    public Notification build() {
+        return builder.build();
+    }
 }

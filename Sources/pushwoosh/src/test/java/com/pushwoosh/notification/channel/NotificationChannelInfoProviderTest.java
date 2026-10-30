@@ -46,10 +46,12 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = "AndroidManifest.xml")
 public class NotificationChannelInfoProviderTest {
+    private final Locale defaultLocale = Locale.getDefault();
     private PlatformTestManager platformTestManager;
 
     @Before
@@ -61,6 +63,15 @@ public class NotificationChannelInfoProviderTest {
     @After
     public void tearDown() throws Exception {
         platformTestManager.tearDown();
+        Locale.setDefault(defaultLocale);
+    }
+
+    // Channel ids already created on Turkish devices must survive SDK updates.
+    @Test
+    public void channelId_keepsDeviceLocaleLowercasing() {
+        Locale.setDefault(new Locale("tr", "TR"));
+
+        assertEquals("pushwoosh_ınfo", NotificationChannelInfoProvider.channelId("Info"));
     }
 
     @Test

@@ -26,6 +26,7 @@
 
 package com.pushwoosh.inbox.internal.action;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -39,30 +40,33 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 class UrlActionStrategy implements InboxActionStrategy {
-	String TAG = "UrlActionStrategy";
-	@Override
-	public void performAction(JSONObject actionParams) throws JSONException {
-		String remoteUrl = InboxPayloadDataProvider.getUrl(actionParams);
-		if(remoteUrl == null){
-			return;
-		}
+    String TAG = "UrlActionStrategy";
 
-		Context context = AndroidPlatformModule.getApplicationContext();
-		if (context == null) {
-			PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
-			return;
-		}
-		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(remoteUrl));
-		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		PackageManager packageManager = context.getPackageManager();
-		if (intent.resolveActivity(packageManager) != null) {
-			try {
-				context.startActivity(intent);
-			} catch (Exception e) {
-				PWLog.error(TAG, "Failed to start activity: " + e.getMessage());
-			}
-		} else {
-			PWLog.error(TAG, "Failed to resolve activity for Action.View intent");
-		}
-	}
+    // URL type is http(s) only; browsers are visible via the <queries> in the pushwoosh core manifest.
+    @SuppressLint("QueryPermissionsNeeded")
+    @Override
+    public void performAction(JSONObject actionParams) throws JSONException {
+        String remoteUrl = InboxPayloadDataProvider.getUrl(actionParams);
+        if (remoteUrl == null) {
+            return;
+        }
+
+        Context context = AndroidPlatformModule.getApplicationContext();
+        if (context == null) {
+            PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(remoteUrl));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PackageManager packageManager = context.getPackageManager();
+        if (intent.resolveActivity(packageManager) != null) {
+            try {
+                context.startActivity(intent);
+            } catch (Exception e) {
+                PWLog.error(TAG, "Failed to start activity: " + e.getMessage());
+            }
+        } else {
+            PWLog.error(TAG, "Failed to resolve activity for Action.View intent");
+        }
+    }
 }

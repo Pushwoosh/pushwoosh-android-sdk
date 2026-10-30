@@ -70,13 +70,11 @@ public class UpdateNearestRepository {
             applyNearestJobForLocation(null, forceUpdate, callback, updateNearestJobCallback);
         } else {
             locationTracker.getLocation(AsyncTask.THREAD_POOL_EXECUTOR, location -> {
+                // GMS fires this on the pool after BackgroundExecutor's catch(Throwable) has closed:
+                // anything thrown here is uncaught and kills the process.
                 try {
                     applyNearestJobForLocation(location, forceUpdate, callback, updateNearestJobCallback);
                 } catch (Throwable t) {
-                    // The GMS Task fires this listener on THREAD_POOL_EXECUTOR after applyNearestJob has
-                    // returned, so the Service barrier (BackgroundExecutor.execute's catch(Throwable) around
-                    // doInBackground) has already closed — any throw here escapes uncaught on the pool thread
-                    // and kills the process. Re-attach an equivalent barrier at the dispatch point.
                     PWLog.error(LocationConfig.TAG, SUB_TAG + " failed to apply nearest job", t);
                 }
             });

@@ -1,5 +1,6 @@
 package com.pushwoosh.firebase.internal.checker;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -122,6 +123,8 @@ public class FcmServiceValidator {
         }
     }
 
+    // The intent is pinned to our own package, which is always visible.
+    @SuppressLint("QueryPermissionsNeeded")
     private static void warnAboutLosers(PackageManager pm, Intent intent, String winnerName) {
         List<ResolveInfo> registered = pm.queryIntentServices(intent, 0);
         if (registered == null) {

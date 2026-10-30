@@ -53,7 +53,7 @@ import org.robolectric.shadows.ShadowLooper;
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
 @org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
-public class UpdateRegistrationTest {
+public class ApplicationOpenEventTest {
     private static final String PUSH_TOKEN = "test_pushToken";
     private Config config;
 
@@ -69,16 +69,15 @@ public class UpdateRegistrationTest {
         platformTestManager.tearDown();
     }
 
-    // Tests updateRegistration method with testRegId !=null, forceRegister == true, fresh lastPushRegistration
+    // Verifies that ApplicationOpenEvent triggers registerDevice when lastPushRegistration is stale.
     @Test
-    public void updateRegistrationTest() throws Exception {
+    public void applicationOpenEventSendsRegisterDeviceWhenLastRegistrationStale() throws Exception {
         platformTestManager = new PlatformTestManager(config);
         FakeRequestManager fake = platformTestManager.getRequestManager();
         RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
 
         registrationPrefs.pushToken().set(PUSH_TOKEN);
-        registrationPrefs.forceRegister().set(true);
-        registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 10);
+        registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 11 * 60_000L);
 
         // Steps:
         platformTestManager.onApplicationCreated();
@@ -125,7 +124,6 @@ public class UpdateRegistrationTest {
 
         registrationPrefs.pushToken().set(PUSH_TOKEN);
         registrationPrefs.registeredOnServer().set(true);
-        registrationPrefs.forceRegister().set(true);
         platformTestManager.onApplicationCreated();
     }
 
@@ -166,9 +164,9 @@ public class UpdateRegistrationTest {
         assertEquals(0, fake.count("unregisterDevice"));
     }
 
-    // Tests updateRegistration method with testToken == null, forceRegister == true, outdated lastPushRegistration
+    // Verifies that ApplicationOpenEvent sends nothing when pushToken is null.
     @Test
-    public void nullRegIdUpdateRegistrationTest() throws Exception {
+    public void nullTokenApplicationOpenEventSendsNothing() throws Exception {
         platformTestManager = new PlatformTestManager(config);
         FakeRequestManager fake = platformTestManager.getRequestManager();
         RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
@@ -176,46 +174,47 @@ public class UpdateRegistrationTest {
         // save same appId for correct behavior
         registrationPrefs.applicationId().set(APP_ID);
         registrationPrefs.pushToken().set(null);
-        registrationPrefs.forceRegister().set(true);
         registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 1000000);
 
         // Steps:
-        platformTestManager.setUp();
+        platformTestManager.onApplicationCreated();
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
 
         // Postconditions:
         assertEquals(0, fake.count("registerDevice"));
     }
 
-    // Tests updateRegistration method with testRegId != null, forceRegister == false, fresh lastPushRegistration
+    // Verifies that ApplicationOpenEvent sends nothing when lastPushRegistration is fresh (within cooldown).
     @Test
-    public void falseForceRegisterUpdateRegistrationTest() throws Exception {
+    public void applicationOpenEventWithinCooldownSendsNothing() throws Exception {
         platformTestManager = new PlatformTestManager(config);
         FakeRequestManager fake = platformTestManager.getRequestManager();
         RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
 
         registrationPrefs.applicationId().set(APP_ID);
         registrationPrefs.pushToken().set(PUSH_TOKEN);
-        registrationPrefs.forceRegister().set(false);
         registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 10);
 
         // Steps:
-        platformTestManager.setUp();
+        platformTestManager.onApplicationCreated();
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        EventBus.sendEvent(new ApplicationOpenDetector.ApplicationOpenEvent());
 
         // Postconditions:
         assertEquals(0, fake.count("registerDevice"));
     }
 
-    // Tests updateRegistration method with testRegId != null, forceRegister == false, outdated lastPushRegistration
+    // Verifies that ApplicationOpenEvent triggers registerDevice when lastPushRegistration is outdated.
     @Test
-    public void outdatedLastPushRegistrationUpdateRegistrationTest() throws Exception {
+    public void applicationOpenEventSendsRegisterDeviceWhenLastRegistrationOutdated() throws Exception {
         platformTestManager = new PlatformTestManager(config);
         FakeRequestManager fake = platformTestManager.getRequestManager();
         RegistrationPrefs registrationPrefs = platformTestManager.getRegistrationPrefs();
 
         registrationPrefs.pushToken().set(PUSH_TOKEN);
-        registrationPrefs.forceRegister().set(false);
         registrationPrefs.lastPushRegistration().set(System.currentTimeMillis() - 1000000);
 
         // Steps:

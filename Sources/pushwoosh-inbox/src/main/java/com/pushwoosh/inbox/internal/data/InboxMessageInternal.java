@@ -382,8 +382,7 @@ public class InboxMessageInternal implements Serializable, Comparable<InboxMessa
 
             id = jsonObject.getString(INBOX_ID);
 
-            // as per org.json.JSONObject documentation, JSONObject.getLong() is lossy, so we obtain long values
-            // from received JSON as strings and then parse them to long
+            // JSONObject.getLong() is lossy, so these are read as strings and parsed to long instead; see
             // https://developer.android.com/reference/org/json/JSONObject#getLong(java.lang.String)
             order = Long.parseLong(jsonObject.getString(INBOX_ORDER));
             expiredDate = Long.parseLong(jsonObject.getString(EXPIRED_DATE));

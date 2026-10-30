@@ -21,7 +21,6 @@ import com.pushwoosh.internal.event.NotificationPermissionEvent;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.registrar.PushRegistrar;
-import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.NotificationPermissionActivity;
 import com.pushwoosh.internal.utils.PWLog;
@@ -34,6 +33,7 @@ import com.pushwoosh.notification.handlers.message.user.MessageHandleChainProvid
 import com.pushwoosh.notification.handlers.notification.NotificationOpenHandlerChainProvider;
 import com.pushwoosh.repository.AppCodeApplier;
 import com.pushwoosh.repository.DeviceRegistrar;
+import com.pushwoosh.repository.RegisterDeviceRequest;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.tags.TagsBundle;
 
@@ -150,7 +150,8 @@ public class PushwooshNotificationManager {
     }
 
     private void registerChannelNumber(String phoneNumber, int platform) {
-        deviceRegistrar.registerWithServer(phoneNumber, null, platform, result -> {
+        RegisterDeviceRequest request = new RegisterDeviceRequest(phoneNumber, null, platform);
+        NetworkModule.getRequestManager().sendRequest(request, result -> {
             if (result.isSuccess()) {
                 PWLog.info(TAG, "Registered phone number");
                 return;
@@ -274,14 +275,7 @@ public class PushwooshNotificationManager {
 
     public void onTokenReceived(@NonNull String pushToken, @Nullable String tagsJson) {
         PWLog.noise(TAG, String.format("onTokenReceived: %s", pushToken));
-        if (DeviceSpecificProvider.getInstance() == null) {
-            PWLog.error(TAG, "can't register device: no push transport module");
-            EventBus.sendEvent(new RegistrationErrorEvent("can't register device: no push transport module"));
-            return;
-        }
-        // written before scheduling on purpose: FCM/HMS onNewToken dedup relies on it in any SDK state
-        registrationPrefs.pushToken().set(pushToken);
-        deviceRegistrar.scheduleRegistration(tagsJson);
+        deviceRegistrar.onTokenReceived(pushToken, tagsJson);
     }
 
     public void onFailedToRegisterForRemoteNotifications(String error) {

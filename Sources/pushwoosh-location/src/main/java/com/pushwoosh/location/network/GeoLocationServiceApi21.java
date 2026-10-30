@@ -26,14 +26,16 @@
 
 package com.pushwoosh.location.network;
 
+import android.annotation.SuppressLint;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
-import com.pushwoosh.internal.utils.BackgroundExecutor;
 import android.os.Build;
 import android.os.PersistableBundle;
+
 import androidx.annotation.RequiresApi;
 
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.location.internal.LocationModule;
 import com.pushwoosh.location.internal.utils.LocationConfig;
@@ -44,127 +46,130 @@ import java.lang.ref.WeakReference;
  * Service for updating by schedule nearest zones. If forceUpdate is true than it request nearest zones
  * from service otherwise it get nearest zones from storage
  */
+// Raw JobScheduler job on fixed id -366477411: outside WorkManager's default range, yet host jobs can hit it.
+// Known debt: the fix is migrating to WorkManager, not picking another id.
+@SuppressLint("SpecifyJobSchedulerIdRange")
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class GeoLocationServiceApi21 extends JobService {
-	private static final String SUB_TAG = "[GeoLocationServiceApi]";
-	public static final String KEY_FORCE_UPDATE = SUB_TAG + "KEY_FORCE_UPDATE";
-	public static final String KEY_TYPE = SUB_TAG + ".key_TYPE";
+    private static final String SUB_TAG = "[GeoLocationServiceApi]";
+    public static final String KEY_FORCE_UPDATE = SUB_TAG + "KEY_FORCE_UPDATE";
+    public static final String KEY_TYPE = SUB_TAG + ".key_TYPE";
 
-	private static final int GET_NEAREST_TYPE = 0;
-	private static final int DISABLE_LOCATION_TYPE = 1;
+    private static final int GET_NEAREST_TYPE = 0;
+    private static final int DISABLE_LOCATION_TYPE = 1;
 
-	private JobExecutor jobTask;
+    private JobExecutor jobTask;
 
-	public static PersistableBundle createGetNearestExtras(boolean forceUpdate) {
-		PersistableBundle persistableBundle = new PersistableBundle();
-		persistableBundle.putInt(KEY_FORCE_UPDATE, forceUpdate ? 1 : 0);
-		persistableBundle.putInt(KEY_TYPE, GET_NEAREST_TYPE);
-		return persistableBundle;
-	}
+    public static PersistableBundle createGetNearestExtras(boolean forceUpdate) {
+        PersistableBundle persistableBundle = new PersistableBundle();
+        persistableBundle.putInt(KEY_FORCE_UPDATE, forceUpdate ? 1 : 0);
+        persistableBundle.putInt(KEY_TYPE, GET_NEAREST_TYPE);
+        return persistableBundle;
+    }
 
-	public static PersistableBundle createDisableLocationExtras() {
-		PersistableBundle persistableBundle = new PersistableBundle();
-		persistableBundle.putInt(KEY_TYPE, DISABLE_LOCATION_TYPE);
-		return persistableBundle;
-	}
+    public static PersistableBundle createDisableLocationExtras() {
+        PersistableBundle persistableBundle = new PersistableBundle();
+        persistableBundle.putInt(KEY_TYPE, DISABLE_LOCATION_TYPE);
+        return persistableBundle;
+    }
 
-	private GetNearestZoneJobApplier jobApplayer;
+    private GetNearestZoneJobApplier jobApplayer;
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		AndroidPlatformModule.init(getApplicationContext());
-		jobApplayer = new GetNearestZoneJobApplier(LocationModule.nearestZonesManager(),
-				LocationModule.updateNearestRepository(),
-				LocationModule.locationTracker());
-	}
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        AndroidPlatformModule.init(getApplicationContext());
+        jobApplayer = new GetNearestZoneJobApplier(
+                LocationModule.nearestZonesManager(),
+                LocationModule.updateNearestRepository(),
+                LocationModule.locationTracker());
+    }
 
-	@Override
-	public boolean onStartJob(final JobParameters jobParameters) {
-		PWLog.noise(LocationConfig.TAG, SUB_TAG + "onStartJob");
-		try {
-			boolean forceUpdate = jobParameters.getExtras().getInt(KEY_FORCE_UPDATE, 0) == 1;
-			final int type = jobParameters.getExtras().getInt(KEY_TYPE);
-			jobTask = new JobExecutor(type, jobApplayer, () -> jobFinished(jobParameters, false), forceUpdate);
-			jobTask.execute();
-			return true;
-		} catch (Exception e) {
-			PWLog.error(LocationConfig.TAG, SUB_TAG + "Failed to start job", e);
-			return false;
-		}
-	}
+    @Override
+    public boolean onStartJob(final JobParameters jobParameters) {
+        PWLog.noise(LocationConfig.TAG, SUB_TAG + "onStartJob");
+        try {
+            boolean forceUpdate = jobParameters.getExtras().getInt(KEY_FORCE_UPDATE, 0) == 1;
+            final int type = jobParameters.getExtras().getInt(KEY_TYPE);
+            jobTask = new JobExecutor(type, jobApplayer, () -> jobFinished(jobParameters, false), forceUpdate);
+            jobTask.execute();
+            return true;
+        } catch (Exception e) {
+            PWLog.error(LocationConfig.TAG, SUB_TAG + "Failed to start job", e);
+            return false;
+        }
+    }
 
-	@Override
-	public boolean onStopJob(final JobParameters jobParameters) {
-		PWLog.noise(LocationConfig.TAG, SUB_TAG + "onStopJob");
-		try {
-			if (jobApplayer != null) {
-				jobApplayer.cancel();
-			}
-			if (jobTask != null) {
-				jobTask.cancel(true);
-			}
-		} catch (Exception e) {
-			PWLog.error(LocationConfig.TAG, SUB_TAG + "Failed to stop job", e);
-		}
-		return true;
-	}
+    @Override
+    public boolean onStopJob(final JobParameters jobParameters) {
+        PWLog.noise(LocationConfig.TAG, SUB_TAG + "onStopJob");
+        try {
+            if (jobApplayer != null) {
+                jobApplayer.cancel();
+            }
+            if (jobTask != null) {
+                jobTask.cancel(true);
+            }
+        } catch (Exception e) {
+            PWLog.error(LocationConfig.TAG, SUB_TAG + "Failed to stop job", e);
+        }
+        return true;
+    }
 
-	@Override
-	public void onDestroy() {
-		PWLog.noise(LocationConfig.TAG, SUB_TAG + " destroy nearest geoZones service");
-		super.onDestroy();
-	}
+    @Override
+    public void onDestroy() {
+        PWLog.noise(LocationConfig.TAG, SUB_TAG + " destroy nearest geoZones service");
+        super.onDestroy();
+    }
 
+    private static class JobExecutor {
+        private final int type;
+        private final WeakReference<GetNearestZoneJobApplier> jobApplayer;
+        private final WeakReference<JobFinished> jobFinished;
+        private final boolean forceUpdate;
 
-	private static class JobExecutor {
-		private final int type;
-		private final WeakReference<GetNearestZoneJobApplier> jobApplayer;
-		private final WeakReference<JobFinished> jobFinished;
-		private final boolean forceUpdate;
+        JobExecutor(int type, GetNearestZoneJobApplier jobApplayer, JobFinished jobFinished, boolean forceUpdate) {
+            this.type = type;
+            this.jobApplayer = new WeakReference<>(jobApplayer);
+            this.jobFinished = new WeakReference<>(jobFinished);
+            this.forceUpdate = forceUpdate;
+        }
 
-		JobExecutor(int type, GetNearestZoneJobApplier jobApplayer, JobFinished jobFinished, boolean forceUpdate) {
-			this.type = type;
-			this.jobApplayer = new WeakReference<>(jobApplayer);
-			this.jobFinished = new WeakReference<>(jobFinished);
-			this.forceUpdate = forceUpdate;
-		}
+        private void doInBackground() {
+            GetNearestZoneJobApplier applier = jobApplayer.get();
+            if (applier == null) {
+                return;
+            }
+            switch (type) {
+                case GET_NEAREST_TYPE:
+                    applier.loadNearestGeoZones(forceUpdate);
+                    break;
+                case DISABLE_LOCATION_TYPE:
+                    applier.locationDisable();
+                    break;
+            }
+        }
 
-		private void doInBackground() {
-			GetNearestZoneJobApplier applier = jobApplayer.get();
-			if (applier == null) {
-				return;
-			}
-			switch (type) {
-				case GET_NEAREST_TYPE:
-					applier.loadNearestGeoZones(forceUpdate);
-					break;
-				case DISABLE_LOCATION_TYPE:
-					applier.locationDisable();
-					break;
-			}
-		}
+        private void onPostExecute() {
+            JobFinished jobFinished = this.jobFinished.get();
+            if (jobFinished != null) {
+                jobFinished.taskFinish();
+            }
+        }
 
-		private void onPostExecute() {
-			JobFinished jobFinished = this.jobFinished.get();
-			if (jobFinished != null) {
-				jobFinished.taskFinish();
-			}
-		}
+        void execute() {
+            BackgroundExecutor.execute(() -> {
+                doInBackground();
+                BackgroundExecutor.main(this::onPostExecute);
+            });
+        }
 
-		void execute() {
-			BackgroundExecutor.execute(() -> {
-				doInBackground();
-				BackgroundExecutor.main(this::onPostExecute);
-			});
-		}
+        void cancel(boolean mayInterruptIfRunning) {
+            // no-op: jobApplayer.cancel() handles cancellation
+        }
+    }
 
-		void cancel(boolean mayInterruptIfRunning) {
-			// no-op: jobApplayer.cancel() handles cancellation
-		}
-	}
-
-	private interface JobFinished {
-		void taskFinish();
-	}
+    private interface JobFinished {
+        void taskFinish();
+    }
 }

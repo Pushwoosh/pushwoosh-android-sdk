@@ -37,39 +37,42 @@ import androidx.annotation.Nullable;
 import java.lang.ref.WeakReference;
 
 public class ContextReceiverProvider implements ReceiverProvider {
-	private final WeakReference<Context> context;
+    private final WeakReference<Context> context;
 
-	public ContextReceiverProvider(@Nullable final Context context) {
-		this.context = new WeakReference<>(context);
-	}
+    public ContextReceiverProvider(@Nullable final Context context) {
+        this.context = new WeakReference<>(context);
+    }
 
-	@Nullable
-	private Context getContext() {
-		return context.get();
-	}
+    @Nullable private Context getContext() {
+        return context.get();
+    }
 
-	@Override
-	public Intent registerReceiver(final BroadcastReceiver broadcastReceiver, final IntentFilter intentFilter) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			return getContext() == null ? null : getContext().registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
-		} else {
-			return getContext() == null ? null : getContext().registerReceiver(broadcastReceiver, intentFilter);
-		}
-	}
+    @Override
+    public Intent registerReceiver(final BroadcastReceiver broadcastReceiver, final IntentFilter intentFilter) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return getContext() == null
+                    ? null
+                    : getContext().registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            // no flag exists pre-33; ContextCompat needs core>=1.9 at runtime and hosts may pin older
+            //noinspection UnspecifiedRegisterReceiverFlag
+            return getContext() == null ? null : getContext().registerReceiver(broadcastReceiver, intentFilter);
+        }
+    }
 
-	@Override
-	public void sendBroadcast(final Intent intent) {
-		if (getContext() == null) {
-			return;
-		}
-		getContext().sendBroadcast(intent);
-	}
+    @Override
+    public void sendBroadcast(final Intent intent) {
+        if (getContext() == null) {
+            return;
+        }
+        getContext().sendBroadcast(intent);
+    }
 
-	@Override
-	public void sendBroadcast(final Intent broadcastIntent, final String permission) {
-		if (getContext() == null) {
-			return;
-		}
-		getContext().sendBroadcast(broadcastIntent, permission);
-	}
+    @Override
+    public void sendBroadcast(final Intent broadcastIntent, final String permission) {
+        if (getContext() == null) {
+            return;
+        }
+        getContext().sendBroadcast(broadcastIntent, permission);
+    }
 }

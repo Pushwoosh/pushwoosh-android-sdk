@@ -31,23 +31,23 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.telecom.Call;
+import android.os.Build;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.LocationServices;
 import com.pushwoosh.exception.PushwooshException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
-import com.pushwoosh.internal.utils.ImageUtils;
-import com.pushwoosh.internal.utils.PendingIntentUtils;
-import com.pushwoosh.location.AndroidManifestLocationConfig;
-import com.pushwoosh.location.foregroundservice.ForegroundServiceHelper;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.utils.ImageUtils;
 import com.pushwoosh.internal.utils.PWLog;
+import com.pushwoosh.location.AndroidManifestLocationConfig;
 import com.pushwoosh.location.JobLocationIdProvider;
 import com.pushwoosh.location.NearestZonesManager;
+import com.pushwoosh.location.foregroundservice.ForegroundServiceHelper;
 import com.pushwoosh.location.foregroundservice.ForegroundServiceHelperRepository;
 import com.pushwoosh.location.geofence.GeoZonesUpdater;
 import com.pushwoosh.location.geofence.GeofenceTracker;
@@ -101,18 +101,22 @@ public class LocationModule {
     private static final GeoZoneStorage geoZoneStorage = new GeoZoneStorage(AndroidPlatformModule.getPrefsProvider());
 
     private static final JobLocationIdProvider jobIdProvider = new JobLocationIdProvider();
-    private static final LocationPermissionChecker locationPermissionChecker = new LocationPermissionChecker(getApplicationContext());
-    private static final FineLocationPermissionChecker fineLocationPermissionChecker = new FineLocationPermissionChecker(getApplicationContext());
-    private static final BackgroundLocationPermissionDeclaredChecker backgroundLocationPermissionDeclaredChecker = new BackgroundLocationPermissionDeclaredChecker(getApplicationContext());
-    private static final BackgroundLocationPermissionChecker backgroundLocationPermissionChecker = new BackgroundLocationPermissionChecker(getApplicationContext());
+    private static final LocationPermissionChecker locationPermissionChecker =
+            new LocationPermissionChecker(getApplicationContext());
+    private static final FineLocationPermissionChecker fineLocationPermissionChecker =
+            new FineLocationPermissionChecker(getApplicationContext());
+    private static final BackgroundLocationPermissionDeclaredChecker backgroundLocationPermissionDeclaredChecker =
+            new BackgroundLocationPermissionDeclaredChecker(getApplicationContext());
+    private static final BackgroundLocationPermissionChecker backgroundLocationPermissionChecker =
+            new BackgroundLocationPermissionChecker(getApplicationContext());
     private static final LocationStateChecker locationStateChecker = new LocationStateChecker(getApplicationContext());
     private static final ServiceScheduler serviceScheduler = new ServiceScheduler(getApplicationContext());
 
     private static final GeoZonesUpdaterWrapper geoZonesUpdaterWrapper = new GeoZonesUpdaterWrapper();
     private static final LocationTrackerCallbackWrapper locationTrackerCallback = new LocationTrackerCallbackWrapper();
-    private static final GeofenceStateChangedCallbackWrapper geofenceStateChangedCallbackWrapper = new GeofenceStateChangedCallbackWrapper();
+    private static final GeofenceStateChangedCallbackWrapper geofenceStateChangedCallbackWrapper =
+            new GeofenceStateChangedCallbackWrapper();
     private static final LocationUpdateListenerWrapper locationUpdateListener = new LocationUpdateListenerWrapper();
-
 
     private static final Object PENDING_INTENT_MUTEX = new Object();
     private static PendingIntent pendingIntent;
@@ -125,8 +129,7 @@ public class LocationModule {
         nearestZonesManager();
     }
 
-    @Nullable
-    private static GeofencingClient createGeofencingClient() {
+    @Nullable private static GeofencingClient createGeofencingClient() {
         if (geofencingClient == null) {
             synchronized (GEOFENCING_CLIENT) {
                 if (geofencingClient == null) {
@@ -137,11 +140,9 @@ public class LocationModule {
         return geofencingClient;
     }
 
-    @Nullable
-    private static GeofencingClient createGeofencingClientNotThreadSafely() {
+    @Nullable private static GeofencingClient createGeofencingClientNotThreadSafely() {
         Context applicationContext = getApplicationContext();
-        if (applicationContext != null)
-            return LocationServices.getGeofencingClient(applicationContext);
+        if (applicationContext != null) return LocationServices.getGeofencingClient(applicationContext);
         else {
             return null;
         }
@@ -151,30 +152,28 @@ public class LocationModule {
         if (pendingIntent == null) {
             synchronized (PENDING_INTENT_MUTEX) {
                 if (pendingIntent == null) {
-                    pendingIntent = createPendingIntentNotThreadSefely();
+                    pendingIntent = createGeofencePendingIntent(getApplicationContext());
                 }
             }
         }
         return pendingIntent;
     }
 
-    @Nullable
-    private static PendingIntent createPendingIntentNotThreadSefely() {
-        Context context = getApplicationContext();
+    @VisibleForTesting
+    @Nullable static PendingIntent createGeofencePendingIntent(@Nullable Context context) {
         if (context == null) {
             return null;
         }
         Intent intent = new Intent(context, GeofenceReceiver.class);
         intent.setAction(GeofenceReceiver.getGeofenceAction(context));
-        return PendingIntent.getBroadcast(
-                context,
-                0,
-                intent,
-                PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
+        // GMS fills the transition data into this intent at send time; FLAG_IMMUTABLE would drop the fill-in.
+        int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE
+                : PendingIntent.FLAG_UPDATE_CURRENT;
+        return PendingIntent.getBroadcast(context, 0, intent, flags);
     }
 
-    @Nullable
-    public static LocationTracker locationTracker() {
+    @Nullable public static LocationTracker locationTracker() {
         if (locationTracker == null) {
             synchronized (LOCATION_MUTEX) {
                 if (locationTracker == null) {
@@ -226,7 +225,12 @@ public class LocationModule {
         if (geofenceTracker == null) {
             synchronized (GEOFENCE_TRACKER_MUTEX) {
                 if (geofenceTracker == null) {
-                    geofenceTracker = GeofenceTrackerFactory.createGeofenceTracker(geofencer(), geoZonesUpdaterWrapper, geoZoneStorage, locationTracker(), fineLocationPermissionChecker);
+                    geofenceTracker = GeofenceTrackerFactory.createGeofenceTracker(
+                            geofencer(),
+                            geoZonesUpdaterWrapper,
+                            geoZoneStorage,
+                            locationTracker(),
+                            fineLocationPermissionChecker);
                     geofenceStateChangedCallbackWrapper.setGeofenceStateChangedCallback(geofenceTracker);
                     locationUpdateListener.setLocationUpdateListener(geofenceTracker);
                 }
@@ -242,7 +246,8 @@ public class LocationModule {
             synchronized (FOREGROUND_SERVICE_HELPER_MUTEX) {
                 if (foregroundServiceHelper == null) {
                     AndroidManifestLocationConfig config = new AndroidManifestLocationConfig(getApplicationContext());
-                    foregroundServiceHelper = new ForegroundServiceHelper(AndroidPlatformModule.getApplicationContext(), config, imageUtils);
+                    foregroundServiceHelper = new ForegroundServiceHelper(
+                            AndroidPlatformModule.getApplicationContext(), config, imageUtils);
                     ForegroundServiceHelperRepository.setForegroundServiceHelper(foregroundServiceHelper);
                 }
             }
@@ -250,15 +255,18 @@ public class LocationModule {
         return foregroundServiceHelper;
     }
 
-    @Nullable
-    public static Geofencer geofencer() {
+    @Nullable public static Geofencer geofencer() {
         if (geofencer == null) {
             synchronized (GEOFENCER_MUTEX) {
                 if (geofencer == null) {
                     if (getApplicationContext() == null) {
                         return null;
                     }
-                    geofencer = GeofencerFactory.createGeofencer(getApplicationContext(), locationPermissionChecker, createGeofencingClient(), createPendingIntent());
+                    geofencer = GeofencerFactory.createGeofencer(
+                            getApplicationContext(),
+                            locationPermissionChecker,
+                            createGeofencingClient(),
+                            createPendingIntent());
                 }
             }
         }
@@ -294,8 +302,7 @@ public class LocationModule {
         return jobIdProvider;
     }
 
-    @Nullable
-    private static Context getApplicationContext() {
+    @Nullable private static Context getApplicationContext() {
         return AndroidPlatformModule.getApplicationContext();
     }
 
@@ -313,10 +320,8 @@ public class LocationModule {
 
         @Override
         public void requestUpdateGeoZones(Callback<Boolean, PushwooshException> callback) {
-            geoZonesUpdater.requestUpdateGeoZones(requestUpdateGeoZonesCallback ->
-                callback.process(Result.fromData(geoZonesUpdater != null
-                        && requestUpdateGeoZonesCallback.getData()))
-            );
+            geoZonesUpdater.requestUpdateGeoZones(requestUpdateGeoZonesCallback -> callback.process(
+                    Result.fromData(geoZonesUpdater != null && requestUpdateGeoZonesCallback.getData())));
         }
     }
 

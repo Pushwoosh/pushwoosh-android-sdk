@@ -6,7 +6,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import android.os.Build;
@@ -20,7 +19,6 @@ import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.FileUtils;
 import com.pushwoosh.internal.utils.MockConfig;
-import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.repository.RepositoryTestManager;
@@ -78,8 +76,7 @@ public class InAppConfigTest {
 
     private void initRegistrationPrefs(String preferredLanguage) {
         AndroidPlatformModule.init(RuntimeEnvironment.application, true);
-        registrationPrefs =
-                RepositoryTestManager.createRegistrationPrefs(MockConfig.createMock(), mock(DeviceRegistrar.class));
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(MockConfig.createMock());
         RepositoryModule.setRegistrationPreferences(registrationPrefs);
         registrationPrefs.language().set(preferredLanguage);
     }
@@ -401,10 +398,7 @@ public class InAppConfigTest {
     public void testParseModalConfig_AnimationDuration_Parsed() throws IOException {
         when(mockConfigFile.exists()).thenReturn(true);
 
-        String jsonContent = "{\n" + "  \"style_settings\": {\n"
-                + "    \"animation_duration\": 500\n"
-                + "  }\n"
-                + "}";
+        String jsonContent = "{\n" + "  \"style_settings\": {\n" + "    \"animation_duration\": 500\n" + "  }\n" + "}";
 
         try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
             fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
@@ -422,10 +416,7 @@ public class InAppConfigTest {
     public void testParseModalConfig_AnimationDuration_LegacyDurationKeyIgnored() throws IOException {
         when(mockConfigFile.exists()).thenReturn(true);
 
-        String jsonContent = "{\n" + "  \"style_settings\": {\n"
-                + "    \"duration\": 1000\n"
-                + "  }\n"
-                + "}";
+        String jsonContent = "{\n" + "  \"style_settings\": {\n" + "    \"duration\": 1000\n" + "  }\n" + "}";
 
         try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
             fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
@@ -442,10 +433,7 @@ public class InAppConfigTest {
     public void testParseModalConfig_AnimationDurationZero_RemainsNull() throws IOException {
         when(mockConfigFile.exists()).thenReturn(true);
 
-        String jsonContent = "{\n" + "  \"style_settings\": {\n"
-                + "    \"animation_duration\": 0\n"
-                + "  }\n"
-                + "}";
+        String jsonContent = "{\n" + "  \"style_settings\": {\n" + "    \"animation_duration\": 0\n" + "  }\n" + "}";
 
         try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
             fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
@@ -462,10 +450,7 @@ public class InAppConfigTest {
     public void testParseModalConfig_NoAnimationDuration_RemainsNull() throws IOException {
         when(mockConfigFile.exists()).thenReturn(true);
 
-        String jsonContent = "{\n" + "  \"style_settings\": {\n"
-                + "    \"position\": \"center\"\n"
-                + "  }\n"
-                + "}";
+        String jsonContent = "{\n" + "  \"style_settings\": {\n" + "    \"position\": \"center\"\n" + "  }\n" + "}";
 
         try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
             fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
@@ -482,10 +467,7 @@ public class InAppConfigTest {
     public void testParseModalConfig_AnimationDuration_Negative_RemainsNull() throws IOException {
         when(mockConfigFile.exists()).thenReturn(true);
 
-        String jsonContent = "{\n" + "  \"style_settings\": {\n"
-                + "    \"animation_duration\": -100\n"
-                + "  }\n"
-                + "}";
+        String jsonContent = "{\n" + "  \"style_settings\": {\n" + "    \"animation_duration\": -100\n" + "  }\n" + "}";
 
         try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
             fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
@@ -502,10 +484,8 @@ public class InAppConfigTest {
     public void testParseModalConfig_AnimationDuration_NonNumericString_RemainsNull() throws IOException {
         when(mockConfigFile.exists()).thenReturn(true);
 
-        String jsonContent = "{\n" + "  \"style_settings\": {\n"
-                + "    \"animation_duration\": \"abc\"\n"
-                + "  }\n"
-                + "}";
+        String jsonContent =
+                "{\n" + "  \"style_settings\": {\n" + "    \"animation_duration\": \"abc\"\n" + "  }\n" + "}";
 
         try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
             fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);
@@ -513,8 +493,7 @@ public class InAppConfigTest {
             ModalRichmediaConfig result = inAppConfig.parseModalConfig("test_code");
 
             assertNull(
-                    "non-numeric animationDuration should be swallowed and stay null",
-                    result.getAnimationDuration());
+                    "non-numeric animationDuration should be swallowed and stay null", result.getAnimationDuration());
         }
     }
 
@@ -544,10 +523,8 @@ public class InAppConfigTest {
     public void testParseModalConfig_AnimationDuration_Fractional_Truncated() throws IOException {
         when(mockConfigFile.exists()).thenReturn(true);
 
-        String jsonContent = "{\n" + "  \"style_settings\": {\n"
-                + "    \"animation_duration\": 500.5\n"
-                + "  }\n"
-                + "}";
+        String jsonContent =
+                "{\n" + "  \"style_settings\": {\n" + "    \"animation_duration\": 500.5\n" + "  }\n" + "}";
 
         try (MockedStatic<FileUtils> fileUtilsMock = Mockito.mockStatic(FileUtils.class)) {
             fileUtilsMock.when(() -> FileUtils.readFile(mockConfigFile)).thenReturn(jsonContent);

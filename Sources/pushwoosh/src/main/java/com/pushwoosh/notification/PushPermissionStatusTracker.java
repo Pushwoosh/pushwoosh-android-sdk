@@ -101,7 +101,7 @@ public final class PushPermissionStatusTracker {
             return;
         }
         PWLog.debug(TAG, "Push permission status changed to " + status + ", updating registration");
-        registrar.updateRegistrationNow(() -> statusInFlight.compareAndSet(status, null));
+        registrar.onPermissionStatusChanged(() -> statusInFlight.compareAndSet(status, null));
     }
 
     @VisibleForTesting

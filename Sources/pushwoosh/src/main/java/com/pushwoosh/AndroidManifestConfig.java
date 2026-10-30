@@ -147,9 +147,6 @@ class AndroidManifestConfig implements Config {
         String notificationIconPath = applicationInfo.metaData.getString("com.pushwoosh.notification_icon");
         if (notificationIconPath != null) {
             notificationIconPath = notificationIconPath.trim();
-            // AndroidManifest.xml contains full path of notification icon e.g
-            // "res/drawable-xxhdpi-v11/notification_small_icon.png"
-            // Need to extract resource name from path first
             String resourceName = FileUtils.getLastPathComponent(notificationIconPath);
             resourceName = FileUtils.removeExtension(resourceName);
             notificationIcon = AndroidPlatformModule.getResourceProvider().getIdentifier(resourceName, "drawable");

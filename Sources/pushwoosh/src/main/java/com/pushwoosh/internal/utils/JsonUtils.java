@@ -1,6 +1,7 @@
 package com.pushwoosh.internal.utils;
 
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -22,8 +23,8 @@ import java.util.Set;
 public final class JsonUtils {
     private static final String TAG = "JsonUtils";
 
-    @NonNull
-    public static Map<String, Object> jsonToMap(@Nullable JSONObject jsonObject, boolean convertSubobjectToString) throws JSONException {
+    @NonNull public static Map<String, Object> jsonToMap(@Nullable JSONObject jsonObject, boolean convertSubobjectToString)
+            throws JSONException {
         Map<String, Object> map = new HashMap<>();
 
         if (jsonObject == null) {
@@ -31,7 +32,7 @@ public final class JsonUtils {
         }
         JSONObject object;
         try {
-            //cloning to avoid ConcurrentModificationException for keysIterator
+            // cloning to avoid ConcurrentModificationException for keysIterator
             object = new JSONObject(jsonObject.toString());
         } catch (Throwable t) {
             // avoid ConcurrentModificationException in jsonObject.toString() method
@@ -56,13 +57,11 @@ public final class JsonUtils {
         return map;
     }
 
-    @NonNull
-    public static Map<String, Object> jsonToMap(@Nullable JSONObject jsonObject) throws JSONException {
+    @NonNull public static Map<String, Object> jsonToMap(@Nullable JSONObject jsonObject) throws JSONException {
         return jsonToMap(jsonObject, false);
     }
 
-    @NonNull
-    public static List<Object> jsonToList(JSONArray array) throws JSONException {
+    @NonNull public static List<Object> jsonToList(JSONArray array) throws JSONException {
         List<Object> list = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
             Object value = array.get(i);
@@ -80,8 +79,7 @@ public final class JsonUtils {
         return list;
     }
 
-    @NonNull
-    public static JSONObject mapToJson(@Nullable Map<?, ?> data) {
+    @NonNull public static JSONObject mapToJson(@Nullable Map<?, ?> data) {
         JSONObject object = new JSONObject();
 
         if (data == null) {
@@ -89,10 +87,7 @@ public final class JsonUtils {
         }
 
         for (Map.Entry<?, ?> entry : data.entrySet()) {
-            /*
-             * Deviate from the original by checking that keys are non-null and
-             * of the proper type. (We still defer validating the values).
-             */
+            // Deviates from the org.json original: keys are checked for non-null/type here; values stay unvalidated.
             String key = (String) entry.getKey();
             if (key == null) {
                 throw new IllegalArgumentException("key == null");
@@ -165,8 +160,7 @@ public final class JsonUtils {
 
     public static void mergeJson(@NonNull JSONObject from, @NonNull JSONObject to) {
         Iterator<String> keys = from.keys();
-        //use synchronized keyword in attempt to fix rare ConcurrentModificationException in
-        // java.util.LinkedHashMap$LinkedKeyIterator.next on devices with Samsung chips (https://kanban.corp.pushwoosh.com/issue/SDK-310/)
+        // synchronized: rare ConcurrentModificationException in LinkedKeyIterator on Samsung chips (SDK-310).
         synchronized (keys) {
             while (keys.hasNext()) {
                 String key = keys.next();
@@ -192,8 +186,7 @@ public final class JsonUtils {
         }
     }
 
-    @NonNull
-    public static JSONObject bundleToJson(final Bundle pushBundle) {
+    @NonNull public static JSONObject bundleToJson(final Bundle pushBundle) {
         JSONObject dataObject = new JSONObject();
         if (pushBundle == null) {
             return dataObject;
@@ -226,8 +219,7 @@ public final class JsonUtils {
         return dataObject;
     }
 
-    @NonNull
-    public static JSONObject bundleToJsonWithUserData(final Bundle pushBundle) {
+    @NonNull public static JSONObject bundleToJsonWithUserData(final Bundle pushBundle) {
         JSONObject dataObject = new JSONObject();
         if (pushBundle == null) {
             return dataObject;
@@ -235,7 +227,7 @@ public final class JsonUtils {
 
         Set<String> keys = pushBundle.keySet();
         for (String key : keys) {
-            //backward compatibility
+            // backward compatibility
             if (key.equals("u")) {
                 try {
                     String userDataString = pushBundle.getString("u");
@@ -330,5 +322,7 @@ public final class JsonUtils {
         return bundle;
     }
 
-    private JsonUtils() { /* do nothing */ }
+    private JsonUtils() {
+        /* do nothing */
+    }
 }

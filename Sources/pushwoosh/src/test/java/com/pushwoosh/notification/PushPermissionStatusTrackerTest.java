@@ -84,7 +84,7 @@ public class PushPermissionStatusTrackerTest {
 
         PushPermissionStatusTracker.onPermissionResult(newActivity(), true);
 
-        verify(deviceRegistrar).updateRegistrationNow(any(Runnable.class));
+        verify(deviceRegistrar).onPermissionStatusChanged(any(Runnable.class));
         verify(pushwoosh, never()).sendAppOpen();
     }
 
@@ -135,7 +135,7 @@ public class PushPermissionStatusTrackerTest {
 
         resume();
 
-        verify(deviceRegistrar, times(1)).updateRegistrationNow(any(Runnable.class));
+        verify(deviceRegistrar, times(1)).onPermissionStatusChanged(any(Runnable.class));
         verify(pushwoosh, never()).sendAppOpen();
     }
 
@@ -146,7 +146,7 @@ public class PushPermissionStatusTrackerTest {
 
         resume();
 
-        verify(deviceRegistrar, never()).updateRegistrationNow(any(Runnable.class));
+        verify(deviceRegistrar, never()).onPermissionStatusChanged(any(Runnable.class));
     }
 
     // Verifies that the prompt result and the resume after it reporting the same change update the registration once.
@@ -157,7 +157,7 @@ public class PushPermissionStatusTrackerTest {
         PushPermissionStatusTracker.onPermissionResult(newActivity(), true);
         resume();
 
-        verify(deviceRegistrar, times(1)).updateRegistrationNow(any(Runnable.class));
+        verify(deviceRegistrar, times(1)).onPermissionStatusChanged(any(Runnable.class));
     }
 
     // Verifies that the first start after the SDK update leaves the status to the cold-start applicationOpen.
@@ -167,7 +167,7 @@ public class PushPermissionStatusTrackerTest {
 
         resume();
 
-        verify(deviceRegistrar, never()).updateRegistrationNow(any(Runnable.class));
+        verify(deviceRegistrar, never()).onPermissionStatusChanged(any(Runnable.class));
     }
 
     // Verifies that a failed registerDevice keeps the old status, so the next resume sends it again.
@@ -177,11 +177,11 @@ public class PushPermissionStatusTrackerTest {
         ArgumentCaptor<Runnable> onDone = ArgumentCaptor.forClass(Runnable.class);
 
         resume();
-        verify(deviceRegistrar).updateRegistrationNow(onDone.capture());
+        verify(deviceRegistrar).onPermissionStatusChanged(onDone.capture());
         onDone.getValue().run();
         resume();
 
-        verify(deviceRegistrar, times(2)).updateRegistrationNow(any(Runnable.class));
+        verify(deviceRegistrar, times(2)).onPermissionStatusChanged(any(Runnable.class));
     }
 
     // Verifies that a grant through the SDK prompt, the first time the SDK sees the permission, is explicit.

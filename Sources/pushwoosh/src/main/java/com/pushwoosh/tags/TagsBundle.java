@@ -594,9 +594,7 @@ public class TagsBundle {
                 return this;
             }
             Iterator<String> keys = json.keys();
-            // use synchronized keyword in attempt to fix rare ConcurrentModificationException in
-            // java.util.LinkedHashMap$LinkedKeyIterator.next on devices with Samsung chips
-            // (https://kanban.corp.pushwoosh.com/issue/SDK-306/)
+            // synchronized: rare ConcurrentModificationException in LinkedKeyIterator on Samsung chips (SDK-306).
             synchronized (keys) {
                 while (keys.hasNext()) {
                     String key = keys.next();

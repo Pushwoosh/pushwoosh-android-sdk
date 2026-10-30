@@ -1,5 +1,7 @@
 package com.pushwoosh.location.foregroundservice;
 
+import static androidx.core.app.NotificationCompat.PRIORITY_MIN;
+
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -11,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
@@ -19,7 +22,7 @@ import com.pushwoosh.internal.utils.ImageUtils;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.location.AndroidManifestLocationConfig;
 
-import static androidx.core.app.NotificationCompat.PRIORITY_MIN;
+import java.util.Locale;
 
 public class ForegroundServiceHelper {
 
@@ -30,7 +33,8 @@ public class ForegroundServiceHelper {
     private Context context;
     private ImageUtils imageUtils;
 
-    public ForegroundServiceHelper(@Nullable Context context, AndroidManifestLocationConfig config, ImageUtils imageUtils) {
+    public ForegroundServiceHelper(
+            @Nullable Context context, AndroidManifestLocationConfig config, ImageUtils imageUtils) {
         this.context = context;
         this.config = config;
         this.imageUtils = imageUtils;
@@ -43,9 +47,8 @@ public class ForegroundServiceHelper {
         }
         if (config.isStartForegroundService()) {
             Intent intent = new Intent(context, ForegroundService.class);
-            //Android 12 does not allow starting service in background and crashes app
-            if (Build.VERSION.SDK_INT >= 31)
-            {
+            // Android 12 does not allow starting service in background and crashes app
+            if (Build.VERSION.SDK_INT >= 31) {
                 return;
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -53,7 +56,6 @@ public class ForegroundServiceHelper {
             } else {
                 context.startService(intent);
             }
-
         }
     }
 
@@ -68,8 +70,7 @@ public class ForegroundServiceHelper {
         if (textContext != null) {
             builder.setContentText(getContentText());
         }
-        return builder
-                .setContentTitle(getTitle())
+        return builder.setContentTitle(getTitle())
                 .setChannelId(channelId)
                 .setPriority(PRIORITY_MIN)
                 .build();
@@ -91,9 +92,8 @@ public class ForegroundServiceHelper {
     }
 
     private String formatCannelId(String channelName) {
-        return channelName
-                .replace(" ","")
-                .toLowerCase();
+        // Existing channel ids were built with the device locale; changing it would orphan users' channel settings.
+        return channelName.replace(" ", "").toLowerCase(Locale.getDefault());
     }
 
     private String getContentText() {

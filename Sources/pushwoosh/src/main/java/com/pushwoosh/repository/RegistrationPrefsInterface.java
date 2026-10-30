@@ -33,7 +33,6 @@ import com.pushwoosh.internal.preference.PreferenceStringValue;
 /**
  * Created by aevstefeev on 26/03/2018.
  */
-
 interface RegistrationPrefsInterface {
 
     PreferenceStringValue applicationId();
@@ -45,8 +44,6 @@ interface RegistrationPrefsInterface {
     @SuppressWarnings("WeakerAccess")
     PreferenceLongValue lastPushRegistration();
 
-    PreferenceBooleanValue forceRegister();
-
     PreferenceStringValue userId();
 
     PreferenceStringValue deviceId();
@@ -54,7 +51,6 @@ interface RegistrationPrefsInterface {
     PreferenceStringValue logLevel();
 
     PreferenceStringValue baseUrl();
-
 
     PreferenceStringValue hwid();
 }

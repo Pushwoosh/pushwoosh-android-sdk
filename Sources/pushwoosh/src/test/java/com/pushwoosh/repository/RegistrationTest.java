@@ -491,6 +491,8 @@ public class RegistrationTest {
         assertTerminalFailureFails(new RequestBlockedException("Server communication stopped"));
     }
 
+    // A token cleared before the worker ran leaves nothing to deliver — that is not a failed
+    // registration, and the worker must not report one.
     @Test
     public void deliverySucceedsWithoutRequestWhenTokenCleared() throws Exception {
         notificationManager.onTokenReceived(PUSH_TOKEN, null);

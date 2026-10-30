@@ -75,9 +75,8 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
                 + ", " + Column.MSG_TAG + " TEXT"
                 + ");";
         db.execSQL(createTable);
-        // UNIQUE INDEX enables atomic dedup via CONFLICT_REPLACE for tagged pushes
-        // (collapse_key parity with iOS apns_collapse_id). NULL msg_tag is treated as
-        // distinct in SQLite UNIQUE indexes, so untagged pushes keep separate rows.
+        // NULL msg_tag is distinct in a SQLite UNIQUE index: untagged pushes keep separate rows,
+        // tagged ones dedupe via CONFLICT_REPLACE (collapse_key parity with iOS).
         db.execSQL("create unique index " + INDEX_GROUP_NOTIF_TAG + " on "
                 + TABLE_GROUP_PUSH_BUNDLES + "("
                 + Column.GROUP_ID + ", " + Column.NOTIFICATION_ID + ", " + Column.MSG_TAG + ");");
@@ -196,8 +195,8 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
                         db.query(TABLE_GROUP_PUSH_BUNDLES, columns, selection, selectionArgs, null, null, null)) {
                     if (cursor.moveToLast()) {
                         return new PushBundleDatabaseEntry(
-                                cursor.getInt(cursor.getColumnIndex(Column.NOTIFICATION_ID)),
-                                cursor.getLong(cursor.getColumnIndex(Column.ROW_ID)),
+                                cursor.getInt(cursor.getColumnIndexOrThrow(Column.NOTIFICATION_ID)),
+                                cursor.getLong(cursor.getColumnIndexOrThrow(Column.ROW_ID)),
                                 getBundle(cursor));
                     } else {
                         throw new Exception();
@@ -269,7 +268,7 @@ public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundl
     }
 
     private Bundle getBundle(Cursor c) {
-        String pushBundleJson = c.getString(c.getColumnIndex(Column.PUSH_BUNDLE_JSON));
+        String pushBundleJson = c.getString(c.getColumnIndexOrThrow(Column.PUSH_BUNDLE_JSON));
         return JsonUtils.jsonStringToBundle(pushBundleJson);
     }
 }

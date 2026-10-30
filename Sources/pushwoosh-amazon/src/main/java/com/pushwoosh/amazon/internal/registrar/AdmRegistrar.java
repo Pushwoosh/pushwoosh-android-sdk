@@ -26,6 +26,7 @@
 
 package com.pushwoosh.amazon.internal.registrar;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -170,6 +171,8 @@ public class AdmRegistrar implements PushRegistrar {
         checkReceiver(context, allowedReceivers, INTENT_FROM_ADM_MESSAGE);
     }
 
+    // The intent is pinned to our own package, which is always visible.
+    @SuppressLint("QueryPermissionsNeeded")
     @SuppressWarnings("WrongConstant")
     private static void checkReceiver(
             @NonNull Context context, @NonNull Set<String> allowedReceivers, @Nullable String action) {

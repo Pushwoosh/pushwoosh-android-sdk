@@ -60,8 +60,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private static final String PROPERTY_PROJECT_ID = "project_id";
 
     private static final String PROPERTY_PUSH_TOKEN = "registration_id";
+    private static final String PROPERTY_DELIVERED_PUSH_TOKEN = "pw_delivered_push_token";
     private static final String PROPERTY_REGISTERED_ON_SERVER = "registered_on_server";
-    private static final String PROPERTY_FORCE_REGISTER = "force_register";
     private static final String PROPERTY_LAST_REGISTRATION = "last_registration_change";
     private static final String PROPERTY_LAST_FIREBASE_TOKEN_REGISTRATION = "last_firebase_registration";
     private static final String PROPERTY_LAST_KNOCK_PATTERN_TIME = "last_knock_pattern_time";
@@ -86,11 +86,11 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private static final String HWID = "pw_hwid";
     private static final String API_TOKEN = "pw_api_token";
     private final PreferenceStringValue pushToken;
+    private final PreferenceStringValue deliveredPushToken;
     private final PreferenceBooleanValue registeredOnServer;
     private final PreferenceStringValue applicationId;
     private final PreferenceLongValue lastPushRegistration;
     private final PreferenceLongValue lastKnockPatternTime;
-    private final PreferenceBooleanValue forceRegister;
     private final PreferenceStringValue userId;
     private final PreferenceStringValue deviceId;
     private final PreferenceStringValue logLevel;
@@ -102,7 +102,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private final PreferenceStringValue language;
     private final PreferenceStringValue advertisingId;
     private final Config config;
-    private final DeviceRegistrar deviceRegistrar;
     private PreferenceBooleanValue registeredForPush;
     private PreferenceBooleanValue userDeniedNotificationPermission;
     private PreferenceBooleanValue fcmMessageReceivedSinceInstallOrUpdate;
@@ -112,10 +111,9 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private PreferenceBooleanValue pushPermissionRationaleSeen;
     private PreferenceStringValue pushPermissionLastSent;
 
-    RegistrationPrefs(Config config, DeviceRegistrar deviceRegistrar) {
+    RegistrationPrefs(Config config) {
         PWLog.noise("RegistrationPrefs()...");
         this.config = config;
-        this.deviceRegistrar = deviceRegistrar;
 
         SharedPreferences preferences = AndroidPlatformModule.getPrefsProvider().providePrefs(PREFERENCE);
 
@@ -126,12 +124,12 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         }
 
         pushToken = new PreferenceStringValue(preferences, PROPERTY_PUSH_TOKEN, "");
+        deliveredPushToken = new PreferenceStringValue(preferences, PROPERTY_DELIVERED_PUSH_TOKEN, "");
         PreferenceIntValue appVersion = new PreferenceIntValue(preferences, PROPERTY_APP_VERSION, 0);
 
         final String pushToken = this.pushToken.get();
         registeredForPush = new PreferenceBooleanValue(
                 preferences, PROPERTY_IS_REGISTERED_FOR_NOTIFICATION, pushToken != null && !pushToken.isEmpty());
-        forceRegister = new PreferenceBooleanValue(preferences, PROPERTY_FORCE_REGISTER, false);
         userDeniedNotificationPermission =
                 new PreferenceBooleanValue(preferences, PROPERTY_DENIED_NOTIFICATIONS, false);
         fcmMessageReceivedSinceInstallOrUpdate =
@@ -200,6 +198,10 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         return pushToken;
     }
 
+    public PreferenceStringValue deliveredPushToken() {
+        return deliveredPushToken;
+    }
+
     public PreferenceBooleanValue registeredOnServer() {
         return registeredOnServer;
     }
@@ -211,10 +213,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
 
     public PreferenceLongValue lastKnockPatternTime() {
         return lastKnockPatternTime;
-    }
-
-    public PreferenceBooleanValue forceRegister() {
-        return forceRegister;
     }
 
     /**
@@ -366,6 +364,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         baseUrl().set("");
         lastPushRegistration().set(0);
         registeredOnServer.set(false);
+        deliveredPushToken.set("");
     }
 
     public void setLanguage(@Nullable String language) {
@@ -374,9 +373,6 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         }
 
         language().set(language);
-
-        lastPushRegistration().set(0);
-        deviceRegistrar.updateRegistration();
     }
 
     public void setApiToken(String apiToken) {
@@ -433,6 +429,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_APPLICATION_ID);
         migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_PROJECT_ID);
         migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_PUSH_TOKEN);
+        migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.STRING, PROPERTY_DELIVERED_PUSH_TOKEN);
         migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.INT, PROPERTY_APP_VERSION);
         migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.BOOLEAN, PROPERTY_REGISTERED_ON_SERVER);
         migrationScheme.put(prefsProvider, MigrationScheme.AvailableType.LONG, PROPERTY_LAST_REGISTRATION);

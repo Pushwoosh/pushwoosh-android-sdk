@@ -106,7 +106,7 @@ public class PushwooshStartWorkerTest {
     }
 
     private void setupRepository() {
-        RepositoryModule.init(configMock, deviceRegistrarMock);
+        RepositoryModule.init(configMock);
     }
 
     private void configureFakePreferences() {
@@ -443,7 +443,7 @@ public class PushwooshStartWorkerTest {
 
         Mockito.verify(pushwooshInAppMock, Mockito.timeout(2000).times(1)).setUserId(Mockito.any());
 
-        Mockito.verify(deviceRegistrarMock, Mockito.timeout(2000).times(1)).updateRegistration();
+        Mockito.verify(deviceRegistrarMock, Mockito.timeout(2000).times(1)).onAppOpened();
 
         Mockito.verify(pushwooshInAppMock, Mockito.timeout(2000).times(1)).checkForUpdates();
     }
@@ -511,8 +511,7 @@ public class PushwooshStartWorkerTest {
 
         EventBus.sendEvent(new AppIdChangedEvent("new-app-id", "old-app-id"));
 
-        // Verify notification manager reschedule was called
-        Mockito.verify(deviceRegistrarMock, Mockito.times(1)).updateRegistration();
+        Mockito.verify(deviceRegistrarMock, Mockito.times(1)).onAppCodeChanged();
     }
 
     /**
@@ -631,26 +630,11 @@ public class PushwooshStartWorkerTest {
         initializeAndRunPushwooshStartWorker();
         ensureStarted();
         ensureReadyState();
-        when(registrationPrefsMock.pushToken().get()).thenReturn("test-push-token");
 
         EventBus.sendEvent(new ServerCommunicationStartedEvent());
         ShadowLooper.idleMainLooper();
 
-        Mockito.verify(deviceRegistrarMock, Mockito.times(1)).scheduleRegistration(null);
-    }
-
-    @Test
-    public void testServerCommunicationStartedWithoutTokenSchedulesNothing() throws InterruptedException {
-        ensureInitializingState();
-        initializeAndRunPushwooshStartWorker();
-        ensureStarted();
-        ensureReadyState();
-        when(registrationPrefsMock.pushToken().get()).thenReturn("");
-
-        EventBus.sendEvent(new ServerCommunicationStartedEvent());
-        ShadowLooper.idleMainLooper();
-
-        Mockito.verify(deviceRegistrarMock, Mockito.never()).scheduleRegistration(Mockito.any());
+        Mockito.verify(deviceRegistrarMock, Mockito.times(1)).onServerCommunicationStarted();
     }
 
     // Verifies that fetched HWID is stored in preferences via preferences.hwid().set(value).

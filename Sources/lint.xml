@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Every Lint check is on by default. A check is ignored here only when complying with it
+    would produce wrong or harmful code for an SDK, or when the decision belongs to the host
+    app. "Annoying" or "many findings" is not a reason: fix the code instead. A single false
+    positive is suppressed in code with a reason, never by adding the check here.
+-->
+<lint>
+    <!-- SDK views are created from code with extra arguments; a (Context) constructor would be dead code. -->
+    <issue id="ViewConstructor" severity="ignore" />
+    <!-- Integrators override SDK layouts by resource name; changing the view hierarchy breaks their overrides. -->
+    <issue id="MergeRootFrame" severity="ignore" />
+    <issue id="UselessParent" severity="ignore" />
+    <!-- SDK views render in the host app's theme, which Lint cannot infer. -->
+    <issue id="Overdraw" severity="ignore" />
+    <!-- android:supportsRtl is the host app's decision; a library manifest must not set it. -->
+    <issue id="RtlEnabled" severity="ignore" />
+    <!-- Dependency versions are pinned deliberately for host compatibility; this check also turns red on every upstream release. -->
+    <issue id="GradleDependency" severity="ignore" />
+    <!-- Moving to a version catalog is a build migration, not a code-quality fix. -->
+    <issue id="UseTomlInstead" severity="ignore" />
+</lint>

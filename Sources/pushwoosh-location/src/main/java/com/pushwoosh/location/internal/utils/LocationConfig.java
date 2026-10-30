@@ -27,36 +27,41 @@
 package com.pushwoosh.location.internal.utils;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 
 import java.util.concurrent.TimeUnit;
 
 public class LocationConfig {
-	public static final String TAG = "PushwooshLocation";
+    public static final String TAG = "PushwooshLocation";
 
-	public static final long LOCATION_HIGH_INTERVAL = TimeUnit.SECONDS.toMillis(30);
-	public static final long LOCATION_LOW_INTERVAL = TimeUnit.MINUTES.toMillis(5);
-	public final static long NEAREST_ZONES_FAST_UPDATE = TimeUnit.MINUTES.toMillis(15);
-	public final static long NEAREST_ZONES_LONG_UPDATE = TimeUnit.MINUTES.toMillis(30);
-	public final static long MAX_GEO_ZONES_CACHE_TIME = TimeUnit.MINUTES.toMillis(10);
+    public static final long LOCATION_HIGH_INTERVAL = TimeUnit.SECONDS.toMillis(30);
+    public static final long LOCATION_LOW_INTERVAL = TimeUnit.MINUTES.toMillis(5);
+    public static final long NEAREST_ZONES_FAST_UPDATE = TimeUnit.MINUTES.toMillis(15);
+    public static final long NEAREST_ZONES_LONG_UPDATE = TimeUnit.MINUTES.toMillis(30);
+    public static final long MAX_GEO_ZONES_CACHE_TIME = TimeUnit.MINUTES.toMillis(10);
 
-	private static final boolean SHOW_LOCATION_NOTIFICATION_DIALOG = true;
-	private static final boolean DISABLE_LOCATION_IN_SERVICE = true;
+    private static final boolean SHOW_LOCATION_NOTIFICATION_DIALOG = true;
+    private static final boolean DISABLE_LOCATION_IN_SERVICE = true;
 
-	public static String[] LOCATION_PERMISSIONS = new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
-	public static String[] BACKGROUND_LOCATION_PERMISSION = new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION};
-	/**
-	 * Flag for change behavior connected with dialogs which help developers for implementation location feature (Show permission dialog and google api dialogs)
-	 * @return true if need to show dialogs
-	 */
-	public static boolean showLocationDialogs() {
-		return SHOW_LOCATION_NOTIFICATION_DIALOG;
-	}
+    public static String[] LOCATION_PERMISSIONS =
+            new String[] {android.Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
+    // inlined string is harmless pre-Q; requested only on Q+ (NearestZonesManager.requestBackgroundLocationPermission)
+    @SuppressLint("InlinedApi")
+    public static String[] BACKGROUND_LOCATION_PERMISSION =
+            new String[] {Manifest.permission.ACCESS_BACKGROUND_LOCATION};
+    /**
+     * Flag for change behavior connected with dialogs which help developers for implementation location feature (Show permission dialog and google api dialogs)
+     * @return true if need to show dialogs
+     */
+    public static boolean showLocationDialogs() {
+        return SHOW_LOCATION_NOTIFICATION_DIALOG;
+    }
 
-	/**
-	 * Flag for change behavior when location disabled on device for this app
-	 * @return true if need send to service (null, null) location when location not available for this app. {issue PUSH-5404 }
-	 */
-	public static boolean disableLocationInService(){
-		return DISABLE_LOCATION_IN_SERVICE;
-	}
+    /**
+     * Flag for change behavior when location disabled on device for this app
+     * @return true if need send to service (null, null) location when location not available for this app. {issue PUSH-5404 }
+     */
+    public static boolean disableLocationInService() {
+        return DISABLE_LOCATION_IN_SERVICE;
+    }
 }

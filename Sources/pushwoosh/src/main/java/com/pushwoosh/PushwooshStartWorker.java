@@ -214,7 +214,7 @@ public class PushwooshStartWorker {
                         TAG,
                         "AppCode was changed from " + event.getOldAppId() + " to " + event.getNewAppId()
                                 + ". Updating registration.");
-                deviceRegistrar.updateRegistration();
+                deviceRegistrar.onAppCodeChanged();
             });
         });
 
@@ -223,11 +223,7 @@ public class PushwooshStartWorker {
             PWLog.noise(TAG, "onServerCommunicationStartedEvent()");
             SdkStateProvider.getInstance().executeOrQueue(() -> {
                 fixDefaultUserId();
-
-                String pushToken = preferences.pushToken().get();
-                if (!TextUtils.isEmpty(pushToken)) {
-                    deviceRegistrar.scheduleRegistration(null);
-                }
+                deviceRegistrar.onServerCommunicationStarted();
             });
         });
 
@@ -483,7 +479,7 @@ public class PushwooshStartWorker {
          */
         private void updateDeviceRegistration() {
             PWLog.noise(TAG, "registerDevice()");
-            deviceRegistrar.updateRegistration();
+            deviceRegistrar.onAppOpened();
         }
 
         /**

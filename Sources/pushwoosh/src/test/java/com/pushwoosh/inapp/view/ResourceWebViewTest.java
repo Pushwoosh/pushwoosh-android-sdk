@@ -1,12 +1,17 @@
 package com.pushwoosh.inapp.view;
 
+import static com.pushwoosh.inapp.network.model.InAppLayout.BOTTOM;
+import static com.pushwoosh.inapp.network.model.InAppLayout.DIALOG;
 import static com.pushwoosh.inapp.network.model.InAppLayout.FULLSCREEN;
+import static com.pushwoosh.inapp.network.model.InAppLayout.TOP;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import android.content.Context;
 import android.util.TypedValue;
@@ -14,10 +19,21 @@ import android.view.ContextThemeWrapper;
 import android.view.animation.Animation;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.inapp.model.HtmlData;
+import com.pushwoosh.inapp.network.model.InAppLayout;
 import com.pushwoosh.inapp.view.js.PushwooshJSInterface;
+import com.pushwoosh.internal.preference.PreferenceBooleanValue;
+import com.pushwoosh.internal.preference.PreferenceStringValue;
+import com.pushwoosh.repository.NotificationPrefs;
+import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.richmedia.RichMediaColorScheme;
 import com.pushwoosh.richmedia.RichMediaStyle;
 import com.pushwoosh.richmedia.animation.RichMediaAnimation;
 
@@ -55,6 +71,8 @@ public class ResourceWebViewTest {
 
     private AutoCloseable mocks;
 
+    private NotificationPrefs originalNotificationPrefs;
+
     @Before
     public void setUp() throws Exception {
         Field instance = PushwooshPlatform.class.getDeclaredField("instance");
@@ -66,10 +84,19 @@ public class ResourceWebViewTest {
         context = Mockito.spy(RuntimeEnvironment.application);
         richMediaStyle.setRichMediaAnimation(richMediaAnimation);
         resourceWebView = new ResourceWebView(context, FULLSCREEN, richMediaStyle, false);
+
+        originalNotificationPrefs = RepositoryModule.getNotificationPreferences();
+        NotificationPrefs notificationPrefs = mock(NotificationPrefs.class);
+        when(notificationPrefs.showFullscreenRichMedia()).thenReturn(mock(PreferenceBooleanValue.class));
+        PreferenceStringValue colorScheme = mock(PreferenceStringValue.class);
+        when(colorScheme.get()).thenReturn(RichMediaColorScheme.APP.name());
+        when(notificationPrefs.richMediaColorScheme()).thenReturn(colorScheme);
+        RepositoryModule.setNotificationPreferences(notificationPrefs);
     }
 
     @After
     public void tearDown() throws Exception {
+        RepositoryModule.setNotificationPreferences(originalNotificationPrefs);
         mocks.close();
     }
 
@@ -163,5 +190,38 @@ public class ResourceWebViewTest {
         Assert.assertTrue(webViewContext instanceof ContextThemeWrapper);
         TypedValue value = new TypedValue();
         Assert.assertFalse(webViewContext.getTheme().resolveAttribute(android.R.attr.isLightTheme, value, true));
+    }
+
+    // TOP layout keeps its content below the status bar using the real inset, not a framework resource.
+    @Test
+    public void topLayout_statusBarInset_becomesWebViewTopMargin() {
+        ResourceWebView view = new ResourceWebView(context, TOP, richMediaStyle, false);
+
+        dispatchStatusBarInset(view, 63);
+
+        Assert.assertEquals(63, webViewTopMargin(view));
+    }
+
+    // Only TOP reserves room for the status bar; the other layouts must stay edge-to-edge as before.
+    @Test
+    public void nonTopLayouts_statusBarInset_noTopMargin() {
+        for (InAppLayout layout : new InAppLayout[] {FULLSCREEN, BOTTOM, DIALOG}) {
+            ResourceWebView view = new ResourceWebView(context, layout, richMediaStyle, false);
+
+            dispatchStatusBarInset(view, 63);
+
+            Assert.assertEquals(layout.name(), 0, webViewTopMargin(view));
+        }
+    }
+
+    private static void dispatchStatusBarInset(ResourceWebView view, int top) {
+        WindowInsetsCompat insets = new WindowInsetsCompat.Builder()
+                .setInsets(WindowInsetsCompat.Type.statusBars(), Insets.of(0, top, 0, 0))
+                .build();
+        ViewCompat.dispatchApplyWindowInsets(view, insets);
+    }
+
+    private static int webViewTopMargin(ResourceWebView view) {
+        return ((FrameLayout.LayoutParams) view.webView.getLayoutParams()).topMargin;
     }
 }

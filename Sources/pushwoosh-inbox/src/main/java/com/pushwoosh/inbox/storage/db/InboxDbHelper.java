@@ -133,9 +133,9 @@ public class InboxDbHelper extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 do {
                     InboxMessageStatus current = InboxMessageStatus.getByCode(
-                            cursor.getInt(cursor.getColumnIndex(InboxTable.Column.STATUS)));
+                            cursor.getInt(cursor.getColumnIndexOrThrow(InboxTable.Column.STATUS)));
                     if (current != null && current.isLowerStatus(status)) {
-                        result.add(cursor.getString(cursor.getColumnIndex(InboxTable.Column.ID)));
+                        result.add(cursor.getString(cursor.getColumnIndexOrThrow(InboxTable.Column.ID)));
                     }
                 } while (cursor.moveToNext());
             }
@@ -296,7 +296,7 @@ public class InboxDbHelper extends SQLiteOpenHelper {
             @Override
             public Integer apply(Cursor cursor) {
                 if (cursor.moveToFirst()) {
-                    return cursor.getInt(cursor.getColumnIndex(countColumn));
+                    return cursor.getInt(cursor.getColumnIndexOrThrow(countColumn));
                 }
 
                 return -1;
@@ -351,7 +351,7 @@ public class InboxDbHelper extends SQLiteOpenHelper {
                         List<InboxMessageInternal> result = new ArrayList<>();
                         if (cursor.moveToFirst()) {
                             do {
-                                String id = cursor.getString(cursor.getColumnIndex(InboxTable.Column.ID));
+                                String id = cursor.getString(cursor.getColumnIndexOrThrow(InboxTable.Column.ID));
                                 if (ids != null && !ids.isEmpty() && ids.contains(id)) {
                                     result.add(getInboxMessage(cursor));
                                 }
@@ -412,10 +412,10 @@ public class InboxDbHelper extends SQLiteOpenHelper {
         try {
             if (cursor.moveToFirst()) {
                 boolean needToChangeStatus = true;
-                final InboxMessageStatus byCode =
-                        InboxMessageStatus.getByCode(cursor.getInt(cursor.getColumnIndex(InboxTable.Column.STATUS)));
-                final InboxMessageSource source =
-                        InboxMessageSource.getByCode(cursor.getInt(cursor.getColumnIndex(InboxTable.Column.SOURCE)));
+                final InboxMessageStatus byCode = InboxMessageStatus.getByCode(
+                        cursor.getInt(cursor.getColumnIndexOrThrow(InboxTable.Column.STATUS)));
+                final InboxMessageSource source = InboxMessageSource.getByCode(
+                        cursor.getInt(cursor.getColumnIndexOrThrow(InboxTable.Column.SOURCE)));
                 if (source == InboxMessageSource.PUSH
                         || byCode == null
                         || byCode.isLowerStatus(inboxMessageInternal.getInboxMessageStatus())) {
@@ -451,15 +451,15 @@ public class InboxDbHelper extends SQLiteOpenHelper {
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    String id = cursor.getString(cursor.getColumnIndex(InboxTable.Column.ID));
+                    String id = cursor.getString(cursor.getColumnIndexOrThrow(InboxTable.Column.ID));
                     if (inboxMessagesIds != null && !inboxMessagesIds.isEmpty() && inboxMessagesIds.contains(id)) {
                         continue;
                     }
                     // The server indexes a just-delivered push with a lag of seconds — a snapshot merge
                     // must not wipe the fresh row; explicit wipes pass keepFreshPushRows=false.
                     if (keepFreshPushRows) {
-                        int source = cursor.getInt(cursor.getColumnIndex(InboxTable.Column.SOURCE));
-                        long sendDate = cursor.getLong(cursor.getColumnIndex(InboxTable.Column.SEND_DATE));
+                        int source = cursor.getInt(cursor.getColumnIndexOrThrow(InboxTable.Column.SOURCE));
+                        long sendDate = cursor.getLong(cursor.getColumnIndexOrThrow(InboxTable.Column.SEND_DATE));
                         if (source == InboxMessageSource.PUSH.getCode()
                                 && nowSeconds - sendDate < FRESH_PUSH_GRACE_SECONDS) {
                             continue;
@@ -546,20 +546,21 @@ public class InboxDbHelper extends SQLiteOpenHelper {
 
     private InboxMessageInternal getInboxMessage(Cursor cursor) {
         return new InboxMessageInternal.Builder()
-                .setId(cursor.getString(cursor.getColumnIndex(InboxTable.Column.ID)))
-                .setOrder(cursor.getLong(cursor.getColumnIndex(InboxTable.Column.ORDER)))
-                .setExpiredDate(cursor.getLong(cursor.getColumnIndex(InboxTable.Column.EXPIRED_DATE)))
-                .setSendDate(cursor.getLong(cursor.getColumnIndex(InboxTable.Column.SEND_DATE)))
-                .setTitle(cursor.getString(cursor.getColumnIndex(InboxTable.Column.TITLE)))
-                .setHash(cursor.getString(cursor.getColumnIndex(InboxTable.Column.HASH)))
-                .setMessage(cursor.getString(cursor.getColumnIndex(InboxTable.Column.MESSAGE)))
-                .setImage(cursor.getString(cursor.getColumnIndex(InboxTable.Column.IMAGE)))
+                .setId(cursor.getString(cursor.getColumnIndexOrThrow(InboxTable.Column.ID)))
+                .setOrder(cursor.getLong(cursor.getColumnIndexOrThrow(InboxTable.Column.ORDER)))
+                .setExpiredDate(cursor.getLong(cursor.getColumnIndexOrThrow(InboxTable.Column.EXPIRED_DATE)))
+                .setSendDate(cursor.getLong(cursor.getColumnIndexOrThrow(InboxTable.Column.SEND_DATE)))
+                .setTitle(cursor.getString(cursor.getColumnIndexOrThrow(InboxTable.Column.TITLE)))
+                .setHash(cursor.getString(cursor.getColumnIndexOrThrow(InboxTable.Column.HASH)))
+                .setMessage(cursor.getString(cursor.getColumnIndexOrThrow(InboxTable.Column.MESSAGE)))
+                .setImage(cursor.getString(cursor.getColumnIndexOrThrow(InboxTable.Column.IMAGE)))
                 .setInboxMessageType(
-                        InboxMessageType.getByCode(cursor.getInt(cursor.getColumnIndex(InboxTable.Column.TYPE))))
-                .setActionParams(cursor.getString(cursor.getColumnIndex(InboxTable.Column.ACTION_PARAMS)))
-                .setInboxMessageStatus(
-                        InboxMessageStatus.getByCode(cursor.getInt(cursor.getColumnIndex(InboxTable.Column.STATUS))))
-                .setSource(InboxMessageSource.getByCode(cursor.getInt(cursor.getColumnIndex(InboxTable.Column.SOURCE))))
+                        InboxMessageType.getByCode(cursor.getInt(cursor.getColumnIndexOrThrow(InboxTable.Column.TYPE))))
+                .setActionParams(cursor.getString(cursor.getColumnIndexOrThrow(InboxTable.Column.ACTION_PARAMS)))
+                .setInboxMessageStatus(InboxMessageStatus.getByCode(
+                        cursor.getInt(cursor.getColumnIndexOrThrow(InboxTable.Column.STATUS))))
+                .setSource(InboxMessageSource.getByCode(
+                        cursor.getInt(cursor.getColumnIndexOrThrow(InboxTable.Column.SOURCE))))
                 .build();
     }
 

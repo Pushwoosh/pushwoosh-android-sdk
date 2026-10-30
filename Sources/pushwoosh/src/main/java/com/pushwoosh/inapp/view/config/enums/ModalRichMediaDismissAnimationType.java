@@ -2,6 +2,8 @@ package com.pushwoosh.inapp.view.config.enums;
 
 import com.pushwoosh.internal.utils.PWLog;
 
+import java.util.Locale;
+
 /**
  * Defines animation types for dismissing modal in-app messages.
  * <p>
@@ -13,19 +15,19 @@ import com.pushwoosh.internal.utils.PWLog;
 public enum ModalRichMediaDismissAnimationType {
     /** Smooth fade-out animation, matches well with FADE_IN presentation */
     FADE_OUT(0),
-    
+
     /** Slide animation upward off-screen, ideal for center or bottom positioned modals */
     SLIDE_UP(1),
-    
+
     /** Slide animation rightward off-screen */
     SLIDE_RIGHT(2),
-    
+
     /** Slide animation downward off-screen, matches well with DROP_DOWN presentation */
     SLIDE_DOWN(3),
-    
+
     /** Slide animation leftward off-screen */
     SLIDE_LEFT(4),
-    
+
     /** No animation - modal disappears instantly */
     NONE(5);
 
@@ -56,13 +58,19 @@ public enum ModalRichMediaDismissAnimationType {
 
     public static ModalRichMediaDismissAnimationType fromString(String value) {
         if (value == null) return null;
-        switch (value.toLowerCase()) {
-            case "fade_out": return FADE_OUT;
-            case "up": return SLIDE_UP;
-            case "right": return SLIDE_RIGHT;
-            case "down": return SLIDE_DOWN;
-            case "left": return SLIDE_LEFT;
-            case "none": return NONE;
+        switch (value.toLowerCase(Locale.ROOT)) {
+            case "fade_out":
+                return FADE_OUT;
+            case "up":
+                return SLIDE_UP;
+            case "right":
+                return SLIDE_RIGHT;
+            case "down":
+                return SLIDE_DOWN;
+            case "left":
+                return SLIDE_LEFT;
+            case "none":
+                return NONE;
             default:
                 return null;
         }

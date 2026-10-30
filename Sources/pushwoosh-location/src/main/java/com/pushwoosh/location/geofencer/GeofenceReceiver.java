@@ -42,67 +42,80 @@ import java.util.Arrays;
 import java.util.List;
 
 public class GeofenceReceiver extends BroadcastReceiver {
-	private static final String SUB_TAG = "[GeofenceReceiver]";
+    private static final String SUB_TAG = "[GeofenceReceiver]";
 
-	private GeofenceStateChangedCallback geofenceStateChangedCallback = LocationModule.geofenceStateChangedCallback();
-	public static final String ACTION_PROCESS_UPDATES = "%s.action.PROCESS_UPDATES";
+    private GeofenceStateChangedCallback geofenceStateChangedCallback = LocationModule.geofenceStateChangedCallback();
+    public static final String ACTION_PROCESS_UPDATES = "%s.action.PROCESS_UPDATES";
 
-	public static String getGeofenceAction(Context context) {
-		return String.format(ACTION_PROCESS_UPDATES, context.getPackageName());
-	}
+    public static String getGeofenceAction(Context context) {
+        return String.format(ACTION_PROCESS_UPDATES, context.getPackageName());
+    }
 
-	@Override
-	public void onReceive(Context context, Intent intent) {
-		try {
-			handleReceive(context, intent);
-		} catch (Exception e) {
-			PWLog.error(LocationConfig.TAG, SUB_TAG + "Failed to handle geofence event", e);
-		}
-	}
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        try {
+            handleReceive(context, intent);
+        } catch (Exception e) {
+            PWLog.error(LocationConfig.TAG, SUB_TAG + "Failed to handle geofence event", e);
+        }
+    }
 
-	private void handleReceive(Context context, Intent intent) {
-		PWLog.noise(LocationConfig.TAG, SUB_TAG + "onReceive");
-		if (intent != null) {
-			final String action = intent.getAction();
-			if (getGeofenceAction(context).equals(action)) {
-				AndroidPlatformModule.init(context.getApplicationContext());
-				onHandleIntent(intent);
-			} else {
-				PWLog.noise(LocationConfig.TAG, SUB_TAG + "wrong action:" + action);
-			}
-		} else {
-			PWLog.noise(LocationConfig.TAG, SUB_TAG + "intent is null");
-		}
-	}
+    private void handleReceive(Context context, Intent intent) {
+        PWLog.noise(LocationConfig.TAG, SUB_TAG + "onReceive");
+        if (intent != null) {
+            final String action = intent.getAction();
+            if (getGeofenceAction(context).equals(action)) {
+                AndroidPlatformModule.init(context.getApplicationContext());
+                onHandleIntent(intent);
+            } else {
+                PWLog.noise(LocationConfig.TAG, SUB_TAG + "wrong action:" + action);
+            }
+        } else {
+            PWLog.noise(LocationConfig.TAG, SUB_TAG + "intent is null");
+        }
+    }
 
-	protected void onHandleIntent(Intent intent) {
-		GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
+    protected void onHandleIntent(Intent intent) {
+        if (!LocationModule.locationPrefs().geolocationStarted().get()) {
+            PWLog.noise(LocationConfig.TAG, SUB_TAG + "ignoring geofence transition, location tracking is stopped");
+            return;
+        }
 
-		if (geofencingEvent == null) {
-			return;
-		}
-		if (geofencingEvent.hasError()) {
-			PWLog.error(LocationConfig.TAG, SUB_TAG + "GeofencingEvent error occurred with errorCode :" + geofencingEvent.getErrorCode());
-			return;
-		}
+        GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
 
-		// Get the transition type.
-		int geofenceTransition = geofencingEvent.getGeofenceTransition();
+        if (geofencingEvent == null) {
+            PWLog.warn(
+                    LocationConfig.TAG, SUB_TAG + "geofence broadcast arrived without geofence data, dropping event");
+            return;
+        }
+        if (geofencingEvent.hasError()) {
+            PWLog.error(
+                    LocationConfig.TAG,
+                    SUB_TAG + "GeofencingEvent error occurred with errorCode :" + geofencingEvent.getErrorCode());
+            return;
+        }
 
-		// Test that the reported transition was of interest.
-		if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-			List<String> ids = new ArrayList<>();
+        // Get the transition type.
+        int geofenceTransition = geofencingEvent.getGeofenceTransition();
 
-			//noinspection Convert2streamapi
-			if (geofencingEvent.getTriggeringGeofences() != null){
-				for (Geofence geofence : geofencingEvent.getTriggeringGeofences()) {
-					ids.add(geofence.getRequestId());
-				}
-			}
+        // Test that the reported transition was of interest.
+        if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER
+                || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+            List<String> ids = new ArrayList<>();
 
-			PWLog.noise(LocationConfig.TAG, SUB_TAG + (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ? "Enter to " : "Exit from ") + " geoZones with ids " + Arrays.toString(ids.toArray()));
+            //noinspection Convert2streamapi
+            if (geofencingEvent.getTriggeringGeofences() != null) {
+                for (Geofence geofence : geofencingEvent.getTriggeringGeofences()) {
+                    ids.add(geofence.getRequestId());
+                }
+            }
 
-			geofenceStateChangedCallback.onGeofenceStateChanged(ids, geofenceTransition);
-		}
-	}
+            PWLog.noise(
+                    LocationConfig.TAG,
+                    SUB_TAG + (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ? "Enter to " : "Exit from ")
+                            + " geoZones with ids " + Arrays.toString(ids.toArray()));
+
+            geofenceStateChangedCallback.onGeofenceStateChanged(ids, geofenceTransition);
+        }
+    }
 }

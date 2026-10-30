@@ -97,10 +97,6 @@ public class SonyHomeBadger implements Badger {
 
         final ContentValues contentValues = createContentValues(badgeCount, componentName);
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            // We're in the main thread. Move the badge write off it. Route through the SDK's guarded
-            // background executor, not AsyncQueryHandler: the framework worker runs resolver.insert
-            // without a try/catch, so a Sony-provider rejection there escapes uncaught and kills the
-            // app past applyCountOrThrow's guard. BackgroundExecutor catches Throwable and logs it.
             insertBadgeAsync(context, contentValues);
         } else {
             // Already in a background thread; update synchronously so applyCountOrThrow's try/catch
@@ -112,6 +108,10 @@ public class SonyHomeBadger implements Badger {
     /**
      * Asynchronously inserts the badge counter on the SDK's guarded background executor, so a
      * provider rejection is caught and logged instead of escaping uncaught to kill the app.
+     *
+     * <p>Uses {@link BackgroundExecutor} rather than {@code AsyncQueryHandler}: the framework's worker
+     * runs {@code resolver.insert} without a try/catch, so a Sony-provider rejection there would
+     * escape uncaught and kill the app past {@code applyCountOrThrow}'s guard.
      *
      * @param context       Caller context
      * @param contentValues Content values containing the badge count, package and activity names

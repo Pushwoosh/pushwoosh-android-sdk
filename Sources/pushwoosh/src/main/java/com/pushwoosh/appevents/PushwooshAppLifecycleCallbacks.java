@@ -102,13 +102,10 @@ class PushwooshAppLifecycleCallbacks implements Application.ActivityLifecycleCal
         activityName = activity.getClass().getName();
         if (activitiesCount == 0) {
             if (appClosed.isPending()) {
-                // User returned within debounce window — suppress the whole minimized/open/screen pack.
-                // Flag gates the notifyScreenOpened() calls coming synchronously from
-                // FragmentActivity.onStart() → dispatchStart() → onFragmentStarted, which would
-                // otherwise re-schedule screenOpened right after our cancel(). The handler.post()
-                // clear runs at the end of the current main-thread dispatch, after dispatchStart().
                 appClosed.cancel();
                 screenOpened.cancel();
+                // FragmentActivity.onStart() re-schedules screenOpened synchronously after this cancel();
+                // the flag gates it, and the posted clear runs only after dispatchStart() returns.
                 suppressScreenOpened = true;
                 handler.post(() -> suppressScreenOpened = false);
             } else {

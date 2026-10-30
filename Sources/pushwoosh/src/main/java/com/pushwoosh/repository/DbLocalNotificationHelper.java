@@ -120,7 +120,7 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
     private int getNextId(SQLiteDatabase db) {
         try (Cursor cursor = db.query(TABLE_NEXT_REQUEST_ID, null, null, null, null, null, null)) {
             if (cursor.moveToFirst()) {
-                return cursor.getInt(cursor.getColumnIndex(VALUE_REQUEST_ID));
+                return cursor.getInt(cursor.getColumnIndexOrThrow(VALUE_REQUEST_ID));
             }
         }
         PWLog.noise(TAG, "nextId is empty, return 0");
@@ -183,11 +183,11 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
     }
 
     @NonNull private DbLocalNotification getDbLocalNotification(Cursor cursor) {
-        int requesId = cursor.getInt(cursor.getColumnIndex(Column.REQUEST_ID));
-        int notificationId = cursor.getInt(cursor.getColumnIndex(Column.NOTIFICATION_ID));
-        long triggerAtMillis = cursor.getLong(cursor.getColumnIndex(Column.TRIGGER_AT_MILLIS));
-        String tag = cursor.getString(cursor.getColumnIndex(Column.NOTIFICATION_TAG));
-        String bundleContent = cursor.getString(cursor.getColumnIndex(Column.BUNDLE_CONTENT));
+        int requesId = cursor.getInt(cursor.getColumnIndexOrThrow(Column.REQUEST_ID));
+        int notificationId = cursor.getInt(cursor.getColumnIndexOrThrow(Column.NOTIFICATION_ID));
+        long triggerAtMillis = cursor.getLong(cursor.getColumnIndexOrThrow(Column.TRIGGER_AT_MILLIS));
+        String tag = cursor.getString(cursor.getColumnIndexOrThrow(Column.NOTIFICATION_TAG));
+        String bundleContent = cursor.getString(cursor.getColumnIndexOrThrow(Column.BUNDLE_CONTENT));
         // todo make inject JsonUtils
         Bundle bundle = JsonUtils.jsonStringToBundle(bundleContent);
         return new DbLocalNotification(requesId, notificationId, tag, triggerAtMillis, bundle);
@@ -211,7 +211,7 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
         String[] columns = new String[] {Column.REQUEST_ID};
         try (Cursor cursor = db.query(TABLE_LOCAL_NOTIFICATION, columns, null, null, null, null, null)) {
             while (cursor.moveToNext()) {
-                int notificationId = cursor.getInt(cursor.getColumnIndex(Column.REQUEST_ID));
+                int notificationId = cursor.getInt(cursor.getColumnIndexOrThrow(Column.REQUEST_ID));
                 idsSet.add(notificationId);
             }
             return idsSet;
@@ -279,11 +279,12 @@ public class DbLocalNotificationHelper extends SQLiteOpenHelper {
     }
 
     private void removeFirstDbLocalNotification(SQLiteDatabase db) {
-        Cursor cursor = db.query(TABLE_LOCAL_NOTIFICATION_SHOWN, null, null, null, null, null, Column.REQUEST_ID);
-
-        if (cursor.moveToFirst()) {
-            String rowId = cursor.getString(cursor.getColumnIndex(Column.REQUEST_ID));
-            db.delete(TABLE_LOCAL_NOTIFICATION_SHOWN, Column.REQUEST_ID + "=?", new String[] {rowId});
+        try (Cursor cursor =
+                db.query(TABLE_LOCAL_NOTIFICATION_SHOWN, null, null, null, null, null, Column.REQUEST_ID)) {
+            if (cursor.moveToFirst()) {
+                String rowId = cursor.getString(cursor.getColumnIndexOrThrow(Column.REQUEST_ID));
+                db.delete(TABLE_LOCAL_NOTIFICATION_SHOWN, Column.REQUEST_ID + "=?", new String[] {rowId});
+            }
         }
     }
 

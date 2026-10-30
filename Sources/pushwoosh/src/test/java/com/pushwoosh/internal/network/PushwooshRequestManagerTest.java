@@ -53,7 +53,6 @@ import com.pushwoosh.internal.specific.TestDeviceSpecific;
 import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
-import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.repository.RepositoryTestManager;
@@ -262,7 +261,7 @@ public class PushwooshRequestManagerTest {
 
         AndroidPlatformModule.init(RuntimeEnvironment.application, true);
 
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(configMock, mock(DeviceRegistrar.class));
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(configMock);
         RepositoryModule.setRegistrationPreferences(registrationPrefs);
 
         ServerCommunicationManager serverCommunicationManager = mock(ServerCommunicationManager.class);

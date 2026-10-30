@@ -1,6 +1,7 @@
 package com.pushwoosh.internal.utils;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class HashDecoder {
@@ -49,7 +50,7 @@ public class HashDecoder {
 
         for (int i = 0; i < parts.length; i++) {
             long decodedPart = alphabetDecode(parts[i]);
-            String decodedHexPart = Long.toHexString(decodedPart).toUpperCase();
+            String decodedHexPart = Long.toHexString(decodedPart).toUpperCase(Locale.ROOT);
             boolean isFirstPart = (i == 0);
             parts[i] = prependZerosIfNeeded(isFirstPart, decodedHexPart);
         }

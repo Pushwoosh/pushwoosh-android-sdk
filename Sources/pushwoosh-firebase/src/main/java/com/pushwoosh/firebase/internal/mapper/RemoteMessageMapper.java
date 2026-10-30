@@ -40,6 +40,13 @@ public class RemoteMessageMapper {
 
     private static final String KEY_PW_MSG_TAG = "pw_msg_tag";
 
+    /**
+     * Converts an FCM {@link RemoteMessage} into the SDK's internal push {@link Bundle}.
+     *
+     * <p>The FCM {@code collapse_key} is used as the notification tag ({@code pw_msg_tag}) when none
+     * is already set via custom data, so a new push with the same key replaces the previous one in
+     * the shade — parity with iOS's {@code apns_collapse_id}.
+     */
     @NonNull public static Bundle mapToBundle(@Nullable RemoteMessage remoteMessage) {
         if (remoteMessage == null) {
             return new Bundle();
@@ -53,9 +60,6 @@ public class RemoteMessageMapper {
             }
         }
 
-        // Use FCM collapse_key as notification tag so a new push with the same key
-        // replaces the previous one in the shade (parity with iOS apns_collapse_id).
-        // Don't overwrite an explicit pw_msg_tag set via custom data.
         String collapseKey = remoteMessage.getCollapseKey();
         if (!TextUtils.isEmpty(collapseKey) && TextUtils.isEmpty(bundle.getString(KEY_PW_MSG_TAG))) {
             bundle.putString(KEY_PW_MSG_TAG, collapseKey);

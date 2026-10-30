@@ -79,9 +79,8 @@ public abstract class WebActivity extends Activity implements InAppView {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
-        // Theme.Translucent.NoTitleBar does not set FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS — without
-        // it system bars stay opaque black even with setDecorFitsSystemWindows(false).
-        // setStatusBarColor/setNavigationBarColor are no-op on target SDK >= 35 but required on API < 35.
+        // Theme.Translucent.NoTitleBar doesn't set FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS; without it, bars stay
+        // opaque black even with setDecorFitsSystemWindows(false) below; keep this flag and the explicit colors.
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
@@ -101,9 +100,8 @@ public abstract class WebActivity extends Activity implements InAppView {
         try {
             processIntent(intent);
         } catch (Throwable t) {
-            // Symmetric with RichMediaWebActivity.onCreate's guard: WebView construction inside
-            // processIntent can throw when the system WebView provider is mid-update, and onNewIntent
-            // is the twin entry point the onCreate catch does not cover.
+            // Symmetric with RichMediaWebActivity.onCreate: WebView construction in processIntent can throw
+            // when the system WebView provider is mid-update; onNewIntent is the entry point onCreate misses.
             PWLog.warn(TAG, "processIntent threw in onNewIntent, finishing activity", t);
             finish();
             return;

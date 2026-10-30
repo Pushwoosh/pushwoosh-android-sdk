@@ -26,6 +26,7 @@
 
 package com.pushwoosh.notification.builder;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -238,6 +239,8 @@ public class NotificationBuilderManager {
         return false;
     }
 
+    // Re-posts notifications already shown; without POST_NOTIFICATIONS the system drops notify() silently, no throw.
+    @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
     public static void setGroupToActiveNotifications(List<StatusBarNotification> activeNotifications, String group) {
         if (AndroidPlatformModule.getApplicationContext() == null) {

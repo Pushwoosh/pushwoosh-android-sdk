@@ -4,11 +4,15 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Build;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
+import android.view.WindowManager;
+import android.widget.PopupWindow;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Consumer;
@@ -21,7 +25,6 @@ import com.pushwoosh.inapp.view.config.enums.ModalRichMediaDismissAnimationType;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaPresentAnimationType;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaSwipeGesture;
 import com.pushwoosh.inapp.view.config.enums.ModalRichMediaViewPosition;
-import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.PWLog;
 
 import java.util.Set;
@@ -56,9 +59,8 @@ public class ModalRichMediaWindowUtils {
             Window window = topActivity.getWindow();
             if (window != null) {
                 window.getDecorView().post(() -> {
-                    // Runs in a later main-looper message, so the caller's try/catch (e.g.
-                    // ModalRichMediaWindow.onPageLoaded) has already returned and cannot guard it.
-                    // The show can throw BadTokenException/NPE if the Activity finished meanwhile.
+                    // Runs in a later main-looper message, after the caller's try/catch has returned: guard
+                    // here too, since BadTokenException/NPE can hit if the Activity finished meanwhile.
                     try {
                         View parentView = window.getDecorView().findViewById(android.R.id.content);
                         callback.accept(parentView);
@@ -428,29 +430,8 @@ public class ModalRichMediaWindowUtils {
         }
     }
 
-    // status bar related utils
-    public static void setStatusBarInset(Activity topActivity, boolean isStatusBarCovered) {
-        if (!isStatusBarCovered) {
-            Resources resources = topActivity.getResources();
-            int statusBarResId = resources.getIdentifier("status_bar_height", "dimen", "android");
-            if (statusBarResId > 0) {
-                statusBarInset = resources.getDimensionPixelSize(statusBarResId);
-            }
-        }
-    }
-
     public static int getStatusBarInset() {
         return statusBarInset;
-    }
-
-    private static int getStatusBarHeight() {
-        Context context = AndroidPlatformModule.getApplicationContext();
-        int statusBarHeight = 0;
-        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            statusBarHeight = context.getResources().getDimensionPixelSize(resourceId);
-        }
-        return statusBarHeight;
     }
 
     /**
@@ -514,5 +495,42 @@ public class ModalRichMediaWindowUtils {
         }
 
         return insetBottom;
+    }
+
+    /**
+     * Public-API equivalent of {@code PopupWindow.setTouchModal(false)} for API 23-28, where that
+     * setter is hidden and reflecting on it is a non-SDK API call on Android 9. Without the flag the
+     * popup stays touch-modal and its touch interceptor swallows every tap outside the popup, which
+     * makes the host app unclickable when a template collapses the popup to zero height. No-op from
+     * API 29, where {@code setTouchModal(false)} is called directly.
+     *
+     * @param window the shown modal rich media popup
+     * @param parentView the view the popup was shown at
+     */
+    public static void disableTouchModalBelowQ(@Nullable PopupWindow window, @Nullable View parentView) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return;
+        }
+        if (window == null || parentView == null) {
+            return;
+        }
+        WindowManager windowManager = (WindowManager) parentView.getContext().getSystemService(Context.WINDOW_SERVICE);
+        View contentView = window.getContentView();
+        if (windowManager == null || contentView == null) {
+            return;
+        }
+        View rootView = contentView.getRootView();
+        ViewGroup.LayoutParams layoutParams = rootView.getLayoutParams();
+        if (!(layoutParams instanceof WindowManager.LayoutParams)) {
+            return;
+        }
+        WindowManager.LayoutParams windowParams = (WindowManager.LayoutParams) layoutParams;
+        windowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+        try {
+            windowManager.updateViewLayout(rootView, windowParams);
+        } catch (Exception e) {
+            // Showing the rich media outweighs the flag: a failure here must not break the show.
+            PWLog.error(TAG, "Failed to clear touch modality of the rich media window", e);
+        }
     }
 }

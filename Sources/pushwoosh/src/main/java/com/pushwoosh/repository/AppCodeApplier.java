@@ -25,7 +25,7 @@ public class AppCodeApplier {
      * Applies the pair and reports the verdict.
      *
      * <p>An application code change runs the re-registration cycle bookkeeping (clears the stored
-     * pair, arms {@code forceRegister}) and returns the replaced identity via
+     * pair) and returns the replaced identity via
      * {@link Result#getPreviousRegistration()} so the caller can unregister the device from the
      * previous application. A base URL change alone just persists the new URL (server-migration
      * semantics).
@@ -60,7 +60,6 @@ public class AppCodeApplier {
                     previousBaseUrl,
                     prefs.registeredOnServer().get());
             prefs.removeAppId();
-            prefs.forceRegister().set(prefs.isRegisteredForPush().get());
         }
 
         prefs.applicationId().set(appCode);

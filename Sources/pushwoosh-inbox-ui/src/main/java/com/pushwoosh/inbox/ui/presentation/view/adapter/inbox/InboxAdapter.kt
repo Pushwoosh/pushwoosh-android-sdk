@@ -30,6 +30,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.data.InboxMessageType
 import com.pushwoosh.inbox.ui.R
@@ -83,8 +84,11 @@ class InboxAdapter(context: Context,
             // A card with a destination of its own answers the tap wherever it lands, so the
             // poster and the title of one card cannot lead to two different places.
             val handledByCard = (holder as? OwnRowDestination)?.handleRowTap() ?: false
-            if (!handledByCard) {
-                onItemClick?.invoke(getItem(position))
+            // POM allows recyclerview 1.0.0; bindingAdapterPosition exists only since 1.2.0.
+            @Suppress("DEPRECATION")
+            val current = holder.adapterPosition
+            if (!handledByCard && current != RecyclerView.NO_POSITION) {
+                onItemClick?.invoke(getItem(current))
             }
         }
 

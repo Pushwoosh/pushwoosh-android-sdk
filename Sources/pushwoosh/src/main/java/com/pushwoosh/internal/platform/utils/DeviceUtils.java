@@ -55,6 +55,7 @@ import com.pushwoosh.repository.RepositoryModule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
@@ -121,21 +122,26 @@ public class DeviceUtils {
             return false;
         }
         //noinspection deprecation
-        boolean isScreenAwake = (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT_WATCH ? powerManager.isScreenOn() : powerManager.isInteractive());
+        boolean isScreenAwake = (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT_WATCH
+                ? powerManager.isScreenOn()
+                : powerManager.isInteractive());
 
         if (!isScreenAwake) {
             return false;
         }
 
-        ActivityManager activityManager = AndroidPlatformModule.getManagerProvider().getActivityManager();
-        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager == null ? null : activityManager.getRunningAppProcesses();
+        ActivityManager activityManager =
+                AndroidPlatformModule.getManagerProvider().getActivityManager();
+        List<ActivityManager.RunningAppProcessInfo> appProcesses =
+                activityManager == null ? null : activityManager.getRunningAppProcesses();
         if (appProcesses == null) {
             return false;
         }
 
         final String packageName = AndroidPlatformModule.getAppInfoProvider().getPackageName();
         for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
-            if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND && appProcess.processName.equals(packageName)) {
+            if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                    && appProcess.processName.equals(packageName)) {
                 return true;
             }
         }
@@ -175,18 +181,18 @@ public class DeviceUtils {
 
         private boolean isBadUUID(String uuid) {
             //noinspection SimplifiableIfStatement
-            if (TextUtils.isEmpty(uuid) || TextUtils.isEmpty(uuid.replace('0', ' ').replace('-', ' ').trim())) {
+            if (TextUtils.isEmpty(uuid)
+                    || TextUtils.isEmpty(
+                            uuid.replace('0', ' ').replace('-', ' ').trim())) {
                 return true;
             }
 
-            return sWrongAndroidDevices.contains(uuid.toLowerCase());
-
+            return sWrongAndroidDevices.contains(uuid.toLowerCase(Locale.ROOT));
         }
 
         public String getUUID() {
             synchronized (this) {
-                if (cachedUUID != null)
-                    return cachedUUID;
+                if (cachedUUID != null) return cachedUUID;
                 String uuid = tryGetUUID();
                 if (isBadUUID(uuid) && mFallback != null) {
                     return mFallback.getUUID();
@@ -252,8 +258,8 @@ public class DeviceUtils {
                 tryGetUUID(null);
             }
             try {
-                 countDownLatch.await();
-                 return registrationPrefs.deviceId().get();
+                countDownLatch.await();
+                return registrationPrefs.deviceId().get();
             } catch (InterruptedException e) {
                 return null;
             }
@@ -268,11 +274,11 @@ public class DeviceUtils {
                 return;
             }
 
-            Handler stopTaskHandler = new Handler(Looper.myLooper() != null ? Looper.myLooper() : Looper.getMainLooper());
+            Handler stopTaskHandler =
+                    new Handler(Looper.myLooper() != null ? Looper.myLooper() : Looper.getMainLooper());
             TryGetSharedUuidCallback uuidCallback = (uuid) -> {
                 stopTaskHandler.removeCallbacksAndMessages(null);
-                if (callback != null)
-                    callback.onGetUuid(uuid);
+                if (callback != null) callback.onGetUuid(uuid);
                 countDownLatch.countDown();
                 tryGetSharedUuidTask = null;
             };
@@ -286,14 +292,16 @@ public class DeviceUtils {
                 tryGetSharedUuidTask = new TryGetSharedUuidTask();
                 tryGetSharedUuidTask.addCallback(uuidCallback);
 
-                stopTaskHandler.postDelayed(() -> {
-                    if (tryGetSharedUuidTask != null && tryGetSharedUuidTask.getStatus() != AsyncTask.Status.FINISHED) {
-                        tryGetSharedUuidTask.cancel(true);
-                    }
-                }, GET_UUID_TASK_TIMEOUT);
+                stopTaskHandler.postDelayed(
+                        () -> {
+                            if (tryGetSharedUuidTask != null
+                                    && tryGetSharedUuidTask.getStatus() != AsyncTask.Status.FINISHED) {
+                                tryGetSharedUuidTask.cancel(true);
+                            }
+                        },
+                        GET_UUID_TASK_TIMEOUT);
                 tryGetSharedUuidTask.execute();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 PWLog.error(TAG, "Failed to query shared UUID provider", e);
                 uuidCallback.onGetSharedUuid(null);
             }
@@ -303,14 +311,14 @@ public class DeviceUtils {
             return tryGetSharedUuidTask != null && tryGetSharedUuidTask.getStatus() != AsyncTask.Status.FINISHED;
         }
 
-        @NonNull
-        private static List<ProviderInfo> getVendorProviderInfos(List<ProviderInfo> providerInfos) {
+        @NonNull private static List<ProviderInfo> getVendorProviderInfos(List<ProviderInfo> providerInfos) {
             List<ProviderInfo> vendorProviderInfos = new ArrayList<>();
             if (providerInfos == null) {
                 return vendorProviderInfos;
             }
 
-            String[] trustedPackageNames = PushwooshPlatform.getInstance().getConfig().getTrustedPackageNames();
+            String[] trustedPackageNames =
+                    PushwooshPlatform.getInstance().getConfig().getTrustedPackageNames();
 
             for (ProviderInfo providerInfo : providerInfos) {
                 for (String trustedPackageName : trustedPackageNames) {
@@ -327,21 +335,25 @@ public class DeviceUtils {
             String result = null;
             try {
                 Context context = AndroidPlatformModule.getApplicationContext();
-                if (context == null)
-                    return null;
+                if (context == null) return null;
                 PackageManager pm = context.getPackageManager();
                 List<ProviderInfo> providerInfos = getVendorProviderInfos(pm.queryContentProviders(null, 0, 0));
-                if (providerInfos.size() == 0)
-                    return null;
-                String currentProviderAuthority = context.getPackageName() + "." + PushwooshSharedDataProvider.class.getSimpleName();
+                if (providerInfos.size() == 0) return null;
+                String currentProviderAuthority =
+                        context.getPackageName() + "." + PushwooshSharedDataProvider.class.getSimpleName();
                 for (ProviderInfo pi : providerInfos) {
                     if (pi.authority.endsWith("." + PushwooshSharedDataProvider.class.getSimpleName())
                             && !pi.authority.equals(currentProviderAuthority)) {
                         ContentResolver resolver = context.getContentResolver();
-                        Cursor cursor = resolver.query(Uri.parse("content://" + pi.authority + "/" + PushwooshSharedDataProvider.HWID_PATH),
-                                null, null, null, GeneralUtils.md5(context.getPackageName()));
+                        Cursor cursor = resolver.query(
+                                Uri.parse("content://" + pi.authority + "/" + PushwooshSharedDataProvider.HWID_PATH),
+                                null,
+                                null,
+                                null,
+                                GeneralUtils.md5(context.getPackageName()));
                         if (cursor != null) {
-                            if (cursor.getColumnCount() > 0 && cursor.getColumnName(0).equals(PushwooshSharedDataProvider.HWID_COLUMN_NAME)) {
+                            if (cursor.getColumnCount() > 0
+                                    && cursor.getColumnName(0).equals(PushwooshSharedDataProvider.HWID_COLUMN_NAME)) {
                                 if (cursor.moveToFirst()) {
                                     String hwid = cursor.getString(0);
                                     if (!TextUtils.isEmpty(hwid)) {

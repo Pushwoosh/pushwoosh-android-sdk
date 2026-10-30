@@ -1,7 +1,6 @@
 package com.pushwoosh.internal.registrar;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
@@ -13,14 +12,14 @@ import com.pushwoosh.internal.network.ConnectionException;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.work.BasePushwooshWorker;
-import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.repository.DeviceRegistrar;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Delivers the device's saved push token to the server in a retrying WorkManager job, scheduled
- * by {@link com.pushwoosh.repository.DeviceRegistrar#scheduleRegistration(String)}.
+ * internally by {@link com.pushwoosh.repository.DeviceRegistrar}.
  */
 public class RegisterDeviceWorker extends BasePushwooshWorker {
     public static final String TAG = "RegisterDeviceWorker";
@@ -57,21 +56,20 @@ public class RegisterDeviceWorker extends BasePushwooshWorker {
             return Result.retry();
         }
 
-        String token = RepositoryModule.getRegistrationPreferences().pushToken().get();
-        if (TextUtils.isEmpty(token)) {
-            PWLog.debug(TAG, "No push token saved, nothing to deliver");
-            return Result.success();
-        }
-
         com.pushwoosh.function.Result<Void, NetworkException> result = PushwooshPlatform.getInstance()
                 .deviceRegistrar()
-                .registerSavedToken(getInputData().getString(DATA_TAGS));
+                .deliverFromWorker(getInputData().getString(DATA_TAGS));
         if (result.isSuccess()) {
             PWLog.debug(TAG, "Token delivered on attempt " + getRunAttemptCount());
             return Result.success();
         }
 
         NetworkException e = result.getException();
+        if (e instanceof DeviceRegistrar.NothingToDeliverException) {
+            PWLog.debug(TAG, "No push token saved, nothing to deliver");
+            return Result.success();
+        }
+
         boolean transientFailure = e instanceof ConnectionException && ((ConnectionException) e).isTransient();
         PWLog.debug(
                 TAG,

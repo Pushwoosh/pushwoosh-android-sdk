@@ -3,17 +3,18 @@ package com.pushwoosh.notification;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.pushwoosh.PushwooshPlatform;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.event.AppIdChangedEvent;
@@ -21,24 +22,31 @@ import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.EventListener;
 import com.pushwoosh.internal.network.NetworkException;
 import com.pushwoosh.internal.network.NetworkModule;
+import com.pushwoosh.internal.network.PushRequest;
+import com.pushwoosh.internal.network.PushRequestHelper;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.registrar.PushRegistrar;
+import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.notification.PushwooshNotificationManager.ApplicationIdReadyEvent;
 import com.pushwoosh.repository.DeviceRegistrar;
+import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
+import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.repository.RepositoryTestManager;
 import com.pushwoosh.testutil.EventListenerWrapper;
 
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -67,6 +75,8 @@ public class PushwooshNotificationManagerTest {
             RepositoryTestManager.destroyRegistrationPrefs(registrationPrefs);
             registrationPrefs = null;
         }
+        // init() is null-guarded per field: an unreset instance survives into later tests and suppresses a rebuild.
+        RepositoryModule.setNotificationPreferences(null);
         NetworkModule.setRequestManager(null);
         // static field on PWLog: an unreset listener leaks a dead mock into every later test in the JVM
         PWLog.setLogsUpdateListener(null);
@@ -74,10 +84,15 @@ public class PushwooshNotificationManagerTest {
     }
 
     // Real RegistrationPrefs (tests assert on applicationId()/baseUrl()), mock DeviceRegistrar —
-    // the seam this constructor exists for. The same mock goes into both prefs and manager.
+    // the seam this constructor exists for.
     private PushwooshNotificationManager createManager(String configAppId) {
         Config config = MockConfig.createMock(configAppId);
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
+        // RegisterDeviceRequest.buildParams reads both prefs off these statics, not the instance above.
+        // init() is null-guarded per field, so it only fills NotificationPrefs here; registrationPreferences
+        // is overwritten right after with the test's own instance.
+        RepositoryModule.init(config);
+        RepositoryModule.setRegistrationPreferences(registrationPrefs);
         return new PushwooshNotificationManager(config, mock(PushRegistrar.class), registrationPrefs, deviceRegistrar);
     }
 
@@ -178,7 +193,7 @@ public class PushwooshNotificationManagerTest {
 
     // Same app code with a NEW base URL is an address migration, not a registration-target change:
     // the url is applied and requests move over, but the device stays registered — no unregister,
-    // no forceRegister, no AppIdChangedEvent, no ApplicationIdReadyEvent refire.
+    // no AppIdChangedEvent, no ApplicationIdReadyEvent refire.
     @Test
     public void setAppId_sameAppIdNewBaseUrl_appliesUrlWithoutChangeCycle() {
         PushwooshNotificationManager manager = createManager("SAME_APP");
@@ -200,7 +215,6 @@ public class PushwooshNotificationManagerTest {
         verify(readyListener, never()).onReceive(any(ApplicationIdReadyEvent.class));
         assertEquals(
                 "https://api.example.com/json/1.3/", registrationPrefs.baseUrl().get());
-        assertThat(registrationPrefs.forceRegister().get(), is(false));
     }
 
     // Regression for the false region-change: the server writes pw_base_url too (rotation,
@@ -242,8 +256,8 @@ public class PushwooshNotificationManagerTest {
     }
 
     // Multi-app: switching the app code on the same host is a real registration-target change —
-    // the full cycle runs (unregister the old code on the current url, force re-register,
-    // AppIdChangedEvent) even though the base URL stays the same.
+    // the full cycle runs (unregister the old code on the current url, re-register under the new
+    // one, AppIdChangedEvent) even though the base URL stays the same.
     @Test
     public void setAppId_newAppIdSameBaseUrl_runsFullChangeCycle() {
         PushwooshNotificationManager manager = createManager(null);
@@ -263,7 +277,6 @@ public class PushwooshNotificationManagerTest {
         assertEquals("NEWAPP-NEWAPP", registrationPrefs.applicationId().get());
         assertEquals(
                 "https://api.example.com/json/1.3/", registrationPrefs.baseUrl().get());
-        assertTrue(registrationPrefs.forceRegister().get());
     }
 
     // When code and URL change together, unregister must target the PREVIOUS url — the backend
@@ -441,15 +454,6 @@ public class PushwooshNotificationManagerTest {
         verify(listener, timeout(500).times(1)).onReceive(any(ApplicationIdReadyEvent.class));
     }
 
-    // Raw captor plus one cast is the only shape that compiles over the parameterized Callback.
-    // Every argument is pinned here too, so the capture doubles as the wire-payload assertion.
-    @SuppressWarnings("unchecked")
-    private Callback<Void, NetworkException> captureRegistrationCallback(String number, int platform) {
-        ArgumentCaptor<Callback> captor = ArgumentCaptor.forClass(Callback.class);
-        verify(deviceRegistrar).registerWithServer(eq(number), isNull(), eq(platform), captor.capture());
-        return (Callback<Void, NetworkException>) captor.getValue();
-    }
-
     // Attach after the manager call so the setup's own log lines stay out of the verification.
     private PWLog.LogsUpdateListener listenToLogs() {
         PWLog.LogsUpdateListener logListener = mock(PWLog.LogsUpdateListener.class);
@@ -457,37 +461,72 @@ public class PushwooshNotificationManagerTest {
         return logListener;
     }
 
-    // Verifies that registerSMSNumber sends the number with no tags on the SMS platform.
-    // A crossed constant is the one real risk of sharing a body: SMS is 18, WhatsApp is 21.
+    // Verifies the wire payload the channel number goes out with, and returns the captured callback
+    // for the tests below that drive the async result. Device type and hwid are pinned here too, so
+    // a crossed constant (SMS is 18, WhatsApp is 21) or a wrong hwid prefix fails right at capture.
+    @SuppressWarnings("unchecked")
+    private Callback<Void, NetworkException> captureChannelRequest(String number, int platform) throws Exception {
+        ArgumentCaptor<PushRequest> requestCaptor = ArgumentCaptor.forClass(PushRequest.class);
+        ArgumentCaptor<Callback> callbackCaptor = ArgumentCaptor.forClass(Callback.class);
+        verify(requestManager).sendRequest(requestCaptor.capture(), callbackCaptor.capture());
+
+        PushRequest<?> request = requestCaptor.getValue();
+        assertEquals("registerDevice", request.getMethod());
+
+        JSONObject params;
+        // getParams() falls through to PushwooshPlatform/DeviceSpecificProvider for the base hwid and
+        // device_type, which this lightweight fixture never builds; both get overridden below anyway.
+        PushwooshRepository pushwooshRepositoryMock = mock(PushwooshRepository.class);
+        when(pushwooshRepositoryMock.getHwid()).thenReturn("base-hwid");
+        PushwooshPlatform platformMock = mock(PushwooshPlatform.class);
+        when(platformMock.pushwooshRepository()).thenReturn(pushwooshRepositoryMock);
+        DeviceSpecificProvider deviceSpecificProviderMock = mock(DeviceSpecificProvider.class);
+        when(deviceSpecificProviderMock.deviceType()).thenReturn(0);
+        try (MockedStatic<PushwooshPlatform> platformStatic = Mockito.mockStatic(PushwooshPlatform.class);
+                MockedStatic<DeviceSpecificProvider> deviceSpecificStatic =
+                        Mockito.mockStatic(DeviceSpecificProvider.class)) {
+            platformStatic.when(PushwooshPlatform::getInstance).thenReturn(platformMock);
+            deviceSpecificStatic.when(DeviceSpecificProvider::getInstance).thenReturn(deviceSpecificProviderMock);
+            params = PushRequestHelper.getParams(request);
+        }
+
+        assertEquals(platform, params.getInt("device_type"));
+        assertEquals(
+                platform == DeviceRegistrar.PLATFORM_WHATSAPP ? "whatsapp:" + number : number,
+                params.getString("hwid"));
+        assertFalse(params.has("push_permission_status"));
+        assertFalse(params.has("tags"));
+
+        return (Callback<Void, NetworkException>) callbackCaptor.getValue();
+    }
+
+    // Verifies that registerSMSNumber sends a registerDevice request on the SMS platform.
     @Test
-    public void registerSMSNumber_registersNumberOnSmsPlatform() {
+    public void registerSMSNumber_sendsRegisterDeviceOnSmsPlatform() throws Exception {
         PushwooshNotificationManager manager = createManager(null);
 
         manager.registerSMSNumber("+15550001111");
 
-        verify(deviceRegistrar)
-                .registerWithServer(eq("+15550001111"), isNull(), eq(DeviceRegistrar.PLATFORM_SMS), any());
+        captureChannelRequest("+15550001111", DeviceRegistrar.PLATFORM_SMS);
     }
 
-    // Verifies that registerWhatsappNumber sends the number with no tags on the WhatsApp platform.
+    // Verifies that registerWhatsappNumber sends a registerDevice request on the WhatsApp platform.
     @Test
-    public void registerWhatsappNumber_registersNumberOnWhatsappPlatform() {
+    public void registerWhatsappNumber_sendsRegisterDeviceOnWhatsappPlatform() throws Exception {
         PushwooshNotificationManager manager = createManager(null);
 
         manager.registerWhatsappNumber("+15550002222");
 
-        verify(deviceRegistrar)
-                .registerWithServer(eq("+15550002222"), isNull(), eq(DeviceRegistrar.PLATFORM_WHATSAPP), any());
+        captureChannelRequest("+15550002222", DeviceRegistrar.PLATFORM_WHATSAPP);
     }
 
     // Verifies that a successful registration takes the info branch and never the error one.
     // Asserted on the level only: the wording is free to change, the branch taken is not.
     @Test
-    public void registerSMSNumber_successResult_logsInfoAndNoError() {
+    public void registerSMSNumber_successResult_logsInfoAndNoError() throws Exception {
         PushwooshNotificationManager manager = createManager(null);
         manager.registerSMSNumber("+15550001111");
-        Callback<Void, NetworkException> callback =
-                captureRegistrationCallback("+15550001111", DeviceRegistrar.PLATFORM_SMS);
+        Callback<Void, NetworkException> callback = captureChannelRequest("+15550001111", DeviceRegistrar.PLATFORM_SMS);
         PWLog.LogsUpdateListener logListener = listenToLogs();
 
         callback.process(Result.fromData(null));
@@ -499,11 +538,10 @@ public class PushwooshNotificationManagerTest {
     // Verifies that the server's reason survives into the error line. Matched as a substring:
     // the prefix is prose, the exception message is the payload.
     @Test
-    public void registerSMSNumber_errorResult_logsExceptionMessage() {
+    public void registerSMSNumber_errorResult_logsExceptionMessage() throws Exception {
         PushwooshNotificationManager manager = createManager(null);
         manager.registerSMSNumber("+15550001111");
-        Callback<Void, NetworkException> callback =
-                captureRegistrationCallback("+15550001111", DeviceRegistrar.PLATFORM_SMS);
+        Callback<Void, NetworkException> callback = captureChannelRequest("+15550001111", DeviceRegistrar.PLATFORM_SMS);
         PWLog.LogsUpdateListener logListener = listenToLogs();
 
         callback.process(Result.fromException(new NetworkException("boom")));
@@ -514,11 +552,10 @@ public class PushwooshNotificationManagerTest {
     // Verifies that an empty exception message falls back to the generic description instead of
     // a naked "…error: " line — the only branch where TextUtils.isEmpty decides anything.
     @Test
-    public void registerSMSNumber_errorWithEmptyMessage_logsFallbackDescription() {
+    public void registerSMSNumber_errorWithEmptyMessage_logsFallbackDescription() throws Exception {
         PushwooshNotificationManager manager = createManager(null);
         manager.registerSMSNumber("+15550001111");
-        Callback<Void, NetworkException> callback =
-                captureRegistrationCallback("+15550001111", DeviceRegistrar.PLATFORM_SMS);
+        Callback<Void, NetworkException> callback = captureChannelRequest("+15550001111", DeviceRegistrar.PLATFORM_SMS);
         PWLog.LogsUpdateListener logListener = listenToLogs();
 
         callback.process(Result.fromException(new NetworkException("")));

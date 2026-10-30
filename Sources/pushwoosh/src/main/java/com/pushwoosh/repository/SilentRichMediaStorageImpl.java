@@ -48,9 +48,9 @@ public class SilentRichMediaStorageImpl extends SQLiteOpenHelper implements Sile
 
     private void createResourcesTable(SQLiteDatabase db) {
         String createLocalNotificationTable =
-                String.format("create table %s (", TABLE_RESOURCES) +
-                        String.format("%s TEXT , ", Column.RICH_MEDIA) +
-                        String.format("%s TEXT ", Column.SOUND) + ");";
+                String.format("create table %s (", TABLE_RESOURCES) + String.format("%s TEXT , ", Column.RICH_MEDIA)
+                        + String.format("%s TEXT ", Column.SOUND)
+                        + ");";
         db.execSQL(createLocalNotificationTable);
     }
 
@@ -74,8 +74,7 @@ public class SilentRichMediaStorageImpl extends SQLiteOpenHelper implements Sile
         }
     }
 
-    @Nullable
-    @Override
+    @Nullable @Override
     public ResourceWrapper getResourceWrapper() {
         ResourceWrapper resourceWrapper = null;
         synchronized (mutex) {
@@ -88,7 +87,7 @@ public class SilentRichMediaStorageImpl extends SQLiteOpenHelper implements Sile
                         cursor.close();
                     }
                 }
-                db.execSQL("delete from "+ TABLE_RESOURCES);
+                db.execSQL("delete from " + TABLE_RESOURCES);
             } catch (Exception e) {
                 PWLog.error("Can't get cached resources: ", e);
             }
@@ -106,8 +105,8 @@ public class SilentRichMediaStorageImpl extends SQLiteOpenHelper implements Sile
     }
 
     private ResourceWrapper getResourceWrapper(Cursor cursor) {
-        String richMedia = cursor.getString(cursor.getColumnIndex(Column.RICH_MEDIA));
-        String sound = cursor.getString(cursor.getColumnIndex(Column.SOUND));
+        String richMedia = cursor.getString(cursor.getColumnIndexOrThrow(Column.RICH_MEDIA));
+        String sound = cursor.getString(cursor.getColumnIndexOrThrow(Column.SOUND));
 
         return new ResourceWrapper.Builder()
                 .setRichMedia(richMedia)

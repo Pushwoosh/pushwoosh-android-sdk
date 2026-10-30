@@ -1,5 +1,6 @@
 package com.pushwoosh;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.util.TypedValue;
@@ -52,7 +53,9 @@ public class PushwooshPlatform {
 
     private static final String TAG = "PushwooshPlatform";
 
-    private static PushwooshPlatform instance;
+    // topActivity lives only while resumed: lifecycle callbacks clear it on pause, stop and destroy
+    @SuppressLint("StaticFieldLeak")
+    private static volatile PushwooshPlatform instance;
 
     private final Config config;
     private final PushwooshNotificationManager notificationManager;
@@ -101,7 +104,7 @@ public class PushwooshPlatform {
         UUIDFactory = new UUIDFactory();
         config = builder.config;
         deviceRegistrar = new DeviceRegistrar();
-        RepositoryModule.init(config, deviceRegistrar);
+        RepositoryModule.init(config);
         PWLog.init();
         registrationPrefs = RepositoryModule.getRegistrationPreferences();
         serverCommunicationManager = new ServerCommunicationManager();

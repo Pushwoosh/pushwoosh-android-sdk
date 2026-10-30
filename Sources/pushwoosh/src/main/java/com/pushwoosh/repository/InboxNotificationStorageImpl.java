@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.utils.DbUtils;
@@ -35,10 +36,11 @@ public class InboxNotificationStorageImpl extends SQLiteOpenHelper implements In
     }
 
     private void createTable(SQLiteDatabase db, String tableName) {
-        String createTable = String.format("create table %s (", tableName) +
-                String.format("%s TEXT, ", Column.INBOX_MESSAGE_ID) +
-                String.format("%s TEXT, ", Column.NOTIFICATION_TAG) +
-                String.format("%s INTEGER ", Column.NOTIFICATION_ID) + ");";
+        String createTable =
+                String.format("create table %s (", tableName) + String.format("%s TEXT, ", Column.INBOX_MESSAGE_ID)
+                        + String.format("%s TEXT, ", Column.NOTIFICATION_TAG)
+                        + String.format("%s INTEGER ", Column.NOTIFICATION_ID)
+                        + ");";
         db.execSQL(createTable);
     }
 
@@ -57,7 +59,8 @@ public class InboxNotificationStorageImpl extends SQLiteOpenHelper implements In
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
                 ContentValues cv = getContentValues(inboxMessageId, notificationId, notificationTag);
-                long rowId = db.insertWithOnConflict(TABLE_INBOX_NOTIFICATIONS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+                long rowId =
+                        db.insertWithOnConflict(TABLE_INBOX_NOTIFICATIONS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
                 if (rowId == -1) {
                     PWLog.warn(TAG, "Notification with inboxMessageId: " + inboxMessageId + " was not stored.");
                 }
@@ -68,13 +71,13 @@ public class InboxNotificationStorageImpl extends SQLiteOpenHelper implements In
     }
 
     @Override
-    @Nullable
-    public Integer getNotificationId(String inboxMessageId) {
+    @Nullable public Integer getNotificationId(String inboxMessageId) {
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
                 String selection = Column.INBOX_MESSAGE_ID + " = ?";
                 String[] selectionArgs = DbUtils.getSelectionArgs(inboxMessageId);
-                try (Cursor cursor = db.query(TABLE_INBOX_NOTIFICATIONS, null, selection, selectionArgs, null, null, null)) {
+                try (Cursor cursor =
+                        db.query(TABLE_INBOX_NOTIFICATIONS, null, selection, selectionArgs, null, null, null)) {
                     if (cursor.moveToFirst()) {
                         return getNotificationId(cursor);
                     } else {
@@ -89,14 +92,14 @@ public class InboxNotificationStorageImpl extends SQLiteOpenHelper implements In
         }
     }
 
-    @Nullable
-    @Override
+    @Nullable @Override
     public String getNotificationTag(String inboxMessageId) {
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
                 String selection = Column.INBOX_MESSAGE_ID + " = ?";
                 String[] selectionArgs = DbUtils.getSelectionArgs(inboxMessageId);
-                try (Cursor cursor = db.query(TABLE_INBOX_NOTIFICATIONS, null, selection, selectionArgs, null, null, null)) {
+                try (Cursor cursor =
+                        db.query(TABLE_INBOX_NOTIFICATIONS, null, selection, selectionArgs, null, null, null)) {
                     if (cursor.moveToFirst()) {
                         return getNotificationTag(cursor);
                     } else {
@@ -120,10 +123,10 @@ public class InboxNotificationStorageImpl extends SQLiteOpenHelper implements In
     }
 
     private int getNotificationId(Cursor c) {
-        return c.getInt(c.getColumnIndex(Column.NOTIFICATION_ID));
+        return c.getInt(c.getColumnIndexOrThrow(Column.NOTIFICATION_ID));
     }
 
     private String getNotificationTag(Cursor c) {
-        return c.getString(c.getColumnIndex(Column.NOTIFICATION_TAG));
+        return c.getString(c.getColumnIndexOrThrow(Column.NOTIFICATION_TAG));
     }
 }

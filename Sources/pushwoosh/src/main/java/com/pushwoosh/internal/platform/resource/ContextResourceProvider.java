@@ -26,57 +26,65 @@
 
 package com.pushwoosh.internal.platform.resource;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
-import androidx.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+
+import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
 
 public class ContextResourceProvider implements ResourceProvider {
 
-	private final WeakReference<Context> context;
+    private final WeakReference<Context> context;
 
-	public ContextResourceProvider(@Nullable final Context context) {
-		this.context = new WeakReference<>(context);
-	}
+    public ContextResourceProvider(@Nullable final Context context) {
+        this.context = new WeakReference<>(context);
+    }
 
-	@Nullable
-	private Context getContext() {
-		return context.get();
-	}
+    @Nullable private Context getContext() {
+        return context.get();
+    }
 
-	@Override
-	public String getString(final int id, final Object... params) {
-		return getContext() == null ? "" : getContext().getString(id, params);
-	}
+    @Override
+    public String getString(final int id, final Object... params) {
+        return getContext() == null ? "" : getContext().getString(id, params);
+    }
 
-	@Override
-	public int getIdentifier(final String resourceName, final String defType) {
-		return getContext() == null ? -1 : getContext().getResources().getIdentifier(resourceName, defType, getContext().getPackageName());
-	}
+    // Name lookup is the SDK contract: icon/sound names come from push payloads and integrator config.
+    // This provider is the single funnel for it; new code goes through it, not Resources.getIdentifier.
+    @SuppressLint("DiscouragedApi")
+    @Override
+    public int getIdentifier(final String resourceName, final String defType) {
+        return getContext() == null
+                ? -1
+                : getContext()
+                        .getResources()
+                        .getIdentifier(resourceName, defType, getContext().getPackageName());
+    }
 
-	@Override
-	public Configuration getConfiguration() {
-		return getContext() == null ? null : getContext().getResources().getConfiguration();
-	}
+    @Override
+    public Configuration getConfiguration() {
+        return getContext() == null ? null : getContext().getResources().getConfiguration();
+    }
 
-	@Override
-	public void getValue(final int res, final TypedValue value, final boolean resolveRefs) {
-		if (getContext() == null) {
-			return;
-		}
-		getContext().getResources().getValue(res, value, resolveRefs);
-	}
+    @Override
+    public void getValue(final int res, final TypedValue value, final boolean resolveRefs) {
+        if (getContext() == null) {
+            return;
+        }
+        getContext().getResources().getValue(res, value, resolveRefs);
+    }
 
-	@Override
-	public DisplayMetrics getDisplayMetrics() {
-		return getContext() == null ? null : getContext().getResources().getDisplayMetrics();
-	}
+    @Override
+    public DisplayMetrics getDisplayMetrics() {
+        return getContext() == null ? null : getContext().getResources().getDisplayMetrics();
+    }
 
-	@Override
-	public float getDimension(final int res) {
-		return getContext() == null ? -1 : getContext().getResources().getDimension(res);
-	}
+    @Override
+    public float getDimension(final int res) {
+        return getContext() == null ? -1 : getContext().getResources().getDimension(res);
+    }
 }

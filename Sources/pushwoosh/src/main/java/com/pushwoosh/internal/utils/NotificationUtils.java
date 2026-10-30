@@ -44,11 +44,13 @@ public class NotificationUtils {
     private static final String DEFAULT_SOUND_NAME = "default";
 
     enum TypeContent {
-        sound, image
+        sound,
+        image
     }
 
     public static int tryToGetIconFormStringOrGetFromApplication(String iconName) {
-        // 4th priority: Application icon. The bad thing it is 48x48, on 1dp device notification icon should be 24x24, and it will be cropped :(
+        // 4th priority: Application icon. The bad thing it is 48x48, on 1dp device notification icon should be 24x24,
+        // and it will be cropped :(
         int iconId = -1;
 
         // 3d priority: 'pw_notification' resource name
@@ -59,17 +61,17 @@ public class NotificationUtils {
 
         // 2nd priority: AndroidManifest.xml metadata
         // PushwooshPlatform.getInstance() might return null when opening an app with existing notifications
-        if (PushwooshPlatform.getInstance() != null && PushwooshPlatform.getInstance().getConfig() != null) {
+        if (PushwooshPlatform.getInstance() != null
+                && PushwooshPlatform.getInstance().getConfig() != null) {
             notificationId = PushwooshPlatform.getInstance().getConfig().getNotificationIcon();
             if (notificationId != 0) {
                 iconId = notificationId;
             }
         }
 
-
         // 1st priority: remote notification icon id
         if (null != iconName) {
-            //Try to get from the string we have received
+            // Try to get from the string we have received
             int customId = AndroidPlatformModule.getResourceProvider().getIdentifier(iconName, "drawable");
             if (0 != customId) {
                 iconId = customId;
@@ -83,7 +85,8 @@ public class NotificationUtils {
         int maxSize = Math.max(outWidth, outHeight);
         float newImageScale = 1f;
         if (-1 != imageSize) {
-            DisplayMetrics displayMetrics = AndroidPlatformModule.getResourceProvider().getDisplayMetrics();
+            DisplayMetrics displayMetrics =
+                    AndroidPlatformModule.getResourceProvider().getDisplayMetrics();
             if (displayMetrics != null) {
                 newImageScale = maxSize / (imageSize * displayMetrics.density);
             }
@@ -91,15 +94,15 @@ public class NotificationUtils {
         return newImageScale;
     }
 
-    @Nullable
-    public static Uri getSoundUri(String sound) {
+    @Nullable public static Uri getSoundUri(String sound) {
         NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
         Uri defaultSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         AudioManager am = AndroidPlatformModule.getManagerProvider().getAudioManager();
         if (am != null) {
             if (!(notificationPrefs.soundType().get() == SoundType.ALWAYS
-                    || (am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL && notificationPrefs.soundType().get() == SoundType.DEFAULT_MODE))) {
+                    || (am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL
+                            && notificationPrefs.soundType().get() == SoundType.DEFAULT_MODE))) {
                 // if always or normal type not set
                 return null;
             }
@@ -116,10 +119,11 @@ public class NotificationUtils {
         int soundId = AndroidPlatformModule.getResourceProvider().getIdentifier(sound, "raw");
         if (0 != soundId) {
             // if found valid resource id
-            return Uri.parse("android.resource://" + AndroidPlatformModule.getAppInfoProvider().getPackageName() + "/" + soundId);
+            return Uri.parse("android.resource://"
+                    + AndroidPlatformModule.getAppInfoProvider().getPackageName() + "/" + soundId);
         }
 
-        //try to open from file:///android_asset/www/res for Phonegap
+        // try to open from file:///android_asset/www/res for Phonegap
         Uri uri = NotificationUtils.getUriForAssetPath("www/res/" + sound, TypeContent.sound);
         if (uri != Uri.EMPTY) {
             return uri;
@@ -129,19 +133,24 @@ public class NotificationUtils {
     }
 
     public static Bitmap getScaleBitmap(Bitmap srcBitmap, int outHeightSimple) {
-        DisplayMetrics displayMetrics = AndroidPlatformModule.getResourceProvider().getDisplayMetrics();
+        DisplayMetrics displayMetrics =
+                AndroidPlatformModule.getResourceProvider().getDisplayMetrics();
         int outHeight = displayMetrics == null ? outHeightSimple : (int) (outHeightSimple * displayMetrics.density);
-        return Bitmap.createScaledBitmap(srcBitmap, srcBitmap.getWidth() * outHeight / srcBitmap.getHeight(), outHeight, true);
+        return Bitmap.createScaledBitmap(
+                srcBitmap, srcBitmap.getWidth() * outHeight / srcBitmap.getHeight(), outHeight, true);
     }
 
     public static boolean phoneHaveVibratePermission() {
-        PackageManager packageManager = AndroidPlatformModule.getManagerProvider().getPackageManager();
+        PackageManager packageManager =
+                AndroidPlatformModule.getManagerProvider().getPackageManager();
         if (packageManager == null) {
             return false;
         }
         // check permission
         try {
-            int result = packageManager.checkPermission(Manifest.permission.VIBRATE, AndroidPlatformModule.getAppInfoProvider().getPackageName());
+            int result = packageManager.checkPermission(
+                    Manifest.permission.VIBRATE,
+                    AndroidPlatformModule.getAppInfoProvider().getPackageName());
             if (result == PackageManager.PERMISSION_GRANTED) {
                 return true;
             }
@@ -219,22 +228,25 @@ public class NotificationUtils {
         if (context == null) {
             PWLog.error(AndroidPlatformModule.NULL_CONTEXT_MESSAGE);
             return false;
-        } else return Build.VERSION.SDK_INT >= 33 ? ActivityCompat.checkSelfPermission(context,
-                        "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED :
-                NotificationManagerCompat.from(context).areNotificationsEnabled();
+        } else
+            return Build.VERSION.SDK_INT >= 33
+                    ? ActivityCompat.checkSelfPermission(context, "android.permission.POST_NOTIFICATIONS")
+                            == PackageManager.PERMISSION_GRANTED
+                    : NotificationManagerCompat.from(context).areNotificationsEnabled();
     }
 
     public static void turnScreenOn() {
         try {
             NotificationPrefs notificationPrefs = RepositoryModule.getNotificationPreferences();
             if (notificationPrefs.lightScreenOn().get()) {
-                PowerManager powerManager = AndroidPlatformModule.getManagerProvider().getPowerManager();
+                PowerManager powerManager =
+                        AndroidPlatformModule.getManagerProvider().getPowerManager();
                 if (powerManager == null) {
                     return;
                 }
 
                 PowerManager.WakeLock screenLock = powerManager.newWakeLock(
-                        PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "Push");
+                        PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "pushwoosh:push");
                 screenLock.acquire(1000);
             }
         } catch (Exception e) {
@@ -248,22 +260,20 @@ public class NotificationUtils {
     }
 
     public static Bitmap tryGetBitmap(String largeIconUrl, int dimension) {
-        if(isValidURL(largeIconUrl)){
+        if (isValidURL(largeIconUrl)) {
             return NotificationUtils.tryToGetBitmapFromInternet(largeIconUrl, dimension);
-        }else {
-            return NotificationUtils.tryToGetBitmapFromDisk(NotificationUtils.getPathFileInAssets(largeIconUrl), dimension);
+        } else {
+            return NotificationUtils.tryToGetBitmapFromDisk(
+                    NotificationUtils.getPathFileInAssets(largeIconUrl), dimension);
         }
     }
 
-    public static boolean isValidURL(String urlString)
-    {
-        try
-        {
+    public static boolean isValidURL(String urlString) {
+        try {
             URL url = new URL(urlString);
             url.toURI();
             return true;
-        } catch (Exception exception)
-        {
+        } catch (Exception exception) {
             return false;
         }
     }
@@ -325,13 +335,15 @@ public class NotificationUtils {
         options.inJustDecodeBounds = false;
 
         float newImageScale = getNewImageScale(imageSize, options.outWidth, options.outHeight);
-        options.inSampleSize =  Math.round(newImageScale);
+        options.inSampleSize = Math.round(newImageScale);
         return BitmapFactory.decodeFile(largeIconUrl, options);
     }
 
     private static void setDefaultBitmapTimeout(URLConnection connection) {
-        boolean handleUsingWorkManager = RepositoryModule.getNotificationPreferences() != null &&
-                RepositoryModule.getNotificationPreferences().handleNotificationsUsingWorkManager().get();
+        boolean handleUsingWorkManager = RepositoryModule.getNotificationPreferences() != null
+                && RepositoryModule.getNotificationPreferences()
+                        .handleNotificationsUsingWorkManager()
+                        .get();
         if (!handleUsingWorkManager) {
             int twoSeconds = 2000;
             connection.setConnectTimeout(twoSeconds);
@@ -342,7 +354,7 @@ public class NotificationUtils {
         Context context = AndroidPlatformModule.getApplicationContext();
         boolean isEmptyGroup = TextUtils.isEmpty(notification.getGroup());
         boolean isNullIcon = notification.getSmallIcon() == null;
-        boolean isEmptyChannel=false;
+        boolean isEmptyChannel = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             isEmptyChannel = TextUtils.isEmpty(notification.getChannelId());
         }
@@ -351,20 +363,19 @@ public class NotificationUtils {
             return notification;
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Notification.Builder notificationBuilder = Notification.Builder.
-                    recoverBuilder(context, notification);
+            Notification.Builder notificationBuilder = Notification.Builder.recoverBuilder(context, notification);
             if (isEmptyGroup) notificationBuilder.setGroup(NotificationPrefs.DEFAULT_NOTIFICATION_GROUP);
-            if (isNullIcon) notificationBuilder.setSmallIcon(
-                    AppIconHelper.getAppIcon(context,AndroidPlatformModule.getAppInfoProvider().getPackageName()));
-            if (isEmptyChannel) {
+            if (isNullIcon)
+                notificationBuilder.setSmallIcon(AppIconHelper.getAppIcon(
+                        context, AndroidPlatformModule.getAppInfoProvider().getPackageName()));
+            if (isEmptyChannel && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 final NotificationManager nm =
                         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 if (nm.getNotificationChannel(NotificationPrefs.DEFAULT_CHANNEL_NAME) == null) {
-                    nm.createNotificationChannel(
-                            new NotificationChannel(NotificationPrefs.DEFAULT_CHANNEL_NAME,
-                                    NotificationPrefs.DEFAULT_CHANNEL_NAME,
-                                    NotificationManager.IMPORTANCE_DEFAULT)
-                    );
+                    nm.createNotificationChannel(new NotificationChannel(
+                            NotificationPrefs.DEFAULT_CHANNEL_NAME,
+                            NotificationPrefs.DEFAULT_CHANNEL_NAME,
+                            NotificationManager.IMPORTANCE_DEFAULT));
                 }
                 notificationBuilder.setChannelId(NotificationPrefs.DEFAULT_CHANNEL_NAME);
             }

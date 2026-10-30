@@ -60,6 +60,13 @@ public final class NativeConfigLocalizer {
 
     private NativeConfigLocalizer() {}
 
+    /**
+     * Never throws: any failure (malformed JSON, or a {@link StackOverflowError} from pathological
+     * nesting in the parser or the {@code localizeObject}/{@code localizeArray} recursion) hands the
+     * input back untouched instead of dropping the show. Catching {@link Throwable} rather than
+     * {@link Exception} is deliberate; the downstream module parser then rejects the raw config as if
+     * localization had never run.
+     */
     @NonNull public static String localize(
             @NonNull String configJson, @NonNull Map<String, String> strings, @NonNull Map<String, String> tags) {
         try {
@@ -67,11 +74,6 @@ public final class NativeConfigLocalizer {
             localizeObject(root, strings, tags);
             return root.toString();
         } catch (Throwable t) {
-            // Any failure hands the input back untouched, never dropping the show: malformed JSON
-            // (JSONException) or pathological nesting blowing the stack (StackOverflowError from the parser
-            // or the localizeObject/localizeArray recursion). Catching Throwable is deliberate here — the
-            // module parser then rejects the raw config downstream (present() returns false), exactly as if
-            // localization had never run.
             PWLog.warn(TAG, "native-config.json could not be localized, passing through unchanged", t);
             return configJson;
         }

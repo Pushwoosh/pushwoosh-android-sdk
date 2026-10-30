@@ -91,13 +91,9 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
             }
 
             Intent notifyIntent = notificationFactory.getNotificationIntent(pushMessage);
-            // Samsung devices with Android 13+ update existing notification incorrectly (sometimes old banner remains)
-            // so we have to cancel existing notification before showing a new one, see
-            // https://jira.corp.pushwoosh.com/browse/PUSH-33434
+            // Samsung Android 13+ sometimes leaves a stale banner on update; cancel before posting (PUSH-33434).
             NotificationManagerCompat.from(getApplicationContext()).cancelAll();
-            fireNotification(notification, notifyIntent, pushMessage); // deleteIntent is null as
-            // handleNotification method does not
-            // store push bundles in database
+            fireNotification(notification, notifyIntent, pushMessage);
         }
     }
 

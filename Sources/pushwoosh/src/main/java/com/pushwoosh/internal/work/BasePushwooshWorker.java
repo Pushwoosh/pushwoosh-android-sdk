@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.work.WorkInfo;
 import androidx.work.Worker;
@@ -53,6 +54,7 @@ public abstract class BasePushwooshWorker extends Worker {
      * build where the method does not exist.
      */
     @VisibleForTesting
+    @RequiresApi(Build.VERSION_CODES.S)
     int fetchStopReason() {
         return getStopReason();
     }

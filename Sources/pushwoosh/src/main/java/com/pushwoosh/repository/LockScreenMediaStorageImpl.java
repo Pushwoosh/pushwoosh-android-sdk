@@ -43,17 +43,16 @@ public class LockScreenMediaStorageImpl extends SQLiteOpenHelper implements Lock
     }
 
     private void createLockScreenResourcesTable(SQLiteDatabase db) {
-        String createLocalNotificationTable =
-                String.format("create table %s (", TABLE_LOCK_SCREEN_RESOURCES) +
-                        String.format("%s TEXT , ", Column.RICH_MEDIA) +
-                        String.format("%s TEXT ", Column.SOUND) + ");";
+        String createLocalNotificationTable = String.format("create table %s (", TABLE_LOCK_SCREEN_RESOURCES)
+                + String.format("%s TEXT , ", Column.RICH_MEDIA)
+                + String.format("%s TEXT ", Column.SOUND)
+                + ");";
         db.execSQL(createLocalNotificationTable);
     }
 
     private void createLockScreenRemoteUrlsTable(SQLiteDatabase db) {
-        String createRequestIdTable =
-                String.format("create table %s (", TABLE_LOCK_SCREEN_REMOTE_URLS) +
-                        String.format("%s TEXT ", Column.REMOTE_URL) + ");";
+        String createRequestIdTable = String.format("create table %s (", TABLE_LOCK_SCREEN_REMOTE_URLS)
+                + String.format("%s TEXT ", Column.REMOTE_URL) + ");";
         db.execSQL(createRequestIdTable);
     }
 
@@ -72,7 +71,8 @@ public class LockScreenMediaStorageImpl extends SQLiteOpenHelper implements Lock
             String sound = pushMessage.getSound();
             try (SQLiteDatabase db = getWritableDatabase()) {
                 ContentValues cv = getResourceContentValues(richMedia, sound);
-                long insert = db.insertWithOnConflict(TABLE_LOCK_SCREEN_RESOURCES, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+                long insert =
+                        db.insertWithOnConflict(TABLE_LOCK_SCREEN_RESOURCES, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
                 if (insert == -1) {
                     PWLog.warn(TAG, "Rich media " + richMedia + " was not stored.");
                 }
@@ -107,7 +107,7 @@ public class LockScreenMediaStorageImpl extends SQLiteOpenHelper implements Lock
     public void clearResources() {
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
-                db.execSQL("delete from "+ TABLE_LOCK_SCREEN_RESOURCES);
+                db.execSQL("delete from " + TABLE_LOCK_SCREEN_RESOURCES);
             } catch (Exception e) {
                 PWLog.error("Can't clear resources", e);
             }
@@ -124,7 +124,8 @@ public class LockScreenMediaStorageImpl extends SQLiteOpenHelper implements Lock
             }
             try (SQLiteDatabase db = getWritableDatabase()) {
                 ContentValues cv = getRemoteUrlContentValues(urlString);
-                long insert = db.insertWithOnConflict(TABLE_LOCK_SCREEN_REMOTE_URLS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+                long insert = db.insertWithOnConflict(
+                        TABLE_LOCK_SCREEN_REMOTE_URLS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
                 if (insert == -1) {
                     PWLog.warn(TAG, "Remote url " + urlString + " was not stored.");
                 }
@@ -159,7 +160,7 @@ public class LockScreenMediaStorageImpl extends SQLiteOpenHelper implements Lock
     public void clearRemoteUrls() {
         synchronized (mutex) {
             try (SQLiteDatabase db = getWritableDatabase()) {
-                db.execSQL("delete from "+ TABLE_LOCK_SCREEN_REMOTE_URLS);
+                db.execSQL("delete from " + TABLE_LOCK_SCREEN_REMOTE_URLS);
             } catch (Exception e) {
                 PWLog.error("Can't clear remote urls", e);
             }
@@ -182,8 +183,8 @@ public class LockScreenMediaStorageImpl extends SQLiteOpenHelper implements Lock
     }
 
     private ResourceWrapper getResourceWrapper(Cursor cursor) {
-        String richMedia = cursor.getString(cursor.getColumnIndex(Column.RICH_MEDIA));
-        String sound = cursor.getString(cursor.getColumnIndex(Column.SOUND));
+        String richMedia = cursor.getString(cursor.getColumnIndexOrThrow(Column.RICH_MEDIA));
+        String sound = cursor.getString(cursor.getColumnIndexOrThrow(Column.SOUND));
 
         return new ResourceWrapper.Builder()
                 .setRichMedia(richMedia)
@@ -193,7 +194,7 @@ public class LockScreenMediaStorageImpl extends SQLiteOpenHelper implements Lock
     }
 
     private Uri getRemoteUrl(Cursor cursor) {
-        String urlString = cursor.getString(cursor.getColumnIndex(Column.REMOTE_URL));
+        String urlString = cursor.getString(cursor.getColumnIndexOrThrow(Column.REMOTE_URL));
 
         return Uri.parse(urlString);
     }

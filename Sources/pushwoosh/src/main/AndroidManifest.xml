@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools">
 
 	<!-- Keeps the processor from sleeping when a message is received. -->
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -77,12 +78,15 @@
 			android:exported="false"
 			android:initOrder="50" />
 		<!-- uses applicationId end -->
+		<!-- Exported so the vendor's other apps can read the HWID; every query is rejected unless the caller
+		     is listed in com.pushwoosh.trusted_package_names (empty by default), and nothing else is served -->
 		<provider
 			android:name="com.pushwoosh.PushwooshSharedDataProvider"
 			android:authorities="${applicationId}.PushwooshSharedDataProvider"
 			android:enabled="true"
 			android:exported="true"
             android:initOrder="60"
+			tools:ignore="ExportedContentProvider"
 			/>
 		<receiver
 			android:name="com.pushwoosh.NotificationUpdateReceiver"

@@ -7,9 +7,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.SharedPreferences;
@@ -48,13 +45,11 @@ public class RegistrationPrefsTest {
     private static final String PROPERTY_FCM_MESSAGE_RECEIVED = "pw_fcm_message_received_since_app_update";
 
     private RegistrationPrefs registrationPrefs;
-    private DeviceRegistrar deviceRegistrar;
     private Locale originalLocale;
 
     @Before
     public void setUp() {
         AndroidPlatformModule.init(RuntimeEnvironment.application, true);
-        deviceRegistrar = mock(DeviceRegistrar.class);
         originalLocale = Locale.getDefault();
     }
 
@@ -68,14 +63,14 @@ public class RegistrationPrefsTest {
 
     private RegistrationPrefs createWithAppId(String appId) {
         Config config = MockConfig.createMock(appId);
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
         return registrationPrefs;
     }
 
     private RegistrationPrefs createWithAppIdAndRequestUrl(String appId, String requestUrl) {
         Config config = MockConfig.createMock(appId);
         when(config.getRequestUrl()).thenReturn(requestUrl);
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
         return registrationPrefs;
     }
 
@@ -191,7 +186,7 @@ public class RegistrationPrefsTest {
     public void constructor_pristinePrefs_seedsApiTokenFromConfig() {
         Config config = MockConfig.createMock("APP");
         when(config.getApiToken()).thenReturn("token-123");
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
 
         assertThat(registrationPrefs.apiToken().get(), is(equalTo("token-123")));
     }
@@ -201,7 +196,7 @@ public class RegistrationPrefsTest {
     public void constructor_pristinePrefs_seedsLogLevelFromConfig() {
         Config config = MockConfig.createMock("APP");
         when(config.getLogLevel()).thenReturn("DEBUG");
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
 
         assertThat(registrationPrefs.logLevel().get(), is(equalTo("DEBUG")));
     }
@@ -212,7 +207,7 @@ public class RegistrationPrefsTest {
         Locale.setDefault(Locale.FRENCH);
         Config config = MockConfig.createMock("APP");
         when(config.isCollectingDeviceLocaleAllowed()).thenReturn(true);
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
 
         assertThat(registrationPrefs.language().get(), is(equalTo("fr")));
     }
@@ -223,7 +218,7 @@ public class RegistrationPrefsTest {
         Locale.setDefault(Locale.FRENCH);
         Config config = MockConfig.createMock("APP");
         when(config.isCollectingDeviceLocaleAllowed()).thenReturn(false);
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
 
         assertThat(registrationPrefs.language().get(), is(equalTo("en")));
     }
@@ -234,7 +229,7 @@ public class RegistrationPrefsTest {
         Locale.setDefault(Locale.SIMPLIFIED_CHINESE);
         Config config = MockConfig.createMock("APP");
         when(config.isCollectingDeviceLocaleAllowed()).thenReturn(true);
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
 
         assertThat(registrationPrefs.language().get(), is(equalTo(Locale.SIMPLIFIED_CHINESE.toLanguageTag())));
     }
@@ -246,7 +241,7 @@ public class RegistrationPrefsTest {
         prefs.edit().putString(PROPERTY_PUSH_TOKEN, "tkn").apply();
 
         Config config = MockConfig.createMock("APP");
-        registrationPrefs = new RegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = new RegistrationPrefs(config);
 
         assertTrue(registrationPrefs.isRegisteredForPush().get());
     }
@@ -255,7 +250,7 @@ public class RegistrationPrefsTest {
     @Test
     public void constructor_emptyPushToken_defaultsRegisteredForPushFalse() {
         Config config = MockConfig.createMock("APP");
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
 
         assertFalse(registrationPrefs.isRegisteredForPush().get());
     }
@@ -269,7 +264,7 @@ public class RegistrationPrefsTest {
         new PreferenceIntValue(prefs, PROPERTY_APP_VERSION, 0).set(987654);
 
         Config config = MockConfig.createMock("APP");
-        registrationPrefs = new RegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = new RegistrationPrefs(config);
 
         assertThat(registrationPrefs.pushToken().get(), is(equalTo("")));
         assertEquals(
@@ -286,7 +281,7 @@ public class RegistrationPrefsTest {
         new PreferenceIntValue(prefs, PROPERTY_APP_VERSION, 0).set(987654);
 
         Config config = MockConfig.createMock("APP");
-        registrationPrefs = new RegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = new RegistrationPrefs(config);
 
         assertFalse(
                 "flag must reset together with push token on app update",
@@ -300,22 +295,22 @@ public class RegistrationPrefsTest {
         new PreferenceIntValue(prefs, PROPERTY_APP_VERSION, 0).set(GeneralUtils.getAppVersion());
 
         Config config = MockConfig.createMock("APP");
-        registrationPrefs = new RegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = new RegistrationPrefs(config);
 
         assertTrue(registrationPrefs.fcmMessageReceivedSinceInstallOrUpdate().get());
     }
 
-    // setLanguage with non-null value persists language, resets lastPushRegistration, calls updateRegistration.
+    // setLanguage with non-null value persists language only; zeroing lastPushRegistration and
+    // delivering the token are the registrar's job now, reported via Pushwoosh.setLanguage.
     @Test
-    public void setLanguage_nonNull_persistsResetsAndTriggersRegistrar() {
+    public void setLanguage_nonNull_persistsLanguageOnly() {
         RegistrationPrefs prefs = createWithAppId("APP");
         prefs.lastPushRegistration().set(12345L);
 
         prefs.setLanguage("de");
 
         assertThat(prefs.language().get(), is(equalTo("de")));
-        assertEquals(0L, (long) prefs.lastPushRegistration().get());
-        verify(deviceRegistrar).updateRegistration();
+        assertEquals(12345L, (long) prefs.lastPushRegistration().get());
     }
 
     // setLanguage(null) is a no-op.
@@ -327,7 +322,6 @@ public class RegistrationPrefsTest {
         prefs.setLanguage(null);
 
         assertThat(prefs.language().get(), is(equalTo("fr")));
-        verify(deviceRegistrar, never()).updateRegistration();
     }
 
     // setApiToken with non-null value overwrites stored apiToken.
@@ -335,7 +329,7 @@ public class RegistrationPrefsTest {
     public void setApiToken_nonNull_overwritesStoredValue() {
         Config config = MockConfig.createMock("APP");
         when(config.getApiToken()).thenReturn("initial");
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
 
         registrationPrefs.setApiToken("updated");
 
@@ -347,7 +341,7 @@ public class RegistrationPrefsTest {
     public void setApiToken_null_preservesExistingValue() {
         Config config = MockConfig.createMock("APP");
         when(config.getApiToken()).thenReturn("initial");
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
 
         registrationPrefs.setApiToken(null);
 
@@ -359,7 +353,7 @@ public class RegistrationPrefsTest {
     public void getTrackingUrl_validConfigUrl_normalizesAndReturns() {
         Config config = MockConfig.createMock("APP");
         when(config.getTrackingUrl()).thenReturn("https://custom-tracking.example.com");
-        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
 
         assertThat(registrationPrefs.getTrackingUrl(), is(equalTo("https://custom-tracking.example.com/")));
     }
@@ -372,7 +366,7 @@ public class RegistrationPrefsTest {
         for (String invalidInput : invalidInputs) {
             Config config = MockConfig.createMock("APP");
             when(config.getTrackingUrl()).thenReturn(invalidInput);
-            registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config, deviceRegistrar);
+            registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
 
             assertThat(
                     "config.getTrackingUrl()=\"" + invalidInput + "\" must fall back to default",
@@ -397,6 +391,18 @@ public class RegistrationPrefsTest {
         assertThat(prefs.pushToken().get(), is(equalTo("")));
         assertEquals(0L, (long) prefs.lastPushRegistration().get());
         assertTrue(prefs.registeredOnServer().get());
+    }
+
+    // removeAppId clears deliveredPushToken alongside registeredOnServer: both describe the old app code's
+    // delivery state and must not leak into the new one.
+    @Test
+    public void removeAppId_clearsDeliveredToken() {
+        RegistrationPrefs prefs = createWithAppId("APP");
+        prefs.deliveredPushToken().set("tkn");
+
+        prefs.removeAppId();
+
+        assertThat(prefs.deliveredPushToken().get(), is(equalTo("")));
     }
 
     // provideMigrationScheme carries the existing IS_REGISTERED_FOR_NOTIFICATION flag verbatim.

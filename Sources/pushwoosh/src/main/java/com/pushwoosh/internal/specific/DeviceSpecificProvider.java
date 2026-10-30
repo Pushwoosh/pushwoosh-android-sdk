@@ -38,7 +38,7 @@ public class DeviceSpecificProvider {
     private static final String TAG = "DeviceSpecificProvider";
     public static final String FCM_ANDROID_TYPE = "Android FCM";
     public static final String HUAWEI_TYPE = "Huawei";
-    private static DeviceSpecificProvider instance;
+    private static volatile DeviceSpecificProvider instance;
     private final DeviceSpecific deviceSpecific;
 
     private DeviceSpecificProvider(final DeviceSpecific deviceSpecific) {
@@ -89,14 +89,16 @@ public class DeviceSpecificProvider {
                 throw new IllegalArgumentException("You must setup deviceSpecific");
             }
 
-            if (instance == null || forceReplace) {
-                DeviceSpecificProvider previous = instance;
-                DeviceSpecificProvider current = new DeviceSpecificProvider(deviceSpecific);
-                instance = current;
-                logSlotWrite(previous, current);
-            }
+            synchronized (DeviceSpecificProvider.class) {
+                if (instance == null || forceReplace) {
+                    DeviceSpecificProvider previous = instance;
+                    DeviceSpecificProvider current = new DeviceSpecificProvider(deviceSpecific);
+                    instance = current;
+                    logSlotWrite(previous, current);
+                }
 
-            return instance;
+                return instance;
+            }
         }
     }
 

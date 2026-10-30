@@ -369,6 +369,98 @@ public class PushwooshTest {
         assertThat(retried.getData().getToken(), equalTo(testToken));
     }
 
+    // registeredOnServer means "this hwid is registered under the current app code", not "this token
+    // reached the server": after T1 was delivered it stays true while T2's own delivery fails.
+    @Test
+    public void registerExistingToken_undeliveredTokenAfterADeliveredOne_sendsItAgain() throws Exception {
+        String delivered = "token-1";
+        String undelivered = "token-2";
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+
+        fake.respondWith("registerDevice", new JSONObject());
+        Pushwoosh.getInstance().registerExistingToken(delivered, CallbackWrapper.spy());
+        testDriver.setAllConstraintsMet(pendingDeliveryId());
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        fake.failWith("registerDevice", new ConnectionException("Bad Request", 400, 0));
+        Pushwoosh.getInstance().registerExistingToken(undelivered, CallbackWrapper.spy());
+        testDriver.setAllConstraintsMet(pendingDeliveryId());
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        assertThat(fake.count("registerDevice"), equalTo(2));
+
+        fake.respondWith("registerDevice", new JSONObject());
+        Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> retry =
+                CallbackWrapper.spy();
+        Pushwoosh.getInstance().registerExistingToken(undelivered, retry);
+        testDriver.setAllConstraintsMet(pendingDeliveryId());
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertThat(fake.count("registerDevice"), equalTo(3));
+        assertThat(resultOf(retry).isSuccess(), equalTo(true));
+
+        Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> duplicate =
+                CallbackWrapper.spy();
+        Pushwoosh.getInstance().registerExistingToken(undelivered, duplicate);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertThat(fake.count("registerDevice"), equalTo(3));
+        assertThat(resultOf(duplicate).isSuccess(), equalTo(true));
+    }
+
+    // The app-update reset in the RegistrationPrefs constructor wipes pushToken but not registeredOnServer.
+    @Test
+    public void registerExistingToken_afterPushTokenWipedByAppUpdate_sendsItAgain() throws Exception {
+        String token = "token-1";
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+        fake.alwaysRespondWith("registerDevice", new JSONObject());
+
+        Pushwoosh.getInstance().registerExistingToken(token, CallbackWrapper.spy());
+        testDriver.setAllConstraintsMet(pendingDeliveryId());
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        registrationPrefs.pushToken().set("");
+
+        Pushwoosh.getInstance().registerExistingToken(token, CallbackWrapper.spy());
+        testDriver.setAllConstraintsMet(pendingDeliveryId());
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertThat(fake.count("registerDevice"), equalTo(2));
+    }
+
+    // onLanguageChanged bypasses the cooldown onAppOpened uses: a language change delivers the new
+    // value right away, even right after a delivery just set lastPushRegistration to now.
+    @Test
+    public void setLanguage_withinCooldownAfterDelivery_sendsRegisterDeviceWithNewLanguage() throws Exception {
+        String testToken = "12345";
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+        fake.alwaysRespondWith("registerDevice", new JSONObject());
+        Pushwoosh.getInstance().registerExistingToken(testToken, CallbackWrapper.spy());
+        testDriver.setAllConstraintsMet(pendingDeliveryId());
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        assertThat(fake.count("registerDevice"), equalTo(1));
+
+        Pushwoosh.getInstance().setLanguage("de");
+
+        fake.awaitCount("registerDevice", 2);
+        assertThat(fake.last("registerDevice").params.getString("language"), equalTo("de"));
+    }
+
+    // setLanguage(null) is a no-op: onLanguageChanged runs only for a non-null value.
+    @Test
+    public void setLanguage_null_sendsNothing() throws Exception {
+        String testToken = "12345";
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+        fake.alwaysRespondWith("registerDevice", new JSONObject());
+        Pushwoosh.getInstance().registerExistingToken(testToken, CallbackWrapper.spy());
+        testDriver.setAllConstraintsMet(pendingDeliveryId());
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        assertThat(fake.count("registerDevice"), equalTo(1));
+
+        Pushwoosh.getInstance().setLanguage(null);
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        assertThat(fake.count("registerDevice"), equalTo(1));
+    }
+
     private UUID pendingDeliveryId() throws Exception {
         for (WorkInfo info :
                 workManager.getWorkInfosForUniqueWork(RegisterDeviceWorker.TAG).get()) {
@@ -393,6 +485,23 @@ public class PushwooshTest {
                 CallbackWrapper.spy();
 
         Pushwoosh.getInstance().registerExistingToken("", callback);
+
+        ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
+                ArgumentCaptor.forClass(Result.class);
+        Mockito.verify(callback).process(captor.capture());
+        assertThat(captor.getValue().isSuccess(), equalTo(false));
+        List<WorkInfo> infos =
+                workManager.getWorkInfosForUniqueWork(RegisterDeviceWorker.TAG).get();
+        assertThat(infos, hasSize(0));
+        Mockito.verify(notificationManagerSpy, Mockito.never()).onTokenReceived(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void registerExistingToken_blankToken_failsWithoutWorker() throws ExecutionException, InterruptedException {
+        Callback<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException> callback =
+                CallbackWrapper.spy();
+
+        Pushwoosh.getInstance().registerExistingToken("   ", callback);
 
         ArgumentCaptor<Result<RegisterForPushNotificationsResultData, RegisterForPushNotificationsException>> captor =
                 ArgumentCaptor.forClass(Result.class);

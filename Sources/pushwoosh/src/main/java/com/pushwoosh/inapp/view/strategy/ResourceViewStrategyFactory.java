@@ -157,10 +157,8 @@ public class ResourceViewStrategyFactory {
             localizedStrings =
                     new InAppConfig(InAppModule.getInAppFolderProvider()).parseLocalizedStrings(resolved.getCode());
         } catch (Throwable e) {
-            // No pushwoosh.json / no localization block: substitute placeholder defaults, never drop the show.
-            // Throwable, not Exception: a pathologically nested pushwoosh.json can blow the parser stack
-            // (StackOverflowError), and that must fall back to empty defaults too — same guard as
-            // NativeConfigLocalizer.localize(), not slip past into a silently dropped show.
+            // Catches Throwable, not Exception, like NativeConfigLocalizer.localize(): a pathologically
+            // nested pushwoosh.json can blow the parser stack and must still fall back to defaults.
             PWLog.warn(TAG, "no localization dictionary for native in-app, using defaults: " + resolved.getCode(), e);
             localizedStrings = Collections.emptyMap();
         }

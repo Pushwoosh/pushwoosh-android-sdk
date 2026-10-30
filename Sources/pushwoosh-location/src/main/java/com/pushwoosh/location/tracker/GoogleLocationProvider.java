@@ -151,9 +151,8 @@ class GoogleLocationProvider
                 getFusedLocationProviderClient(context)
                         .requestLocationUpdates(locationRequest, googleLocationCallback, Looper.myLooper());
             } catch (SecurityException e) {
-                // FINE-or-COARSE gate above passed, but a high-accuracy request needs FINE: with only
-                // COARSE granted (e.g. "Approximate" toggle) the Fused provider throws at runtime,
-                // uncaught by the async catch(ApiException). Degrade to the failed path, do not crash.
+                // FINE-or-COARSE gate above passed, but a high-accuracy request needs FINE: with only COARSE
+                // granted (e.g. "Approximate" toggle), Fused throws here, uncaught by the async catch(ApiException).
                 PWLog.error(LocationConfig.TAG, SUB_TAG + " requestLocationUpdates denied: " + e.getMessage());
                 requestLocationListener.failedRequestLocation();
                 return;

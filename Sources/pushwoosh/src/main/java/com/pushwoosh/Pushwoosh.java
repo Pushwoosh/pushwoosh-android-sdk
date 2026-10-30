@@ -560,9 +560,16 @@ public class Pushwoosh {
     public void setLanguage(@Nullable String language) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setLanguage()");
         try {
-            if (ensureInitialized()) {
-                registrationPrefs.setLanguage(language);
+            if (!ensureInitialized() || language == null) {
+                return;
             }
+            registrationPrefs.setLanguage(language);
+
+            PushwooshPlatform platform = PushwooshPlatform.getInstance();
+            if (platform == null) {
+                return;
+            }
+            platform.deviceRegistrar().onLanguageChanged();
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set language", e);
         }
@@ -835,6 +842,10 @@ public class Pushwoosh {
      * <p>
      * This method is useful when you already have a push token obtained from Firebase
      * and want to register it with Pushwoosh without going through the full registration flow.
+     * <p>
+     * The integration that calls this method owns the push token: the SDK does not deliver token rotations
+     * for it. Listen to {@code onNewToken} yourself and pass every new token here; otherwise the server keeps
+     * the stale token and pushes stop arriving.
      * <br><br>
      * Example:
      * <pre>
@@ -874,15 +885,16 @@ public class Pushwoosh {
                 return;
             }
 
-            if (TextUtils.isEmpty(token)) {
+            token = token == null ? "" : token.trim();
+            if (token.isEmpty()) {
                 PWLog.warn("Pushwoosh", "token is empty");
                 safeProcessCallback(
                         callback, Result.fromException(new RegisterForPushNotificationsException("token is empty")));
                 return;
             }
 
-            if (token.equals(registrationPrefs.pushToken().get())
-                    && registrationPrefs.registeredOnServer().get()) {
+            PushwooshPlatform platform = PushwooshPlatform.getInstance();
+            if (platform != null && platform.deviceRegistrar().isDelivered(token)) {
                 RegisterForPushNotificationsResultData data =
                         new RegisterForPushNotificationsResultData(token, NotificationUtils.areNotificationsEnabled());
                 safeProcessCallback(callback, Result.fromData(data));

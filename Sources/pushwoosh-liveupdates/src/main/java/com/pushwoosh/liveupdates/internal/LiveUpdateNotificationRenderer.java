@@ -250,15 +250,17 @@ public class LiveUpdateNotificationRenderer {
         return managerProvider == null ? null : managerProvider.getNotificationManager();
     }
 
-    /** Creates the module's notification channel on first use; idempotent. */
+    /**
+     * Creates the module's notification channel on first use; idempotent.
+     *
+     * <p>Uses {@code IMPORTANCE_DEFAULT} rather than the minimum viable {@code LOW}: it keeps the
+     * live update more visible in the collapsed shade, and the resulting noise is removed instead
+     * by muting the channel by hand ({@code setSound(null)} + {@code enableVibration(false)}).
+     */
     private void ensureChannel(NotificationManager nm) {
         if (nm.getNotificationChannel(CHANNEL_ID) != null) {
             return;
         }
-        // IMPORTANCE_DEFAULT, not LOW, is intentional. Promoted-ongoing needs at least LOW, so both
-        // LOW and DEFAULT qualify; DEFAULT is chosen because it keeps the live update more visible
-        // in the collapsed shade. The noise downside is removed by muting the channel by hand below
-        // (setSound(null) + enableVibration(false)) — don't "fix" this back to LOW.
         NotificationChannel ch =
                 new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
         ch.setDescription("Pushwoosh Live Updates");
@@ -298,9 +300,7 @@ public class LiveUpdateNotificationRenderer {
         }
         JSONObject extras = action.getExtras();
         if (extras != null) {
-            // Intentionally stringified to match core SDK behaviour (NotificationBuilderManager.addAction).
-            // Apps usually share one receiver between regular and live-update pushes, so the extras
-            // contract must be identical — typed values here would silently diverge from regular pushes.
+            // Stringified to match NotificationBuilderManager.addAction: a shared receiver must see identical extras.
             Iterator<String> keys = extras.keys();
             while (keys.hasNext()) {
                 String k = keys.next();

@@ -128,13 +128,11 @@ class InboxCardOpenStatusTest {
     )
 
     /** An adapter bound to one message, counting the row taps that reach the presenter. */
-    private fun boundHolder(message: InboxMessage, viewType: Int, rowClicks: IntArray): BaseRecyclerAdapter.ViewHolder<InboxMessage> {
+    private fun boundHolder(message: InboxMessage, rowClicks: IntArray): BaseRecyclerAdapter.ViewHolder<InboxMessage> {
         val adapter = newAdapter()
         adapter.onItemClick = { rowClicks[0]++ }
         adapter.setCollection(listOf(message))
-        val holder = adapter.onCreateViewHolder(FrameLayout(ctx()), viewType)
-        adapter.onBindViewHolder(holder, 0)
-        return holder
+        return attachedHolder(adapter)
     }
 
     private fun newAdapter(): InboxAdapter = InboxAdapter(ctx(), fakeColorScheme()) { _, _ -> }
@@ -281,8 +279,7 @@ class InboxCardOpenStatusTest {
         var rowClicks = 0
         adapter.onItemClick = { rowClicks++ }
         adapter.setCollection(listOf(msg(TWO_SLIDES)))
-        val holder = adapter.onCreateViewHolder(FrameLayout(ctx()), InboxAdapter.CAROUSEL_VIEW_TYPE)
-        adapter.onBindViewHolder(holder, 0)
+        val holder = attachedHolder(adapter)
         val secondSlide = slide(holder, 1)
 
         withInboxStatic { inbox ->
@@ -402,7 +399,7 @@ class InboxCardOpenStatusTest {
     @Test
     fun slideWithOwnUrlOnMessageWithRichMedia_goesToTheRowAction() {
         val rowClicks = intArrayOf(0)
-        val holder = boundHolder(richMsg(TWO_SLIDES), InboxAdapter.CAROUSEL_VIEW_TYPE, rowClicks)
+        val holder = boundHolder(richMsg(TWO_SLIDES), rowClicks)
         val firstSlide = slide(holder, 0)
 
         withInboxStatic { inbox ->
@@ -418,7 +415,7 @@ class InboxCardOpenStatusTest {
     @Test
     fun posterTapOnMessageWithRichMedia_goesToTheRowActionInsteadOfThePlayer() {
         val rowClicks = intArrayOf(0)
-        val holder = boundHolder(richMsg(VIDEO_PARAMS), InboxAdapter.VIDEO_VIEW_TYPE, rowClicks)
+        val holder = boundHolder(richMsg(VIDEO_PARAMS), rowClicks)
         val poster = holder.itemView.findViewById<View>(R.id.inboxVideoPosterHost)
 
         withInboxStatic { inbox ->
@@ -440,8 +437,7 @@ class InboxCardOpenStatusTest {
         val message = fakeInboxMessage(code = CODE, title = "t", message = "body",
             bannerUrl = "https://cdn/b.jpg", type = InboxMessageType.RICH_MEDIA)
         adapter.setCollection(listOf(message))
-        val holder = adapter.onCreateViewHolder(FrameLayout(ctx()), InboxAdapter.TEXT_VIEW_TYPE)
-        adapter.onBindViewHolder(holder, 0)
+        val holder = attachedHolder(adapter)
         val banner = holder.itemView.findViewById<View>(R.id.inboxBannerImage)
 
         withInboxStatic { inbox ->

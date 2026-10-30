@@ -31,9 +31,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.pushwoosh.inapp.network.model.InAppLayout;
 import com.pushwoosh.inapp.network.model.Resource;
@@ -72,19 +73,18 @@ public class InAppDbHelper extends SQLiteOpenHelper implements InAppStorage {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        //create InAppDTO
+        // create InAppDTO
         String createInAppsTable =
-                String.format("create table %s (", TABLE) +
-                        String.format("%s text primary key, ", Column.CODE) +
-                        String.format("%s text, ", Column.URL) +
-                        String.format("%s text, ", Column.FOLDER) +
-                        String.format("%s text, ", Column.LAYOUT) +
-                        String.format("%s integer, ", Column.UPDATED) +
-                        String.format("%s integer default 0, ", Column.PRIORITY) +
-                        String.format("%s integer default 0, ", Column.REQUIRED) +
-                        String.format("%s text, ", Column.BUSINESS_CASE) +
-                        String.format("%s text", Column.GDPR) +
-                        ");";
+                String.format("create table %s (", TABLE) + String.format("%s text primary key, ", Column.CODE)
+                        + String.format("%s text, ", Column.URL)
+                        + String.format("%s text, ", Column.FOLDER)
+                        + String.format("%s text, ", Column.LAYOUT)
+                        + String.format("%s integer, ", Column.UPDATED)
+                        + String.format("%s integer default 0, ", Column.PRIORITY)
+                        + String.format("%s integer default 0, ", Column.REQUIRED)
+                        + String.format("%s text, ", Column.BUSINESS_CASE)
+                        + String.format("%s text", Column.GDPR)
+                        + ");";
 
         db.execSQL(createInAppsTable);
     }
@@ -105,7 +105,6 @@ public class InAppDbHelper extends SQLiteOpenHelper implements InAppStorage {
             }
         }
     }
-
 
     @Override
     public List<String> saveOrUpdateResources(@Nullable List<Resource> inApps) {
@@ -152,7 +151,8 @@ public class InAppDbHelper extends SQLiteOpenHelper implements InAppStorage {
         values.put(Column.PRIORITY, inApp.getPriority());
         values.put(Column.REQUIRED, inApp.isRequired() ? 1 : 0);
 
-        int updated = db.updateWithOnConflict(TABLE, values, Column.CODE + "= ?", new String[]{inApp.getCode()}, SQLiteDatabase.CONFLICT_IGNORE);
+        int updated = db.updateWithOnConflict(
+                TABLE, values, Column.CODE + "= ?", new String[] {inApp.getCode()}, SQLiteDatabase.CONFLICT_IGNORE);
         if (updated == 0) {
             values.put(Column.CODE, inApp.getCode());
             long insert = db.insert(TABLE, null, values);
@@ -167,8 +167,7 @@ public class InAppDbHelper extends SQLiteOpenHelper implements InAppStorage {
     }
 
     @Override
-    @Nullable
-    public Resource getResource(String code) {
+    @Nullable public Resource getResource(String code) {
         if (code == null || TextUtils.isEmpty(code)) {
             return null;
         }
@@ -203,15 +202,13 @@ public class InAppDbHelper extends SQLiteOpenHelper implements InAppStorage {
         return null;
     }
 
-    @NonNull
-    private Resource getResourceFromCursor(Cursor cursor) {
-        String code = cursor.getString(cursor.getColumnIndex(Column.CODE));
-        String url = cursor.getString(cursor.getColumnIndex(Column.URL));
-        long updated = cursor.getLong(cursor.getColumnIndex(Column.UPDATED));
-        InAppLayout layout = InAppLayout.of(cursor.getString(cursor.getColumnIndex(Column.LAYOUT)));
-        int priority = cursor.getInt(cursor.getColumnIndex(Column.PRIORITY));
-        boolean required = cursor.getInt(cursor.getColumnIndex(Column.REQUIRED)) == 1;
+    @NonNull private Resource getResourceFromCursor(Cursor cursor) {
+        String code = cursor.getString(cursor.getColumnIndexOrThrow(Column.CODE));
+        String url = cursor.getString(cursor.getColumnIndexOrThrow(Column.URL));
+        long updated = cursor.getLong(cursor.getColumnIndexOrThrow(Column.UPDATED));
+        InAppLayout layout = InAppLayout.of(cursor.getString(cursor.getColumnIndexOrThrow(Column.LAYOUT)));
+        int priority = cursor.getInt(cursor.getColumnIndexOrThrow(Column.PRIORITY));
+        boolean required = cursor.getInt(cursor.getColumnIndexOrThrow(Column.REQUIRED)) == 1;
         return new Resource(code, url, "", updated, layout, null, required, priority);
     }
-
 }

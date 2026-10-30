@@ -1,7 +1,6 @@
 package com.pushwoosh.featureflags;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 
 import android.content.SharedPreferences;
 
@@ -17,7 +16,6 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.prefs.TestPrefsProvider;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.internal.utils.TimeProvider;
-import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryTestManager;
 import com.pushwoosh.tags.TagsBundle;
@@ -69,7 +67,7 @@ public abstract class FeatureFlagsManagerFixture {
     @Before
     public void setUp() {
         AndroidPlatformModule.init(RuntimeEnvironment.application, true);
-        prefs = RepositoryTestManager.createRegistrationPrefs(MockConfig.createMock(APP), mock(DeviceRegistrar.class));
+        prefs = RepositoryTestManager.createRegistrationPrefs(MockConfig.createMock(APP));
         prefs.applicationId().set(APP);
         prefs.hwid().set(HWID);
         prefs.userId().set("");

@@ -2,6 +2,8 @@ package com.pushwoosh.inapp.view.config.enums;
 
 import com.pushwoosh.internal.utils.PWLog;
 
+import java.util.Locale;
+
 /**
  * Defines animation types for presenting modal in-app messages.
  * <p>
@@ -13,19 +15,19 @@ import com.pushwoosh.internal.utils.PWLog;
 public enum ModalRichMediaPresentAnimationType {
     /** Smooth fade-in animation, ideal for professional and subtle presentations */
     FADE_IN(0),
-    
+
     /** Drop-down animation from top, ideal for notifications and alerts */
     DROP_DOWN(1),
-    
+
     /** Slide animation from the left side of the screen */
     SLIDE_FROM_LEFT(2),
-    
+
     /** Slide animation upward from the bottom, ideal for bottom-positioned modals */
     SLIDE_UP(3),
-    
+
     /** Slide animation from the right side of the screen */
     SLIDE_FROM_RIGHT(4),
-    
+
     /** No animation - modal appears instantly */
     NONE(5);
 
@@ -56,13 +58,19 @@ public enum ModalRichMediaPresentAnimationType {
 
     public static ModalRichMediaPresentAnimationType fromString(String value) {
         if (value == null) return null;
-        switch (value.toLowerCase()) {
-            case "fade_in": return FADE_IN;
-            case "down": return DROP_DOWN;
-            case "left": return SLIDE_FROM_LEFT;
-            case "up": return SLIDE_UP;
-            case "right": return SLIDE_FROM_RIGHT;
-            case "none": return NONE;
+        switch (value.toLowerCase(Locale.ROOT)) {
+            case "fade_in":
+                return FADE_IN;
+            case "down":
+                return DROP_DOWN;
+            case "left":
+                return SLIDE_FROM_LEFT;
+            case "up":
+                return SLIDE_UP;
+            case "right":
+                return SLIDE_FROM_RIGHT;
+            case "none":
+                return NONE;
             default:
                 return null;
         }

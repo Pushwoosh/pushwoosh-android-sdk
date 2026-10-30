@@ -59,6 +59,7 @@ import com.pushwoosh.repository.RepositoryModule;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -119,6 +120,8 @@ public class WebClient extends WebViewClient implements JsCallback {
         for (Map.Entry<String, Object> entry : jsInterfaces.entrySet()) {
             String name = entry.getKey();
             Object jsInterface = entry.getValue();
+            // integrator's object: @JavascriptInterface on its methods is their contract (InAppManager javadoc)
+            //noinspection JavascriptInterface
             webView.addJavascriptInterface(jsInterface, name);
         }
     }
@@ -191,8 +194,11 @@ public class WebClient extends WebViewClient implements JsCallback {
         PWLog.error(
                 TAG,
                 String.format(
+                        Locale.ROOT,
                         "onReceivedError(url: %s, code: %d, description: %s)",
-                        request.getUrl(), error.getErrorCode(), error.getDescription()));
+                        request.getUrl(),
+                        error.getErrorCode(),
+                        error.getDescription()));
     }
 
     @SuppressWarnings("deprecation")
@@ -281,9 +287,8 @@ public class WebClient extends WebViewClient implements JsCallback {
     private boolean handleUri(Context context, Uri uri) {
         PWLog.noise(TAG, String.format("handleUri(uri: %s)", uri));
 
-        // A schemeless URI (relative/empty/fragment href in server-controlled rich-media HTML) makes
-        // Uri.getScheme() null; the scheme checks below would NPE on the WebView's main-thread callback.
-        // Such a navigation is neither our scheme nor an openable external URL, so consume it as a no-op.
+        // A schemeless URI (relative/empty/fragment href in server-controlled HTML) would NPE the scheme
+        // checks below; it is neither our scheme nor an openable external URL, so consume it as a no-op.
         if (uri.getScheme() == null) {
             PWLog.warn(TAG, "Ignoring navigation to schemeless uri: " + uri);
             return true;

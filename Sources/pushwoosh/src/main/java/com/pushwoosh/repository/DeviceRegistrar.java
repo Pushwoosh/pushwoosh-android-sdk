@@ -51,7 +51,6 @@ import androidx.work.OneTimeWorkRequest;
 
 import com.pushwoosh.PushwooshWorkManagerHelper;
 import com.pushwoosh.RegisterForPushNotificationsResultData;
-import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.network.NetworkException;
@@ -85,27 +84,18 @@ public class DeviceRegistrar {
     // One delivery of the device's own token per process: lazyInit may rebuild the registrar.
     private static final ReentrantLock deliveryLock = new ReentrantLock();
 
-    public void registerWithServer(String token, String tags, int platform, Callback<Void, NetworkException> callback) {
-        PWLog.noise(TAG, "registerWithServer");
-
-        RegisterDeviceRequest request = new RegisterDeviceRequest(token, tags, platform);
-        Callback<Void, NetworkException> resultCallback = callback;
-        Callback<Void, NetworkException> wrappedCallback = result -> {
-            if (result.isSuccess()) {
-                PushPermissionStatusTracker.onStatusDelivered(request.getSentPushPermissionStatus());
-            }
-            if (resultCallback != null) {
-                resultCallback.process(result);
-            }
-        };
-
-        NetworkModule.getRequestManager().sendRequest(request, wrappedCallback);
+    /** Reported when there is no saved token at all: nothing was sent and nothing failed. */
+    public static class NothingToDeliverException extends NetworkException {
+        NothingToDeliverException() {
+            super("no push token saved, nothing to deliver");
+        }
     }
 
     /**
      * Sends the saved push token to the server and applies the outcome (prefs, push permission
      * status, success/error events) synchronously, waiting for the lock shared by all callers
-     * delivering the device's own token.
+     * delivering the device's own token. Called by {@link RegisterDeviceWorker}; public only
+     * because the worker lives in another package.
      *
      * @param tagsJson tags to attach to the request, or {@code null}
      * @return the request result; a success without the server's answer when the token rotated
@@ -113,7 +103,7 @@ public class DeviceRegistrar {
      *     token or push transport module
      */
     @WorkerThread
-    public Result<Void, NetworkException> registerSavedToken(@Nullable String tagsJson) {
+    public Result<Void, NetworkException> deliverFromWorker(@Nullable String tagsJson) {
         deliveryLock.lock();
         try {
             return deliverSavedToken(tagsJson);
@@ -123,7 +113,22 @@ public class DeviceRegistrar {
     }
 
     /**
-     * Same as {@link #registerSavedToken(String)}, but gives up instead of waiting for an in-flight
+     * True when {@code token} is both the saved push token and the one the server last accepted.
+     * Comparing against the saved token too: an app update wipes pushToken, and the device has to
+     * re-deliver the token it still holds.
+     */
+    public boolean isDelivered(@NonNull String token) {
+        RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
+        if (prefs == null || TextUtils.isEmpty(token)) {
+            return false;
+        }
+
+        return token.equals(prefs.pushToken().get())
+                && token.equals(prefs.deliveredPushToken().get());
+    }
+
+    /**
+     * Same as {@link #deliverFromWorker(String)}, but gives up instead of waiting for an in-flight
      * delivery: waiting would hold the shared network thread for the whole request timeout. Callers
      * that need a follow-up delivery schedule one on {@code false}.
      *
@@ -151,7 +156,7 @@ public class DeviceRegistrar {
 
         String token = prefs.pushToken().get();
         if (TextUtils.isEmpty(token)) {
-            return Result.fromException(new NetworkException("push token is empty"));
+            return Result.fromException(new NothingToDeliverException());
         }
 
         DeviceSpecificProvider provider = DeviceSpecificProvider.getInstance();
@@ -162,18 +167,23 @@ public class DeviceRegistrar {
             return Result.fromException(new NetworkException(errorDescription));
         }
 
+        String appCode = prefs.applicationId().get();
         RegisterDeviceRequest request = new RegisterDeviceRequest(token, tagsJson, provider.deviceType());
         Result<Void, NetworkException> result =
                 NetworkModule.getRequestManager().sendRequestSync(request);
 
-        if (!token.equals(prefs.pushToken().get())) {
-            // token rotated mid-flight: the newer delivery applies its own outcome
+        boolean appCodeChanged = !TextUtils.isEmpty(appCode)
+                && !appCode.equals(prefs.applicationId().get());
+        if (!token.equals(prefs.pushToken().get()) || appCodeChanged) {
+            // the newer delivery owns the outcome: stamping it here would hide the new code behind the cooldown;
+            // a first app code is not a change — nothing re-delivers after it
             return Result.fromData(null);
         }
 
         if (result.isSuccess()) {
             PushPermissionStatusTracker.onStatusDelivered(request.getSentPushPermissionStatus());
             prefs.registeredOnServer().set(true);
+            prefs.deliveredPushToken().set(token);
             prefs.lastPushRegistration().set(new Date().getTime());
             EventBus.sendEvent(new RegistrationSuccessEvent(
                     new RegisterForPushNotificationsResultData(token, areNotificationsEnabled())));
@@ -192,7 +202,7 @@ public class DeviceRegistrar {
      *
      * @param tagsJson tags to attach to the request, or {@code null}
      */
-    public void scheduleRegistration(@Nullable String tagsJson) {
+    private void schedule(@Nullable String tagsJson) {
         try {
             Data.Builder dataBuilder = new Data.Builder();
             if (tagsJson != null) {
@@ -221,7 +231,7 @@ public class DeviceRegistrar {
     }
 
     /**
-     * Cancels a pending {@link RegisterDeviceWorker} run scheduled by {@link #scheduleRegistration(String)}.
+     * Cancels a pending {@link RegisterDeviceWorker} run scheduled by {@link #schedule(String)}.
      */
     public void cancelScheduledRegistration() {
         PushwooshWorkManagerHelper.cancelUniqueWork(RegisterDeviceWorker.TAG);
@@ -242,6 +252,7 @@ public class DeviceRegistrar {
         try {
             // not in the explicit-appCode overload: after an app code change it would stomp the new app's flag
             prefs.registeredOnServer().set(false);
+            prefs.deliveredPushToken().set("");
             reportUnregistration(
                     NetworkModule.getRequestManager().sendRequestSync(request), deviceRegistrationId, prefs);
         } finally {
@@ -279,51 +290,143 @@ public class DeviceRegistrar {
         EventBus.sendEvent(new DeregistrationErrorEvent(errorDescription));
     }
 
-    public void updateRegistration() {
-        PWLog.noise(TAG, "updateRegistration()");
+    /**
+     * Reports that the SDK learned a push token — a fresh registration, the app's own token handed
+     * to {@code registerExistingToken}, or a transport's {@code onNewToken} — and schedules its
+     * delivery to the server.
+     *
+     * @param token token to deliver
+     * @param tagsJson tags to attach to the request, or {@code null}
+     */
+    public void onTokenReceived(@NonNull String token, @Nullable String tagsJson) {
+        PWLog.noise(TAG, "onTokenReceived()");
 
-        RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
-
-        final String pushToken = prefs.pushToken().get();
-        if (pushToken == null || pushToken.isEmpty()) {
+        if (DeviceSpecificProvider.getInstance() == null) {
+            String errorDescription = "can't register device: no push transport module";
+            PWLog.error(TAG, errorDescription);
+            EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
             return;
         }
 
-        // if we need to re-register on Pushwoosh because of Pushwoosh App Id change
-        boolean forceRegister = prefs.forceRegister().get();
-        prefs.forceRegister().set(false);
+        RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
+        if (prefs == null) {
+            String errorDescription = "can't register device: SDK is not initialized";
+            PWLog.error(TAG, errorDescription);
+            EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
+            return;
+        }
+        // written before scheduling: the FCM/HMS onNewToken dedup reads this pref in any SDK state
+        prefs.pushToken().set(token);
+        schedule(tagsJson);
+    }
 
-        if (forceRegister || neededToRequestPushwooshServer()) {
-            BackgroundExecutor.network(() -> {
-                if (!tryRegisterSavedToken(null)) {
-                    scheduleRegistration(null);
-                }
-            });
+    /**
+     * Reports that the app was opened and, respecting the cooldown of {@link #neededToRequestPushwooshServer()},
+     * sends the saved token to the server when there is one to deliver.
+     */
+    public void onAppOpened() {
+        PWLog.noise(TAG, "onAppOpened()");
+
+        if (!hasSavedToken()) {
+            return;
+        }
+
+        if (neededToRequestPushwooshServer()) {
+            sendNow(null);
         }
     }
 
     /**
-     * Sends registerDevice right away, bypassing the cooldown of {@link #updateRegistration()}.
-     * When a delivery is already in flight, schedules another one after it: the in-flight request was
-     * built from the previous prefs.
-     *
-     * @param onDone runs when the request completes or the follow-up delivery is scheduled, or right
-     *               away when there is no push token
+     * Reports that the application code changed and, when there is a token to deliver, sends it right
+     * away, ignoring the cooldown of {@link #onAppOpened()}: the device is re-registering against a
+     * different application, not repeating a recent registration against the same one.
      */
-    public void updateRegistrationNow(@NonNull Runnable onDone) {
-        PWLog.noise(TAG, "updateRegistrationNow()");
+    public void onAppCodeChanged() {
+        PWLog.noise(TAG, "onAppCodeChanged()");
+
+        if (!hasSavedToken()) {
+            return;
+        }
+
+        sendNow(null);
+    }
+
+    /**
+     * Reports that the language changed. Zeroes {@code lastPushRegistration} first — the freshness
+     * check {@code PushwooshNotificationManager} runs before registering reads it even when there is
+     * no token to send — then, when there is a token to deliver, sends it right away, ignoring the
+     * cooldown of {@link #onAppOpened()}.
+     */
+    public void onLanguageChanged() {
+        PWLog.noise(TAG, "onLanguageChanged()");
 
         RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
-        String pushToken = prefs == null ? null : prefs.pushToken().get();
-        if (TextUtils.isEmpty(pushToken)) {
+        if (prefs == null) {
+            return;
+        }
+
+        prefs.lastPushRegistration().set(0);
+
+        if (!hasSavedToken()) {
+            return;
+        }
+
+        sendNow(null);
+    }
+
+    /**
+     * Reports that server communication resumed and, when there is a token to deliver, schedules a
+     * {@link RegisterDeviceWorker} run instead of sending right away.
+     */
+    public void onServerCommunicationStarted() {
+        PWLog.noise(TAG, "onServerCommunicationStarted()");
+
+        if (!hasSavedToken()) {
+            return;
+        }
+
+        schedule(null);
+    }
+
+    /**
+     * Reports that the push permission status changed and, when there is a token to deliver, sends it
+     * right away, bypassing the cooldown of {@link #onAppOpened()}.
+     *
+     * @param onDone runs once delivery is settled; right away when there is no push token
+     */
+    public void onPermissionStatusChanged(@NonNull Runnable onDone) {
+        PWLog.noise(TAG, "onPermissionStatusChanged()");
+
+        if (!hasSavedToken()) {
             onDone.run();
             return;
         }
+        sendNow(onDone);
+    }
+
+    private boolean hasSavedToken() {
+        RegistrationPrefs prefs = RepositoryModule.getRegistrationPreferences();
+        return prefs != null && !TextUtils.isEmpty(prefs.pushToken().get());
+    }
+
+    /**
+     * Sends registerDevice right away. When a delivery is already in flight, schedules another one
+     * after it instead of waiting on the shared network thread for the in-flight request's timeout:
+     * that request was built from the previous prefs.
+     *
+     * @param onDone runs when the request completes or the follow-up delivery is scheduled
+     */
+    private void sendNow(@Nullable Runnable onDone) {
         BackgroundExecutor.network(() -> {
-            if (!tryRegisterSavedToken(null)) {
-                scheduleRegistration(null);
+            try {
+                if (!tryRegisterSavedToken(null)) {
+                    schedule(null);
+                }
+            } finally {
+                if (onDone != null) {
+                    onDone.run();
+                }
             }
-            onDone.run();
         });
     }
 

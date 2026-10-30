@@ -26,6 +26,7 @@
 
 package com.pushwoosh.inbox.ui.presentation.view.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.annotation.LayoutRes
 import android.view.LayoutInflater
@@ -58,6 +59,8 @@ abstract class BaseRecyclerAdapter<VH : BaseRecyclerAdapter.ViewHolder<Model>, M
 
     protected abstract fun createViewHolderInstance(parent: ViewGroup, viewType: Int): VH
 
+    // position is only used during this bind; lastPosition is an animate-once high-water mark, not an item index
+    @SuppressLint("RecyclerView")
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = getItem(position)
         holder.bindView()

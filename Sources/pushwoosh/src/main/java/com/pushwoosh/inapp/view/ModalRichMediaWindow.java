@@ -98,6 +98,7 @@ public class ModalRichMediaWindow extends PopupWindow
 
         // Dragging and swiping
         this.setClippingEnabled(false);
+        // Below Q setTouchModal is hidden API: the flag is set after show by disableTouchModalBelowQ.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             this.setTouchModal(false);
         }
@@ -181,9 +182,7 @@ public class ModalRichMediaWindow extends PopupWindow
     public static void showModalRichMediaWindow(Resource resource) {
         PWLog.noise("[InApp] ModalRichMediaWindow", "showModalRichMediaWindow for resource: " + resource.getCode());
         Handler handler = new Handler(Looper.getMainLooper());
-        // if we have an instance of top activity we create popupwindow, otherwise we subscribe for event until there is
-        // one
-        // postDelayed has 1000ms delay to ensure activity is instantiated and has non-null WindowToken
+        // 1000ms delay ensures the activity is instantiated and has a non-null WindowToken before use.
         handler.postDelayed(
                 () -> {
                     if (PushwooshPlatform.getInstance().getTopActivity() == null) {
@@ -317,6 +316,7 @@ public class ModalRichMediaWindow extends PopupWindow
             View parentView, int gravity, int xCoordinate, int yCoordinate) {
         if (PushwooshPlatform.getInstance().getTopActivity() != null) {
             this.showAtLocation(parentView, gravity, xCoordinate, yCoordinate);
+            ModalRichMediaWindowUtils.disableTouchModalBelowQ(this, parentView);
             PWLog.info(
                     TAG,
                     String.format(

@@ -13,6 +13,7 @@ import android.os.Build;
 import com.huawei.hms.api.ConnectionResult;
 import com.huawei.hms.api.HuaweiApiAvailability;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +22,8 @@ import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.util.ReflectionHelpers;
+
+import java.util.Locale;
 
 /**
  * Unit tests for HuaweiUtils device detection logic.
@@ -50,9 +53,16 @@ public class HuaweiUtilsTest {
     @Mock
     private HuaweiApiAvailability mockHuaweiApiAvailability;
 
+    private final Locale defaultLocale = Locale.getDefault();
+
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @After
+    public void tearDown() {
+        Locale.setDefault(defaultLocale);
     }
 
     // ========================================================================
@@ -238,6 +248,26 @@ public class HuaweiUtilsTest {
             boolean result = HuaweiUtils.isHuaweiDevice(mockContext);
 
             assertTrue("Device with Huawei BRAND should be detected", result);
+        }
+    }
+
+    /**
+     * Turkish default locale lowercases "HUAWEI" to "huaweı" (dotless i): the manufacturer
+     * match must not depend on the device locale.
+     */
+    @Test
+    public void testUppercaseHuaweiUnderTurkishLocale_shouldReturnTrue() throws Exception {
+        Locale.setDefault(new Locale("tr", "TR"));
+        setManufacturerAndBrand("HUAWEI", "HUAWEI");
+
+        try (MockedStatic<HuaweiApiAvailability> mockedStatic = mockStatic(HuaweiApiAvailability.class)) {
+            mockedStatic.when(HuaweiApiAvailability::getInstance).thenReturn(mockHuaweiApiAvailability);
+            when(mockHuaweiApiAvailability.isHuaweiMobileServicesAvailable(any(Context.class)))
+                    .thenReturn(ConnectionResult.SUCCESS);
+
+            boolean result = HuaweiUtils.isHuaweiDevice(mockContext);
+
+            assertTrue("HUAWEI must be detected under a Turkish default locale", result);
         }
     }
 

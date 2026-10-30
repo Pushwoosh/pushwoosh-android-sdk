@@ -26,8 +26,6 @@
 
 package com.pushwoosh.inapp.mapper;
 
-import static org.mockito.Mockito.mock;
-
 import com.pushwoosh.inapp.model.HtmlData;
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.storage.InAppFolderProvider;
@@ -35,7 +33,6 @@ import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.FileUtils;
 import com.pushwoosh.internal.utils.MockConfig;
-import com.pushwoosh.repository.DeviceRegistrar;
 import com.pushwoosh.repository.RegistrationPrefs;
 import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.repository.RepositoryTestManager;
@@ -77,8 +74,7 @@ public class ResourceMapperTest {
 
         Config configMock = MockConfig.createMock();
         AndroidPlatformModule.init(RuntimeEnvironment.application, true);
-        RegistrationPrefs registrationPrefs =
-                RepositoryTestManager.createRegistrationPrefs(configMock, mock(DeviceRegistrar.class));
+        RegistrationPrefs registrationPrefs = RepositoryTestManager.createRegistrationPrefs(configMock);
         RepositoryModule.setRegistrationPreferences(registrationPrefs);
     }
 
