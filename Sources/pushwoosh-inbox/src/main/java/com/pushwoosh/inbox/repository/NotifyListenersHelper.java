@@ -28,6 +28,7 @@ package com.pushwoosh.inbox.repository;
 
 import android.os.Handler;
 import android.os.Looper;
+
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.function.Callback;
@@ -43,39 +44,40 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 class NotifyListenersHelper<T> {
 
-	private final Collection<Callback<T, InboxMessagesException>> listeners = new ConcurrentLinkedQueue<>();
-	private final Handler handler = new Handler(Looper.getMainLooper());
-	private final Mapper<Result<LoadResult, NetworkException>, Result<T, InboxMessagesException>> mapper;
+    private final Collection<Callback<T, InboxMessagesException>> listeners = new ConcurrentLinkedQueue<>();
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Mapper<Result<LoadResult, NetworkException>, Result<T, InboxMessagesException>> mapper;
 
-	NotifyListenersHelper(Mapper<Result<LoadResult, NetworkException>, Result<T, InboxMessagesException>> mapper) {
-		this.mapper = mapper;
-	}
+    NotifyListenersHelper(Mapper<Result<LoadResult, NetworkException>, Result<T, InboxMessagesException>> mapper) {
+        this.mapper = mapper;
+    }
 
-	void notify(final Result<LoadResult, NetworkException> result) {
-		handler.post(() -> notifyListeners(mapper.map(result)));
-	}
+    void notify(final Result<LoadResult, NetworkException> result) {
+        handler.post(() -> notifyListeners(mapper.map(result)));
+    }
 
-	void addListener(@Nullable Callback<T, InboxMessagesException> callback) {
-		if (callback == null) {
-			return;
-		}
+    void addListener(@Nullable Callback<T, InboxMessagesException> callback) {
+        if (callback == null) {
+            return;
+        }
 
-		listeners.add(callback);
-	}
+        listeners.add(callback);
+    }
 
-	private void notifyListeners(Result<T, InboxMessagesException> result) {
-		for (Callback<T, InboxMessagesException> expectedCallback : listeners) {
-			if (expectedCallback != null) {
-				try {
-					expectedCallback.process(result);
-					listeners.remove(expectedCallback);
-				} catch (Exception e) {
-					PWLog.error("Error occurred while processing Callback", e.getMessage());
-				}
-			}
-		}
+    private void notifyListeners(Result<T, InboxMessagesException> result) {
+        for (Callback<T, InboxMessagesException> expectedCallback : listeners) {
+            if (expectedCallback == null) {
+                continue;
+            }
 
-		listeners.clear();
-	}
+            try {
+                expectedCallback.process(result);
+                listeners.remove(expectedCallback);
+            } catch (Exception e) {
+                PWLog.error("Error occurred while processing Callback", e.getMessage());
+            }
+        }
 
+        listeners.clear();
+    }
 }

@@ -1,10 +1,10 @@
 package com.pushwoosh.pushmart.ui.offers
 
+import android.content.res.Resources
+import com.pushwoosh.pushmart.R
+
 object InboxCounter {
-    fun format(total: Int, unread: Int): String {
-        if (total <= 0) return "No messages yet"
-        val clamped = unread.coerceIn(0, total)
-        return if (clamped == 0) "$total messages · all read"
-        else "$total messages · $clamped unread"
-    }
+    fun subtitle(resources: Resources, unread: Int): String =
+        if (unread <= 0) resources.getString(R.string.inbox_subtitle_default)
+        else resources.getQuantityString(R.plurals.inbox_new_offers, unread, unread)
 }

@@ -342,30 +342,34 @@ public class DeviceUtils {
                 String currentProviderAuthority =
                         context.getPackageName() + "." + PushwooshSharedDataProvider.class.getSimpleName();
                 for (ProviderInfo pi : providerInfos) {
-                    if (pi.authority.endsWith("." + PushwooshSharedDataProvider.class.getSimpleName())
-                            && !pi.authority.equals(currentProviderAuthority)) {
-                        ContentResolver resolver = context.getContentResolver();
-                        Cursor cursor = resolver.query(
-                                Uri.parse("content://" + pi.authority + "/" + PushwooshSharedDataProvider.HWID_PATH),
-                                null,
-                                null,
-                                null,
-                                GeneralUtils.md5(context.getPackageName()));
-                        if (cursor != null) {
-                            if (cursor.getColumnCount() > 0
-                                    && cursor.getColumnName(0).equals(PushwooshSharedDataProvider.HWID_COLUMN_NAME)) {
-                                if (cursor.moveToFirst()) {
-                                    String hwid = cursor.getString(0);
-                                    if (!TextUtils.isEmpty(hwid)) {
-                                        result = hwid;
-                                        cursor.close();
-                                        break;
-                                    }
-                                }
+                    if (!pi.authority.endsWith("." + PushwooshSharedDataProvider.class.getSimpleName())
+                            || pi.authority.equals(currentProviderAuthority)) {
+                        continue;
+                    }
+
+                    ContentResolver resolver = context.getContentResolver();
+                    Cursor cursor = resolver.query(
+                            Uri.parse("content://" + pi.authority + "/" + PushwooshSharedDataProvider.HWID_PATH),
+                            null,
+                            null,
+                            null,
+                            GeneralUtils.md5(context.getPackageName()));
+                    if (cursor == null) {
+                        continue;
+                    }
+
+                    if (cursor.getColumnCount() > 0
+                            && cursor.getColumnName(0).equals(PushwooshSharedDataProvider.HWID_COLUMN_NAME)) {
+                        if (cursor.moveToFirst()) {
+                            String hwid = cursor.getString(0);
+                            if (!TextUtils.isEmpty(hwid)) {
+                                result = hwid;
+                                cursor.close();
+                                break;
                             }
-                            cursor.close();
                         }
                     }
+                    cursor.close();
                 }
             } catch (Exception e) {
                 PWLog.error(TAG, "Failed to get UUID from foreign instance", e);

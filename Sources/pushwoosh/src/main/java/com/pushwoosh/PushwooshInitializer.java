@@ -42,7 +42,7 @@ import java.lang.reflect.Method;
 
 public class PushwooshInitializer {
 
-    private static final String TAG = PushwooshInitializer.class.getSimpleName();
+    private static final String TAG = "PushwooshInitializer";
 
     public static void init(Context context) {
         init(context, false);

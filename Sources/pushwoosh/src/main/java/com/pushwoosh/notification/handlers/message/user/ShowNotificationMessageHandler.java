@@ -79,22 +79,24 @@ class ShowNotificationMessageHandler extends NotificationMessageHandler {
 
     @Override
     protected void handleNotification(final PushMessage pushMessage) {
-        if (!pushMessage.isSilent()) {
-            if (notificationPrefs.multiMode().get()) {
-                handleMultiModeNotification(pushMessage);
-                return;
-            }
-
-            Notification notification = notificationFactory.onGenerateNotification(pushMessage);
-            if (notification == null) {
-                return;
-            }
-
-            Intent notifyIntent = notificationFactory.getNotificationIntent(pushMessage);
-            // Samsung Android 13+ sometimes leaves a stale banner on update; cancel before posting (PUSH-33434).
-            NotificationManagerCompat.from(getApplicationContext()).cancelAll();
-            fireNotification(notification, notifyIntent, pushMessage);
+        if (pushMessage.isSilent()) {
+            return;
         }
+
+        if (notificationPrefs.multiMode().get()) {
+            handleMultiModeNotification(pushMessage);
+            return;
+        }
+
+        Notification notification = notificationFactory.onGenerateNotification(pushMessage);
+        if (notification == null) {
+            return;
+        }
+
+        Intent notifyIntent = notificationFactory.getNotificationIntent(pushMessage);
+        // Samsung Android 13+ sometimes leaves a stale banner on update; cancel before posting (PUSH-33434).
+        NotificationManagerCompat.from(getApplicationContext()).cancelAll();
+        fireNotification(notification, notifyIntent, pushMessage);
     }
 
     protected void handleMultiModeNotification(PushMessage pushMessage) {

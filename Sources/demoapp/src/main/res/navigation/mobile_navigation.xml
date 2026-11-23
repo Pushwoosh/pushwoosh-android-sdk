@@ -40,4 +40,10 @@
         android:name="com.pushwoosh.demoapp.ui.featureflags.FeatureFlagsFragment"
         android:label="@string/title_feature_flags"
         tools:layout="@layout/fragment_feature_flags" />
+
+    <fragment
+        android:id="@+id/navigation_inline"
+        android:name="com.pushwoosh.demoapp.ui.inline.InlineFragment"
+        android:label="@string/title_inline"
+        tools:layout="@layout/fragment_inline" />
 </navigation>

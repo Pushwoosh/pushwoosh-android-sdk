@@ -26,177 +26,238 @@
 
 package com.pushwoosh.inapp.network;
 
-import com.pushwoosh.inapp.network.model.InAppLayout;
-import com.pushwoosh.inapp.network.model.Resource;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.Test;
-
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.pushwoosh.inapp.network.model.InAppLayout;
+import com.pushwoosh.inapp.network.model.Resource;
+import com.pushwoosh.internal.utils.Config;
+import com.pushwoosh.internal.utils.MockConfig;
+import com.pushwoosh.repository.RepositoryModule;
+import com.pushwoosh.testutil.PlatformTestManager;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.LooperMode;
+
+import java.util.List;
+
+@RunWith(RobolectricTestRunner.class)
+@LooperMode(LooperMode.Mode.LEGACY)
+@org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class GetInAppsRequestTest {
 
-	@Test
-	public void testGetMethod() throws Exception {
-		GetInAppsRequest request = new GetInAppsRequest();
-		assertEquals("getInApps", request.getMethod());
-	}
+    private PlatformTestManager platformTestManager;
 
-	@Test
-	public void testParseResponse() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\"," +
-				"\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1," +
-				"\"hash\":\"ae274622772dc8fee4fda8e653de1a81\",\"required\":true,\"priority\":0," +
-				"\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}," +
-				"{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/7\\/0\\/70949-07AA8.zip\",\"code\":\"C6360-00FA8\"," +
-				"\"layout\":\"topbanner\",\"updated\":1548402985,\"closeButtonType\":1,\"hash\":\"dd3554c4dc2099962514e23c12cc019f\"," +
-				"\"required\":true,\"priority\":0,\"businessCase\":\"push-register\",\"gdpr\":\"\"}," +
-				"{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/B\\/5\\/B5EFB-7D128.zip\",\"code\":\"8B699-A1F47\"," +
-				"\"layout\":\"topbanner\",\"updated\":1548402974,\"closeButtonType\":1,\"hash\":\"6da40bc86072402a6114d79a1db39eb5\"," +
-				"\"required\":false,\"priority\":1,\"businessCase\":\"\",\"gdpr\":\"\"}]}");
+    @Before
+    public void setUp() {
+        Config configMock = MockConfig.createMock();
+        platformTestManager = new PlatformTestManager(configMock);
+        platformTestManager.onApplicationCreated();
+    }
 
-		GetInAppsRequest request = new GetInAppsRequest();
-		List<Resource> inApps = request.parseResponse(response);
+    @After
+    public void tearDown() throws Exception {
+        platformTestManager.tearDown();
+    }
 
-		assertEquals(3, inApps.size());
+    @Test
+    public void buildParams_usesLanguageFromRegistrationPrefs() throws Exception {
+        RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceLocaleAllowed()
+                .set(true);
+        RepositoryModule.getRegistrationPreferences().setLanguage("es");
+        GetInAppsRequest request = new GetInAppsRequest();
+        JSONObject params = new JSONObject();
 
-		Resource firstInApp = inApps.get(0);
-		assertEquals("https://richmedia.pushwoosh.com/5/9/59D14-A0C23.zip", firstInApp.getUrl());
-		assertEquals("CE545-99A0A", firstInApp.getCode());
-		assertEquals(InAppLayout.of("topbanner"), firstInApp.getLayout());
-		assertEquals(1548402966, firstInApp.getUpdated());
-		assertEquals("ae274622772dc8fee4fda8e653de1a81", firstInApp.getHash());
-		assertTrue(firstInApp.isRequired());
-		assertEquals(0, firstInApp.getPriority());
+        request.buildParams(params);
 
-		Resource secondInApp = inApps.get(1);
-		assertEquals("https://richmedia.pushwoosh.com/7/0/70949-07AA8.zip", secondInApp.getUrl());
-		assertEquals("C6360-00FA8", secondInApp.getCode());
-		assertEquals(InAppLayout.of("topbanner"), secondInApp.getLayout());
-		assertEquals(1548402985, secondInApp.getUpdated());
-		assertEquals("dd3554c4dc2099962514e23c12cc019f", secondInApp.getHash());
-		assertTrue(secondInApp.isRequired());
-		assertEquals(0, secondInApp.getPriority());
+        assertEquals("es", params.getString("language"));
+    }
 
-		Resource thirdInApp = inApps.get(2);
-		assertEquals("https://richmedia.pushwoosh.com/B/5/B5EFB-7D128.zip", thirdInApp.getUrl());
-		assertEquals("8B699-A1F47", thirdInApp.getCode());
-		assertEquals(InAppLayout.of("topbanner"), thirdInApp.getLayout());
-		assertEquals(1548402974, thirdInApp.getUpdated());
-		assertEquals("6da40bc86072402a6114d79a1db39eb5", thirdInApp.getHash());
-		assertFalse(thirdInApp.isRequired());
-		assertEquals(1, thirdInApp.getPriority());
-	}
+    @Test
+    public void buildParams_localeCollectionDisabled_omitsLanguageEvenWithManualValue() throws Exception {
+        RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceLocaleAllowed()
+                .set(false);
+        RepositoryModule.getRegistrationPreferences().setLanguage("es");
+        GetInAppsRequest request = new GetInAppsRequest();
+        JSONObject params = new JSONObject();
 
-	@Test
-	public void testEmptyInApps() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[]}");
+        request.buildParams(params);
 
-		GetInAppsRequest request = new GetInAppsRequest();
-		List<Resource> inApps = request.parseResponse(response);
-		assertEquals(0, inApps.size());
-	}
+        assertFalse(params.has("language"));
+    }
 
-	@Test
-	public void testNoInApps() throws Exception {
-		JSONObject response = new JSONObject("{ }");
+    @Test
+    public void testGetMethod() throws Exception {
+        GetInAppsRequest request = new GetInAppsRequest();
+        assertEquals("getInApps", request.getMethod());
+    }
 
-		GetInAppsRequest request = new GetInAppsRequest();
-		List<Resource> inApps = request.parseResponse(response);
-		assertEquals(0, inApps.size());
-	}
+    @Test
+    public void testParseResponse() throws Exception {
+        JSONObject response = new JSONObject(
+                "{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\","
+                        + "\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1,"
+                        + "\"hash\":\"ae274622772dc8fee4fda8e653de1a81\",\"required\":true,\"priority\":0,"
+                        + "\"businessCase\":\"app-update-message\",\"gdpr\":\"\"},"
+                        + "{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/7\\/0\\/70949-07AA8.zip\",\"code\":\"C6360-00FA8\","
+                        + "\"layout\":\"topbanner\",\"updated\":1548402985,\"closeButtonType\":1,\"hash\":\"dd3554c4dc2099962514e23c12cc019f\","
+                        + "\"required\":true,\"priority\":0,\"businessCase\":\"push-register\",\"gdpr\":\"\"},"
+                        + "{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/B\\/5\\/B5EFB-7D128.zip\",\"code\":\"8B699-A1F47\","
+                        + "\"layout\":\"topbanner\",\"updated\":1548402974,\"closeButtonType\":1,\"hash\":\"6da40bc86072402a6114d79a1db39eb5\","
+                        + "\"required\":false,\"priority\":1,\"businessCase\":\"\",\"gdpr\":\"\"}]}");
 
-	@Test(expected = JSONException.class)
-	public void testNoUrl() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[{\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\"," +
-				"\"updated\":1548402966,\"closeButtonType\":1,\"hash\":\"ae274622772dc8fee4fda8e653de1a81\"," +
-				"\"required\":true,\"priority\":0,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
+        GetInAppsRequest request = new GetInAppsRequest();
+        List<Resource> inApps = request.parseResponse(response);
 
-		GetInAppsRequest request = new GetInAppsRequest();
-		List<Resource> inApps = request.parseResponse(response);
-		Resource inApp = inApps.get(0);
+        assertEquals(3, inApps.size());
 
-		assertNull(inApp.getUrl());
-	}
+        Resource firstInApp = inApps.get(0);
+        assertEquals("https://richmedia.pushwoosh.com/5/9/59D14-A0C23.zip", firstInApp.getUrl());
+        assertEquals("CE545-99A0A", firstInApp.getCode());
+        assertEquals(InAppLayout.of("topbanner"), firstInApp.getLayout());
+        assertEquals(1548402966, firstInApp.getUpdated());
+        assertEquals("ae274622772dc8fee4fda8e653de1a81", firstInApp.getHash());
+        assertTrue(firstInApp.isRequired());
+        assertEquals(0, firstInApp.getPriority());
 
-	@Test(expected = JSONException.class)
-	public void testNoCode() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\"," +
-				"\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1,\"hash\":\"ae274622772dc8fee4fda8e653de1a81\"," +
-				"\"required\":true,\"priority\":0,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
+        Resource secondInApp = inApps.get(1);
+        assertEquals("https://richmedia.pushwoosh.com/7/0/70949-07AA8.zip", secondInApp.getUrl());
+        assertEquals("C6360-00FA8", secondInApp.getCode());
+        assertEquals(InAppLayout.of("topbanner"), secondInApp.getLayout());
+        assertEquals(1548402985, secondInApp.getUpdated());
+        assertEquals("dd3554c4dc2099962514e23c12cc019f", secondInApp.getHash());
+        assertTrue(secondInApp.isRequired());
+        assertEquals(0, secondInApp.getPriority());
 
-		GetInAppsRequest request = new GetInAppsRequest();
-		List<Resource> inApps = request.parseResponse(response);
-		Resource inApp = inApps.get(0);
+        Resource thirdInApp = inApps.get(2);
+        assertEquals("https://richmedia.pushwoosh.com/B/5/B5EFB-7D128.zip", thirdInApp.getUrl());
+        assertEquals("8B699-A1F47", thirdInApp.getCode());
+        assertEquals(InAppLayout.of("topbanner"), thirdInApp.getLayout());
+        assertEquals(1548402974, thirdInApp.getUpdated());
+        assertEquals("6da40bc86072402a6114d79a1db39eb5", thirdInApp.getHash());
+        assertFalse(thirdInApp.isRequired());
+        assertEquals(1, thirdInApp.getPriority());
+    }
 
-		assertNull(inApp.getCode());
-	}
+    @Test
+    public void testEmptyInApps() throws Exception {
+        JSONObject response = new JSONObject("{\"inApps\":[]}");
 
-	@Test
-	public void testNoLayout() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\"," +
-				"\"code\":\"CE545-99A0A\",\"updated\":1548402966,\"closeButtonType\":1,\"hash\":\"ae274622772dc8fee4fda8e653de1a81\"," +
-				"\"required\":true,\"priority\":0,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
-		GetInAppsRequest request = new GetInAppsRequest();
-		Resource inApp = request.parseResponse(response).get(0);
-		assertEquals(InAppLayout.TOP, inApp.getLayout());
-	}
+        GetInAppsRequest request = new GetInAppsRequest();
+        List<Resource> inApps = request.parseResponse(response);
+        assertEquals(0, inApps.size());
+    }
 
-	@Test(expected = JSONException.class)
-	public void testNoUpdatedField() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\"," +
-				"\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"closeButtonType\":1,\"hash\":\"ae274622772dc8fee4fda8e653de1a81\"," +
-				"\"required\":true,\"priority\":0,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
-		GetInAppsRequest request = new GetInAppsRequest();
-		request.parseResponse(response);
-	}
+    @Test
+    public void testNoInApps() throws Exception {
+        JSONObject response = new JSONObject("{ }");
 
-	@Test
-	public void testNoHash() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\"," +
-				"\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1," +
-				"\"required\":true,\"priority\":0,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
-		GetInAppsRequest request = new GetInAppsRequest();
-		List<Resource> inApps = request.parseResponse(response);
-		Resource inApp = inApps.get(0);
+        GetInAppsRequest request = new GetInAppsRequest();
+        List<Resource> inApps = request.parseResponse(response);
+        assertEquals(0, inApps.size());
+    }
 
-		assertEquals("", inApp.getHash());
-	}
+    @Test(expected = JSONException.class)
+    public void testNoUrl() throws Exception {
+        JSONObject response = new JSONObject("{\"inApps\":[{\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\","
+                + "\"updated\":1548402966,\"closeButtonType\":1,\"hash\":\"ae274622772dc8fee4fda8e653de1a81\","
+                + "\"required\":true,\"priority\":0,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
 
-	@Test
-	public void testNoRequiredField() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\"," +
-				"\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1," +
-				"\"hash\":\"ae274622772dc8fee4fda8e653de1a81\",\"priority\":0,\"gdpr\":\"\"}]}");
-		GetInAppsRequest request = new GetInAppsRequest();
-		List<Resource> inApps = request.parseResponse(response);
-		Resource inApp = inApps.get(0);
+        GetInAppsRequest request = new GetInAppsRequest();
+        List<Resource> inApps = request.parseResponse(response);
+        Resource inApp = inApps.get(0);
 
-		assertFalse(inApp.isRequired());
-	}
+        assertNull(inApp.getUrl());
+    }
 
-	@Test
-	public void testNoPriority() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\"," +
-				"\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1," +
-				"\"hash\":\"ae274622772dc8fee4fda8e653de1a81\",\"required\":true,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
-		GetInAppsRequest request = new GetInAppsRequest();
-		List<Resource> inApps = request.parseResponse(response);
-		Resource inApp = inApps.get(0);
+    @Test(expected = JSONException.class)
+    public void testNoCode() throws Exception {
+        JSONObject response = new JSONObject(
+                "{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\","
+                        + "\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1,\"hash\":\"ae274622772dc8fee4fda8e653de1a81\","
+                        + "\"required\":true,\"priority\":0,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
 
-		assertEquals(0, inApp.getPriority());
-	}
+        GetInAppsRequest request = new GetInAppsRequest();
+        List<Resource> inApps = request.parseResponse(response);
+        Resource inApp = inApps.get(0);
 
-	@Test(expected = JSONException.class)
-	public void testNoFieldsAtAll() throws Exception {
-		JSONObject response = new JSONObject("{\"inApps\":[{}]}");
-		GetInAppsRequest request = new GetInAppsRequest();
-		List<Resource> inApps = request.parseResponse(response);
-	}
+        assertNull(inApp.getCode());
+    }
+
+    @Test
+    public void testNoLayout() throws Exception {
+        JSONObject response = new JSONObject(
+                "{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\","
+                        + "\"code\":\"CE545-99A0A\",\"updated\":1548402966,\"closeButtonType\":1,\"hash\":\"ae274622772dc8fee4fda8e653de1a81\","
+                        + "\"required\":true,\"priority\":0,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
+        GetInAppsRequest request = new GetInAppsRequest();
+        Resource inApp = request.parseResponse(response).get(0);
+        assertEquals(InAppLayout.TOP, inApp.getLayout());
+    }
+
+    @Test(expected = JSONException.class)
+    public void testNoUpdatedField() throws Exception {
+        JSONObject response = new JSONObject(
+                "{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\","
+                        + "\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"closeButtonType\":1,\"hash\":\"ae274622772dc8fee4fda8e653de1a81\","
+                        + "\"required\":true,\"priority\":0,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
+        GetInAppsRequest request = new GetInAppsRequest();
+        request.parseResponse(response);
+    }
+
+    @Test
+    public void testNoHash() throws Exception {
+        JSONObject response = new JSONObject(
+                "{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\","
+                        + "\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1,"
+                        + "\"required\":true,\"priority\":0,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
+        GetInAppsRequest request = new GetInAppsRequest();
+        List<Resource> inApps = request.parseResponse(response);
+        Resource inApp = inApps.get(0);
+
+        assertEquals("", inApp.getHash());
+    }
+
+    @Test
+    public void testNoRequiredField() throws Exception {
+        JSONObject response = new JSONObject(
+                "{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\","
+                        + "\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1,"
+                        + "\"hash\":\"ae274622772dc8fee4fda8e653de1a81\",\"priority\":0,\"gdpr\":\"\"}]}");
+        GetInAppsRequest request = new GetInAppsRequest();
+        List<Resource> inApps = request.parseResponse(response);
+        Resource inApp = inApps.get(0);
+
+        assertFalse(inApp.isRequired());
+    }
+
+    @Test
+    public void testNoPriority() throws Exception {
+        JSONObject response = new JSONObject(
+                "{\"inApps\":[{\"url\":\"https:\\/\\/richmedia.pushwoosh.com\\/5\\/9\\/59D14-A0C23.zip\","
+                        + "\"code\":\"CE545-99A0A\",\"layout\":\"topbanner\",\"updated\":1548402966,\"closeButtonType\":1,"
+                        + "\"hash\":\"ae274622772dc8fee4fda8e653de1a81\",\"required\":true,\"businessCase\":\"app-update-message\",\"gdpr\":\"\"}]}");
+        GetInAppsRequest request = new GetInAppsRequest();
+        List<Resource> inApps = request.parseResponse(response);
+        Resource inApp = inApps.get(0);
+
+        assertEquals(0, inApp.getPriority());
+    }
+
+    @Test(expected = JSONException.class)
+    public void testNoFieldsAtAll() throws Exception {
+        JSONObject response = new JSONObject("{\"inApps\":[{}]}");
+        GetInAppsRequest request = new GetInAppsRequest();
+        List<Resource> inApps = request.parseResponse(response);
+    }
 }

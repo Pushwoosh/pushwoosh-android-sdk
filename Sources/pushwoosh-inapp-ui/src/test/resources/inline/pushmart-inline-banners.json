@@ -1,0 +1,996 @@
+{
+  "home_deals": {
+    "bannerId": "lightning_deals",
+    "version": 2,
+    "format": "native",
+    "action": {
+      "type": "deeplink",
+      "value": "pushwoosh://product/dress_04"
+    },
+    "native": {
+      "root": {
+        "type": "stack",
+        "padding": [
+          20,
+          0,
+          20,
+          0
+        ],
+        "children": [
+          {
+            "type": "stack",
+            "id": "deals_card",
+            "spacing": 12,
+            "cornerRadius": 24,
+            "padding": 14,
+            "gradient": {
+              "colors": [
+                "#FF8A00",
+                "#FF3D2E"
+              ],
+              "angle": 120
+            },
+            "shadow": {
+              "color": "#FF3D2E66",
+              "radius": 12,
+              "y": 6
+            },
+            "dark": {
+              "gradient": {
+                "colors": [
+                  "#B34E00",
+                  "#A3122A"
+                ],
+                "angle": 120
+              },
+              "shadow": {
+                "color": "#00000000",
+                "radius": 1,
+                "y": 0
+              }
+            },
+            "children": [
+              {
+                "type": "stack",
+                "axis": "row",
+                "align": "center",
+                "spacing": 8,
+                "children": [
+                  {
+                    "type": "text",
+                    "text": "⚡ Lightning deals",
+                    "size": 20,
+                    "weight": "heavy",
+                    "color": "#FFFFFF",
+                    "lines": 1
+                  },
+                  {
+                    "type": "spacer"
+                  },
+                  {
+                    "type": "text",
+                    "text": "⏱ 02:14:09",
+                    "size": 13,
+                    "weight": "bold",
+                    "color": "#FFFFFF",
+                    "id": "deals_chip",
+                    "lines": 1,
+                    "cornerRadius": 12,
+                    "padding": [
+                      6,
+                      10
+                    ],
+                    "glass": {
+                      "tint": "#FFFFFF2E"
+                    },
+                    "action": {
+                      "type": "postEvent",
+                      "event": "inline_lightning_restock"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "pager",
+                "id": "deals_pager",
+                "interval": 3.5,
+                "indicatorColor": "#FFFFFF",
+                "cornerRadius": 18,
+                "pages": [
+                  {
+                    "type": "stack",
+                    "axis": "overlay",
+                    "id": "slide_voyager",
+                    "spacing": 10,
+                    "action": {
+                      "type": "deeplink",
+                      "value": "pushwoosh://product/dress_04"
+                    },
+                    "children": [
+                      {
+                        "type": "image",
+                        "url": "https://picsum.photos/id/788/880/400",
+                        "aspect": 2.2
+                      },
+                      {
+                        "type": "stack",
+                        "spacing": 1,
+                        "padding": [
+                          8,
+                          12
+                        ],
+                        "cornerRadius": 14,
+                        "glass": {
+                          "tint": "#00000026"
+                        },
+                        "children": [
+                          {
+                            "type": "text",
+                            "text": "Beach days",
+                            "size": 17,
+                            "weight": "heavy",
+                            "color": "#FFFFFF",
+                            "lines": 1
+                          },
+                          {
+                            "type": "text",
+                            "text": "Rattan, linen and sun-ready picks",
+                            "size": 12,
+                            "weight": "semibold",
+                            "color": "#FFFFFF",
+                            "lines": 1
+                          }
+                        ],
+                        "position": "bottomLeft"
+                      },
+                      {
+                        "type": "text",
+                        "text": "-70%",
+                        "size": 13,
+                        "weight": "heavy",
+                        "color": "#0B0B10",
+                        "background": "#FFD60A",
+                        "cornerRadius": 8,
+                        "padding": [
+                          3,
+                          6
+                        ],
+                        "position": "topRight"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "stack",
+                    "axis": "overlay",
+                    "id": "slide_glide",
+                    "spacing": 10,
+                    "action": {
+                      "type": "deeplink",
+                      "value": "pushwoosh://product/outwear_02"
+                    },
+                    "children": [
+                      {
+                        "type": "image",
+                        "url": "https://picsum.photos/id/535/880/400",
+                        "aspect": 2.2
+                      },
+                      {
+                        "type": "stack",
+                        "spacing": 1,
+                        "padding": [
+                          8,
+                          12
+                        ],
+                        "cornerRadius": 14,
+                        "glass": {
+                          "tint": "#00000026"
+                        },
+                        "children": [
+                          {
+                            "type": "text",
+                            "text": "Closet refresh",
+                            "size": 17,
+                            "weight": "heavy",
+                            "color": "#FFFFFF",
+                            "lines": 1
+                          },
+                          {
+                            "type": "text",
+                            "text": "New season, fresh fits",
+                            "size": 12,
+                            "weight": "semibold",
+                            "color": "#FFFFFF",
+                            "lines": 1
+                          }
+                        ],
+                        "position": "bottomLeft"
+                      },
+                      {
+                        "type": "text",
+                        "text": "-55%",
+                        "size": 13,
+                        "weight": "heavy",
+                        "color": "#0B0B10",
+                        "background": "#FFD60A",
+                        "cornerRadius": 8,
+                        "padding": [
+                          3,
+                          6
+                        ],
+                        "position": "topRight"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "stack",
+                    "axis": "overlay",
+                    "id": "slide_orbit",
+                    "spacing": 10,
+                    "action": {
+                      "type": "deeplink",
+                      "value": "pushwoosh://product/tops_02"
+                    },
+                    "children": [
+                      {
+                        "type": "image",
+                        "url": "https://picsum.photos/id/1080/880/400",
+                        "aspect": 2.2
+                      },
+                      {
+                        "type": "stack",
+                        "spacing": 1,
+                        "padding": [
+                          8,
+                          12
+                        ],
+                        "cornerRadius": 14,
+                        "glass": {
+                          "tint": "#00000026"
+                        },
+                        "children": [
+                          {
+                            "type": "text",
+                            "text": "Fresh picks",
+                            "size": 17,
+                            "weight": "heavy",
+                            "color": "#FFFFFF",
+                            "lines": 1
+                          },
+                          {
+                            "type": "text",
+                            "text": "Hand-picked daily deals",
+                            "size": 12,
+                            "weight": "semibold",
+                            "color": "#FFFFFF",
+                            "lines": 1
+                          }
+                        ],
+                        "position": "bottomLeft"
+                      },
+                      {
+                        "type": "text",
+                        "text": "-40%",
+                        "size": 13,
+                        "weight": "heavy",
+                        "color": "#0B0B10",
+                        "background": "#FFD60A",
+                        "cornerRadius": 8,
+                        "padding": [
+                          3,
+                          6
+                        ],
+                        "position": "topRight"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "stack",
+                "axis": "row",
+                "spacing": 8,
+                "distribution": "equal",
+                "children": [
+                  {
+                    "type": "stack",
+                    "id": "tile_aeroknit",
+                    "spacing": 6,
+                    "background": "#FFFFFF",
+                    "cornerRadius": 16,
+                    "padding": 6,
+                    "dark": {
+                      "background": "#22222C"
+                    },
+                    "action": {
+                      "type": "deeplink",
+                      "value": "pushwoosh://product/outwear_01"
+                    },
+                    "children": [
+                      {
+                        "type": "stack",
+                        "axis": "overlay",
+                        "spacing": 6,
+                        "children": [
+                          {
+                            "type": "image",
+                            "id": "photo_aeroknit",
+                            "url": "https://picsum.photos/id/103/300/300",
+                            "aspect": 1,
+                            "cornerRadius": 11
+                          },
+                          {
+                            "type": "text",
+                            "text": "-62%",
+                            "size": 11,
+                            "weight": "heavy",
+                            "color": "#FFFFFF",
+                            "background": "#FF2E3A",
+                            "cornerRadius": 8,
+                            "padding": [
+                              3,
+                              6
+                            ],
+                            "position": "topLeft"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "stack",
+                        "axis": "row",
+                        "align": "center",
+                        "spacing": 4,
+                        "padding": [
+                          0,
+                          2,
+                          2,
+                          2
+                        ],
+                        "children": [
+                          {
+                            "type": "text",
+                            "text": "$19",
+                            "size": 16,
+                            "weight": "heavy",
+                            "color": "#0B0B10",
+                            "dark": {
+                              "color": "#FFFFFF"
+                            },
+                            "lines": 1
+                          },
+                          {
+                            "type": "text",
+                            "text": "$49",
+                            "size": 11,
+                            "weight": "semibold",
+                            "color": "#8E8E93",
+                            "align": "right",
+                            "lines": 1,
+                            "strike": true
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "stack",
+                    "id": "tile_lumen",
+                    "spacing": 6,
+                    "background": "#FFFFFF",
+                    "cornerRadius": 16,
+                    "padding": 6,
+                    "dark": {
+                      "background": "#22222C"
+                    },
+                    "action": {
+                      "type": "deeplink",
+                      "value": "pushwoosh://product/skirt_04"
+                    },
+                    "children": [
+                      {
+                        "type": "stack",
+                        "axis": "overlay",
+                        "spacing": 6,
+                        "children": [
+                          {
+                            "type": "image",
+                            "id": "photo_lumen",
+                            "url": "https://picsum.photos/id/26/300/300",
+                            "aspect": 1,
+                            "cornerRadius": 11
+                          },
+                          {
+                            "type": "text",
+                            "text": "-48%",
+                            "size": 11,
+                            "weight": "heavy",
+                            "color": "#FFFFFF",
+                            "background": "#FF2E3A",
+                            "cornerRadius": 8,
+                            "padding": [
+                              3,
+                              6
+                            ],
+                            "position": "topLeft"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "stack",
+                        "axis": "row",
+                        "align": "center",
+                        "spacing": 4,
+                        "padding": [
+                          0,
+                          2,
+                          2,
+                          2
+                        ],
+                        "children": [
+                          {
+                            "type": "text",
+                            "text": "$24",
+                            "size": 16,
+                            "weight": "heavy",
+                            "color": "#0B0B10",
+                            "dark": {
+                              "color": "#FFFFFF"
+                            },
+                            "lines": 1
+                          },
+                          {
+                            "type": "text",
+                            "text": "$46",
+                            "size": 11,
+                            "weight": "semibold",
+                            "color": "#8E8E93",
+                            "align": "right",
+                            "lines": 1,
+                            "strike": true
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "stack",
+                    "id": "tile_solo",
+                    "spacing": 6,
+                    "background": "#FFFFFF",
+                    "cornerRadius": 16,
+                    "padding": 6,
+                    "dark": {
+                      "background": "#22222C"
+                    },
+                    "action": {
+                      "type": "deeplink",
+                      "value": "pushwoosh://product/tops_03"
+                    },
+                    "children": [
+                      {
+                        "type": "stack",
+                        "axis": "overlay",
+                        "spacing": 6,
+                        "children": [
+                          {
+                            "type": "image",
+                            "id": "photo_solo",
+                            "url": "https://picsum.photos/id/357/300/300",
+                            "aspect": 1,
+                            "cornerRadius": 11
+                          },
+                          {
+                            "type": "text",
+                            "text": "-55%",
+                            "size": 11,
+                            "weight": "heavy",
+                            "color": "#FFFFFF",
+                            "background": "#FF2E3A",
+                            "cornerRadius": 8,
+                            "padding": [
+                              3,
+                              6
+                            ],
+                            "position": "topLeft"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "stack",
+                        "axis": "row",
+                        "align": "center",
+                        "spacing": 4,
+                        "padding": [
+                          0,
+                          2,
+                          2,
+                          2
+                        ],
+                        "children": [
+                          {
+                            "type": "text",
+                            "text": "$15",
+                            "size": 16,
+                            "weight": "heavy",
+                            "color": "#0B0B10",
+                            "dark": {
+                              "color": "#FFFFFF"
+                            },
+                            "lines": 1
+                          },
+                          {
+                            "type": "text",
+                            "text": "$33",
+                            "size": 11,
+                            "weight": "semibold",
+                            "color": "#8E8E93",
+                            "align": "right",
+                            "lines": 1,
+                            "strike": true
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "button",
+                "id": "grab_deal",
+                "title": "Grab the deal",
+                "color": "#FFFFFF",
+                "size": 16,
+                "weight": "bold",
+                "action": {
+                  "type": "deeplink",
+                  "value": "pushwoosh://product/outwear_01"
+                },
+                "background": "#0B0B10",
+                "cornerRadius": 14,
+                "padding": [
+                  13,
+                  16
+                ],
+                "dark": {
+                  "background": "#FFFFFF",
+                  "color": "#0B0B10"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "home_deals@member": {
+    "bannerId": "member_picks",
+    "version": 2,
+    "format": "native",
+    "action": {
+      "type": "postEvent",
+      "event": "inline_member_picks"
+    },
+    "native": {
+      "root": {
+        "type": "stack",
+        "padding": [
+          20,
+          0,
+          20,
+          0
+        ],
+        "children": [
+          {
+            "type": "stack",
+            "id": "member_card",
+            "spacing": 10,
+            "cornerRadius": 24,
+            "padding": 16,
+            "gradient": {
+              "colors": [
+                "#5B5BFF",
+                "#9B3DFF"
+              ],
+              "angle": 120
+            },
+            "shadow": {
+              "color": "#5B5BFF66",
+              "radius": 12,
+              "y": 6
+            },
+            "dark": {
+              "gradient": {
+                "colors": [
+                  "#2E2E99",
+                  "#5A1F99"
+                ],
+                "angle": 120
+              },
+              "shadow": {
+                "color": "#00000000",
+                "radius": 1,
+                "y": 0
+              }
+            },
+            "children": [
+              {
+                "type": "text",
+                "text": "👋 Welcome back",
+                "size": 20,
+                "weight": "heavy",
+                "color": "#FFFFFF",
+                "lines": 1
+              },
+              {
+                "type": "text",
+                "text": "Member prices on your picks, today only.",
+                "size": 15,
+                "weight": "medium",
+                "color": "#FFFFFFE6",
+                "lines": 2
+              },
+              {
+                "type": "button",
+                "id": "member_shop",
+                "title": "See member prices",
+                "color": "#FFFFFF",
+                "size": 16,
+                "weight": "bold",
+                "action": {
+                  "type": "deeplink",
+                  "value": "pushwoosh://sale"
+                },
+                "background": "#0B0B10",
+                "cornerRadius": 14,
+                "padding": [
+                  13,
+                  16
+                ],
+                "dark": {
+                  "background": "#FFFFFF",
+                  "color": "#0B0B10"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "home_deals@ordered": {
+    "bannerId": "thanks_for_ordering",
+    "version": 2,
+    "format": "native",
+    "action": {
+      "type": "postEvent",
+      "event": "inline_thanks_for_ordering"
+    },
+    "native": {
+      "root": {
+        "type": "stack",
+        "padding": [
+          20,
+          0,
+          20,
+          0
+        ],
+        "children": [
+          {
+            "type": "stack",
+            "id": "order_card",
+            "spacing": 10,
+            "cornerRadius": 24,
+            "padding": 16,
+            "gradient": {
+              "colors": [
+                "#00B37E",
+                "#00875F"
+              ],
+              "angle": 120
+            },
+            "shadow": {
+              "color": "#00B37E66",
+              "radius": 12,
+              "y": 6
+            },
+            "dark": {
+              "gradient": {
+                "colors": [
+                  "#00664A",
+                  "#004D38"
+                ],
+                "angle": 120
+              },
+              "shadow": {
+                "color": "#00000000",
+                "radius": 1,
+                "y": 0
+              }
+            },
+            "children": [
+              {
+                "type": "text",
+                "text": "🎉 Thanks for your order",
+                "size": 20,
+                "weight": "heavy",
+                "color": "#FFFFFF",
+                "lines": 1
+              },
+              {
+                "type": "text",
+                "text": "Free delivery on your next order this week.",
+                "size": 15,
+                "weight": "medium",
+                "color": "#FFFFFFE6",
+                "lines": 2
+              },
+              {
+                "type": "button",
+                "id": "order_shop",
+                "title": "Keep shopping",
+                "color": "#FFFFFF",
+                "size": 16,
+                "weight": "bold",
+                "action": {
+                  "type": "deeplink",
+                  "value": "pushwoosh://sale"
+                },
+                "background": "#0B0B10",
+                "cornerRadius": 14,
+                "padding": [
+                  13,
+                  16
+                ],
+                "dark": {
+                  "background": "#FFFFFF",
+                  "color": "#0B0B10"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "shop_grid": {
+    "bannerId": "autumn_drop",
+    "version": 2,
+    "format": "html",
+    "action": {
+      "type": "postEvent",
+      "event": "inline_autumn_drop"
+    },
+    "html": "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"color-scheme\" content=\"light dark\">\n<style>\n:root { --card: #FFF1E6; --ink: #1D1A24; --muted: #6E6878; --accent: #FF4F2E; --chip: #FFFFFF; }\n@media (prefers-color-scheme: dark) {\n  :root { --card: #2A1C14; --ink: #F6F1EC; --muted: #BDB1A8; --accent: #FF7A57; --chip: #3D2A1F; }\n}\nhtml, body { margin: 0; padding: 0; background: transparent; }\nbody { font-family: -apple-system, system-ui, sans-serif; color: var(--ink); padding: 8px 0; }\n.card { background: var(--card); border-radius: 22px; padding: 18px 18px 16px; }\n.top { display: flex; align-items: center; justify-content: space-between; }\n.tag { background: var(--chip); color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .6px; padding: 5px 10px; border-radius: 999px; }\n.close { border: 0; background: var(--chip); color: var(--muted); width: 30px; height: 30px; border-radius: 15px; font-size: 15px; }\nh2 { font-size: 21px; line-height: 1.2; margin: 14px 0 6px; }\np { font-size: 14px; line-height: 1.45; color: var(--muted); margin: 0 0 14px; }\na { color: var(--accent); font-weight: 700; font-size: 15px; text-decoration: none; }\n</style>\n</head>\n<body>\n<div class=\"card\">\n  <div class=\"top\">\n    <span class=\"tag\">AUTUMN DROP</span>\n    <button class=\"close\" onclick=\"pushwoosh.closeInApp()\">&#x2715;</button>\n  </div>\n  <h2>Outerwear 30% off this weekend</h2>\n  <p>An HTML banner from the campaign. A tap on the card posts its event; the link opens in the browser and the banner stays.</p>\n  <a data-pw-id=\"shop_lookbook\" href=\"https://www.pushwoosh.com\">See the lookbook &rsaquo;</a>\n</div>\n</body>\n</html>\n"
+  },
+  "cart_checkout": [
+    {
+      "bannerId": "free_express",
+      "version": 1,
+      "format": "native",
+      "action": {
+        "type": "postEvent",
+        "event": "inline_free_express"
+      },
+      "close": {
+        "enabled": true,
+        "position": "topRight"
+      },
+      "native": {
+        "root": {
+          "type": "stack",
+          "padding": [
+            0,
+            0,
+            14,
+            0
+          ],
+          "children": [
+            {
+              "type": "stack",
+              "id": "free_express_card",
+              "spacing": 6,
+              "cornerRadius": 18,
+              "padding": [
+                14,
+                48,
+                14,
+                16
+              ],
+              "background": "#FFF1E6",
+              "dark": {
+                "background": "#2A1C14"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "text": "🚚 Express delivery is free today",
+                  "size": 16,
+                  "weight": "bold",
+                  "color": "#1D1A24",
+                  "dark": {
+                    "color": "#F6F1EC"
+                  },
+                  "lines": 1
+                },
+                {
+                  "type": "text",
+                  "text": "Check out by 6 pm and your order ships tonight.",
+                  "size": 13,
+                  "weight": "medium",
+                  "color": "#6E6878",
+                  "dark": {
+                    "color": "#BDB1A8"
+                  },
+                  "lines": 2
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bannerId": "gift_wrap",
+      "version": 1,
+      "format": "native",
+      "action": {
+        "type": "postEvent",
+        "event": "inline_gift_wrap"
+      },
+      "close": {
+        "enabled": true,
+        "position": "topRight"
+      },
+      "native": {
+        "root": {
+          "type": "stack",
+          "padding": [
+            0,
+            0,
+            14,
+            0
+          ],
+          "children": [
+            {
+              "type": "stack",
+              "id": "gift_wrap_card",
+              "spacing": 6,
+              "cornerRadius": 18,
+              "padding": [
+                14,
+                48,
+                14,
+                16
+              ],
+              "background": "#FFF1E6",
+              "dark": {
+                "background": "#2A1C14"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "text": "🎁 Free gift wrap today",
+                  "size": 16,
+                  "weight": "bold",
+                  "color": "#1D1A24",
+                  "dark": {
+                    "color": "#F6F1EC"
+                  },
+                  "lines": 1
+                },
+                {
+                  "type": "text",
+                  "text": "Wrap any order at no cost, tap below to add it.",
+                  "size": 13,
+                  "weight": "medium",
+                  "color": "#6E6878",
+                  "dark": {
+                    "color": "#BDB1A8"
+                  },
+                  "lines": 2
+                },
+                {
+                  "type": "button",
+                  "id": "gift_wrap_add",
+                  "title": "Add gift wrap",
+                  "color": "#FFFFFF",
+                  "size": 14,
+                  "weight": "bold",
+                  "background": "#FF4F2E",
+                  "cornerRadius": 12,
+                  "padding": [
+                    9,
+                    14
+                  ],
+                  "action": {
+                    "type": "postEvent",
+                    "event": "inline_gift_wrap_added"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "pdp_offer": {
+    "bannerId": "pdp_bundle_control",
+    "version": 1,
+    "control": true
+  },
+  "home_deals@test": {
+    "bannerId": "winter_preview",
+    "version": 1,
+    "format": "native",
+    "test": true,
+    "native": {
+      "root": {
+        "type": "stack",
+        "padding": [
+          20,
+          0,
+          20,
+          0
+        ],
+        "children": [
+          {
+            "type": "stack",
+            "id": "winter_preview_card",
+            "spacing": 6,
+            "cornerRadius": 24,
+            "padding": 16,
+            "gradient": {
+              "colors": [
+                "#3A7BD5",
+                "#00D2FF"
+              ],
+              "angle": 120
+            },
+            "dark": {
+              "gradient": {
+                "colors": [
+                  "#1E3F73",
+                  "#006F87"
+                ],
+                "angle": 120
+              }
+            },
+            "children": [
+              {
+                "type": "text",
+                "text": "🧪 Test banner · Winter preview",
+                "size": 18,
+                "weight": "heavy",
+                "color": "#FFFFFF",
+                "lines": 1
+              },
+              {
+                "type": "text",
+                "text": "A draft for test devices: it covers the live banner until the app restarts.",
+                "size": 14,
+                "weight": "medium",
+                "color": "#FFFFFFE6"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "perk_card": {
+    "bannerId": "member_perk",
+    "version": 1,
+    "format": "native",
+    "payload": {
+      "title": "Free returns for 60 days",
+      "text": "Your perk this month: send anything back within 60 days, the label is on us.",
+      "cta": "Claim perk"
+    },
+    "native": {
+      "root": {
+        "type": "text",
+        "text": "Free returns for 60 days"
+      }
+    }
+  }
+}

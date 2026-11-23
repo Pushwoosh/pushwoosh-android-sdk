@@ -186,18 +186,7 @@ public class InboxRepository {
 
             Pair<Collection<InboxMessageInternal>, Collection<String>> updateStatus = mapToActualByStatus(map.keySet());
 
-            for (InboxMessageInternal inboxMessageInternal : updateStatus.first) {
-                if (callback != null) {
-                    final InboxMessage inboxMessage = mapper.map(inboxMessageInternal);
-                    handler.post(() -> {
-                        if (inboxMessage == null) {
-                            callback.process(Result.fromException(new InboxMessagesException("Unknown inbox")));
-                        } else {
-                            callback.process(Result.fromData(inboxMessage));
-                        }
-                    });
-                }
-            }
+            notifyUpdated(updateStatus.first, callback);
 
             if (isChanged) {
                 handler.post(() -> EventBus.sendEvent(new InboxMessagesUpdatedEventBuilder()
@@ -206,6 +195,25 @@ public class InboxRepository {
                         .build()));
             }
         });
+    }
+
+    private void notifyUpdated(
+            Collection<InboxMessageInternal> updated,
+            @Nullable Callback<InboxMessage, InboxMessagesException> callback) {
+        if (callback == null) {
+            return;
+        }
+
+        for (InboxMessageInternal inboxMessageInternal : updated) {
+            final InboxMessage inboxMessage = mapper.map(inboxMessageInternal);
+            handler.post(() -> {
+                if (inboxMessage == null) {
+                    callback.process(Result.fromException(new InboxMessagesException("Unknown inbox")));
+                } else {
+                    callback.process(Result.fromData(inboxMessage));
+                }
+            });
+        }
     }
 
     public void loadCountOfUnread(@Nullable Callback<Integer, InboxMessagesException> callback) {
@@ -451,19 +459,21 @@ public class InboxRepository {
 
     @WorkerThread
     private void notifyEventBus(LoadResult loadResult) {
-        if (loadResult != null && (loadResult != LoadResult.EMPTY || !loadResult.isEmpty())) {
-            final Pair<Collection<InboxMessageInternal>, Collection<String>> collectionCollectionPair =
-                    mapToActualByStatus(loadResult.getInboxMessagesUpdated());
-            collectionCollectionPair.second.addAll(loadResult.getInboxMessagesDeleted());
-
-            final InboxMessagesUpdatedEvent event = new InboxMessagesUpdatedEventBuilder()
-                    .setInboxMessagesAdded(mapCodesToInboxMessage(loadResult.getInboxMessagesAdded()))
-                    .setInboxMessagesUpdated(mapToInboxMessages(collectionCollectionPair.first))
-                    .setInboxMessagesDeleted(collectionCollectionPair.second)
-                    .build();
-
-            handler.post(() -> EventBus.sendEvent(event));
+        if (loadResult == null || (loadResult == LoadResult.EMPTY && loadResult.isEmpty())) {
+            return;
         }
+
+        final Pair<Collection<InboxMessageInternal>, Collection<String>> collectionCollectionPair =
+                mapToActualByStatus(loadResult.getInboxMessagesUpdated());
+        collectionCollectionPair.second.addAll(loadResult.getInboxMessagesDeleted());
+
+        final InboxMessagesUpdatedEvent event = new InboxMessagesUpdatedEventBuilder()
+                .setInboxMessagesAdded(mapCodesToInboxMessage(loadResult.getInboxMessagesAdded()))
+                .setInboxMessagesUpdated(mapToInboxMessages(collectionCollectionPair.first))
+                .setInboxMessagesDeleted(collectionCollectionPair.second)
+                .build();
+
+        handler.post(() -> EventBus.sendEvent(event));
     }
 
     private Collection<InboxMessage> mapCodesToInboxMessage(Collection<String> codes) {
@@ -511,16 +521,17 @@ public class InboxRepository {
         // A user-initiated wipe — the fresh-push grace must not keep rows alive here.
         new MergeStateTask(this, Collections.emptyList(), true, false, mergeStateTaskResult -> {
                     MergeResult mergeResult = mergeStateTaskResult.getData();
-                    if (mergeResult != null) {
-                        for (Map.Entry<String, InboxMessageStatus> entry :
-                                mergeResult.getIncorrectNetworkStatus().entrySet()) {
-                            new GetActualInboxMessageTask(this, entry.getKey(), getActualInboxMessageResult -> {
-                                        InboxMessageInternal inboxMessageInternal =
-                                                getActualInboxMessageResult.getData();
-                                        updateNetworkStatus(inboxMessageInternal, entry.getValue(), true);
-                                    })
-                                    .execute();
-                        }
+                    if (mergeResult == null) {
+                        return;
+                    }
+
+                    for (Map.Entry<String, InboxMessageStatus> entry :
+                            mergeResult.getIncorrectNetworkStatus().entrySet()) {
+                        new GetActualInboxMessageTask(this, entry.getKey(), getActualInboxMessageResult -> {
+                                    InboxMessageInternal inboxMessageInternal = getActualInboxMessageResult.getData();
+                                    updateNetworkStatus(inboxMessageInternal, entry.getValue(), true);
+                                })
+                                .execute();
                     }
                 })
                 .execute();
@@ -561,14 +572,16 @@ public class InboxRepository {
                 Collection<InboxMessage> inboxMessages = inboxRepository.mapToInboxMessages(
                         inboxRepository.inboxStorage.getActualMessages(order, limit));
 
-                if (callback != null) {
-                    InboxMessagesException exception = networkResult != null
-                            ? (networkResult.getException() == null
-                                    ? null
-                                    : new InboxMessagesException("Can't load inboxList", networkResult.getException()))
-                            : null;
-                    BackgroundExecutor.main(() -> callback.process(Result.from(inboxMessages, exception)));
+                if (callback == null) {
+                    return;
                 }
+
+                InboxMessagesException exception = networkResult != null
+                        ? (networkResult.getException() == null
+                                ? null
+                                : new InboxMessagesException("Can't load inboxList", networkResult.getException()))
+                        : null;
+                BackgroundExecutor.main(() -> callback.process(Result.from(inboxMessages, exception)));
             });
         }
     }

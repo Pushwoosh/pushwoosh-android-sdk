@@ -9,14 +9,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PushMart">
 
-        <meta-data android:name="com.pushwoosh.apitoken" android:value="@string/pushwoosh_api_token" />
-        <meta-data android:name="com.pushwoosh.appid" android:value="5DF3B-09018" />
-        <meta-data android:name="com.pushwoosh.log_level" android:value="NOISE" />
+        <meta-data android:name="com.pushwoosh.log_level" android:value="${pushwooshLogLevel}" />
         <meta-data android:name="com.pushwoosh.notification_icon" android:value="@drawable/ic_stat_pushmart" />
         <meta-data android:name="com.pushwoosh.notification_icon_color" android:value="#FF5A5F" />
         <meta-data
             android:name="com.pushwoosh.notification_service_extension"
             android:value="com.pushwoosh.pushmart.PushMartNotificationServiceExtension" />
+        <meta-data
+            android:name="com.pushwoosh.LIVE_UPDATE_STYLE_PROVIDER"
+            android:value="com.pushwoosh.pushmart.live.OrderLiveUpdateStyleProvider" />
 
         <activity
             android:name="com.pushwoosh.pushmart.MainActivity"
@@ -24,29 +25,42 @@
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="pushwoosh" />
+                <data android:scheme="pushon-add-product" />
+                <data android:scheme="pushon-open-tab" />
             </intent-filter>
         </activity>
 
-        <activity
-            android:name="com.pushwoosh.DeepLinkActivity"
+        <activity-alias
+            android:name="com.pushwoosh.pushmart.LauncherDefault"
+            android:enabled="true"
             android:exported="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            android:icon="@drawable/ic_launcher"
+            android:targetActivity="com.pushwoosh.pushmart.MainActivity">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="pushwoosh-5df3b-09018" android:host="createTestDevice" />
-                <data android:scheme="pushwoosh-5DF3B-09018" android:host="createTestDevice" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+
+        <activity-alias
+            android:name="com.pushwoosh.pushmart.LauncherXmasSale"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@drawable/ic_launcher_xmas_sale"
+            android:targetActivity="com.pushwoosh.pushmart.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <receiver
+            android:name="com.pushwoosh.pushmart.live.DropAlarmReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

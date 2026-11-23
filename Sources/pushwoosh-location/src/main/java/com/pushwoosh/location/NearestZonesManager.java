@@ -129,23 +129,25 @@ public class NearestZonesManager implements GeoZonesUpdater, LocationTrackerCall
     @SuppressLint("MissingPermission")
     @Override
     public void requestUpdateGeoZones(Callback<Boolean, PushwooshException> callback) {
-        if (locationPermissionChecker.check()
-                && locationPrefs.geolocationStarted().get()) {
-            if (locationTracker == null) {
-                callback.process(Result.fromData(false));
-                return;
-            }
-
-            locationTracker.getLocation(location -> {
-                if (location != null) {
-                    serviceScheduler.requestUpdateNearestGeoZones();
-                    callback.process(Result.fromData(true));
-                } else {
-                    locationTracker.requestLocationUpdates(false);
-                    callback.process(Result.fromData(false));
-                }
-            });
+        if (!locationPermissionChecker.check()
+                || !locationPrefs.geolocationStarted().get()) {
+            return;
         }
+
+        if (locationTracker == null) {
+            callback.process(Result.fromData(false));
+            return;
+        }
+
+        locationTracker.getLocation(location -> {
+            if (location != null) {
+                serviceScheduler.requestUpdateNearestGeoZones();
+                callback.process(Result.fromData(true));
+            } else {
+                locationTracker.requestLocationUpdates(false);
+                callback.process(Result.fromData(false));
+            }
+        });
     }
 
     @Override

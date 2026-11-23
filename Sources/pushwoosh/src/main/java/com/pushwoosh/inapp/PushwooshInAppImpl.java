@@ -262,15 +262,16 @@ public class PushwooshInAppImpl {
         }
 
         private void onPostExecute(Result<Void, NetworkException> result) {
-            if (callback != null) {
-                if (result.isSuccess()) {
-                    callback.process(Result.fromData(true));
-                } else {
-                    String error = result.getException() != null
-                            ? result.getException().getMessage()
-                            : "Unknown error occurred while reloading inapps";
-                    callback.process(Result.fromException(new ReloadInAppsException(error)));
-                }
+            if (callback == null) {
+                return;
+            }
+            if (result.isSuccess()) {
+                callback.process(Result.fromData(true));
+            } else {
+                String error = result.getException() != null
+                        ? result.getException().getMessage()
+                        : "Unknown error occurred while reloading inapps";
+                callback.process(Result.fromException(new ReloadInAppsException(error)));
             }
         }
     }

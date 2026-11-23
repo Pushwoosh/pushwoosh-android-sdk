@@ -12,7 +12,7 @@ import com.pushwoosh.internal.utils.DbUtils;
 import com.pushwoosh.internal.utils.PWLog;
 
 public class InboxNotificationStorageImpl extends SQLiteOpenHelper implements InboxNotificationStorage {
-    private static final String TAG = InboxNotificationStorageImpl.class.getSimpleName();
+    private static final String TAG = "InboxNotificationStorageImpl";
     private static final String DB_NAME = "inboxNotificationDb.db";
     private static final int VERSION = 2;
 

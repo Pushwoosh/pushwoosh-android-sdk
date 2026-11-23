@@ -418,16 +418,17 @@ public class ModalRichMediaWindowUtils {
             dy = -dy;
         }
         Set<ModalRichMediaSwipeGesture> gestures = config.getSwipeGestures();
-        if (!gestures.isEmpty()) {
-            boolean verticalAllowed = gestures.contains(ModalRichMediaSwipeGesture.UP)
-                    || gestures.contains(ModalRichMediaSwipeGesture.DOWN);
-            boolean horizontalAllowed = gestures.contains(ModalRichMediaSwipeGesture.LEFT)
-                    || gestures.contains(ModalRichMediaSwipeGesture.RIGHT);
-            dx = horizontalAllowed ? dx : 0;
-            dy = verticalAllowed ? dy : 0;
-
-            updateIfAttached(window, dx, dy + window.getTopInset() + window.getBottomInset(), -1, -1, true);
+        if (gestures.isEmpty()) {
+            return;
         }
+        boolean verticalAllowed =
+                gestures.contains(ModalRichMediaSwipeGesture.UP) || gestures.contains(ModalRichMediaSwipeGesture.DOWN);
+        boolean horizontalAllowed = gestures.contains(ModalRichMediaSwipeGesture.LEFT)
+                || gestures.contains(ModalRichMediaSwipeGesture.RIGHT);
+        dx = horizontalAllowed ? dx : 0;
+        dy = verticalAllowed ? dy : 0;
+
+        updateIfAttached(window, dx, dy + window.getTopInset() + window.getBottomInset(), -1, -1, true);
     }
 
     public static int getStatusBarInset() {

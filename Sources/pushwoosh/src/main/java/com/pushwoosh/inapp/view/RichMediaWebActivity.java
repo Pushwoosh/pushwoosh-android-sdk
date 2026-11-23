@@ -280,15 +280,16 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
             playSoundAsync(soundUri);
         }
 
-        if (!isAnimated) {
-            if (!viewTracked) {
-                viewTracked = true;
-                EventBus.sendEvent(new InAppViewEvent(resource));
-            }
-            resourceWebView.animateOpen();
-            PWLog.info(TAG, String.format("Rich media displayed to user with animation: %s", resource.getCode()));
-            isAnimated = true;
+        if (isAnimated) {
+            return;
         }
+        if (!viewTracked) {
+            viewTracked = true;
+            EventBus.sendEvent(new InAppViewEvent(resource));
+        }
+        resourceWebView.animateOpen();
+        PWLog.info(TAG, String.format("Rich media displayed to user with animation: %s", resource.getCode()));
+        isAnimated = true;
     }
 
     @Override
@@ -314,26 +315,27 @@ public class RichMediaWebActivity extends WebActivity implements OnRichMediaList
             isAnimatedClose = true;
         }
 
-        if (resourceWebView != null) {
-            // Before the animation, not in its onAnimationEnd: a first frame landing inside the 300 ms slide-out would
-            // reopen the window and drop the close listener, leaving the activity stuck behind isAnimatedClose.
-            resourceWebView.releaseWebClient();
-            resourceWebView.animateClose(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {}
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    RichMediaWebActivity.super.close();
-                    overridePendingTransition(0, 0);
-                    resourceWebView.setVisibility(View.GONE);
-                    sendClose();
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {}
-            });
+        if (resourceWebView == null) {
+            return;
         }
+        // Before the animation, not in its onAnimationEnd: a first frame landing inside the 300 ms slide-out would
+        // reopen the window and drop the close listener, leaving the activity stuck behind isAnimatedClose.
+        resourceWebView.releaseWebClient();
+        resourceWebView.animateClose(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {}
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                RichMediaWebActivity.super.close();
+                overridePendingTransition(0, 0);
+                resourceWebView.setVisibility(View.GONE);
+                sendClose();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {}
+        });
     }
 
     private void sendClose() {

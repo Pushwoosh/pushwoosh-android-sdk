@@ -12,40 +12,52 @@ class CartStoreTest {
     private val cart = CartStore(prefs, gateway)
 
     @Test
-    fun addIncrementsQuantityAndSyncsBadge() {
-        cart.add("aeroknit")
-        cart.add("aeroknit")
-        cart.add("orbit")
-        assertEquals(mapOf("aeroknit" to 2, "orbit" to 1), cart.items)
+    fun addPostsProductAddOnlyForNewProductAndSyncsBadge() {
+        cart.add("outwear_01")
+        cart.add("outwear_01")
+        cart.add("tops_02")
+        assertEquals(mapOf("outwear_01" to 2, "tops_02" to 1), cart.items)
         assertEquals(3, cart.count)
         assertEquals(listOf(1, 2, 3), gateway.badges)
+        assertEquals(
+            listOf(
+                "ProductAdd" to mapOf<String, Any>("id" to "outwear_01"),
+                "ProductAdd" to mapOf<String, Any>("id" to "tops_02")),
+            gateway.events)
+        assertEquals(
+            listOf("postEvent:ProductAdd", "badge:1", "badge:2", "postEvent:ProductAdd", "badge:3"),
+            gateway.calls)
     }
 
     @Test
     fun setQuantityZeroOrNegativeRemovesLine() {
-        cart.add("aeroknit")
-        cart.add("orbit")
-        cart.setQuantity("aeroknit", 0)
-        assertEquals(mapOf("orbit" to 1), cart.items)
-        cart.setQuantity("orbit", -3)
+        cart.add("outwear_01")
+        cart.add("tops_02")
+        cart.setQuantity("outwear_01", 0)
+        assertEquals(mapOf("tops_02" to 1), cart.items)
+        cart.setQuantity("tops_02", -3)
         assertTrue(cart.items.isEmpty())
         assertEquals(0, gateway.badges.last())
+        cart.add("outwear_01")
+        assertEquals(
+            "ProductAdd" to mapOf<String, Any>("id" to "outwear_01"), gateway.events.last())
+        assertEquals(3, gateway.events.size)
     }
 
     @Test
     fun linesSortedByNameWithTotals() {
-        cart.add("orbit")
-        cart.add("aeroknit")
-        cart.setQuantity("aeroknit", 2)
-        assertEquals(listOf("aeroknit", "orbit"), cart.lines.map { it.product.id })
+        cart.add("tops_02")
+        cart.add("outwear_01")
+        cart.setQuantity("outwear_01", 2)
+        assertEquals(listOf("outwear_01", "tops_02"), cart.lines.map { it.product.id })
         assertEquals(listOf(2, 1), cart.lines.map { it.quantity })
-        assertEquals(30700, cart.totalCents)
-        assertEquals("$307.00", cart.totalText)
+        assertEquals(28797, cart.totalCents)
+        assertEquals("$287.97", cart.totalText)
     }
 
     @Test
     fun clearEmptiesCartAndResetsBadge() {
-        cart.add("aeroknit")
+        cart.add("outwear_01")
         cart.clear()
         assertTrue(cart.items.isEmpty())
         assertEquals(0, cart.count)
@@ -55,18 +67,22 @@ class CartStoreTest {
 
     @Test
     fun persistsAcrossInstances() {
-        cart.add("aeroknit")
-        cart.add("aeroknit")
-        cart.add("solo")
-        val reloaded = CartStore(prefs, FakePushwooshGateway())
-        assertEquals(mapOf("aeroknit" to 2, "solo" to 1), reloaded.items)
+        cart.add("outwear_01")
+        cart.add("outwear_01")
+        cart.add("skirt_01")
+        val reloadedGateway = FakePushwooshGateway()
+        val reloaded = CartStore(prefs, reloadedGateway)
+        assertEquals(mapOf("outwear_01" to 2, "skirt_01" to 1), reloaded.items)
+        reloaded.add("outwear_01")
+        assertTrue(reloadedGateway.events.isEmpty())
     }
 
     @Test
     fun ignoresCorruptPersistedEntries() {
-        prefs.putStringList("pushmart.cart", listOf("abc", "orbit:x", "nope:2", "chrono:3", ":1"))
+        prefs.putStringList(
+            "pushmart.cart", listOf("abc", "tops_02:x", "nope:2", "aeroknit:2", "dress_04:3", ":1"))
         val loaded = CartStore(prefs, gateway)
-        assertEquals(mapOf("chrono" to 3), loaded.items)
+        assertEquals(mapOf("dress_04" to 3), loaded.items)
     }
 
     @Test
@@ -74,6 +90,7 @@ class CartStoreTest {
         cart.add("nope")
         assertTrue(cart.items.isEmpty())
         assertTrue(gateway.badges.isEmpty())
+        assertTrue(gateway.events.isEmpty())
     }
 
     @Test
@@ -81,9 +98,9 @@ class CartStoreTest {
         var notified = 0
         val listener: () -> Unit = { notified++ }
         cart.addListener(listener)
-        cart.add("aeroknit")
+        cart.add("outwear_01")
         cart.removeListener(listener)
-        cart.add("aeroknit")
+        cart.add("outwear_01")
         assertEquals(1, notified)
     }
 }

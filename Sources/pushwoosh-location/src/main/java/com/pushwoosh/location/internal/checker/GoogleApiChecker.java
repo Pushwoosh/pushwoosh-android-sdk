@@ -35,29 +35,29 @@ import com.pushwoosh.location.internal.utils.LocationConfig;
 
 public class GoogleApiChecker implements Checker {
 
-	private static final String SUB_TAG = "[" + GoogleApiChecker.class.getSimpleName() + "]";
-	@Nullable
-	private GoogleApiClient googleApiClient;
+    private static final String SUB_TAG = "[GoogleApiChecker]";
 
-	public void setGoogleApiClient(@Nullable final GoogleApiClient googleApiClient) {
-		this.googleApiClient = googleApiClient;
-	}
+    @Nullable private GoogleApiClient googleApiClient;
 
-	@Override
-	public boolean check() {
-		if (googleApiClient == null) {
-			PWLog.error(LocationConfig.TAG, SUB_TAG + "googleApiClient is null");
-			return false;
-		}
+    public void setGoogleApiClient(@Nullable final GoogleApiClient googleApiClient) {
+        this.googleApiClient = googleApiClient;
+    }
 
-		if (!googleApiClient.isConnected()) {
-			if (!googleApiClient.isConnecting()) {
-				googleApiClient.connect();
-			}
-			PWLog.error(LocationConfig.TAG, SUB_TAG + "googleApiClient is not connected");
-			return false;
-		}
-		PWLog.noise(LocationConfig.TAG, SUB_TAG + "check is ok");
-		return true;
-	}
+    @Override
+    public boolean check() {
+        if (googleApiClient == null) {
+            PWLog.error(LocationConfig.TAG, SUB_TAG + "googleApiClient is null");
+            return false;
+        }
+
+        if (!googleApiClient.isConnected()) {
+            if (!googleApiClient.isConnecting()) {
+                googleApiClient.connect();
+            }
+            PWLog.error(LocationConfig.TAG, SUB_TAG + "googleApiClient is not connected");
+            return false;
+        }
+        PWLog.noise(LocationConfig.TAG, SUB_TAG + "check is ok");
+        return true;
+    }
 }

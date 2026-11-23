@@ -7,11 +7,11 @@ import com.pushwoosh.pushmart.R
 object Hearts {
     fun bind(view: ImageView, saved: Boolean) {
         view.setImageResource(if (saved) R.drawable.ic_heart else R.drawable.ic_heart_outline)
-        view.setBackgroundResource(
-            if (saved) R.drawable.bg_circle_white else R.drawable.bg_circle_black_22)
+        view.setBackgroundResource(R.drawable.bg_circle_glass_light)
         view.imageTintList =
             ContextCompat.getColorStateList(
-                view.context, if (saved) R.color.pm_coral else R.color.pm_white)
-        view.contentDescription = if (saved) "Remove from wishlist" else "Save to wishlist"
+                view.context, if (saved) R.color.pm_coral else R.color.pm_on_brand)
+        view.contentDescription =
+            view.context.getString(if (saved) R.string.wishlist_remove else R.string.wishlist_save)
     }
 }

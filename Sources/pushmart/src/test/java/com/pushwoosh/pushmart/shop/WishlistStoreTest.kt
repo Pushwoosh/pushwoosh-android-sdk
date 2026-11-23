@@ -13,40 +13,36 @@ class WishlistStoreTest {
     private val prefs = InMemoryKeyValueStore()
     private val gateway = FakePushwooshGateway()
     private val wishlist = WishlistStore(prefs, gateway)
-    private val aeroknit = Catalog.byId("aeroknit")!!
-    private val orbit = Catalog.byId("orbit")!!
+    private val coat = Catalog.byId("outwear_01")!!
+    private val tee = Catalog.byId("tops_02")!!
 
     @Test
-    fun toggleAddsToFrontAppendsTagAndPostsEvent() {
-        wishlist.toggle(orbit)
-        wishlist.toggle(aeroknit)
-        assertEquals(listOf("aeroknit", "orbit"), wishlist.ids)
-        assertEquals(listOf("aeroknit", "orbit"), prefs.getStringList("pushmart.wishlist"))
-        assertTrue(wishlist.contains("aeroknit"))
+    fun toggleAddsToFrontAndAppendsWishlistTag() {
+        wishlist.toggle(tee)
+        wishlist.toggle(coat)
+        assertEquals(listOf("outwear_01", "tops_02"), wishlist.ids)
+        assertEquals(listOf("outwear_01", "tops_02"), prefs.getStringList("pushmart.wishlist"))
+        assertTrue(wishlist.contains("outwear_01"))
         assertEquals(
             listOf(
-                TagOp.AppendList("wishlist", listOf("orbit")),
-                TagOp.AppendList("wishlist", listOf("aeroknit"))),
+                TagOp.AppendList("wishlist", listOf("tops_02")),
+                TagOp.AppendList("wishlist", listOf("outwear_01"))),
             gateway.tags)
-        assertEquals(
-            listOf(
-                "wishlist_add" to mapOf<String, Any>("productId" to "orbit", "price" to 49),
-                "wishlist_add" to mapOf<String, Any>("productId" to "aeroknit", "price" to 129)),
-            gateway.events)
+        assertTrue(gateway.events.isEmpty())
     }
 
     @Test
-    fun toggleAgainRemovesWithoutEvent() {
-        wishlist.toggle(aeroknit)
-        wishlist.toggle(aeroknit)
-        assertFalse(wishlist.contains("aeroknit"))
-        assertEquals(TagOp.RemoveFromList("wishlist", listOf("aeroknit")), gateway.tags.last())
-        assertEquals(1, gateway.events.size)
+    fun toggleAgainRemovesFromWishlistTag() {
+        wishlist.toggle(coat)
+        wishlist.toggle(coat)
+        assertFalse(wishlist.contains("outwear_01"))
+        assertEquals(TagOp.RemoveFromList("wishlist", listOf("outwear_01")), gateway.tags.last())
+        assertTrue(gateway.events.isEmpty())
     }
 
     @Test
-    fun productsResolveFromCatalog() {
-        wishlist.toggle(aeroknit)
-        assertEquals(listOf(aeroknit), wishlist.products)
+    fun productsSkipIdsMissingFromCatalog() {
+        prefs.putStringList("pushmart.wishlist", listOf("aeroknit", "dress_04", "chrono"))
+        assertEquals(listOf("dress_04"), WishlistStore(prefs, gateway).products.map { it.id })
     }
 }

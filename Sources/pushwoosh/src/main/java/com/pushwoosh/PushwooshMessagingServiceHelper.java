@@ -14,19 +14,20 @@ public class PushwooshMessagingServiceHelper {
     }
 
     public static boolean onMessageReceived(Context context, Bundle pushBundle) {
+        long receivedAtMillis = System.currentTimeMillis(); // before the SDK-ready queue, which may delay the task
         PWLog.noise("PushwooshMessagingServiceHelper", "onMessageReceived()");
         PushwooshInitializer.init(context);
         SdkStateProvider.getInstance().executeOrQueue(() -> {
-            sendMessageDeliveryEvent(pushBundle);
+            sendMessageDeliveryEvent(pushBundle, receivedAtMillis);
             NotificationRegistrarHelper.handleMessage(pushBundle);
         });
         return true;
     }
 
-    static void sendMessageDeliveryEvent(Bundle pushBundle) {
+    static void sendMessageDeliveryEvent(Bundle pushBundle, long receivedAtMillis) {
         PWLog.noise("PushwooshMessagingServiceHelper", "sendMessageDeliveryEvent()");
         try {
-            PushStatisticsScheduler.scheduleDeliveryEvent(pushBundle);
+            PushStatisticsScheduler.scheduleDeliveryEvent(pushBundle, receivedAtMillis);
         } catch (Throwable t) {
             PWLog.error("Failed to schedule delivery event", t);
         }

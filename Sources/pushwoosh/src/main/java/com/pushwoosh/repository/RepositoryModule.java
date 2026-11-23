@@ -89,15 +89,21 @@ public class RepositoryModule {
             silentRichMediaStorage = new SilentRichMediaStorageImpl(context);
         }
 
-        if (summaryNotificationStorage == null) {
-            Context context = AndroidPlatformModule.getApplicationContext();
-            summaryNotificationStorage = new SummaryNotificationStorageImpl(context);
-            BackgroundExecutor.execute(() -> {
-                if (Build.VERSION.SDK_INT >= 23) {
-                    summaryNotificationStorage.update(StatusBarNotificationHelper.getSummaryNotificationsIds());
-                }
-            });
+        createSummaryNotificationStorageIfNeeded();
+    }
+
+    private static void createSummaryNotificationStorageIfNeeded() {
+        if (summaryNotificationStorage != null) {
+            return;
         }
+
+        Context context = AndroidPlatformModule.getApplicationContext();
+        summaryNotificationStorage = new SummaryNotificationStorageImpl(context);
+        BackgroundExecutor.execute(() -> {
+            if (Build.VERSION.SDK_INT >= 23) {
+                summaryNotificationStorage.update(StatusBarNotificationHelper.getSummaryNotificationsIds());
+            }
+        });
     }
 
     private static void createLocalNotificationStorage() {

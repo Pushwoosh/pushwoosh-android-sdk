@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_tile_surface_hi"
+    android:gravity="center"
+    android:textAppearance="@style/TextAppearance.PushMart.Headline"
+    android:textColor="@color/pm_text_secondary"
+    android:textSize="15sp" />

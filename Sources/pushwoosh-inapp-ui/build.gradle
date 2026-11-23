@@ -29,6 +29,12 @@ android {
         // JDK 8 javadoc reads these classes: bytecode above 52.0 breaks customJavadocRelease
         jvmTarget = '1.8'
     }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
 }
 
 dependencies {

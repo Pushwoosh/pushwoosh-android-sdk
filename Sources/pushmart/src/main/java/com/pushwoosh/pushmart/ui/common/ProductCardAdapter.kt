@@ -1,7 +1,6 @@
 package com.pushwoosh.pushmart.ui.common
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.pushwoosh.pushmart.catalog.Product
@@ -30,9 +29,6 @@ class ProductCardAdapter(
         val product = products[position]
         val binding = holder.binding
         ProductImages.bind(binding.image, product)
-        binding.badge.text = product.badge?.uppercase()
-        binding.badge.visibility = if (product.badge == null) View.GONE else View.VISIBLE
-        binding.brand.text = product.brand
         binding.name.text = product.name
         binding.price.text = product.priceText
         Hearts.bind(binding.heart, wishlist.contains(product.id))

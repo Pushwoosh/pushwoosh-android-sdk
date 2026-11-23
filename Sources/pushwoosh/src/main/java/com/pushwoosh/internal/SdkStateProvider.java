@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public final class SdkStateProvider {
 
-    private static final String TAG = SdkStateProvider.class.getSimpleName();
+    private static final String TAG = "SdkStateProvider";
     private static final SdkStateProvider INSTANCE = new SdkStateProvider();
 
     public enum SdkState {

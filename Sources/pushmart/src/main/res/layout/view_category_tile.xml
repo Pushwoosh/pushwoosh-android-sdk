@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="0dp"
+    android:layout_height="156dp"
+    android:layout_weight="1"
+    android:background="@drawable/bg_card_surface_hi"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <ImageView
+        android:id="@+id/tile_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_category_tile_scrim" />
+
+    <TextView
+        android:id="@+id/tile_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="14dp"
+        android:importantForAccessibility="no"
+        android:textAppearance="@style/TextAppearance.PushMart.Headline"
+        android:textColor="@color/pm_white" />
+
+    <ImageView
+        android:id="@+id/tile_badge"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="10dp"
+        android:background="@drawable/bg_category_badge"
+        android:importantForAccessibility="no"
+        android:padding="8dp"
+        app:tint="@color/pm_white" />
+</FrameLayout>

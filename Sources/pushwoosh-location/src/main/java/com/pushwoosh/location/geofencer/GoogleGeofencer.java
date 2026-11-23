@@ -141,22 +141,24 @@ public class GoogleGeofencer
             PWLog.error(LocationConfig.TAG, SUB_TAG + "geofencingClient is null");
             return;
         }
-        if (locationPermissionChecker.check()) {
-            GeofencingRequest geofencingRequest = getGeofencingRequest(zones);
-            try {
-                geofencingClient.addGeofences(geofencingRequest, pendingIntent).addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        PWLog.debug(LocationConfig.TAG, SUB_TAG + " try to add geoZones status:" + task.isSuccessful());
-                    } else {
-                        PWLog.warn(
-                                LocationConfig.TAG,
-                                SUB_TAG + " failed to add geoZones: " + describeAddZonesFailure(task.getException()));
-                    }
-                });
-            } catch (SecurityException e) {
-                // The FINE-or-COARSE gate passes with only COARSE granted, but geofencing requires FINE.
-                PWLog.error(LocationConfig.TAG, SUB_TAG + " addGeofences denied: " + e.getMessage());
-            }
+        if (!locationPermissionChecker.check()) {
+            return;
+        }
+
+        GeofencingRequest geofencingRequest = getGeofencingRequest(zones);
+        try {
+            geofencingClient.addGeofences(geofencingRequest, pendingIntent).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    PWLog.debug(LocationConfig.TAG, SUB_TAG + " try to add geoZones status:" + task.isSuccessful());
+                } else {
+                    PWLog.warn(
+                            LocationConfig.TAG,
+                            SUB_TAG + " failed to add geoZones: " + describeAddZonesFailure(task.getException()));
+                }
+            });
+        } catch (SecurityException e) {
+            // The FINE-or-COARSE gate passes with only COARSE granted, but geofencing requires FINE.
+            PWLog.error(LocationConfig.TAG, SUB_TAG + " addGeofences denied: " + e.getMessage());
         }
     }
 

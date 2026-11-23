@@ -26,6 +26,7 @@
 
 package com.pushwoosh.inapp.network;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import org.json.JSONException;
@@ -36,11 +37,25 @@ public class PostEventResponse {
     private final String richMediaJson;
     private final String messageHash;
 
-    @WorkerThread
+    @Nullable private final JSONObject inline;
+
+    @Nullable private final String sentUserId;
+
+    @Nullable private final String sentAppCode;
+
     PostEventResponse(JSONObject response) throws JSONException {
+        this(response, null, null);
+    }
+
+    @WorkerThread
+    PostEventResponse(JSONObject response, @Nullable String sentUserId, @Nullable String sentAppCode)
+            throws JSONException {
         code = response.optString("code");
         richMediaJson = response.optString("richmedia");
         messageHash = response.optString("message_hash");
+        inline = response.optJSONObject("inline");
+        this.sentUserId = sentUserId;
+        this.sentAppCode = sentAppCode;
     }
 
     public String getCode() {
@@ -53,5 +68,17 @@ public class PostEventResponse {
 
     public String getMessageHash() {
         return messageHash;
+    }
+
+    @Nullable public JSONObject getInline() {
+        return inline;
+    }
+
+    @Nullable public String getSentUserId() {
+        return sentUserId;
+    }
+
+    @Nullable public String getSentAppCode() {
+        return sentAppCode;
     }
 }

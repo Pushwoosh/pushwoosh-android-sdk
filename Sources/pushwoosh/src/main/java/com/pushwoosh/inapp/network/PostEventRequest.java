@@ -41,48 +41,54 @@ import java.util.Calendar;
 import java.util.Date;
 
 class PostEventRequest extends PushRequest<PostEventResponse> {
-	private String currentSessionHash;
-	private TagsBundle attributes;
-	private String event;
-	private String richMediaCode;
-	private String inAppCode;
+    private String currentSessionHash;
+    private TagsBundle attributes;
+    private String event;
+    private String richMediaCode;
+    private String inAppCode;
 
-	PostEventRequest(String event, String currentSessionHash, @Nullable TagsBundle attributes) {
-		this.attributes = attributes != null ? attributes : Tags.empty();
-		this.currentSessionHash = currentSessionHash;
-		this.event = event;
-		this.richMediaCode = PushwooshPlatform.getInstance().pushwooshRepository().getCurrentRichMediaCode();
-		this.inAppCode = PushwooshPlatform.getInstance().pushwooshRepository().getCurrentInAppCode();
-	}
+    @Nullable private String sentUserId;
 
-	@Override
-	public String getMethod() {
-		return "postEvent";
-	}
+    @Nullable private String sentAppCode;
 
-	@Override
-	protected void buildParams(JSONObject params) throws JSONException {
-		attributes = new TagsBundle.Builder()
-				.putAll(attributes.toJson())
-				.putStringIfNotEmpty("msgHash", currentSessionHash)
-				.putStringIfNotEmpty("richMediaCode", richMediaCode)
-				.putStringIfNotEmpty("inAppCode", inAppCode)
-				.build();
+    PostEventRequest(String event, String currentSessionHash, @Nullable TagsBundle attributes) {
+        this.attributes = attributes != null ? attributes : Tags.empty();
+        this.currentSessionHash = currentSessionHash;
+        this.event = event;
+        this.richMediaCode =
+                PushwooshPlatform.getInstance().pushwooshRepository().getCurrentRichMediaCode();
+        this.inAppCode = PushwooshPlatform.getInstance().pushwooshRepository().getCurrentInAppCode();
+    }
 
+    @Override
+    public String getMethod() {
+        return "postEvent";
+    }
 
-		params.put("attributes", attributes.toJson());
-		params.put("event", event);
+    @Override
+    protected void buildParams(JSONObject params) throws JSONException {
+        attributes = new TagsBundle.Builder()
+                .putAll(attributes.toJson())
+                .putStringIfNotEmpty("msgHash", currentSessionHash)
+                .putStringIfNotEmpty("richMediaCode", richMediaCode)
+                .putStringIfNotEmpty("inAppCode", inAppCode)
+                .build();
 
-		int timezone = Calendar.getInstance().getTimeZone().getOffset(new Date().getTime()) / 1000;
-		long unixTime = System.currentTimeMillis() / 1000L;
-		long localTime = unixTime + timezone;
+        params.put("attributes", attributes.toJson());
+        params.put("event", event);
+        sentUserId = params.optString("userId", null);
+        sentAppCode = params.optString("application", null);
 
-		params.put("timestampUTC", unixTime);
-		params.put("timestampCurrent", localTime);
-	}
+        int timezone = Calendar.getInstance().getTimeZone().getOffset(new Date().getTime()) / 1000;
+        long unixTime = System.currentTimeMillis() / 1000L;
+        long localTime = unixTime + timezone;
 
-	@Override
-	public PostEventResponse parseResponse(@NonNull JSONObject response) throws JSONException {
-		return new PostEventResponse(response);
-	}
+        params.put("timestampUTC", unixTime);
+        params.put("timestampCurrent", localTime);
+    }
+
+    @Override
+    public PostEventResponse parseResponse(@NonNull JSONObject response) throws JSONException {
+        return new PostEventResponse(response, sentUserId, sentAppCode);
+    }
 }

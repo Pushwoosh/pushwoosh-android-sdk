@@ -1,19 +1,19 @@
-
 package com.pushwoosh.inapp.network;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.network.PushRequest;
+import com.pushwoosh.repository.RepositoryModule;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.TimeZone;
-import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 class RegisterEmailRequest extends PushRequest<Map<String, Object>> {
 
@@ -30,15 +30,19 @@ class RegisterEmailRequest extends PushRequest<Map<String, Object>> {
 
     @Override
     protected void buildParams(JSONObject params) throws JSONException {
-        String language = Locale.getDefault().getDisplayLanguage();
-
         params.put("email", email);
-        params.put("tz_offset", TimeUnit.SECONDS.convert(TimeZone.getDefault().getOffset(new Date().getTime()), TimeUnit.MILLISECONDS));
-        params.put("language", language);
+        params.put(
+                "tz_offset",
+                TimeUnit.SECONDS.convert(TimeZone.getDefault().getOffset(new Date().getTime()), TimeUnit.MILLISECONDS));
+        if (!RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceLocaleAllowed()
+                .get()) {
+            return;
+        }
+        params.put("language", Locale.getDefault().getDisplayLanguage());
     }
 
-    @Nullable
-    @Override
+    @Nullable @Override
     public Map<String, Object> parseResponse(@NonNull JSONObject response) throws JSONException {
         return super.parseResponse(response);
     }

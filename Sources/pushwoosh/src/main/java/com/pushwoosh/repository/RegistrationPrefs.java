@@ -46,6 +46,7 @@ import com.pushwoosh.internal.utils.PWLog;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.IllformedLocaleException;
 import java.util.Locale;
 
 public class RegistrationPrefs implements RegistrationPrefsInterface {
@@ -72,6 +73,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private static final String PROPERTY_BASE_URL = "pw_base_url";
     private static final String PROPERTY_IS_REGISTERED_FOR_NOTIFICATION = "pw_registered_for_push";
     private static final String PROPERTY_LANGUAGE = "pw_language";
+    private static final String PROPERTY_LOCALE = "pw_locale";
     private static final String PROPERTY_DENIED_NOTIFICATIONS = "pw_user_denied_notification_permission";
     private static final String PROPERTY_FCM_MESSAGE_RECEIVED = "pw_fcm_message_received_since_app_update";
     private static final String PROPERTY_PUSH_PERMISSION_FIRST_OBSERVED = "pw_push_permission_first_observed_granted";
@@ -100,6 +102,7 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
     private final PreferenceStringValue hwid;
     private final PreferenceStringValue apiToken;
     private final PreferenceStringValue language;
+    private final PreferenceStringValue locale;
     private final PreferenceStringValue advertisingId;
     private final Config config;
     private PreferenceBooleanValue registeredForPush;
@@ -173,11 +176,8 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         hwid = new PreferenceStringValue(preferences, HWID, "");
         advertisingId = new PreferenceStringValue(preferences, PROPERTY_ADVERTISING_ID, "");
         apiToken = new PreferenceStringValue(preferences, API_TOKEN, config.getApiToken());
-        String defaultLocale = "en";
-        language = new PreferenceStringValue(
-                preferences,
-                PROPERTY_LANGUAGE,
-                config.isCollectingDeviceLocaleAllowed() ? languageCode() : defaultLocale);
+        language = new PreferenceStringValue(preferences, PROPERTY_LANGUAGE, deviceLanguage());
+        locale = new PreferenceStringValue(preferences, PROPERTY_LOCALE, "");
 
         PWLog.noise("RegistrationPrefs() done");
     }
@@ -367,12 +367,39 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         deliveredPushToken.set("");
     }
 
+    /**
+     * {@code null} drops the stored key rather than storing a snapshot of the device locale: with
+     * the key absent, every process start re-reads the locale, so the app follows the device again.
+     */
     public void setLanguage(@Nullable String language) {
         if (language == null) {
+            language().reset(deviceLanguage());
             return;
         }
-
         language().set(language);
+    }
+
+    /**
+     * Stores the developer-set locale override, normalizing a null or blank value to "no override".
+     *
+     * @param locale manual locale tag, or {@code null}/blank to clear the override
+     * @return {@code true} when the stored value changed, {@code false} otherwise
+     */
+    public boolean setLocale(@Nullable String locale) {
+        String normalized = locale == null ? "" : locale.trim();
+        if (TextUtils.equals(this.locale.get(), normalized)) {
+            return false;
+        }
+        this.locale.set(normalized);
+        return true;
+    }
+
+    /**
+     * @return the stored manual locale when one is set, otherwise the device's current locale tag.
+     */
+    public String localeForRequest() {
+        String storedLocale = locale.get();
+        return TextUtils.isEmpty(storedLocale) ? deviceLocaleTag() : storedLocale;
     }
 
     public void setApiToken(String apiToken) {
@@ -457,11 +484,31 @@ public class RegistrationPrefs implements RegistrationPrefsInterface {
         return migrationScheme;
     }
 
+    private String deviceLanguage() {
+        return config.isCollectingDeviceLocaleAllowed() ? languageCode() : "en";
+    }
+
     private String languageCode() {
         // workaround to support simplified and traditional chinese on backend:
         // https://jira.corp.pushwoosh.com/browse/PUSH-33298
         return Locale.getDefault().getLanguage().equals("zh")
                 ? Locale.getDefault().toLanguageTag()
                 : Locale.getDefault().getLanguage();
+    }
+
+    private String deviceLocaleTag() {
+        // Unicode extensions ("en-US-u-mu-celsius") are personal settings, not a locale: the server
+        // tag must match plain "en-US", the same way iOS reports it.
+        Locale deviceLocale = Locale.getDefault();
+        try {
+            // Locale.stripExtensions() needs API 26; the Builder path works from API 21.
+            return new Locale.Builder()
+                    .setLocale(deviceLocale)
+                    .clearExtensions()
+                    .build()
+                    .toLanguageTag();
+        } catch (IllformedLocaleException e) {
+            return deviceLocale.toLanguageTag();
+        }
     }
 }

@@ -35,11 +35,13 @@ import com.pushwoosh.internal.network.FakeRequestManager;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
 import com.pushwoosh.internal.registrar.RegisterDeviceWorker;
+import com.pushwoosh.internal.utils.BackgroundExecutor;
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
 import com.pushwoosh.notification.PushwooshNotificationManager;
 import com.pushwoosh.repository.PushwooshRepository;
 import com.pushwoosh.repository.RegistrationPrefs;
+import com.pushwoosh.repository.RepositoryModule;
 import com.pushwoosh.testutil.CallbackWrapper;
 import com.pushwoosh.testutil.PlatformTestManager;
 
@@ -60,8 +62,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -80,10 +85,13 @@ public class PushwooshTest {
 
     private Method sendMessageDelivery;
     private Method sendPushStat;
+    private Locale originalDefaultLocale;
 
     @Before
     public void setUp() throws Exception {
+        originalDefaultLocale = Locale.getDefault();
         Config configMock = MockConfig.createMock();
+        Mockito.when(configMock.isCollectingDeviceLocaleAllowed()).thenReturn(true);
 
         platformTestManager = new PlatformTestManager(configMock);
         platformTestManager.onApplicationCreated();
@@ -132,6 +140,7 @@ public class PushwooshTest {
             messagingServiceHelperMock.close();
         }
         platformTestManager.tearDown();
+        Locale.setDefault(originalDefaultLocale);
     }
 
     private static InAppRepository mockInAppRepository() throws Exception {
@@ -444,9 +453,10 @@ public class PushwooshTest {
         assertThat(fake.last("registerDevice").params.getString("language"), equalTo("de"));
     }
 
-    // setLanguage(null) is a no-op: onLanguageChanged runs only for a non-null value.
+    // setLanguage(null) reverts to the device language and delivers it like any other change.
+    // MockConfig disables locale collection, so the device language resolves to "en".
     @Test
-    public void setLanguage_null_sendsNothing() throws Exception {
+    public void setLanguage_null_sendsRegisterDeviceWithDeviceLanguage() throws Exception {
         String testToken = "12345";
         FakeRequestManager fake = platformTestManager.getRequestManager();
         fake.alwaysRespondWith("registerDevice", new JSONObject());
@@ -455,10 +465,113 @@ public class PushwooshTest {
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         assertThat(fake.count("registerDevice"), equalTo(1));
 
+        Pushwoosh.getInstance().setLanguage("de");
+        fake.awaitCount("registerDevice", 2);
+
         Pushwoosh.getInstance().setLanguage(null);
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        fake.awaitCount("registerDevice", 3);
+        assertThat(fake.last("registerDevice").params.getString("language"), equalTo("en"));
+    }
+
+    // onLanguageChanged bypasses the cooldown for a locale change too: within the cooldown window
+    // right after a delivery, the new locale still goes out immediately.
+    @Test
+    public void setLocale_withTokenAndWithinCooldown_sendsRegisterDeviceWithNewLocale() throws Exception {
+        FakeRequestManager fake = registerTokenAndDeliver();
+
+        Pushwoosh.getInstance().setLocale("es-419");
+
+        fake.awaitCount("registerDevice", 2);
+        assertThat(fake.last("registerDevice").params.getString("locale"), equalTo("es-419"));
+    }
+
+    // setLocale normalizes before comparing: a re-send of the same value (even padded with
+    // whitespace) must not count as a change and must not trigger another registration.
+    @Test
+    public void setLocale_repeatedSameValue_sendsNothing() throws Exception {
+        FakeRequestManager fake = registerTokenAndDeliver();
+        Pushwoosh.getInstance().setLocale("es-419");
+        fake.awaitCount("registerDevice", 2);
+
+        Pushwoosh.getInstance().setLocale("  es-419  ");
+        drainNetworkExecutor();
+
+        assertThat(fake.count("registerDevice"), equalTo(2));
+    }
+
+    // setLocale(null) after a manual override clears it and falls back to the device locale.
+    @Test
+    public void setLocale_nullAfterManualLocale_sendsRegisterDeviceWithDeviceLocale() throws Exception {
+        Locale.setDefault(new Locale.Builder().setLanguage("pt").setRegion("BR").build());
+        FakeRequestManager fake = registerTokenAndDeliver();
+        Pushwoosh.getInstance().setLocale("es-419");
+        fake.awaitCount("registerDevice", 2);
+
+        Pushwoosh.getInstance().setLocale(null);
+
+        fake.awaitCount("registerDevice", 3);
+        assertThat(fake.last("registerDevice").params.getString("locale"), equalTo("pt-BR"));
+    }
+
+    // Without a prior manual override, setLocale(null) has nothing to clear and must send nothing.
+    @Test
+    public void setLocale_nullWithoutManualLocale_sendsNothing() throws Exception {
+        FakeRequestManager fake = registerTokenAndDeliver();
+
+        Pushwoosh.getInstance().setLocale(null);
+        drainNetworkExecutor();
 
         assertThat(fake.count("registerDevice"), equalTo(1));
+    }
+
+    // With locale collection disabled the request would carry no language, so setLanguage must not
+    // trigger an out-of-turn registerDevice.
+    @Test
+    public void setLanguage_localeCollectionDisabled_sendsNothing() throws Exception {
+        FakeRequestManager fake = registerTokenAndDeliver();
+        RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceLocaleAllowed()
+                .set(false);
+
+        Pushwoosh.getInstance().setLanguage("de");
+        drainNetworkExecutor();
+
+        assertThat(fake.count("registerDevice"), equalTo(1));
+    }
+
+    // With locale collection disabled the request would carry no locale, so a changed value must not
+    // trigger an out-of-turn registerDevice.
+    @Test
+    public void setLocale_localeCollectionDisabled_sendsNothing() throws Exception {
+        FakeRequestManager fake = registerTokenAndDeliver();
+        RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceLocaleAllowed()
+                .set(false);
+
+        Pushwoosh.getInstance().setLocale("es-419");
+        drainNetworkExecutor();
+
+        assertThat(fake.count("registerDevice"), equalTo(1));
+    }
+
+    private FakeRequestManager registerTokenAndDeliver() throws Exception {
+        FakeRequestManager fake = platformTestManager.getRequestManager();
+        fake.alwaysRespondWith("registerDevice", new JSONObject());
+        Pushwoosh.getInstance().registerExistingToken("12345", CallbackWrapper.spy());
+        testDriver.setAllConstraintsMet(pendingDeliveryId());
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        assertThat(fake.count("registerDevice"), equalTo(1));
+        return fake;
+    }
+
+    // DeviceRegistrar sends on BackgroundExecutor.network: a "nothing sent" assert is only
+    // meaningful once anything queued there has run.
+    private static void drainNetworkExecutor() throws InterruptedException {
+        CountDownLatch drained = new CountDownLatch(1);
+        BackgroundExecutor.network(drained::countDown);
+        assertTrue("network executor did not drain", drained.await(5, TimeUnit.SECONDS));
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
     }
 
     private UUID pendingDeliveryId() throws Exception {
@@ -673,5 +786,19 @@ public class PushwooshTest {
         registrationPrefs.baseUrl().set("");
 
         assertThat(Pushwoosh.getInstance().getBaseUrl(), nullValue());
+    }
+
+    @Test
+    public void sendMessageDelivery_passesCallTime() throws Exception {
+        mockInAppRepository();
+        Bundle bundle = new Bundle();
+        bundle.putString("pw_msg", "1");
+
+        long before = System.currentTimeMillis();
+        sendMessageDelivery.invoke(Pushwoosh.getInstance(), bundle);
+        long after = System.currentTimeMillis();
+
+        messagingServiceHelperMock.verify(() -> PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(
+                Mockito.same(bundle), Mockito.longThat(v -> v >= before && v <= after)));
     }
 }

@@ -3,6 +3,7 @@ package com.pushwoosh.repository;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.when;
 
 import com.pushwoosh.internal.utils.Config;
 import com.pushwoosh.internal.utils.MockConfig;
@@ -18,15 +19,20 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 
+import java.util.Locale;
+
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
 @org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class RegisterDeviceRequestTest {
 
+    private Locale originalDefaultLocale;
+
     private PlatformTestManager platformTestManager;
 
     @Before
     public void setUp() {
+        originalDefaultLocale = Locale.getDefault();
         Config configMock = MockConfig.createMock();
         platformTestManager = new PlatformTestManager(configMock);
         platformTestManager.onApplicationCreated();
@@ -35,6 +41,15 @@ public class RegisterDeviceRequestTest {
     @After
     public void tearDown() throws Exception {
         platformTestManager.tearDown();
+        Locale.setDefault(originalDefaultLocale);
+    }
+
+    private void rebuildPlatform(boolean collectingLocaleAllowed) {
+        platformTestManager.tearDown();
+        Config configMock = MockConfig.createMock();
+        when(configMock.isCollectingDeviceLocaleAllowed()).thenReturn(collectingLocaleAllowed);
+        platformTestManager = new PlatformTestManager(configMock);
+        platformTestManager.onApplicationCreated();
     }
 
     private JSONObject buildParams(RegisterDeviceRequest request) throws JSONException {
@@ -141,5 +156,51 @@ public class RegisterDeviceRequestTest {
 
             assertNull("platform " + platform, request.getSentPushPermissionStatus());
         }
+    }
+
+    @Test
+    public void buildParams_noManualLocale_sendsFullDeviceLocaleTag() throws Exception {
+        Locale.setDefault(new Locale.Builder().setLanguage("pt").setRegion("BR").build());
+        rebuildPlatform(true);
+
+        JSONObject params = buildParams(new RegisterDeviceRequest("dev-1", null, 3));
+
+        assertEquals("pt-BR", params.getString("locale"));
+    }
+
+    // The locale field must not disturb the language field.
+    @Test
+    public void buildParams_manualLocale_sendsItAndLeavesLanguageUntouched() throws Exception {
+        Locale.setDefault(new Locale.Builder().setLanguage("pt").setRegion("BR").build());
+        rebuildPlatform(true);
+        RepositoryModule.getRegistrationPreferences().setLocale("es-419");
+
+        JSONObject params = buildParams(new RegisterDeviceRequest("dev-1", null, 3));
+
+        assertEquals("es-419", params.getString("locale"));
+        assertEquals("pt", params.getString("language"));
+    }
+
+    @Test
+    public void buildParams_localeCollectionDisabled_omitsLocaleAndLanguageEvenWithManualValues() throws Exception {
+        rebuildPlatform(false);
+        RepositoryModule.getRegistrationPreferences().setLocale("es-419");
+        RepositoryModule.getRegistrationPreferences().setLanguage("de");
+
+        JSONObject params = buildParams(new RegisterDeviceRequest("dev-1", null, 3));
+
+        assertFalse("locale must be omitted when locale collection is disabled", params.has("locale"));
+        assertFalse("language must be omitted when locale collection is disabled", params.has("language"));
+    }
+
+    @Test
+    public void buildParams_whatsappPlatform_carriesLocale() throws Exception {
+        Locale.setDefault(new Locale.Builder().setLanguage("pt").setRegion("BR").build());
+        rebuildPlatform(true);
+
+        JSONObject params =
+                buildParams(new RegisterDeviceRequest("+15559876543", null, DeviceRegistrar.PLATFORM_WHATSAPP));
+
+        assertEquals("pt-BR", params.getString("locale"));
     }
 }

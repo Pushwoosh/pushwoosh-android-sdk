@@ -43,6 +43,7 @@ class CartStore(private val prefs: KeyValueStore, private val gateway: Pushwoosh
 
     fun add(productId: String) {
         if (Catalog.byId(productId) == null) return
+        if (productId !in quantities) gateway.postEvent("ProductAdd", mapOf("id" to productId))
         quantities[productId] = (quantities[productId] ?: 0) + 1
         sync()
     }

@@ -42,7 +42,7 @@ import com.pushwoosh.internal.utils.PWLog;
  * All entry points (push click, inbox, silent push, postEvent) pass through here.
  */
 public class RichMediaController {
-    private final String TAG = RichMediaController.class.getSimpleName();
+    private final String TAG = "RichMediaController";
 
     private final ResourceViewStrategyFactory resourceViewStrategyFactory;
     private final RichMediaFactory richMediaFactory;

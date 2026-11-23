@@ -21,7 +21,7 @@ import com.pushwoosh.repository.RepositoryModule;
 import java.util.Set;
 
 public class LocalNotificationReceiver extends BroadcastReceiver {
-    public static final String TAG = LocalNotificationReceiver.class.getSimpleName();
+    public static final String TAG = "LocalNotificationReceiver";
     public static final String EXTRA_NOTIFICATION_ID = "local_push_id";
     public static final int WEEK = 1000 * 60 * 60 * 24 * 7;
 

@@ -44,6 +44,8 @@ import com.pushwoosh.exception.SetUserIdException;
 import com.pushwoosh.function.Callback;
 import com.pushwoosh.function.Result;
 import com.pushwoosh.inapp.exception.ResourceParseException;
+import com.pushwoosh.inapp.inline.InlineContentHandler;
+import com.pushwoosh.inapp.inline.InlineContentHandlerProvider;
 import com.pushwoosh.inapp.mapper.ResourceMapper;
 import com.pushwoosh.inapp.model.HtmlData;
 import com.pushwoosh.inapp.network.downloader.DownloadResult;
@@ -396,6 +398,7 @@ public class InAppRepository {
 
         PostEventRequest request = new PostEventRequest(event, currentSessionHash, attributes);
         NetworkModule.getRequestManager().sendRequest(request, result -> {
+            forwardInlineContent(result);
             handlePostEventResponse(result, callback);
         });
     }
@@ -407,14 +410,15 @@ public class InAppRepository {
             @Nullable Callback<Void, MergeUserException> callback) {
         MergeUserRequest request = new MergeUserRequest(oldUserId, newUserId, doMerge);
         NetworkModule.getRequestManager().sendRequest(request, result -> {
-            if (callback != null) {
-                if (result.isSuccess()) {
-                    callback.process(Result.fromData(null));
-                } else {
-                    if (result.getException() != null) {
-                        callback.process(Result.fromException(
-                                new MergeUserException(result.getException().getMessage())));
-                    }
+            if (callback == null) {
+                return;
+            }
+            if (result.isSuccess()) {
+                callback.process(Result.fromData(null));
+            } else {
+                if (result.getException() != null) {
+                    callback.process(Result.fromException(
+                            new MergeUserException(result.getException().getMessage())));
                 }
             }
         });
@@ -601,6 +605,19 @@ public class InAppRepository {
 
         for (String code : updatedResourceCodes) {
             inAppDownloader.removeResourceFiles(code);
+        }
+    }
+
+    private void forwardInlineContent(Result<PostEventResponse, NetworkException> result) {
+        PostEventResponse data = result.isSuccess() ? result.getData() : null;
+        InlineContentHandler handler = InlineContentHandlerProvider.get();
+        if (data == null || data.getInline() == null || handler == null) {
+            return;
+        }
+        try {
+            handler.onInlineContent(data.getInline(), data.getSentUserId(), data.getSentAppCode());
+        } catch (RuntimeException e) {
+            PWLog.error(TAG, "Inline content handler failed", e);
         }
     }
 

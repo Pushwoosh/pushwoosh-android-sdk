@@ -118,19 +118,21 @@ public class PushManagerJSInterface {
             final String successCallbackFinal = successCallback;
             final String errorCallbackFinal = errorCallback;
             PushwooshPlatform.getInstance().pushwooshInApp().postEvent(event, Tags.fromJson(attributes), result -> {
-                if (successCallbackFinal != null) {
-                    WebView webView = this.webView.get();
-                    if (webView != null) {
-                        if (result.isSuccess()) {
-                            String url = String.format("javascript:%s();", successCallbackFinal);
-                            webView.loadUrl(url);
-                        } else {
-                            String url = String.format(
-                                    "javascript:%s('%s');",
-                                    errorCallbackFinal, result.getException().getMessage());
-                            webView.loadUrl(url);
-                        }
-                    }
+                if (successCallbackFinal == null) {
+                    return;
+                }
+                WebView webView = this.webView.get();
+                if (webView == null) {
+                    return;
+                }
+                if (result.isSuccess()) {
+                    String url = String.format("javascript:%s();", successCallbackFinal);
+                    webView.loadUrl(url);
+                } else {
+                    String url = String.format(
+                            "javascript:%s('%s');",
+                            errorCallbackFinal, result.getException().getMessage());
+                    webView.loadUrl(url);
                 }
             });
         } catch (JSONException e) {

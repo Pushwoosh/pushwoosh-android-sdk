@@ -1,6 +1,9 @@
 package com.pushwoosh.pushmart.account
 
+import com.pushwoosh.pushmart.core.FakePushPermission
 import com.pushwoosh.pushmart.core.InMemoryKeyValueStore
+import com.pushwoosh.pushmart.core.PrimerOutcome
+import com.pushwoosh.pushmart.sdk.FakeInboxGateway
 import com.pushwoosh.pushmart.sdk.FakePushwooshGateway
 import com.pushwoosh.pushmart.sdk.GatewayResult
 import org.junit.Assert.assertEquals
@@ -10,177 +13,60 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AccountManagerTest {
-    private val store = AccountStore(InMemoryKeyValueStore())
+    private val prefs = InMemoryKeyValueStore()
+    private val store = AccountStore(prefs)
     private val gateway = FakePushwooshGateway()
-    private val manager = AccountManager(store, gateway)
+    private val inbox = FakeInboxGateway()
+    private val permission = FakePushPermission()
+    private var online = true
+    private val manager = AccountManager(store, gateway, inbox, permission) { online }
 
     @Test
-    fun connectAppliesMaskedCodeAndStoresIt() {
-        assertNull(manager.connect(" 5df3b-09018 "))
-        assertEquals("5DF3B-09018", store.appCode)
-        assertEquals(listOf("setAppId:5DF3B-09018"), gateway.calls)
-    }
-
-    @Test
-    fun connectRejectsInvalidCodeWithoutSdkCall() {
-        assertEquals(
-            "Enter your access code in the format XXXXX-XXXXX.", manager.connect("5DF3B0901"))
-        assertEquals("", store.appCode)
-        assertTrue(gateway.calls.isEmpty())
-    }
-
-    @Test
-    fun signInWithEmailSetsEmailThenUserIdAndOnboards() {
-        val errors = mutableListOf<String>()
-        manager.signIn("Ada Lovelace", "ada@example.com") { errors.add(it) }
-        assertEquals(listOf("setEmail:ada@example.com", "setUserId:ada@example.com"), gateway.calls)
-        assertEquals("Ada Lovelace", store.userName)
-        assertEquals("ada@example.com", store.userEmail)
-        assertTrue(store.onboarded)
-        assertTrue(errors.isEmpty())
-    }
-
-    @Test
-    fun signInTrimsEmailBeforeIdentityCalls() {
-        manager.signIn("  Ada ", "  Ada@Example.com ") {}
-        assertEquals(listOf("setEmail:Ada@Example.com", "setUserId:Ada@Example.com"), gateway.calls)
-        assertEquals("Ada", store.userName)
-        assertEquals("Ada@Example.com", store.userEmail)
-    }
-
-    @Test
-    fun signInWithoutEmailMakesNoIdentityCalls() {
-        manager.signIn("Ada", "") {}
-        assertTrue(gateway.calls.isEmpty())
-        assertTrue(store.onboarded)
-        assertEquals("Ada", store.userName)
-    }
-
-    @Test
-    fun signInReportsIdentityFailures() {
-        gateway.identityResult = GatewayResult.failure("network down")
-        val errors = mutableListOf<String>()
-        manager.signIn("Ada", "ada@example.com") { errors.add(it) }
-        assertEquals(listOf("network down", "network down"), errors)
-        assertTrue(store.onboarded)
-    }
-
-    @Test
-    fun guestOnboardsWithoutIdentity() {
-        manager.continueAsGuest()
-        assertTrue(store.onboarded)
-        assertTrue(store.isGuest)
-        assertTrue(gateway.calls.isEmpty())
-    }
-
-    @Test
-    fun switchAccountUnregistersSetsAppIdIdentityThenRegisters() {
+    fun saveDetailsSetsEmailAndRegistersChangedNumbers() {
         var outcome: AccountOutcome? = null
-        manager.switchAccount("abcde-12345", "Grace", "grace@example.com") { outcome = it }
+        manager.saveDetails(" shopper@example.com ", "+15550100", "+15550101") { outcome = it }
         assertEquals(
             listOf(
-                "unregister",
-                "setAppId:ABCDE-12345",
-                "setEmail:grace@example.com",
-                "setUserId:grace@example.com",
-                "register"),
+                "setEmail:shopper@example.com",
+                "registerSms:+15550100",
+                "registerWhatsapp:+15550101"),
             gateway.calls)
-        assertEquals("ABCDE-12345", store.appCode)
-        assertEquals("Grace", store.userName)
-        assertEquals("grace@example.com", store.userEmail)
-        assertEquals(
-            AccountOutcome.Success("Account switched", "Connected to app ABCDE-12345."), outcome)
-    }
+        assertEquals("shopper@example.com", store.userEmail)
+        assertEquals("+15550100", store.smsNumber)
+        assertEquals("+15550101", store.whatsappNumber)
+        assertEquals(AccountOutcome.Success("Saved", "Your details are up to date."), outcome)
 
-    @Test
-    fun switchReportsIdentityFailure() {
-        gateway.identityResult = GatewayResult.failure("network down")
-        var outcome: AccountOutcome? = null
-        manager.switchAccount("abcde-12345", "Grace", "grace@example.com") { outcome = it }
-        assertEquals(
-            AccountOutcome.Failure(
-                "Switch incomplete", "Connected to app ABCDE-12345, but network down."),
-            outcome)
-        assertTrue(gateway.calls.contains("register"))
-    }
+        gateway.calls.clear()
+        manager.saveDetails("shopper@example.com", " +15550100 ", "+15550101") {}
+        assertEquals(listOf("setEmail:shopper@example.com"), gateway.calls)
 
-    @Test
-    fun switchReportsRegisterFailure() {
-        gateway.registerResult = GatewayResult.failure("no play services")
-        var outcome: AccountOutcome? = null
-        manager.switchAccount("abcde-12345", "Grace", "grace@example.com") { outcome = it }
-        assertEquals(
-            AccountOutcome.Failure(
-                "Switch incomplete", "Connected to app ABCDE-12345, but no play services."),
-            outcome)
-    }
-
-    @Test
-    fun switchWithoutEmailSkipsIdentity() {
-        manager.switchAccount("ABCDE-12345", "", "") {}
-        assertEquals(listOf("unregister", "setAppId:ABCDE-12345", "register"), gateway.calls)
-        assertEquals("", store.userEmail)
-    }
-
-    @Test
-    fun switchWithInvalidCodeMakesNoSdkCalls() {
-        var outcome: AccountOutcome? = null
-        manager.switchAccount("bad", "Grace", "grace@example.com") { outcome = it }
+        gateway.calls.clear()
+        outcome = null
+        manager.saveDetails("", "", "+15550101") { outcome = it }
         assertTrue(gateway.calls.isEmpty())
-        assertEquals(
-            AccountOutcome.Failure("Invalid app code", "Use the format XXXXX-XXXXX."), outcome)
-    }
-
-    @Test
-    fun signOutUnregistersClearsIdentityAndPushFlagButKeepsAppCode() {
-        store.appCode = "5DF3B-09018"
-        store.userName = "Ada"
-        store.userEmail = "ada@example.com"
-        store.onboarded = true
-        store.pushNotificationEnabled = true
-        manager.signOut()
-        assertEquals(listOf("unregister"), gateway.calls)
-        assertTrue(store.isGuest)
-        assertFalse(store.pushNotificationEnabled)
-        assertFalse(store.onboarded)
-        assertEquals("5DF3B-09018", store.appCode)
-    }
-
-    @Test
-    fun saveDetailsSetsUserIdAndEmailWhenPresent() {
-        var outcome: AccountOutcome? = null
-        manager.saveDetails("Ada", "member-42", "ada@example.com") { outcome = it }
-        assertEquals(listOf("setUserId:member-42", "setEmail:ada@example.com"), gateway.calls)
-        assertEquals("Ada", store.userName)
-        assertEquals("ada@example.com", store.userEmail)
+        assertEquals("", store.smsNumber)
+        assertEquals("+15550101", store.whatsappNumber)
+        assertEquals("shopper@example.com", store.userEmail)
         assertEquals(AccountOutcome.Success("Saved", "Your details are up to date."), outcome)
     }
 
     @Test
-    fun saveDetailsWithNothingToSyncFails() {
+    fun saveDetailsWithoutEmailSavesNothing() {
         var outcome: AccountOutcome? = null
-        manager.saveDetails("Ada", "", "  ") { outcome = it }
+        manager.saveDetails("  ", " ", "") { outcome = it }
         assertTrue(gateway.calls.isEmpty())
-        assertEquals("Ada", store.userName)
-        assertEquals(
-            AccountOutcome.Failure("Nothing to save", "Add a member ID or email first."), outcome)
-    }
-
-    @Test
-    fun saveDetailsWithMemberIdOnlySetsUserIdOnly() {
-        var outcome: AccountOutcome? = null
-        manager.saveDetails("Ada", "member-42", "") { outcome = it }
-        assertEquals(listOf("setUserId:member-42"), gateway.calls)
         assertEquals("", store.userEmail)
-        assertEquals(AccountOutcome.Success("Saved", "Your details are up to date."), outcome)
-    }
+        assertEquals("", store.smsNumber)
+        assertEquals(
+            AccountOutcome.Failure("Nothing to save", "Add your email or a phone number first."),
+            outcome)
 
-    @Test
-    fun saveDetailsWithEmailOnlySetsEmailOnly() {
-        var outcome: AccountOutcome? = null
-        manager.saveDetails("Ada", "", "ada@example.com") { outcome = it }
-        assertEquals(listOf("setEmail:ada@example.com"), gateway.calls)
-        assertEquals("ada@example.com", store.userEmail)
+        gateway.deferCallbacks = true
+        outcome = null
+        manager.saveDetails(" ", "+15550100", "") { outcome = it }
+        assertEquals(listOf("registerSms:+15550100"), gateway.calls)
+        assertEquals("", store.userEmail)
+        assertEquals("+15550100", store.smsNumber)
         assertEquals(AccountOutcome.Success("Saved", "Your details are up to date."), outcome)
     }
 
@@ -188,134 +74,261 @@ class AccountManagerTest {
     fun saveDetailsReportsSdkFailure() {
         gateway.identityResult = GatewayResult.failure("boom")
         var outcome: AccountOutcome? = null
-        manager.saveDetails("", "member-42", "") { outcome = it }
+        manager.saveDetails("shopper@example.com", "+15550100", "+15550101") { outcome = it }
         assertEquals(AccountOutcome.Failure("Save failed", "boom"), outcome)
-    }
-
-    @Test
-    fun switchReportsNothingBeforeRegisterCallback() {
-        gateway.deferCallbacks = true
-        var outcome: AccountOutcome? = null
-        manager.switchAccount("abcde-12345", "Grace", "grace@example.com") { outcome = it }
-        assertNull(outcome)
-        gateway.flush()
         assertEquals(
-            AccountOutcome.Success("Account switched", "Connected to app ABCDE-12345."), outcome)
+            listOf(
+                "setEmail:shopper@example.com",
+                "registerSms:+15550100",
+                "registerWhatsapp:+15550101"),
+            gateway.calls)
     }
 
     @Test
-    fun switchReportsRegisterFailureAfterIdentitySuccess() {
+    fun saveDetailsReportsOnceAfterEmailCallback() {
         gateway.deferCallbacks = true
-        gateway.registerResult = GatewayResult.failure("no play services")
-        var outcome: AccountOutcome? = null
-        manager.switchAccount("abcde-12345", "Grace", "grace@example.com") { outcome = it }
-        gateway.flush()
-        assertEquals(
-            AccountOutcome.Failure(
-                "Switch incomplete", "Connected to app ABCDE-12345, but no play services."),
-            outcome)
-        assertFalse(store.pushNotificationEnabled)
-    }
-
-    @Test
-    fun switchKeepsPushFlagOnWhenRegisterSucceedsAfterIdentityFailure() {
-        gateway.deferCallbacks = true
-        gateway.identityResult = GatewayResult.failure("network down")
-        var outcome: AccountOutcome? = null
-        manager.switchAccount("abcde-12345", "Grace", "grace@example.com") { outcome = it }
-        gateway.flush()
-        assertEquals(
-            AccountOutcome.Failure(
-                "Switch incomplete", "Connected to app ABCDE-12345, but network down."),
-            outcome)
-        assertTrue(store.pushNotificationEnabled)
-    }
-
-    @Test
-    fun switchSuccessTurnsPushFlagOn() {
-        gateway.deferCallbacks = true
-        var outcome: AccountOutcome? = null
-        manager.switchAccount("abcde-12345", "Grace", "grace@example.com") { outcome = it }
-        gateway.flush()
-        assertTrue(outcome is AccountOutcome.Success)
-        assertTrue(store.pushNotificationEnabled)
-    }
-
-    @Test
-    fun saveDetailsReportsExactlyOnceOnFailure() {
-        gateway.deferCallbacks = true
-        gateway.identityResult = GatewayResult.failure("boom")
         val outcomes = mutableListOf<AccountOutcome>()
-        manager.saveDetails("Ada", "member-42", "ada@example.com") { outcomes.add(it) }
+        manager.saveDetails("shopper@example.com", "", "") { outcomes.add(it) }
+        assertTrue(outcomes.isEmpty())
         gateway.flush()
-        assertEquals(1, outcomes.size)
-        assertTrue(outcomes.single() is AccountOutcome.Failure)
+        assertEquals(
+            listOf(AccountOutcome.Success("Saved", "Your details are up to date.")), outcomes)
     }
 
     @Test
     fun enablingPushRegistersAndStoresFlagOnSuccess() {
-        var outcome: AccountOutcome? = null
-        manager.setPushEnabled(true) { outcome = it }
+        var on: Boolean? = null
+        manager.setPushEnabled(true) { on = it }
         assertEquals(listOf("register"), gateway.calls)
         assertTrue(store.pushNotificationEnabled)
-        assertEquals(AccountOutcome.Success("Registered", "fake-token"), outcome)
+        assertEquals(true, on)
+        assertEquals(0, permission.prompts)
     }
 
     @Test
     fun enablingPushKeepsFlagOffOnFailure() {
         gateway.registerResult = GatewayResult.failure("no play services")
-        var outcome: AccountOutcome? = null
-        manager.setPushEnabled(true) { outcome = it }
+        var on: Boolean? = null
+        manager.setPushEnabled(true) { on = it }
         assertFalse(store.pushNotificationEnabled)
-        assertEquals(AccountOutcome.Failure("Register failed", "no play services"), outcome)
+        assertEquals(false, on)
+
+        gateway.calls.clear()
+        store.pushNotificationEnabled = true
+        permission.allowed = false
+        permission.outcome = PrimerOutcome.DECLINED
+        on = null
+        manager.setPushEnabled(true) { on = it }
+        assertTrue(gateway.calls.isEmpty())
+        assertEquals(false, on)
+        assertEquals(1, permission.prompts)
+        assertTrue(store.pushNotificationEnabled)
     }
 
     @Test
     fun disablingPushUnregistersAndClearsFlag() {
         store.pushNotificationEnabled = true
-        var outcome: AccountOutcome? = null
-        manager.setPushEnabled(false) { outcome = it }
+        var on: Boolean? = null
+        manager.setPushEnabled(false) { on = it }
         assertEquals(listOf("unregister"), gateway.calls)
         assertFalse(store.pushNotificationEnabled)
-        assertEquals(AccountOutcome.Success("Notifications off", ""), outcome)
+        assertEquals(false, on)
+
+        gateway.calls.clear()
+        gateway.deferCallbacks = true
+        manager.applyCode("ABCDE-12345") {}
+        val busy = mutableListOf<Boolean>()
+        manager.setPushEnabled(false) { busy.add(it) }
+        manager.setPushEnabled(true) { busy.add(it) }
+        assertEquals(listOf(false, false), busy)
+        assertEquals(listOf("unregister"), gateway.calls)
     }
 
     @Test
-    fun enterWithoutOnboardingUsesDemoCodeAndContinuesAsGuest() {
-        assertTrue(manager.enterWithoutOnboarding(null))
-        assertEquals(listOf("setAppId:5DF3B-09018"), gateway.calls)
-        assertEquals("5DF3B-09018", store.appCode)
+    fun applyOnLaunchUsesStoredPersonalCode() {
+        store.personalCode = "ABCDE-12345"
+        manager.applyOnLaunch()
+        assertEquals(listOf("setAppId:ABCDE-12345", "resetUserId"), gateway.calls)
+
+        gateway.calls.clear()
+        manager.skipOnboarding("fghij67890")
         assertTrue(store.onboarded)
-        assertTrue(store.isGuest)
+        assertEquals("FGHIJ-67890", store.personalCode)
+        assertEquals(listOf("setAppId:FGHIJ-67890", "resetUserId"), gateway.calls)
     }
 
     @Test
-    fun enterWithoutOnboardingUsesValidCode() {
-        assertTrue(manager.enterWithoutOnboarding("ABCDE-12345"))
-        assertEquals(listOf("setAppId:ABCDE-12345"), gateway.calls)
-        assertEquals("ABCDE-12345", store.appCode)
+    fun applyOnLaunchFallsBackToGuest() {
+        for (raw in listOf("", "5DF3B-09018", "nope")) {
+            val prefs = InMemoryKeyValueStore()
+            prefs.putString("nuvo.appCode", raw)
+            val gateway = FakePushwooshGateway()
+            AccountManager(AccountStore(prefs), gateway, FakeInboxGateway(), FakePushPermission()) {
+                    true
+                }
+                .applyOnLaunch()
+            assertEquals(raw, listOf("setAppId:5DF3B-09018", "resetUserId"), gateway.calls)
+        }
+
+        for (raw in listOf(null, "nope", "5DF3B-09018")) {
+            val prefs = InMemoryKeyValueStore()
+            prefs.putString("nuvo.appCode", "ABCDE-12345")
+            val store = AccountStore(prefs)
+            val gateway = FakePushwooshGateway()
+            AccountManager(store, gateway, FakeInboxGateway(), FakePushPermission()) { true }
+                .skipOnboarding(raw)
+            assertTrue(raw, store.onboarded)
+            assertNull(raw, store.personalCode)
+            assertEquals(raw, listOf("setAppId:5DF3B-09018", "resetUserId"), gateway.calls)
+        }
     }
 
     @Test
-    fun enterWithoutOnboardingMasksRawCode() {
-        assertTrue(manager.enterWithoutOnboarding(" 5df3b09018 "))
-        assertEquals(listOf("setAppId:5DF3B-09018"), gateway.calls)
+    fun applyCodeUnregistersSetsAppIdRegistersAndReloadsInbox() {
+        var result: CodeSwitch? = null
+        manager.applyCode("abcde12345") { result = it }
+        assertEquals(CodeSwitch.Applied("ABCDE-12345"), result)
+        assertEquals(listOf("unregister", "setAppId:ABCDE-12345", "register"), gateway.calls)
+        assertEquals(listOf("resync"), inbox.calls)
+        assertEquals("ABCDE-12345", store.personalCode)
+        assertTrue(store.pushNotificationEnabled)
+        assertEquals(0, permission.prompts)
+
+        for ((outcome, registers) in
+            listOf(PrimerOutcome.ACCEPTED to true, PrimerOutcome.DECLINED to false)) {
+            val gateway = FakePushwooshGateway()
+            val permission = FakePushPermission()
+            permission.undetermined = true
+            permission.allowed = false
+            permission.outcome = outcome
+            AccountManager(
+                    AccountStore(InMemoryKeyValueStore()),
+                    gateway,
+                    FakeInboxGateway(),
+                    permission) {
+                        true
+                    }
+                .applyCode("FGHIJ-67890") {}
+            assertEquals("$outcome", 1, permission.prompts)
+            val applied = listOf("unregister", "setAppId:FGHIJ-67890")
+            assertEquals(
+                "$outcome", if (registers) applied + "register" else applied, gateway.calls)
+        }
     }
 
     @Test
-    fun enterWithoutOnboardingFallsBackToDemoOnInvalidCode() {
-        assertTrue(manager.enterWithoutOnboarding("nope"))
-        assertEquals(listOf("setAppId:5DF3B-09018"), gateway.calls)
-    }
-
-    @Test
-    fun enterWithoutOnboardingIsNoOpWhenAlreadyOnboarded() {
-        store.onboarded = true
-        store.appCode = "ABCDE-12345"
-        store.userName = "Ada"
-        assertFalse(manager.enterWithoutOnboarding("5DF3B-09018"))
+    fun applyCodeRejectsInvalidWithoutSdkCalls() {
+        var result: CodeSwitch? = null
+        manager.applyCode("5DF3B0901") { result = it }
+        assertEquals(CodeSwitch.Invalid, result)
         assertTrue(gateway.calls.isEmpty())
-        assertEquals("ABCDE-12345", store.appCode)
-        assertEquals("Ada", store.userName)
+        assertTrue(inbox.calls.isEmpty())
+    }
+
+    @Test
+    fun applyingCurrentCodeIsUnchanged() {
+        val results = mutableListOf<CodeSwitch>()
+        manager.applyCode("5df3b-09018") { results.add(it) }
+        store.personalCode = "ABCDE-12345"
+        manager.applyCode("ABCDE-12345") { results.add(it) }
+        assertEquals(listOf(CodeSwitch.Unchanged, CodeSwitch.Unchanged), results)
+        assertTrue(gateway.calls.isEmpty())
+        assertTrue(inbox.calls.isEmpty())
+    }
+
+    @Test
+    fun applyingGuestCodeRemovesPersonalCode() {
+        store.personalCode = "ABCDE-12345"
+        var result: CodeSwitch? = null
+        manager.applyCode("5DF3B-09018") { result = it }
+        assertEquals(CodeSwitch.Removed, result)
+        assertEquals(listOf("unregister", "setAppId:5DF3B-09018", "register"), gateway.calls)
+        assertNull(store.personalCode)
+        assertEquals("", prefs.getString("nuvo.appCode"))
+    }
+
+    @Test
+    fun removeCodeReturnsToGuest() {
+        store.personalCode = "ABCDE-12345"
+        var result: CodeSwitch? = null
+        manager.removeCode { result = it }
+        assertEquals(CodeSwitch.Removed, result)
+        assertEquals(listOf("unregister", "setAppId:5DF3B-09018", "register"), gateway.calls)
+        assertNull(store.personalCode)
+        assertEquals("", prefs.getString("nuvo.appCode"))
+    }
+
+    @Test
+    fun removeCodeAsGuestIsUnchanged() {
+        var result: CodeSwitch? = null
+        manager.removeCode { result = it }
+        assertEquals(CodeSwitch.Unchanged, result)
+        assertTrue(gateway.calls.isEmpty())
+    }
+
+    @Test
+    fun unregisterFailureKeepsCurrentProject() {
+        store.personalCode = "ABCDE-12345"
+        store.pushNotificationEnabled = true
+        val states = mutableListOf<Boolean>()
+        manager.addSwitchListener { states.add(manager.isSwitching) }
+        online = false
+        val offline = mutableListOf<CodeSwitch>()
+        manager.applyCode("FGHIJ-67890") { offline.add(it) }
+        manager.removeCode { offline.add(it) }
+        assertEquals(listOf(CodeSwitch.NoConnection, CodeSwitch.NoConnection), offline)
+        assertTrue(gateway.calls.isEmpty())
+        assertFalse(manager.isSwitching)
+        assertTrue(states.isEmpty())
+        assertTrue(store.pushNotificationEnabled)
+
+        online = true
+        gateway.unregisterResult = GatewayResult.failure("offline")
+        var result: CodeSwitch? = null
+        manager.applyCode("FGHIJ-67890") { result = it }
+        assertEquals(CodeSwitch.NoConnection, result)
+        assertEquals(listOf("unregister"), gateway.calls)
+        assertEquals("ABCDE-12345", store.personalCode)
+        assertFalse(manager.isSwitching)
+        assertEquals(listOf(true, false), states)
+        assertFalse(store.pushNotificationEnabled)
+        assertTrue(inbox.calls.isEmpty())
+    }
+
+    @Test
+    fun secondSwitchWhilePendingIsBusy() {
+        gateway.deferCallbacks = true
+        val states = mutableListOf<Pair<Boolean, String?>>()
+        val listener: () -> Unit = { states.add(manager.isSwitching to store.personalCode) }
+        manager.addSwitchListener(listener)
+        var first: CodeSwitch? = null
+        var second: CodeSwitch? = null
+        manager.applyCode("ABCDE-12345") { first = it }
+        manager.applyCode("FGHIJ-67890") { second = it }
+        assertEquals(CodeSwitch.Busy, second)
+        assertNull(first)
+        assertTrue(manager.isSwitching)
+        assertEquals(listOf(true to null), states)
+        gateway.flush()
+        assertEquals(CodeSwitch.Applied("ABCDE-12345"), first)
+        assertEquals(1, gateway.calls.count { it == "unregister" })
+        assertFalse(manager.isSwitching)
+        assertEquals(listOf(true to null, false to "ABCDE-12345"), states)
+
+        manager.removeSwitchListener(listener)
+        manager.removeCode {}
+        gateway.flush()
+        assertEquals(2, states.size)
+    }
+
+    @Test
+    fun registerFailureStillAppliesCode() {
+        gateway.registerResult = GatewayResult.failure("denied")
+        var result: CodeSwitch? = null
+        manager.applyCode("ABCDE-12345") { result = it }
+        assertEquals(CodeSwitch.Applied("ABCDE-12345"), result)
+        assertEquals("ABCDE-12345", store.personalCode)
+        assertFalse(store.pushNotificationEnabled)
+        assertEquals(listOf("resync"), inbox.calls)
     }
 }

@@ -49,7 +49,7 @@ import java.util.Set;
  * Created by aevstefeev on 20/03/2018.
  */
 public class DbLocalNotificationHelper extends SQLiteOpenHelper {
-    private static final String TAG = DbLocalNotification.class.getSimpleName();
+    private static final String TAG = "DbLocalNotificationHelper";
     private static final String DB_NAME = "localNotification.db";
     private static final int VERSION = 2;
 

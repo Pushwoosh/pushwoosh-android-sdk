@@ -1,37 +1,38 @@
 package com.pushwoosh.pushmart.ui.offers
 
+import android.content.res.Resources
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 
+@RunWith(RobolectricTestRunner::class)
 class InboxCounterTest {
+    private val resources: Resources = RuntimeEnvironment.getApplication().resources
+
     @Test
-    fun emptyInboxSaysNoMessagesYet() {
-        assertEquals("No messages yet", InboxCounter.format(0, 0))
+    fun noUnreadShowsTheDefaultSubtitle() {
+        assertEquals("Offers and updates from PushMart", InboxCounter.subtitle(resources, 0))
     }
 
     @Test
-    fun allReadWhenUnreadIsZero() {
-        assertEquals("3 messages · all read", InboxCounter.format(3, 0))
+    fun oneUnreadIsSingular() {
+        assertEquals("1 new offer", InboxCounter.subtitle(resources, 1))
     }
 
     @Test
-    fun showsUnreadCount() {
-        assertEquals("3 messages · 1 unread", InboxCounter.format(3, 1))
+    fun severalUnreadArePlural() {
+        assertEquals("3 new offers", InboxCounter.subtitle(resources, 3))
     }
 
     @Test
-    fun singleMessageKeepsPluralForm() {
-        assertEquals("1 messages · 1 unread", InboxCounter.format(1, 1))
+    fun largeCountKeepsTheFullNumber() {
+        assertEquals("12 new offers", InboxCounter.subtitle(resources, 12))
     }
 
     @Test
-    fun unreadIsClampedToTotal() {
-        assertEquals("2 messages · 2 unread", InboxCounter.format(2, 5))
-    }
-
-    @Test
-    fun negativeOrStaleUnreadIsTreatedAsZero() {
-        assertEquals("2 messages · all read", InboxCounter.format(2, -1))
-        assertEquals("No messages yet", InboxCounter.format(0, 3))
+    fun negativeUnreadShowsTheDefaultSubtitle() {
+        assertEquals("Offers and updates from PushMart", InboxCounter.subtitle(resources, -1))
     }
 }

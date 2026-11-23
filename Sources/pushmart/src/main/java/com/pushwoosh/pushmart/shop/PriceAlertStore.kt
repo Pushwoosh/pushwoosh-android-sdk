@@ -17,10 +17,6 @@ class PriceAlertStore(private val prefs: KeyValueStore, private val gateway: Pus
             if (on) TagOp.AppendList(TAG, listOf(product.id))
             else TagOp.RemoveFromList(TAG, listOf(product.id))
         gateway.setTags(listOf(op))
-        if (on) {
-            gateway.postEvent(
-                "price_alert_on", mapOf("productId" to product.id, "price" to product.priceDollars))
-        }
     }
 
     companion object {

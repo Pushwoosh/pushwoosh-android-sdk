@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name="com.pushwoosh.DeepLinkActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="pushwoosh-5df3b-09018" android:host="createTestDevice" />
+                <data android:scheme="pushwoosh-5DF3B-09018" android:host="createTestDevice" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

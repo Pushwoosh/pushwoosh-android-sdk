@@ -1,7 +1,149 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/state_filled"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingTop="20dp"
+            android:paddingEnd="64dp"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/cart_title"
+                android:textAppearance="@style/TextAppearance.PushMart.Display"
+                android:textSize="28sp" />
+
+            <TextView
+                android:id="@+id/clear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:minHeight="44dp"
+                android:text="@string/cart_clear"
+                android:textAppearance="@style/TextAppearance.PushMart.Label"
+                android:textColor="@color/pm_coral"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rows"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/pm_panel"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/cart_total"
+                    android:textAppearance="@style/TextAppearance.PushMart.Headline"
+                    android:textColor="@color/pm_text_secondary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/total"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.PushMart.Title"
+                    android:textSize="22sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/code_needed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_code_needed"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="12dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_ticket_outline"
+                    app:tint="@color/pm_coral" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="@string/cart_code_needed"
+                    android:textAppearance="@style/TextAppearance.PushMart.Body"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/personal_code_enter"
+                    android:textAppearance="@style/TextAppearance.PushMart.Headline"
+                    android:textColor="@color/pm_coral"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/checkout"
+                style="@style/Widget.PushMart.IconButton.Brand"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/cart_checkout"
+                app:icon="@drawable/ic_tab_shop_filled" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="@string/cart_no_payment"
+                android:textAppearance="@style/TextAppearance.PushMart.Body"
+                android:textColor="@color/pm_text_tertiary"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/state_empty"
@@ -15,14 +157,15 @@
         <ImageView
             android:layout_width="56dp"
             android:layout_height="56dp"
+            android:importantForAccessibility="no"
             android:src="@drawable/ic_bag"
-            android:tint="@color/pm_text_tertiary" />
+            app:tint="@color/pm_text_tertiary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Your bag is empty"
+            android:text="@string/cart_empty_title"
             android:textAppearance="@style/TextAppearance.PushMart.Title"
             android:textSize="20sp" />
 
@@ -31,71 +174,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:gravity="center"
-            android:text="Browse the shop and add something you love."
+            android:text="@string/cart_empty_body"
             android:textAppearance="@style/TextAppearance.PushMart.Body"
             android:textColor="@color/pm_text_secondary"
             android:textSize="14sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/state_filled"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/pm_screen_padding"
-            android:layout_marginTop="@dimen/pm_screen_padding"
-            android:layout_marginBottom="8dp"
-            android:text="Your bag"
-            android:textAppearance="@style/TextAppearance.PushMart.Display"
-            android:textSize="28sp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rows"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/pm_ink2"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="@dimen/pm_screen_padding">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Total"
-                    android:textAppearance="@style/TextAppearance.PushMart.Headline"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/total"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.PushMart.Title" />
-            </LinearLayout>
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/checkout"
-                style="@style/Widget.PushMart.Button.Primary"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_credit_card"
-                android:text="Checkout" />
-        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -104,50 +186,56 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="32dp"
+        android:padding="30dp"
         android:visibility="gone">
 
         <ImageView
             android:layout_width="68dp"
             android:layout_height="68dp"
+            android:importantForAccessibility="no"
             android:src="@drawable/ic_check_circle"
-            android:tint="@color/pm_success" />
+            app:tint="@color/pm_success" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Order placed!"
+            android:text="@string/cart_placed_title"
             android:textAppearance="@style/TextAppearance.PushMart.Display"
             android:textSize="28sp" />
 
         <TextView
+            android:id="@+id/placed_body"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:text="We'll keep you posted with push updates on your order."
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="start"
+            android:text="@string/cart_placed_body"
             android:textAppearance="@style/TextAppearance.PushMart.Body"
-            android:textColor="@color/pm_text_secondary" />
+            android:textColor="@color/pm_text_secondary"
+            android:textSize="15sp" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/keep_shopping"
             style="@style/Widget.PushMart.Button.Primary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="40dp"
             android:layout_marginTop="24dp"
-            android:text="Keep shopping" />
+            android:layout_marginEnd="40dp"
+            android:text="@string/cart_keep_shopping" />
     </LinearLayout>
 
     <ImageButton
         android:id="@+id/close"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
         android:layout_gravity="top|end"
         android:layout_margin="16dp"
         android:background="@drawable/bg_circle_stroke_strong"
-        android:contentDescription="Close"
-        android:padding="10dp"
+        android:contentDescription="@string/close"
+        android:padding="11dp"
         android:src="@drawable/ic_close"
-        android:tint="@color/pm_text_primary" />
+        app:tint="@color/pm_text_primary" />
 </FrameLayout>

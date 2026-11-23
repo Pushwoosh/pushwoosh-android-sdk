@@ -26,11 +26,15 @@
 
 package com.pushwoosh;
 
+import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -155,6 +159,44 @@ public class PushStatisticsWorkerTest {
     }
 
     @Test
+    public void createInputData_storesReceiptSeconds() {
+        Data data = PushStatisticsWorker.createInputData(
+                PushStatisticsWorker.EVENT_DELIVERY, TEST_HASH, TEST_METADATA, null, RECEIVED_AT_SECONDS);
+
+        assertEquals(RECEIVED_AT_SECONDS, data.getLong(PushStatisticsWorker.DATA_RECEIVED_AT_UTC_SECONDS, -1L));
+    }
+
+    @Test
+    public void createInputData_nonPositiveTime_omitsKey() {
+        for (Long time : new Long[] {0L, -5L, null}) {
+            Data data = PushStatisticsWorker.createInputData(
+                    PushStatisticsWorker.EVENT_DELIVERY, TEST_HASH, TEST_METADATA, null, time);
+
+            assertFalse(
+                    "key must be absent for " + time,
+                    data.getKeyValueMap().containsKey(PushStatisticsWorker.DATA_RECEIVED_AT_UTC_SECONDS));
+        }
+    }
+
+    @Test
+    public void deliveryWithTimestamp_passesItToRepository() throws Exception {
+        setupWorkerWithData(PushStatisticsWorker.createInputData(
+                PushStatisticsWorker.EVENT_DELIVERY, TEST_HASH, TEST_METADATA, null, RECEIVED_AT_SECONDS));
+        ensureSdkReady();
+
+        try (MockedStatic<PushwooshPlatform> platformMock = Mockito.mockStatic(PushwooshPlatform.class)) {
+            platformMock.when(PushwooshPlatform::getInstance).thenReturn(pushwooshPlatformMock);
+            when(pushwooshRepositoryMock.sendPushDeliveredSync(TEST_HASH, TEST_METADATA, RECEIVED_AT_SECONDS))
+                    .thenReturn(Result.fromData(null));
+
+            ListenableWorker.Result result = pushStatisticsWorker.doWork();
+
+            assertEquals(ListenableWorker.Result.success(), result);
+            verify(pushwooshRepositoryMock).sendPushDeliveredSync(TEST_HASH, TEST_METADATA, RECEIVED_AT_SECONDS);
+        }
+    }
+
+    @Test
     public void testDeliveryEventSuccessfullyProcessedWhenSdkReady() throws Exception {
         setupWorkerWithData(createDeliveryEventData());
         ensureSdkReady();
@@ -162,13 +204,13 @@ public class PushStatisticsWorkerTest {
         try (MockedStatic<PushwooshPlatform> platformMock = Mockito.mockStatic(PushwooshPlatform.class)) {
             platformMock.when(PushwooshPlatform::getInstance).thenReturn(pushwooshPlatformMock);
 
-            when(pushwooshRepositoryMock.sendPushDeliveredSync(TEST_HASH, TEST_METADATA))
+            when(pushwooshRepositoryMock.sendPushDeliveredSync(eq(TEST_HASH), eq(TEST_METADATA), isNull()))
                     .thenReturn(Result.fromData(null));
 
             ListenableWorker.Result result = pushStatisticsWorker.doWork();
 
             assertEquals(ListenableWorker.Result.success(), result);
-            verify(pushwooshRepositoryMock, times(1)).sendPushDeliveredSync(TEST_HASH, TEST_METADATA);
+            verify(pushwooshRepositoryMock, times(1)).sendPushDeliveredSync(eq(TEST_HASH), eq(TEST_METADATA), isNull());
         }
     }
 
@@ -214,7 +256,7 @@ public class PushStatisticsWorkerTest {
         ListenableWorker.Result result = pushStatisticsWorker.doWork();
 
         assertEquals(ListenableWorker.Result.failure(), result);
-        verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString());
+        verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString(), any());
         verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString(), nullable(String.class));
     }
 
@@ -230,7 +272,7 @@ public class PushStatisticsWorkerTest {
         ListenableWorker.Result result = pushStatisticsWorker.doWork();
 
         assertEquals(ListenableWorker.Result.failure(), result);
-        verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString());
+        verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString(), any());
         verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString(), nullable(String.class));
     }
 
@@ -241,7 +283,7 @@ public class PushStatisticsWorkerTest {
         ListenableWorker.Result result = pushStatisticsWorker.doWork();
 
         assertEquals(ListenableWorker.Result.retry(), result);
-        verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString());
+        verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString(), any());
         verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString(), nullable(String.class));
     }
 
@@ -254,7 +296,7 @@ public class PushStatisticsWorkerTest {
             platformMock.when(PushwooshPlatform::getInstance).thenReturn(pushwooshPlatformMock);
 
             ConnectionException serverError500 = new ConnectionException("Server error", 500, 0);
-            when(pushwooshRepositoryMock.sendPushDeliveredSync(TEST_HASH, TEST_METADATA))
+            when(pushwooshRepositoryMock.sendPushDeliveredSync(eq(TEST_HASH), eq(TEST_METADATA), isNull()))
                     .thenReturn(Result.fromException(serverError500));
 
             ListenableWorker.Result result = pushStatisticsWorker.doWork();
@@ -274,7 +316,7 @@ public class PushStatisticsWorkerTest {
             platformMock.when(PushwooshPlatform::getInstance).thenReturn(pushwooshPlatformMock);
 
             ConnectionException clientError404 = new ConnectionException("Not found", 404, 0);
-            when(pushwooshRepositoryMock.sendPushDeliveredSync(TEST_HASH, TEST_METADATA))
+            when(pushwooshRepositoryMock.sendPushDeliveredSync(eq(TEST_HASH), eq(TEST_METADATA), isNull()))
                     .thenReturn(Result.fromException(clientError404));
 
             ListenableWorker.Result result = pushStatisticsWorker.doWork();
@@ -353,7 +395,7 @@ public class PushStatisticsWorkerTest {
         ListenableWorker.Result result = pushStatisticsWorker.doWork();
 
         assertEquals(ListenableWorker.Result.failure(), result);
-        verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString());
+        verify(pushwooshRepositoryMock, never()).sendPushDeliveredSync(anyString(), anyString(), any());
         verify(pushwooshRepositoryMock, never()).sendPushOpenedSync(anyString(), anyString(), nullable(String.class));
     }
 }

@@ -50,6 +50,8 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
     public static final String DATA_METADATA = "DATA_METADATA";
     /** Key for the tapped action button id in WorkManager input data. */
     public static final String DATA_BUTTON_ID = "DATA_BUTTON_ID";
+    /** Key for the push receipt time (unix seconds, UTC) in WorkManager input data. */
+    public static final String DATA_RECEIVED_AT_UTC_SECONDS = "DATA_RECEIVED_AT_UTC_SECONDS";
 
     // Event types supported by this worker
     /** Event type constant for push notification delivery events. */
@@ -87,12 +89,34 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
      * @return Data object ready to be used with WorkManager requests
      */
     public static Data createInputData(String eventType, String pushHash, String metadata, @Nullable String buttonId) {
-        return new Data.Builder()
+        return createInputData(eventType, pushHash, metadata, buttonId, null);
+    }
+
+    /**
+     * Creates input data for statistics WorkManager task, including the push receipt time.
+     *
+     * @param eventType the type of statistics event (EVENT_DELIVERY or EVENT_OPEN)
+     * @param pushHash the unique hash identifier of the push notification
+     * @param metadata additional metadata associated with the push notification, may be null
+     * @param buttonId the id of the tapped action button, may be null
+     * @param receivedAtUtcSeconds the moment the push was received, unix seconds UTC; omitted unless positive
+     * @return Data object ready to be used with WorkManager requests
+     */
+    public static Data createInputData(
+            String eventType,
+            String pushHash,
+            String metadata,
+            @Nullable String buttonId,
+            @Nullable Long receivedAtUtcSeconds) {
+        Data.Builder builder = new Data.Builder()
                 .putString(DATA_EVENT_TYPE, eventType)
                 .putString(DATA_PUSH_HASH, pushHash)
                 .putString(DATA_METADATA, metadata)
-                .putString(DATA_BUTTON_ID, buttonId)
-                .build();
+                .putString(DATA_BUTTON_ID, buttonId);
+        if (receivedAtUtcSeconds != null && receivedAtUtcSeconds > 0) {
+            builder.putLong(DATA_RECEIVED_AT_UTC_SECONDS, receivedAtUtcSeconds);
+        }
+        return builder.build();
     }
 
     /**
@@ -140,6 +164,8 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
         String pushHash = getInputData().getString(DATA_PUSH_HASH);
         String metadata = getInputData().getString(DATA_METADATA);
         String buttonId = getInputData().getString(DATA_BUTTON_ID);
+        long receivedAt = getInputData().getLong(DATA_RECEIVED_AT_UTC_SECONDS, 0L);
+        Long receivedAtUtcSeconds = receivedAt > 0 ? receivedAt : null;
 
         // Check eventType and pushHash is not empty
         if (TextUtils.isEmpty(eventType) || TextUtils.isEmpty(pushHash)) {
@@ -166,7 +192,7 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
             }
 
             com.pushwoosh.function.Result<Void, NetworkException> result =
-                    sendStatisticsEventSync(eventType, pushHash, metadata, buttonId);
+                    sendStatisticsEventSync(eventType, pushHash, metadata, buttonId, receivedAtUtcSeconds);
 
             if (result.isSuccess()) {
                 return Result.success();
@@ -203,10 +229,15 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
      * @param hash the unique hash identifier of the push notification
      * @param metadata additional metadata associated with the push notification, may be null
      * @param buttonId the id of the tapped action button, may be null
+     * @param receivedAtUtcSeconds push receipt time for delivery events, may be null if unknown
      * @return Result containing success or NetworkException with error details
      */
     private com.pushwoosh.function.Result<Void, NetworkException> sendStatisticsEventSync(
-            String eventType, String hash, String metadata, @Nullable String buttonId) {
+            String eventType,
+            String hash,
+            String metadata,
+            @Nullable String buttonId,
+            @Nullable Long receivedAtUtcSeconds) {
         PWLog.noise(TAG, "sendStatisticsEventSync(), eventType: " + eventType);
         try {
             PushwooshRepository repository = getPushwooshRepository();
@@ -216,7 +247,7 @@ public class PushStatisticsWorker extends BasePushwooshWorker {
             }
 
             return EVENT_DELIVERY.equals(eventType)
-                    ? repository.sendPushDeliveredSync(hash, metadata)
+                    ? repository.sendPushDeliveredSync(hash, metadata, receivedAtUtcSeconds)
                     : repository.sendPushOpenedSync(hash, metadata, buttonId);
 
         } catch (Exception e) {

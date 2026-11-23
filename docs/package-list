@@ -23,11 +23,7 @@ com.pushwoosh.firebase
 module:pushwoosh-huawei
 com.pushwoosh.huawei
 module:pushwoosh-inapp-ui
-com.pushwoosh.inapp.ui
-com.pushwoosh.inapp.ui.activity
-com.pushwoosh.inapp.ui.model
-com.pushwoosh.inapp.ui.parser
-com.pushwoosh.inapp.ui.view
+com.pushwoosh.inline
 module:pushwoosh-inbox
 com.pushwoosh.inbox
 com.pushwoosh.inbox.data

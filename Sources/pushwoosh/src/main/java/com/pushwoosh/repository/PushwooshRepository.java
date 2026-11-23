@@ -151,23 +151,25 @@ public class PushwooshRepository {
     public void getTags(@Nullable final Callback<TagsBundle, GetTagsException> callback) {
         GetTagsRequest request = new GetTagsRequest();
         requestManager.sendRequest(request, result -> {
-            if (callback != null) {
-                if (result.isSuccess()) {
-                    TagsBundle tags = result.getData() == null ? Tags.empty() : result.getData();
-                    notificationPrefs.tags().set(tags.toJson());
+            if (callback == null) {
+                return;
+            }
+
+            if (result.isSuccess()) {
+                TagsBundle tags = result.getData() == null ? Tags.empty() : result.getData();
+                notificationPrefs.tags().set(tags.toJson());
+                callback.process(Result.fromData(tags));
+            } else {
+                JSONObject josnTags = notificationPrefs.tags().get();
+
+                if (josnTags != null) {
+                    TagsBundle tags = Tags.fromJson(josnTags);
                     callback.process(Result.fromData(tags));
                 } else {
-                    JSONObject josnTags = notificationPrefs.tags().get();
-
-                    if (josnTags != null) {
-                        TagsBundle tags = Tags.fromJson(josnTags);
-                        callback.process(Result.fromData(tags));
-                    } else {
-                        callback.process(Result.fromException(new GetTagsException(
-                                result.getException() == null
-                                        ? ""
-                                        : result.getException().getMessage())));
-                    }
+                    callback.process(Result.fromException(new GetTagsException(
+                            result.getException() == null
+                                    ? ""
+                                    : result.getException().getMessage())));
                 }
             }
         });
@@ -242,7 +244,7 @@ public class PushwooshRepository {
      * <p>
      * <strong>Deprecation Notice:</strong> This method is deprecated and scheduled for removal.
      * It can be safely removed after January 1, 2026. Use
-     * {@link com.pushwoosh.PushStatisticsScheduler#scheduleDeliveryEvent(android.os.Bundle)} or
+     * {@link com.pushwoosh.PushStatisticsScheduler#scheduleDeliveryEvent(android.os.Bundle, long)} or
      * {@link com.pushwoosh.PushStatisticsScheduler#scheduleStatisticsEvent(String, String, String)}
      * instead.
      *
@@ -294,9 +296,14 @@ public class PushwooshRepository {
     }
 
     public Result<Void, NetworkException> sendPushDeliveredSync(String hash, String metaData) {
+        return sendPushDeliveredSync(hash, metaData, null);
+    }
+
+    public Result<Void, NetworkException> sendPushDeliveredSync(
+            String hash, String metaData, @Nullable Long timestampUtcSeconds) {
         PWLog.info(TAG, "Sending MessageDeliveredRequest sync, hash: " + hash);
 
-        MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData);
+        MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData, timestampUtcSeconds);
 
         try {
             return requestManager.sendRequestSync(request);

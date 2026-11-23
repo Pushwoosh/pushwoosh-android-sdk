@@ -4,14 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.pushwoosh.pushmart.R
 import com.pushwoosh.pushmart.catalog.Catalog
@@ -21,13 +16,12 @@ import com.pushwoosh.pushmart.services
 import com.pushwoosh.pushmart.ui.common.Chips
 import com.pushwoosh.pushmart.ui.common.Hearts
 import com.pushwoosh.pushmart.ui.common.MiniProductAdapter
+import com.pushwoosh.pushmart.ui.common.PageSheet
 import com.pushwoosh.pushmart.ui.common.ProductImages
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 
 class ProductDetailSheet : BottomSheetDialogFragment() {
     private var option: String = ""
+    private var added = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,14 +29,11 @@ class ProductDetailSheet : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?,
     ): View = inflater.inflate(R.layout.sheet_product_detail, container, false)
 
+    override fun getTheme(): Int = R.style.ThemeOverlay_PushMart_BottomSheet_Page
+
     override fun onStart() {
         super.onStart()
-        val dialog = dialog as? BottomSheetDialog ?: return
-        dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let {
-            it.layoutParams = it.layoutParams.apply { height = ViewGroup.LayoutParams.MATCH_PARENT }
-        }
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.behavior.skipCollapsed = true
+        PageSheet.expand(dialog)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -52,22 +43,15 @@ class ProductDetailSheet : BottomSheetDialogFragment() {
             dismiss()
             return
         }
-        if (savedInstanceState == null) services.shopEvents.productOpened(product)
-        option = savedInstanceState?.getString(STATE_OPTION) ?: product.optionValues.first()
+        services.recentlyViewed.record(product.id)
+        option = savedInstanceState?.getString(STATE_OPTION) ?: product.sizes.first()
+        added = savedInstanceState?.getBoolean(STATE_ADDED) ?: false
 
         ProductImages.bind(binding.image, product)
-        binding.badge.text = product.badge?.uppercase()
-        binding.badge.visibility = if (product.badge == null) View.GONE else View.VISIBLE
-        binding.brand.text = product.brand.uppercase()
-        binding.brand.setTextColor(product.tintArgb)
         binding.name.text = product.name
-        bindStars(binding.stars, product.rating)
-        binding.rating.text = String.format(Locale.US, "%.1f", product.rating)
-        binding.reviews.text = "· " + product.reviewsText
         binding.price.text = product.priceText
 
-        binding.optionTitle.text = product.optionTitle
-        for (value in product.optionValues) {
+        for (value in product.sizes) {
             val chip = Chips.make(binding.options, value, value == option)
             chip.setOnClickListener {
                 option = value
@@ -76,7 +60,6 @@ class ProductDetailSheet : BottomSheetDialogFragment() {
             binding.options.addView(chip)
         }
 
-        binding.deliveryDay.text = "Free delivery by " + deliveryDay()
         binding.blurb.text = product.blurb
 
         binding.priceAlert.isChecked = services.priceAlerts.isOn(product.id)
@@ -97,48 +80,34 @@ class ProductDetailSheet : BottomSheetDialogFragment() {
         }
         binding.close.setOnClickListener { dismiss() }
 
-        binding.addToBag.text = "Add to bag · " + product.priceText
+        if (added) showAdded(binding)
         binding.addToBag.setOnClickListener {
             services.cart.add(product.id)
-            services.shopEvents.addedToCart(product, option)
-            binding.addToBag.text = "Added to bag"
-            binding.addToBag.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                R.drawable.ic_check, 0, 0, 0)
+            added = true
+            showAdded(binding)
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(STATE_OPTION, option)
+        outState.putBoolean(STATE_ADDED, added)
     }
 
-    private fun bindStars(container: LinearLayout, rating: Double) {
-        val size = (14 * resources.displayMetrics.density).toInt()
-        for (i in 0 until 5) {
-            val star = ImageView(requireContext())
-            star.layoutParams = LinearLayout.LayoutParams(size, size)
-            star.setImageResource(
-                if (i + 0.5 < rating) R.drawable.ic_star else R.drawable.ic_star_outline)
-            star.imageTintList =
-                ContextCompat.getColorStateList(requireContext(), R.color.pm_tangerine)
-            container.addView(star)
-        }
-    }
-
-    private fun deliveryDay(): String {
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, 2)
-        return SimpleDateFormat("EEEE", Locale.getDefault()).format(calendar.time)
+    private fun showAdded(binding: SheetProductDetailBinding) {
+        binding.addToBag.setText(R.string.pdp_added_to_bag)
+        binding.addToBag.setIconResource(R.drawable.ic_check)
     }
 
     companion object {
         const val ARG_ID = "productId"
         private const val STATE_OPTION = "option"
+        private const val STATE_ADDED = "added"
 
-        fun show(fm: FragmentManager, product: Product) {
+        fun show(fm: FragmentManager, product: Product): Boolean {
             val sheet = ProductDetailSheet()
             sheet.arguments = bundleOf(ARG_ID to product.id)
-            sheet.show(fm, "product-" + product.id)
+            return PageSheet.showOnce(fm, sheet, "product-" + product.id)
         }
     }
 }

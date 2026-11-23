@@ -104,13 +104,17 @@
 
 ## Inapp
 
-# javascript interface:
--keepclassmembers class com.pushwoosh.inapp.view.js.PushwooshJSInterface {
+# javascript interface; the classes are also extended by the inline HTML banners of pushwoosh-inapp-ui:
+-keep public class com.pushwoosh.inapp.view.js.PushwooshJSInterface {
    public *;
 }
 
--keepclassmembers class com.pushwoosh.inapp.view.js.PushManagerJSInterface {
+-keep public class com.pushwoosh.inapp.view.js.PushManagerJSInterface {
    public *;
+}
+
+-keep public interface com.pushwoosh.inapp.view.js.JsCallback {
+   *;
 }
 
 -keep public class com.pushwoosh.inapp.event.InAppsReadyEvent {
@@ -272,6 +276,30 @@
 }
 
 -keep public class com.pushwoosh.internal.platform.ApplicationOpenDetector$ApplicationMovedToForegroundEvent {
+    public *;
+    protected *;
+}
+
+# Cross-module: pushwoosh-inapp-ui inline slots (session end, postEvent seam, event retry rules).
+-keep public class com.pushwoosh.internal.platform.ApplicationOpenDetector$ApplicationMovedToBackgroundEvent {
+    public *;
+    protected *;
+}
+
+-keep public class com.pushwoosh.inapp.inline.InlineContentHandler {
+    public *;
+}
+
+-keep public class com.pushwoosh.inapp.inline.InlineContentHandlerProvider {
+    public *;
+}
+
+-keep public class com.pushwoosh.internal.network.ConnectionException {
+    public *;
+    protected *;
+}
+
+-keep public class com.pushwoosh.internal.network.RequestBlockedException {
     public *;
     protected *;
 }

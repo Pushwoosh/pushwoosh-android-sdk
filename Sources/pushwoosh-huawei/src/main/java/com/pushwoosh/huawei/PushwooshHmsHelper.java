@@ -282,14 +282,15 @@ public class PushwooshHmsHelper {
         @Override
         protected void onPostExecute(GetTokenAsyncResult result) {
             super.onPostExecute(result);
-            if (onGetTokenAsync != null) {
-                if (TextUtils.isEmpty(result.getToken())) {
-                    if (result.getError() != null) {
-                        onGetTokenAsync.onError(result.getError());
-                    }
-                } else {
-                    onGetTokenAsync.onGetToken(result.getToken());
+            if (onGetTokenAsync == null) {
+                return;
+            }
+            if (TextUtils.isEmpty(result.getToken())) {
+                if (result.getError() != null) {
+                    onGetTokenAsync.onError(result.getError());
                 }
+            } else {
+                onGetTokenAsync.onGetToken(result.getToken());
             }
         }
 

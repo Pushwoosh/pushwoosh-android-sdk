@@ -36,6 +36,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.pushwoosh.inbox.PushwooshInbox
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.data.InboxMessageType
+import com.pushwoosh.inbox.ui.OnInboxMessageClickListener
 import com.pushwoosh.inbox.ui.PushwooshInboxUi
 import com.pushwoosh.inbox.ui.R
 import com.pushwoosh.inbox.ui.fakeInboxMessage
@@ -91,11 +92,14 @@ class InboxCardOpenStatusTest {
                  {"image":"https://cdn/1.jpg","title":"New in","url":"https://example.com/1"},
                  {"image":"https://cdn/2.jpg"}
                ]}"""
+        const val UNSAFE_SLIDE =
+            """{"displayType":"carousel","carousel":[{"image":"https://cdn/1.jpg","url":"javascript:alert(1)"}]}"""
     }
 
     @After
     fun tearDown() {
         PushwooshInboxUi.onButtonClickListener = null
+        PushwooshInboxUi.onMessageClickListener = null
     }
 
     private fun ctx(): Context = RuntimeEnvironment.getApplication()
@@ -397,9 +401,38 @@ class InboxCardOpenStatusTest {
     }
 
     @Test
-    fun slideWithOwnUrlOnMessageWithRichMedia_goesToTheRowAction() {
+    fun slideWithOwnUrlOnMessageWithRichMedia_opensTheSlideUrl() {
         val rowClicks = intArrayOf(0)
         val holder = boundHolder(richMsg(TWO_SLIDES), rowClicks)
+        val firstSlide = slide(holder, 0)
+
+        withInboxStatic { inbox ->
+            firstSlide.performClick()
+
+            inbox.verify({ PushwooshInbox.markMessageOpened(CODE) }, times(1))
+            inbox.verify({ PushwooshInbox.performAction(anyString()) }, never())
+        }
+
+        assertEquals(0, rowClicks[0])
+        assertEquals("https://example.com/1", startedActivity()?.dataString)
+    }
+
+    @Test
+    fun slideWithOwnUrlOnMessageWithRichMedia_notifiesTheHost() {
+        var seen: InboxMessage? = null
+        PushwooshInboxUi.onMessageClickListener = OnInboxMessageClickListener { message -> seen = message }
+        val holder = boundHolder(richMsg(TWO_SLIDES), intArrayOf(0))
+        val firstSlide = slide(holder, 0)
+
+        withInboxStatic { firstSlide.performClick() }
+
+        assertEquals(CODE, seen?.code)
+    }
+
+    @Test
+    fun slideWithUnopenableUrlOnMessageWithRichMedia_goesToTheRowAction() {
+        val rowClicks = intArrayOf(0)
+        val holder = boundHolder(richMsg(UNSAFE_SLIDE), rowClicks)
         val firstSlide = slide(holder, 0)
 
         withInboxStatic { inbox ->
@@ -409,7 +442,23 @@ class InboxCardOpenStatusTest {
         }
 
         assertEquals(1, rowClicks[0])
-        assertNull("the slide URL does not open on top of the message action", startedActivity())
+        assertNull(startedActivity())
+    }
+
+    @Test
+    fun slideWithoutUrlOnMessageWithRichMedia_goesToTheRowAction() {
+        val rowClicks = intArrayOf(0)
+        val holder = boundHolder(richMsg(TWO_SLIDES), rowClicks)
+        val secondSlide = slide(holder, 1)
+
+        withInboxStatic { inbox ->
+            secondSlide.performClick()
+
+            inbox.verify({ PushwooshInbox.markMessageOpened(anyString()) }, never())
+        }
+
+        assertEquals(1, rowClicks[0])
+        assertNull(startedActivity())
     }
 
     @Test

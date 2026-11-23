@@ -47,7 +47,7 @@ import java.util.List;
 
 public class InAppDbHelper extends SQLiteOpenHelper implements InAppStorage {
 
-    private static final String TAG = SQLiteOpenHelper.class.getSimpleName();
+    private static final String TAG = "InAppDbHelper";
     private static final String DB_NAME = "inAppDb.db";
     private static final int VERSION = 4;
 
@@ -91,18 +91,19 @@ public class InAppDbHelper extends SQLiteOpenHelper implements InAppStorage {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion != newVersion) {
-            String alertInAppTableHeader = String.format("ALTER TABLE %s ADD COLUMN ", TABLE);
-            if (oldVersion < 2 && newVersion >= 2) {
-                db.execSQL(String.format(alertInAppTableHeader + "%s INTEGER DEFAULT 0;", Column.PRIORITY));
-                db.execSQL(String.format(alertInAppTableHeader + "%s INTEGER default 0;", Column.REQUIRED));
-            }
-            if (oldVersion < 3 && newVersion >= 3) {
-                db.execSQL(String.format(alertInAppTableHeader + "%s TEXT;", Column.GDPR));
-            }
-            if (oldVersion < 4 && newVersion >= 4) {
-                db.execSQL(String.format(alertInAppTableHeader + "%s TEXT;", Column.BUSINESS_CASE));
-            }
+        if (oldVersion == newVersion) {
+            return;
+        }
+        String alertInAppTableHeader = String.format("ALTER TABLE %s ADD COLUMN ", TABLE);
+        if (oldVersion < 2 && newVersion >= 2) {
+            db.execSQL(String.format(alertInAppTableHeader + "%s INTEGER DEFAULT 0;", Column.PRIORITY));
+            db.execSQL(String.format(alertInAppTableHeader + "%s INTEGER default 0;", Column.REQUIRED));
+        }
+        if (oldVersion < 3 && newVersion >= 3) {
+            db.execSQL(String.format(alertInAppTableHeader + "%s TEXT;", Column.GDPR));
+        }
+        if (oldVersion < 4 && newVersion >= 4) {
+            db.execSQL(String.format(alertInAppTableHeader + "%s TEXT;", Column.BUSINESS_CASE));
         }
     }
 

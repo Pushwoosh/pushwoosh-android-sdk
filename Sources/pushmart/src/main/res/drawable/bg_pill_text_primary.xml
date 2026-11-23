@@ -1,0 +1,4 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/pm_text_primary" />
+    <corners android:radius="@dimen/pm_radius_pill" />
+</shape>

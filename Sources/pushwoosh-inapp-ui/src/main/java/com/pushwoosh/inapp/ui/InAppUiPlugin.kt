@@ -2,6 +2,7 @@ package com.pushwoosh.inapp.ui
 
 import com.pushwoosh.inapp.event.ActivityBroughtOnTopEvent
 import com.pushwoosh.inapp.nativeui.NativeInAppPresenterProvider
+import com.pushwoosh.inline.internal.InlineModule
 import com.pushwoosh.internal.Plugin
 import com.pushwoosh.internal.event.EventBus
 import com.pushwoosh.internal.platform.AndroidPlatformModule
@@ -18,6 +19,7 @@ import com.pushwoosh.internal.utils.PWLog
  * the foreground event resumes the blocking queue (dropped-launch recovery + advance) for a
  * ZIP resource deferred while backgrounded; the Activity-resume event retries an overlay
  * present deferred while `topActivity` was null (screen handoff, permission dialog, PiP).
+ * Also installs inline slots ([InlineModule]).
  */
 class InAppUiPlugin : Plugin {
 
@@ -34,6 +36,7 @@ class InAppUiPlugin : Plugin {
                 InAppModule.queueManager(it).onActivityBroughtOnTop()
             }
         }
+        InlineModule.install()
         PWLog.info(TAG, "InAppUiPlugin initialized")
     }
 

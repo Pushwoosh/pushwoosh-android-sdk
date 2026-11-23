@@ -5,12 +5,15 @@ class FakeInboxGateway : InboxGateway {
     val messages = mutableListOf<InboxMessageSummary>()
     private val listeners = mutableListOf<(Int, Int) -> Unit>()
 
-    /** When non-null, [loadMessages] delivers this instead of a snapshot of [messages]. */
-    var loadResult: GatewayResult<List<InboxMessageSummary>>? = null
+    /** When non-null, every sync fails with it and, like the SDK, still delivers local storage. */
+    var syncError: String? = null
 
     override fun loadMessages(callback: (GatewayResult<List<InboxMessageSummary>>) -> Unit) {
         calls.add("loadMessages")
-        callback(loadResult ?: GatewayResult.success(messages.toList()))
+        val error = syncError
+        callback(
+            if (error == null) GatewayResult.success(messages.toList())
+            else GatewayResult.failure(error, messages.toList()))
     }
 
     override fun readMessages(codes: Collection<String>) {
@@ -28,6 +31,7 @@ class FakeInboxGateway : InboxGateway {
     override fun observeCounts(listener: (total: Int, unread: Int) -> Unit): Registration {
         calls.add("observeCounts")
         listeners.add(listener)
+        listener(messages.size, messages.count { !it.isRead })
         return object : Registration {
             override fun unregister() {
                 calls.add("unregister")
@@ -36,9 +40,8 @@ class FakeInboxGateway : InboxGateway {
         }
     }
 
-    override fun fetchCounts(callback: (total: Int, unread: Int) -> Unit) {
-        calls.add("fetchCounts")
-        callback(messages.size, messages.count { !it.isRead })
+    override fun resync() {
+        calls.add("resync")
     }
 
     /** Pushes the current counts to every registered listener, like the SDK observers do. */

@@ -19,9 +19,16 @@ delivered to your [CallEventListener] callbacks.
 [CallPermissionsCallback] receives the result of a permission request initiated by
 [PushwooshCallSettings].
 
+Use [PushwooshCallControl] to mute or unmute the microphone and to turn the speakerphone on or off
+during an answered call. Each method reports success once the request is handed to the system, or
+an error when there is no active call.
+
 # Package com.pushwoosh.calls.listener
 
 Call lifecycle event callbacks. Implement [CallEventListener] and register it in
 `AndroidManifest.xml` via the `com.pushwoosh.CALL_EVENT_LISTENER` meta-data key to receive
 events when the user answers, rejects, or disconnects a call, and when the remote party cancels
 before the call is answered.
+
+Implement [CallAudioStateListener] in the same class to receive the actual microphone mute state
+and audio route of the call.

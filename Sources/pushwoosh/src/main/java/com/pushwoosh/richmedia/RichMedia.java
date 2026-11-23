@@ -26,111 +26,110 @@
 
 package com.pushwoosh.richmedia;
 
+import static com.pushwoosh.richmedia.RichMedia.Source.InAppSource;
+import static com.pushwoosh.richmedia.RichMedia.Source.PushMessageSource;
+
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.inapp.view.strategy.model.ResourceWrapper;
 import com.pushwoosh.internal.utils.PWLog;
-
-import static com.pushwoosh.richmedia.RichMedia.Source.InAppSource;
-import static com.pushwoosh.richmedia.RichMedia.Source.PushMessageSource;
 
 /**
  * `RichMedia` class represents Rich Media page object.
  */
 public class RichMedia {
-	public enum Source {
-		/**
-		 * RichMedia is presented from push notification.
-		 */
-		PushMessageSource,
+    public enum Source {
+        /**
+         * RichMedia is presented from push notification.
+         */
+        PushMessageSource,
 
-		/**
-		 * RichMedia is presented from In-App.
-		 */
-		InAppSource
-	}
+        /**
+         * RichMedia is presented from In-App.
+         */
+        InAppSource
+    }
 
-	private final String TAG = RichMedia.class.getSimpleName();
-	private String content;
-	private Source source;
-	private ResourceWrapper resourceWrapper;
-	private boolean isLockScreen;
-	private boolean isRequired;
+    private final String TAG = "RichMedia";
+    private String content;
+    private Source source;
+    private ResourceWrapper resourceWrapper;
+    private boolean isLockScreen;
+    private boolean isRequired;
 
-	RichMedia(ResourceWrapper currentInApp) {
-		this.resourceWrapper = currentInApp;
-		Resource resource = currentInApp.getResource();
-		this.isLockScreen = resourceWrapper.isLockScreen();
-		if (resource == null) {
-			PWLog.error(TAG, "resource is empty");
-			return;
-		}
-		this.isRequired = resource.isRequired();
-		this.isLockScreen = resourceWrapper.isLockScreen();
+    RichMedia(ResourceWrapper currentInApp) {
+        this.resourceWrapper = currentInApp;
+        Resource resource = currentInApp.getResource();
+        this.isLockScreen = resourceWrapper.isLockScreen();
+        if (resource == null) {
+            PWLog.error(TAG, "resource is empty");
+            return;
+        }
+        this.isRequired = resource.isRequired();
+        this.isLockScreen = resourceWrapper.isLockScreen();
 
+        switch (resourceWrapper.getResourceType()) {
+            case IN_APP:
+                this.content = resource.getCode();
+                this.source = InAppSource;
+                break;
+            case RICH_MEDIA:
+                this.content = resource.getCode();
+                this.source = PushMessageSource;
+        }
+    }
 
-		switch (resourceWrapper.getResourceType()) {
-			case IN_APP:
-				this.content = resource.getCode();
-				this.source = InAppSource;
-				break;
-			case RICH_MEDIA:
-				this.content = resource.getCode();
-				this.source = PushMessageSource;
-		}
-	}
+    /**
+     * Rich Media presenter type.
+     */
+    public Source getSource() {
+        return source;
+    }
 
-	/**
-	 * Rich Media presenter type.
-	 */
-	public Source getSource() {
-		return source;
-	}
+    /**
+     * Content of the Rich Media. For InAppSource it's equal to In-App code, for PushMessageSource it's equal to Rich Media code.
+     */
+    public String getContent() {
+        return content;
+    }
 
-	/**
-	 * Content of the Rich Media. For InAppSource it's equal to In-App code, for PushMessageSource it's equal to Rich Media code.
-	 */
-	public String getContent() {
-		return content;
-	}
+    ResourceWrapper getResourceWrapper() {
+        return resourceWrapper;
+    }
 
-	ResourceWrapper getResourceWrapper() {
-		return resourceWrapper;
-	}
+    /**
+     * Check if the Rich Media will show on a lock screen.
+     */
+    public boolean isLockScreen() {
+        return isLockScreen;
+    }
 
-	/**
-	 * Check if the Rich Media will show on a lock screen.
-	 */
-	public boolean isLockScreen() {
-		return isLockScreen;
-	}
+    /**
+     * Checks if InAppSource is a required In-App. Always returns true for PWRichMediaSourcePush.
+     */
+    public boolean isRequired() {
+        return isRequired;
+    }
 
-	/**
-	 * Checks if InAppSource is a required In-App. Always returns true for PWRichMediaSourcePush.
-	 */
-	public boolean isRequired() {
-		return isRequired;
-	}
+    @Override
+    public String toString() {
+        return "RichMedia{" + "content='" + content + '\'' + ", resourceType=" + source + '}';
+    }
 
-	@Override
-	public String toString() {
-		return "RichMedia{" + "content='" + content + '\'' + ", resourceType=" + source + '}';
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+        RichMedia richMedia = (RichMedia) o;
 
-		RichMedia richMedia = (RichMedia) o;
+        if (!content.equals(richMedia.content)) return false;
+        return source == richMedia.source;
+    }
 
-		if (!content.equals(richMedia.content)) return false;
-		return source == richMedia.source;
-	}
-
-	@Override
-	public int hashCode() {
-		int result = content.hashCode();
-		result = 31 * result + source.hashCode();
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = content.hashCode();
+        result = 31 * result + source.hashCode();
+        return result;
+    }
 }

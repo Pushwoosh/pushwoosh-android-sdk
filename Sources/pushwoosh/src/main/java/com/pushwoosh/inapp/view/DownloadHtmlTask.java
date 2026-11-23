@@ -52,17 +52,18 @@ public class DownloadHtmlTask {
                 result = Result.fromException(new ResourceParseException("InAppRepository is not initialized"));
             }
 
-            if (!cancelled) {
-                BackgroundExecutor.main(() -> {
-                    if (cancelled) {
-                        return;
-                    }
-                    if (!result.isSuccess()) {
-                        EventBus.sendEvent(new RichMediaErrorEvent(inApp, result.getException()));
-                    }
-                    downloadListener.sendResult(result);
-                });
+            if (cancelled) {
+                return;
             }
+            BackgroundExecutor.main(() -> {
+                if (cancelled) {
+                    return;
+                }
+                if (!result.isSuccess()) {
+                    EventBus.sendEvent(new RichMediaErrorEvent(inApp, result.getException()));
+                }
+                downloadListener.sendResult(result);
+            });
         });
     }
 }

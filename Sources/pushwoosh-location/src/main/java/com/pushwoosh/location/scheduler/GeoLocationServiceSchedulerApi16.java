@@ -30,81 +30,84 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.utils.PWLog;
 import com.pushwoosh.internal.utils.PendingIntentUtils;
 import com.pushwoosh.location.network.GeoLocationServiceApi16;
 
-
 class GeoLocationServiceSchedulerApi16 implements Scheduler {
 
-	@Override
-	public void scheduleNearestGeoZones(@Nullable final Context context, long updateInterval) {
-		if (context == null) {
-			return;
-		}
+    @Override
+    public void scheduleNearestGeoZones(@Nullable final Context context, long updateInterval) {
+        if (context == null) {
+            return;
+        }
 
-		PendingIntent pendingIntent = getAlarmIntent(context);
-		AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-		if (alarmManager != null) {
-			try {
-				alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + updateInterval, pendingIntent);
-			} catch (SecurityException e) {
-				PWLog.error("Too many alarms. Please clear all local alarm to continue use AlarmManager. Geo zones alarm skipped");
-			}
-		}
-	}
+        PendingIntent pendingIntent = getAlarmIntent(context);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) {
+            return;
+        }
 
-	@Nullable
-	private PendingIntent getAlarmIntent(@Nullable Context context) {
-		if (context == null) {
-			return null;
-		}
-		Intent intent = new Intent(context, GeoLocationServiceApi16.class);
-		intent.putExtra(GeoLocationServiceApi16.KEY_FORCE_UPDATE, false);
-		return PendingIntent.getService(context, 0, intent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
-	}
+        try {
+            alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + updateInterval, pendingIntent);
+        } catch (SecurityException e) {
+            PWLog.error(
+                    "Too many alarms. Please clear all local alarm to continue use AlarmManager. Geo zones alarm skipped");
+        }
+    }
 
-	private void cancelAlarm(@Nullable Context context) {
-		if (context == null) {
-			return;
-		}
+    @Nullable private PendingIntent getAlarmIntent(@Nullable Context context) {
+        if (context == null) {
+            return null;
+        }
+        Intent intent = new Intent(context, GeoLocationServiceApi16.class);
+        intent.putExtra(GeoLocationServiceApi16.KEY_FORCE_UPDATE, false);
+        return PendingIntent.getService(
+                context, 0, intent, PendingIntentUtils.addImmutableFlag(PendingIntent.FLAG_UPDATE_CURRENT));
+    }
 
-		PendingIntent pendingIntent = getAlarmIntent(context);
-		AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-		if (alarmManager != null) {
-			alarmManager.cancel(pendingIntent);
-		}
-	}
+    private void cancelAlarm(@Nullable Context context) {
+        if (context == null) {
+            return;
+        }
 
-	@Override
-	public void requestUpdateNearestGeoZones(@Nullable Context context) {
-		if (context != null) {
-			context.startService(GeoLocationServiceApi16.createGetNearestIntent(context,true));
-		}
-	}
+        PendingIntent pendingIntent = getAlarmIntent(context);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            alarmManager.cancel(pendingIntent);
+        }
+    }
 
-	@Override
-	public void stop(@Nullable Context context) {
-		if (context == null) {
-			return;
-		}
+    @Override
+    public void requestUpdateNearestGeoZones(@Nullable Context context) {
+        if (context != null) {
+            context.startService(GeoLocationServiceApi16.createGetNearestIntent(context, true));
+        }
+    }
 
-		Intent intent = new Intent(context, GeoLocationServiceSchedulerApi16.class);
-		context.stopService(intent);
-		cancelAlarm(context);
-	}
+    @Override
+    public void stop(@Nullable Context context) {
+        if (context == null) {
+            return;
+        }
 
-	@Override
-	public void deviceRebooted(@Nullable Context context) {
-		requestUpdateNearestGeoZones(context);
-	}
+        Intent intent = new Intent(context, GeoLocationServiceSchedulerApi16.class);
+        context.stopService(intent);
+        cancelAlarm(context);
+    }
 
-	@Override
-	public void requestLocationDisabled(@Nullable Context context) {
-		if (context != null) {
-			context.startService(GeoLocationServiceApi16.createLocationDisableIntent(context));
-		}
-	}
+    @Override
+    public void deviceRebooted(@Nullable Context context) {
+        requestUpdateNearestGeoZones(context);
+    }
+
+    @Override
+    public void requestLocationDisabled(@Nullable Context context) {
+        if (context != null) {
+            context.startService(GeoLocationServiceApi16.createLocationDisableIntent(context));
+        }
+    }
 }

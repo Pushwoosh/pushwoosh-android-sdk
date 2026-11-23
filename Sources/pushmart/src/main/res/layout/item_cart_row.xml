@@ -3,12 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_card"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="@dimen/pm_screen_padding"
-    android:paddingTop="10dp"
-    android:paddingEnd="@dimen/pm_screen_padding"
-    android:paddingBottom="10dp">
+    android:padding="12dp">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/image"
@@ -20,7 +19,8 @@
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -35,6 +35,7 @@
             android:id="@+id/price"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
             android:textAppearance="@style/TextAppearance.PushMart.Body"
             android:textColor="@color/pm_coral"
             android:textSize="14sp" />
@@ -45,16 +46,19 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:background="@drawable/bg_circle_surface_hi"
-        android:contentDescription="Remove one"
-        android:padding="7dp"
+        android:contentDescription="@string/cart_remove_one"
+        android:padding="9dp"
         android:src="@drawable/ic_remove"
-        android:tint="@color/pm_text_primary" />
+        app:tint="@color/pm_text_primary" />
 
     <TextView
         android:id="@+id/quantity"
-        android:layout_width="32dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
         android:gravity="center"
+        android:minWidth="18dp"
         android:textAppearance="@style/TextAppearance.PushMart.Headline"
         android:textSize="15sp" />
 
@@ -63,8 +67,8 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:background="@drawable/bg_circle_surface_hi"
-        android:contentDescription="Add one"
-        android:padding="7dp"
+        android:contentDescription="@string/cart_add_one"
+        android:padding="9dp"
         android:src="@drawable/ic_add"
-        android:tint="@color/pm_text_primary" />
+        app:tint="@color/pm_text_primary" />
 </LinearLayout>

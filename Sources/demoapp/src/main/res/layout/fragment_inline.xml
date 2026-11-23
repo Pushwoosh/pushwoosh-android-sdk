@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.inline.InlineFragment">
+
+    <!-- Control bar lives outside the scroll so it never moves while the slots are scrolled. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/requestHomeDealsButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Request home_deals"
+                android:textSize="11sp" />
+
+            <Button
+                android:id="@+id/request11SlotsButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Request 11 slots"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/userIdInput"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                android:singleLine="true"
+                android:text="qa-member-1"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/setUserIdButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="setUserId"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/eventInput"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                android:singleLine="true"
+                android:text="inline_lightning_restock"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/postEventButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="postEvent"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/topLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="top" />
+
+            <com.pushwoosh.inline.PushwooshInlineView
+                android:id="@+id/slotHomeDeals"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:pw_slotId="home_deals" />
+
+            <TextView
+                android:id="@+id/marker_home_deals"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="marker home_deals" />
+
+            <View
+                android:id="@+id/fillerAfterHome"
+                android:layout_width="match_parent"
+                android:layout_height="600dp" />
+
+            <com.pushwoosh.inline.PushwooshInlineView
+                android:id="@+id/slotShopGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:pw_slotId="shop_grid" />
+
+            <TextView
+                android:id="@+id/marker_shop_grid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="marker shop_grid" />
+
+            <View
+                android:id="@+id/fillerAfterShop"
+                android:layout_width="match_parent"
+                android:layout_height="400dp" />
+
+            <com.pushwoosh.inline.PushwooshInlineView
+                android:id="@+id/slotCartCheckout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:pw_slotId="cart_checkout" />
+
+            <TextView
+                android:id="@+id/marker_cart_checkout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="marker cart_checkout" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

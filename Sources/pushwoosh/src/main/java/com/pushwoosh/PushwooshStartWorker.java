@@ -510,20 +510,22 @@ public class PushwooshStartWorker {
     public void shutdown() {
         PWLog.noise(TAG, "shutdown()");
 
-        if (sdkExecutor != null && !sdkExecutor.isShutdown()) {
-            PWLog.debug(TAG, "shutting down SDK ExecutorService.");
-            sdkExecutor.shutdown();
+        if (sdkExecutor == null || sdkExecutor.isShutdown()) {
+            return;
+        }
 
-            try {
-                if (!sdkExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    PWLog.warn(TAG, "ExecutorService didn't terminate gracefully, forcing shutdown");
-                    sdkExecutor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                PWLog.error(TAG, "interrupted during shutdown", e);
+        PWLog.debug(TAG, "shutting down SDK ExecutorService.");
+        sdkExecutor.shutdown();
+
+        try {
+            if (!sdkExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                PWLog.warn(TAG, "ExecutorService didn't terminate gracefully, forcing shutdown");
                 sdkExecutor.shutdownNow();
-                Thread.currentThread().interrupt();
             }
+        } catch (InterruptedException e) {
+            PWLog.error(TAG, "interrupted during shutdown", e);
+            sdkExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 }

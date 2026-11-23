@@ -232,6 +232,8 @@ public class HomeFragment extends Fragment {
          */
         binding.buttonFeatureFlags.setOnClickListener(
                 v -> NavHostFragment.findNavController(this).navigate(R.id.navigation_feature_flags));
+        binding.buttonInline.setOnClickListener(
+                v -> NavHostFragment.findNavController(this).navigate(R.id.navigation_inline));
         binding.buttonInAppBanner.setOnClickListener(v -> presentInApp("Banner", InAppPresets.BANNER));
         binding.buttonInAppModal.setOnClickListener(v -> presentInApp("Modal", InAppPresets.MODAL));
         binding.buttonInAppModalFloating.setOnClickListener(

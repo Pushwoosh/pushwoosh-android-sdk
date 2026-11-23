@@ -8,6 +8,7 @@ import com.pushwoosh.inapp.ui.model.InAppLayout
 import com.pushwoosh.inapp.ui.model.InAppMessage
 import com.pushwoosh.inapp.ui.model.ModalContent
 import com.pushwoosh.inapp.ui.presentation.InAppPresentationChannel
+import com.pushwoosh.inline.internal.InlineModule
 import com.pushwoosh.internal.event.EventBus
 import com.pushwoosh.internal.platform.AndroidPlatformModule
 import org.junit.After
@@ -38,6 +39,7 @@ class InAppUiPluginTest {
 
     @After
     fun tearDown() {
+        InlineModule.resetForTest(null)
         platformModule.close()
     }
 

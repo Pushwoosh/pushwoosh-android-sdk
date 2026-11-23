@@ -32,12 +32,14 @@ class NotifyObserversHelper<T> {
     void notifyObservers() {
         new InboxObserverAsyncTask<>(task, result -> {
                     for (Callback<T, InboxMessagesException> expectedCallback : observers) {
-                        if (expectedCallback != null) {
-                            try {
-                                expectedCallback.process(result);
-                            } catch (Exception e) {
-                                PWLog.error("Error occurred while processing Callback", e.getMessage());
-                            }
+                        if (expectedCallback == null) {
+                            continue;
+                        }
+
+                        try {
+                            expectedCallback.process(result);
+                        } catch (Exception e) {
+                            PWLog.error("Error occurred while processing Callback", e.getMessage());
                         }
                     }
                 })

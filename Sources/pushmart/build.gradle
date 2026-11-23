@@ -14,7 +14,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders = [pushwooshLogLevel: "NOISE"]
+        }
         release {
+            manifestPlaceholders = [pushwooshLogLevel: "ERROR"]
             signingConfig signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -55,6 +59,7 @@ dependencies {
     implementation project(':pushwoosh-inbox')
     implementation project(':pushwoosh-inbox-ui')
     implementation project(':pushwoosh-inapp-ui')
+    implementation project(':pushwoosh-liveupdates')
 
     testImplementation libs.junit
     testImplementation 'org.robolectric:robolectric:4.14.1'

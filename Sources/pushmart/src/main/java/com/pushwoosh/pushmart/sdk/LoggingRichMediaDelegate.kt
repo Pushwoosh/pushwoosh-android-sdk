@@ -5,7 +5,7 @@ import com.pushwoosh.internal.utils.PWLog
 import com.pushwoosh.richmedia.RichMedia
 import com.pushwoosh.richmedia.RichMediaPresentingDelegate
 
-/** Logs every rich media callback and republishes present/error on [RichMediaSignals]. */
+/** Logs every rich media callback under [TAG]. */
 class LoggingRichMediaDelegate : RichMediaPresentingDelegate {
     override fun shouldPresent(richMedia: RichMedia?): Boolean {
         PWLog.debug(TAG, "shouldPresent ${richMedia.code()}")
@@ -14,13 +14,11 @@ class LoggingRichMediaDelegate : RichMediaPresentingDelegate {
 
     override fun onPresent(richMedia: RichMedia?) {
         PWLog.debug(TAG, "onPresent ${richMedia.code()}")
-        RichMediaSignals.publish(RichMediaSignals.Signal.Presented(richMedia.code()))
     }
 
     override fun onError(richMedia: RichMedia?, pushwooshException: PushwooshException?) {
         val error = pushwooshException?.message ?: "unknown error"
         PWLog.warn(TAG, "onError ${richMedia.code()}: $error")
-        RichMediaSignals.publish(RichMediaSignals.Signal.Failed(richMedia.code(), error))
     }
 
     override fun onClose(richMedia: RichMedia?) {

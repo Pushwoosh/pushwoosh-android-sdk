@@ -6,3 +6,7 @@
 # InAppUiPlugin is instantiated reflectively (kept in public.txt); InAppOverlayActivity is
 # kept automatically as a manifest-declared component.
 -repackageclasses 'com.pushwoosh.inapp.ui'
+# Inline HTML banners call their JS bridge methods by name from the page.
+-keepclassmembers class com.pushwoosh.inline.internal.** {
+    @android.webkit.JavascriptInterface <methods>;
+}

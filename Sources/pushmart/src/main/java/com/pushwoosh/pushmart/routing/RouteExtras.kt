@@ -13,6 +13,8 @@ object RouteExtras {
             Route.Sale -> intent.putExtra(EXTRA_TYPE, "sale")
             is Route.Voucher ->
                 intent.putExtra(EXTRA_TYPE, "voucher").putExtra(EXTRA_VALUE, route.code)
+            Route.Cart -> intent.putExtra(EXTRA_TYPE, "cart")
+            is Route.AddToBag -> intent.putExtra(EXTRA_TYPE, "add").putExtra(EXTRA_VALUE, route.id)
         }
         return intent
     }
@@ -24,6 +26,8 @@ object RouteExtras {
             "product" -> Route.Product(value)
             "sale" -> Route.Sale
             "voucher" -> Route.Voucher(value)
+            "cart" -> Route.Cart
+            "add" -> Route.AddToBag(value)
             else -> null
         }
     }

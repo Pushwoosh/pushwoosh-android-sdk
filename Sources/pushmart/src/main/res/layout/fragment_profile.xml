@@ -1,154 +1,206 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingBottom="@dimen/pm_tab_clearance"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/pm_screen_padding">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Profile"
-            android:textAppearance="@style/TextAppearance.PushMart.Headline"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/avatar"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/bg_circle_brand"
-            android:fontFamily="sans-serif-black"
-            android:gravity="center"
-            android:textColor="@color/pm_on_brand"
-            android:textSize="22sp" />
-
-        <TextView
-            android:id="@+id/user_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="10dp"
-            android:textAppearance="@style/TextAppearance.PushMart.Title"
-            android:textSize="20sp" />
-
-        <TextView
-            android:id="@+id/user_email"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:textAppearance="@style/TextAppearance.PushMart.Body"
-            android:textColor="@color/pm_text_secondary"
-            android:textSize="13sp" />
+        android:paddingStart="@dimen/pm_screen_padding"
+        android:paddingTop="10dp"
+        android:paddingEnd="@dimen/pm_screen_padding">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"
-            android:letterSpacing="0.12"
-            android:text="ACCOUNT"
-            android:textAppearance="@style/TextAppearance.PushMart.Label"
-            android:textColor="@color/pm_text_tertiary" />
+            android:text="@string/profile_title"
+            android:textAppearance="@style/TextAppearance.PushMart.PageTitle" />
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical">
-
-            <include
-                android:id="@+id/row_details"
-                layout="@layout/view_profile_row" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginStart="62dp"
-                android:background="@color/pm_stroke" />
-
-            <include
-                android:id="@+id/row_wishlist"
-                layout="@layout/view_profile_row" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginStart="62dp"
-                android:background="@color/pm_stroke" />
-
-            <include
-                android:id="@+id/row_preferences"
-                layout="@layout/view_profile_row" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp"
-            android:letterSpacing="0.12"
-            android:text="NOTIFICATIONS"
-            android:textAppearance="@style/TextAppearance.PushMart.Label"
-            android:textColor="@color/pm_text_tertiary" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical">
-
-            <include
-                android:id="@+id/row_notifications"
-                layout="@layout/view_profile_row" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/switch_account"
+            android:id="@+id/identity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:background="@drawable/bg_card"
+            android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="16dp">
+            android:orientation="horizontal">
 
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_swap"
-                android:tint="@color/pm_text_primary" />
+            <FrameLayout
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="@drawable/bg_circle_surface_hi">
 
-            <TextView
+                <ImageView
+                    android:id="@+id/avatar_person"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:importantForAccessibility="no"
+                    android:padding="19dp"
+                    android:src="@drawable/ic_person"
+                    app:tint="@color/pm_text_secondary" />
+
+                <TextView
+                    android:id="@+id/avatar_initial"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:importantForAccessibility="no"
+                    android:textAppearance="@style/TextAppearance.PushMart.Display"
+                    android:textColor="@color/pm_text_secondary"
+                    android:textSize="24sp"
+                    android:visibility="gone" />
+
+                <ImageView
+                    android:id="@+id/avatar_photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_circle_surface_hi"
+                    android:importantForAccessibility="no"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Switch account"
-                android:textAppearance="@style/TextAppearance.PushMart.Headline"
-                android:textSize="15sp" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_greeting"
+                    android:textAppearance="@style/TextAppearance.PushMart.Title"
+                    android:textSize="22sp" />
+
+                <TextView
+                    android:id="@+id/profile_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="middle"
+                    android:maxLines="1"
+                    android:textAppearance="@style/TextAppearance.PushMart.Body"
+                    android:textColor="@color/pm_text_secondary"
+                    android:textSize="15sp" />
+            </LinearLayout>
 
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
+                android:importantForAccessibility="no"
                 android:src="@drawable/ic_chevron_right"
-                android:tint="@color/pm_text_tertiary" />
+                app:tint="@color/pm_text_tertiary" />
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/sign_out"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_card"
+            android:layout_marginTop="24dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/shortcut_orders"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_shortcut_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:minHeight="112dp"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_tab_orders_outline"
+                    app:tint="@color/pm_text_primary" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_orders"
+                    android:textAppearance="@style/TextAppearance.PushMart.Headline" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/profile_orders_detail"
+                    android:textAppearance="@style/TextAppearance.PushMart.Body"
+                    android:textColor="@color/pm_text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/shortcut_offers"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_shortcut_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:minHeight="112dp"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_tab_inbox_outline"
+                    app:tint="@color/pm_text_primary" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_offers"
+                    android:textAppearance="@style/TextAppearance.PushMart.Headline" />
+
+                <TextView
+                    android:id="@+id/offers_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/profile_offers_detail"
+                    android:textAppearance="@style/TextAppearance.PushMart.Body"
+                    android:textColor="@color/pm_text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/personal_code_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_personal_code"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
@@ -156,70 +208,155 @@
             android:padding="16dp">
 
             <ImageView
+                android:id="@+id/personal_code_icon"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:src="@drawable/ic_logout"
-                android:tint="@color/pm_danger" />
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_ticket_outline" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/personal_code_title"
+                    android:textAppearance="@style/TextAppearance.PushMart.Headline"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/personal_code_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@style/TextAppearance.PushMart.Body"
+                    android:textColor="@color/pm_text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
 
             <TextView
+                android:id="@+id/personal_code_action"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:text="Sign out"
+                android:layout_height="40dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:textAppearance="@style/TextAppearance.PushMart.Headline"
-                android:textColor="@color/pm_danger"
                 android:textSize="15sp" />
         </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp"
-            android:letterSpacing="0.12"
-            android:text="DEVELOPER"
-            android:textAppearance="@style/TextAppearance.PushMart.Label"
-            android:textColor="@color/pm_text_tertiary" />
+            android:layout_marginTop="36dp"
+            android:layout_marginBottom="6dp"
+            android:text="@string/profile_section_account"
+            android:textAppearance="@style/TextAppearance.PushMart.SectionTitle" />
+
+        <include
+            android:id="@+id/row_details"
+            layout="@layout/view_profile_row" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="56dp"
+            android:background="@color/pm_stroke" />
+
+        <include
+            android:id="@+id/row_preferences"
+            layout="@layout/view_profile_row" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="6dp"
+            android:text="@string/profile_section_notifications"
+            android:textAppearance="@style/TextAppearance.PushMart.SectionTitle" />
+
+        <include
+            android:id="@+id/row_notifications"
+            layout="@layout/view_profile_row" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="56dp"
+            android:background="@color/pm_stroke" />
+
+        <include
+            android:id="@+id/row_reminders"
+            layout="@layout/view_profile_row" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="6dp"
+            android:text="@string/profile_section_app"
+            android:textAppearance="@style/TextAppearance.PushMart.SectionTitle" />
+
+        <include
+            android:id="@+id/row_app_settings"
+            layout="@layout/view_profile_row" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="56dp"
+            android:background="@color/pm_stroke" />
+
+        <include
+            android:id="@+id/row_about"
+            layout="@layout/view_profile_row" />
 
         <LinearLayout
+            android:id="@+id/developer_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_card"
             android:orientation="vertical">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="6dp"
+                android:text="@string/profile_section_developer"
+                android:textAppearance="@style/TextAppearance.PushMart.SectionTitle" />
+
             <include
-                android:id="@+id/row_playground"
+                android:id="@+id/row_inapps"
                 layout="@layout/view_profile_row" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginStart="62dp"
+                android:layout_marginStart="56dp"
                 android:background="@color/pm_stroke" />
 
             <include
-                android:id="@+id/row_inapp_showcase"
-                layout="@layout/view_profile_row" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginStart="62dp"
-                android:background="@color/pm_stroke" />
-
-            <include
-                android:id="@+id/row_rich_media"
+                android:id="@+id/row_developer_tools"
                 layout="@layout/view_profile_row" />
         </LinearLayout>
 
         <TextView
+            android:id="@+id/version"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="40dp"
             android:gravity="center"
-            android:text="PushMart · Version 1.0.0"
             android:textAppearance="@style/TextAppearance.PushMart.Body"
             android:textColor="@color/pm_text_tertiary"
-            android:textSize="12sp" />
+            android:textSize="13sp" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

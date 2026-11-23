@@ -10,12 +10,12 @@ class FakePushwooshGateway : PushwooshGateway {
     val badges = mutableListOf<Int>()
 
     var registerResult: GatewayResult<String?> = GatewayResult.success("fake-token")
+    var unregisterResult: GatewayResult<Unit> = GatewayResult.success(Unit)
     var identityResult: GatewayResult<Unit> = GatewayResult.success(Unit)
     var postEventResult: GatewayResult<Unit> = GatewayResult.success(Unit)
+    var setTagsResult: GatewayResult<Unit> = GatewayResult.success(Unit)
+    var tagsResult: GatewayResult<Map<String, Any?>> = GatewayResult.success(emptyMap())
     var appCode = ""
-    var fakeUserId: String? = null
-    var fakePushToken: String? = null
-    var fakeHwid = "fake-hwid"
 
     /** When true, SDK callbacks queue into [pending] instead of firing inline; call [flush]. */
     var deferCallbacks = false
@@ -28,32 +28,26 @@ class FakePushwooshGateway : PushwooshGateway {
 
     override fun getApplicationCode(): String = appCode
 
+    override fun resetUserId() {
+        calls.add("resetUserId")
+    }
+
     override fun registerForPushNotifications(callback: (GatewayResult<String?>) -> Unit) {
         calls.add("register")
-        val deliver = {
-            if (registerResult.isSuccess) fakePushToken = registerResult.data
-            callback(registerResult)
-        }
+        val deliver = { callback(registerResult) }
         if (deferCallbacks) pending.add(deliver) else deliver()
     }
 
-    override fun unregisterForPushNotifications() {
+    override fun unregisterForPushNotifications(callback: ((GatewayResult<Unit>) -> Unit)?) {
         calls.add("unregister")
-        fakePushToken = null
+        if (callback == null) return
+        val deliver = { callback(unregisterResult) }
+        if (deferCallbacks) pending.add(deliver) else deliver()
     }
 
     override fun setEmail(email: String, callback: (GatewayResult<Unit>) -> Unit) {
         calls.add("setEmail:$email")
         val deliver = { callback(identityResult) }
-        if (deferCallbacks) pending.add(deliver) else deliver()
-    }
-
-    override fun setUserId(userId: String, callback: (GatewayResult<Unit>) -> Unit) {
-        calls.add("setUserId:$userId")
-        val deliver = {
-            if (identityResult.isSuccess) fakeUserId = userId
-            callback(identityResult)
-        }
         if (deferCallbacks) pending.add(deliver) else deliver()
     }
 
@@ -64,15 +58,42 @@ class FakePushwooshGateway : PushwooshGateway {
         }
     }
 
-    override fun getUserId(): String? = fakeUserId
+    override fun registerSmsNumber(number: String) {
+        calls.add("registerSms:$number")
+    }
 
-    override fun getPushToken(): String? = fakePushToken
-
-    override fun getHwid(): String = fakeHwid
+    override fun registerWhatsappNumber(number: String) {
+        calls.add("registerWhatsapp:$number")
+    }
 
     override fun setTags(ops: List<TagOp>) {
         calls.add("setTags")
         tags.addAll(ops)
+    }
+
+    override fun setTags(ops: List<TagOp>, callback: (GatewayResult<Unit>) -> Unit) {
+        setTags(ops)
+        respond { callback(setTagsResult) }
+    }
+
+    /** Records the ops in [tags] too; [setTagsResult] drives the result. */
+    override fun setEmailTags(
+        email: String,
+        ops: List<TagOp>,
+        callback: (GatewayResult<Unit>) -> Unit
+    ) {
+        calls.add("setEmailTags:$email")
+        tags.addAll(ops)
+        respond { callback(setTagsResult) }
+    }
+
+    override fun getTags(callback: (GatewayResult<Map<String, Any?>>) -> Unit) {
+        calls.add("getTags")
+        respond { callback(tagsResult) }
+    }
+
+    private fun respond(deliver: () -> Unit) {
+        if (deferCallbacks) pending.add(deliver) else deliver()
     }
 
     override fun postEvent(name: String, attributes: Map<String, Any>) {
@@ -98,5 +119,13 @@ class FakePushwooshGateway : PushwooshGateway {
     override fun setBadgeNumber(count: Int) {
         calls.add("badge:$count")
         badges.add(count)
+    }
+
+    override fun scheduleLocalNotification(title: String, body: String, delaySeconds: Int) {
+        calls.add("scheduleLocalNotification:$title:$delaySeconds")
+    }
+
+    override fun setShowForegroundAlerts(show: Boolean) {
+        calls.add("foregroundAlerts:$show")
     }
 }

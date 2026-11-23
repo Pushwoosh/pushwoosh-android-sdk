@@ -51,9 +51,14 @@ class AppOpenRequest extends PushRequest<Void> {
 
     @Override
     protected void buildParams(JSONObject params) throws JSONException {
-        params.put(
-                "language",
-                RepositoryModule.getRegistrationPreferences().language().get());
+        if (RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceLocaleAllowed()
+                .get()) {
+            params.put(
+                    "language",
+                    RepositoryModule.getRegistrationPreferences().language().get());
+            params.put("locale", RepositoryModule.getRegistrationPreferences().localeForRequest());
+        }
         params.put(
                 "timezone",
                 TimeUnit.SECONDS.convert(TimeZone.getDefault().getOffset(new Date().getTime()), TimeUnit.MILLISECONDS));

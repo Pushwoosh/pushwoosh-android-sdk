@@ -7,6 +7,10 @@ sealed class TagOp {
 
     data class PutBoolean(val key: String, val value: Boolean) : TagOp()
 
+    data class PutInt(val key: String, val value: Int) : TagOp()
+
+    data class PutList(val key: String, val values: List<String>) : TagOp()
+
     data class IncrementInt(val key: String, val by: Int) : TagOp()
 
     data class AppendList(val key: String, val values: List<String>) : TagOp()
@@ -21,7 +25,11 @@ class GatewayResult<T> private constructor(val data: T?, val error: String?) {
     companion object {
         fun <T> success(data: T?): GatewayResult<T> = GatewayResult(data, null)
 
-        fun <T> failure(error: String): GatewayResult<T> = GatewayResult(null, error)
+        /**
+         * [data] is whatever the call still produced, such as the cached inbox after a failed sync.
+         */
+        fun <T> failure(error: String, data: T? = null): GatewayResult<T> =
+            GatewayResult(data, error)
     }
 }
 
@@ -30,21 +38,32 @@ interface PushwooshGateway {
 
     fun getApplicationCode(): String
 
+    fun resetUserId()
+
     fun registerForPushNotifications(callback: (GatewayResult<String?>) -> Unit)
 
-    fun unregisterForPushNotifications()
+    fun unregisterForPushNotifications(callback: ((GatewayResult<Unit>) -> Unit)? = null)
 
     fun setEmail(email: String, callback: (GatewayResult<Unit>) -> Unit)
 
-    fun setUserId(userId: String, callback: (GatewayResult<Unit>) -> Unit)
+    /** Fire and forget: the SDK has no callback for it. */
+    fun registerSmsNumber(number: String)
 
-    fun getUserId(): String?
-
-    fun getPushToken(): String?
-
-    fun getHwid(): String
+    /** Fire and forget: the SDK has no callback for it. */
+    fun registerWhatsappNumber(number: String)
 
     fun setTags(ops: List<TagOp>)
+
+    /** Same as [setTags], surfacing the SDK result. */
+    fun setTags(ops: List<TagOp>, callback: (GatewayResult<Unit>) -> Unit)
+
+    fun setEmailTags(email: String, ops: List<TagOp>, callback: (GatewayResult<Unit>) -> Unit)
+
+    /**
+     * The device's tags as the SDK reads them. On a network error the SDK answers with its cached
+     * tags as a success.
+     */
+    fun getTags(callback: (GatewayResult<Map<String, Any?>>) -> Unit)
 
     fun postEvent(name: String, attributes: Map<String, Any>)
 
@@ -61,4 +80,9 @@ interface PushwooshGateway {
     fun sendInappPurchase(sku: String, price: BigDecimal, currency: String)
 
     fun setBadgeNumber(count: Int)
+
+    fun scheduleLocalNotification(title: String, body: String, delaySeconds: Int)
+
+    /** Whether a push arriving while PushMart is in the foreground shows as a notification. */
+    fun setShowForegroundAlerts(show: Boolean)
 }

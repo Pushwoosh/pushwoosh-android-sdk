@@ -156,17 +156,18 @@ class AndroidManifestConfig implements Config {
                 "com.pushwoosh.notification_icon_color", NotificationCompat.COLOR_DEFAULT);
 
         for (String key : applicationInfo.metaData.keySet()) {
-            if (key.startsWith("com.pushwoosh.plugin.")) {
-                try {
-                    //noinspection unchecked
-                    Class<? extends Plugin> pluginClass =
-                            (Class<? extends Plugin>) getClass(applicationInfo.metaData, key);
-                    if (pluginClass != null) {
-                        plugins.add(pluginClass.newInstance());
-                    }
-                } catch (Exception e) {
-                    PWLog.warn(TAG, "Failed to load plugin " + key, e);
+            if (!key.startsWith("com.pushwoosh.plugin.")) {
+                continue;
+            }
+
+            try {
+                //noinspection unchecked
+                Class<? extends Plugin> pluginClass = (Class<? extends Plugin>) getClass(applicationInfo.metaData, key);
+                if (pluginClass != null) {
+                    plugins.add(pluginClass.newInstance());
                 }
+            } catch (Exception e) {
+                PWLog.warn(TAG, "Failed to load plugin " + key, e);
             }
         }
         try {

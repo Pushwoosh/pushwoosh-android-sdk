@@ -20,7 +20,6 @@
         <item name="android:textColorPrimary">@color/pm_text_primary</item>
         <item name="android:textColorSecondary">@color/pm_text_secondary</item>
         <item name="android:textColorHint">@color/pm_text_tertiary</item>
-        <item name="android:fontFamily">sans-serif</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
@@ -28,8 +27,24 @@
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.PushMart.BottomSheet</item>
     </style>
 
+    <!-- M3 tints elevated surfaces with colorPrimary: pm_ink2 equals colorSurface in light and turned coral-pink. -->
     <style name="ThemeOverlay.PushMart.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.PushMart.BottomSheet</item>
+        <item name="elevationOverlayEnabled">false</item>
+    </style>
+
+    <style name="ThemeOverlay.PushMart.BottomSheet.Page">
+        <item name="bottomSheetStyle">@style/Widget.PushMart.BottomSheet.Page</item>
+    </style>
+
+    <style name="ThemeOverlay.PushMart.BottomSheet.Primer">
+        <item name="bottomSheetStyle">@style/Widget.PushMart.BottomSheet.Primer</item>
+    </style>
+
+    <!-- M3 dialogs sit on colorSurfaceContainerHigh, a lilac grey PushMart does not define. -->
+    <style name="ThemeOverlay.PushMart.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurfaceContainerHigh">@color/pm_surface</item>
+        <item name="elevationOverlayEnabled">false</item>
     </style>
 
     <style name="Widget.PushMart.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
@@ -37,9 +52,23 @@
         <item name="shapeAppearance">@style/ShapeAppearance.PushMart.Sheet</item>
     </style>
 
+    <style name="Widget.PushMart.BottomSheet.Page">
+        <item name="backgroundTint">@color/pm_ink</item>
+    </style>
+
+    <style name="Widget.PushMart.BottomSheet.Primer">
+        <item name="backgroundTint">@color/pm_surface</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.PushMart.Sheet.Card</item>
+    </style>
+
     <style name="ShapeAppearance.PushMart.Sheet" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSizeTopLeft">22dp</item>
-        <item name="cornerSizeTopRight">22dp</item>
+        <item name="cornerSizeTopLeft">@dimen/pm_radius_sheet</item>
+        <item name="cornerSizeTopRight">@dimen/pm_radius_sheet</item>
+    </style>
+
+    <style name="ShapeAppearance.PushMart.Sheet.Card">
+        <item name="cornerSizeTopLeft">@dimen/pm_radius_card</item>
+        <item name="cornerSizeTopRight">@dimen/pm_radius_card</item>
     </style>
 </resources>

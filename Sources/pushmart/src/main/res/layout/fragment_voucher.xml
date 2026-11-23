@@ -4,29 +4,23 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_voucher">
 
-    <ImageButton
-        android:id="@+id/close"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_gravity="top|end"
-        android:layout_margin="16dp"
-        android:background="@drawable/bg_circle_white_18"
-        android:contentDescription="Close"
-        android:padding="12dp"
-        android:src="@drawable/ic_close"
-        android:tint="@color/pm_white" />
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
+        android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="28dp">
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp">
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
         <ImageView
             android:layout_width="56dp"
             android:layout_height="56dp"
+            android:importantForAccessibility="no"
             android:src="@drawable/ic_ticket"
             android:tint="@color/pm_white" />
 
@@ -34,35 +28,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:fontFamily="sans-serif-black"
             android:gravity="center"
-            android:text="You've got a voucher"
+            android:text="@string/voucher_title"
+            android:textAppearance="@style/TextAppearance.PushMart.Display"
             android:textColor="@color/pm_white"
             android:textSize="30sp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:text="Use it at checkout before it expires."
-            android:textColor="@color/pm_white_85"
-            android:textSize="15sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="18dp"
             android:background="@drawable/bg_code_block"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="16dp">
+            android:paddingStart="18dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="16dp">
 
             <TextView
                 android:id="@+id/voucher_code"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:fontFamily="monospace"
                 android:textColor="@color/pm_white"
                 android:textSize="22sp"
@@ -72,25 +59,50 @@
                 android:id="@+id/copy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
                 android:background="@drawable/bg_pill_white"
                 android:paddingStart="14dp"
                 android:paddingTop="8dp"
                 android:paddingEnd="14dp"
                 android:paddingBottom="8dp"
-                android:text="COPY"
+                android:text="@string/voucher_copy"
+                android:textAppearance="@style/TextAppearance.PushMart.Label"
                 android:textColor="@color/pm_sale_magenta"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/shop_button"
             style="@style/Widget.PushMart.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginStart="28dp"
+            android:layout_marginEnd="28dp"
+            android:layout_marginBottom="20dp"
             android:background="@drawable/bg_pill_white"
-            android:text="Shop now"
-            android:textColor="@color/pm_sale_plum" />
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:text="@string/voucher_shop_now"
+            android:textAppearance="@style/TextAppearance.PushMart.Headline"
+            android:textColor="@color/pm_sale_plum"
+            android:textSize="17sp" />
     </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/close"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_circle_white_18"
+        android:contentDescription="@string/close"
+        android:padding="12dp"
+        android:src="@drawable/ic_close"
+        android:tint="@color/pm_white" />
 </FrameLayout>

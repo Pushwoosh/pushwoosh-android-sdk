@@ -1,100 +1,232 @@
 package com.pushwoosh.pushmart.catalog
 
 object Catalog {
-    val categories = listOf("All", "Sneakers", "Audio", "Watches", "Bags", "Tech")
-    val preferenceCategories = listOf("Sneakers", "Audio", "Watches", "Bags", "Tech")
+    val categories = listOf("All", "Outerwear", "Tops", "Jeans", "Dresses", "Skirts")
+    val preferenceCategories = listOf("Outerwear", "Tops", "Jeans", "Dresses", "Skirts")
 
     val all: List<Product> =
         listOf(
             Product(
-                id = "aeroknit",
-                name = "AeroKnit Runner",
-                brand = "PushMart Sport",
-                category = "Sneakers",
-                priceCents = 12900,
+                id = "outwear_01",
+                name = "Textured Coat",
+                brand = "PushMart",
+                category = "Outerwear",
+                priceCents = 12999,
+                tintArgb = 0xFFB08968.toInt(),
+                blurb =
+                    "Coat in a textured weave with front pockets, 3/4-length sleeves with sewn-in turn-ups, a vent at the back and no buttons. Unlined."),
+            Product(
+                id = "outwear_02",
+                name = "Linen Trenchcoat",
+                brand = "PushMart",
+                category = "Outerwear",
+                priceCents = 15999,
+                tintArgb = 0xFFB08968.toInt(),
+                blurb =
+                    "Trenchcoat in linen with decorative tied tabs at the cuffs, a slit in the sides, side pockets, no buttons and a detachable tie belt at the waist. Unlined."),
+            Product(
+                id = "outwear_03",
+                name = "Lyocell Trenchcoat",
+                brand = "PushMart",
+                category = "Outerwear",
+                priceCents = 14999,
+                tintArgb = 0xFFB08968.toInt(),
+                blurb =
+                    "Coat in washed twill made from lyocell with a low stand-up collar, detached yoke at the back and a diagonal zip and storm flap with a press-stud at the front. Angled flap pockets at the sides, a tie belt at the waist and a single back vent. Unlined."),
+            Product(
+                id = "outwear_04",
+                name = "Twill Jacket",
+                brand = "PushMart",
+                category = "Outerwear",
+                priceCents = 12499,
+                tintArgb = 0xFFB08968.toInt(),
+                blurb =
+                    "Jacket in soft, washed cotton twill with pockets at the front and side vents at the back. Unlined."),
+            Product(
+                id = "outwear_05",
+                name = "Short Coat",
+                brand = "PushMart",
+                category = "Outerwear",
+                priceCents = 17999,
+                tintArgb = 0xFFB08968.toInt(),
+                blurb =
+                    "Short coat in a textured weave with a contrasting colour section to the hem, long sleeves, side pockets and no buttons. Lined."),
+            Product(
+                id = "tops_01",
+                name = "Women's Stretch Slim Fit Polo",
+                brand = "PushMart",
+                category = "Tops",
+                priceCents = 2999,
+                tintArgb = 0xFFFF8A3D.toInt(),
+                blurb =
+                    "Our iconic polo style made from stretch cotton piqué gets a streamlined update with a slim fit. Wear it with dark-rinse denim or skinny black trousers for instant chic."),
+            Product(
+                id = "tops_02",
+                name = "Women's Linen Tee Shirt",
+                brand = "PushMart",
+                category = "Tops",
+                priceCents = 2799,
+                tintArgb = 0xFFFF8A3D.toInt(),
+                blurb =
+                    "Casual style and linen blend flamme jersey construction make this cool tee a sure shot. Pair it with skinny jeans from the collection for a kickin' summer look."),
+            Product(
+                id = "tops_03",
+                name = "Women's Jersey V-neck Tee Shirt",
+                brand = "PushMart",
+                category = "Tops",
+                priceCents = 2599,
+                tintArgb = 0xFFFF8A3D.toInt(),
+                blurb =
+                    "Some pieces are simply essential, and this V-neck tee in innovative ultra-soft cotton jersey is one of those. Stock up on your choice of colors to maximize your options."),
+            Product(
+                id = "tops_05",
+                name = "Women's Classic Fit Tee Shirt",
+                brand = "PushMart",
+                category = "Tops",
+                priceCents = 3499,
+                tintArgb = 0xFFFF8A3D.toInt(),
+                blurb = "So fresh and comfortable, you'll find a myriad of ways to wear it."),
+            Product(
+                id = "jeans_01",
+                name = "Skinny Low Ankle Jeans",
+                brand = "PushMart",
+                category = "Jeans",
+                priceCents = 5999,
+                tintArgb = 0xFF4A6FA5.toInt(),
+                blurb =
+                    "5-pocket, low-rise ankle-length jeans in washed superstretch denim with skinny legs with a zip at the hems."),
+            Product(
+                id = "jeans_02",
+                name = "Skinny Ankle Trashed Jeans",
+                brand = "PushMart",
+                category = "Jeans",
+                priceCents = 5499,
+                tintArgb = 0xFF4A6FA5.toInt(),
+                blurb =
+                    "5-pocket ankle-length jeans in washed stretch denim with hard-worn details, a regular waist and skinny legs with frayed edges around the hems."),
+            Product(
+                id = "jeans_03",
+                name = "Straight High Ankle Jeans",
+                brand = "PushMart",
+                category = "Jeans",
+                priceCents = 6499,
+                tintArgb = 0xFF4A6FA5.toInt(),
+                blurb =
+                    "5-pocket ankle-length jeans in washed stretch denim with a high waist and straight legs."),
+            Product(
+                id = "jeans_04",
+                name = "Slim Regular Ankle Jeans",
+                brand = "PushMart",
+                category = "Jeans",
+                priceCents = 6999,
+                tintArgb = 0xFF4A6FA5.toInt(),
+                blurb =
+                    "5-pocket ankle-length jeans in soft, washed superstretch denim with a regular waist and slim legs."),
+            Product(
+                id = "jeans_05",
+                name = "Skinny High Ankle Ripped Jeans",
+                brand = "PushMart",
+                category = "Jeans",
+                priceCents = 7999,
+                tintArgb = 0xFF4A6FA5.toInt(),
+                blurb =
+                    "Ankle-length jeans in washed stretch denim with a high waist, hard-worn details and ultra-slim legs."),
+            Product(
+                id = "dress_01",
+                name = "Ruffle Hem Shift Dress in Ponte",
+                brand = "PushMart",
+                category = "Dresses",
+                priceCents = 4499,
                 tintArgb = 0xFFFF5A5F.toInt(),
                 blurb =
-                    "Feather-light knit runners with a responsive foam sole built for all-day city miles.",
-                badge = "New"),
+                    "• Ponte fabric • Round neckline • Ruffle hemline • Regular fit- true to size • Machine wash • 72% Viscose, 24% Polyester, 4% Elastane"),
             Product(
-                id = "pulsebuds",
-                name = "Pulse Buds",
-                brand = "PushMart Audio",
-                category = "Audio",
-                priceCents = 18900,
-                tintArgb = 0xFFFF8A3D.toInt(),
-                blurb = "In-ear earphones with deep, punchy bass and a tangle-free cable."),
-            Product(
-                id = "chrono",
-                name = "Chrono S3",
-                brand = "PushMart Time",
-                category = "Watches",
-                priceCents = 24900,
-                tintArgb = 0xFF5AC8FA.toInt(),
+                id = "dress_02",
+                name = "Frill Front Mini Shirt Dress",
+                brand = "PushMart",
+                category = "Dresses",
+                priceCents = 4999,
+                tintArgb = 0xFFFF5A5F.toInt(),
                 blurb =
-                    "A slim chronograph with a sapphire crystal, rose-gold case and Italian leather strap.",
-                badge = "Drop"),
+                    "• Lightweight cotton • High neckline • Point collar • Neck tie • Frill detail to front • Regular fit - true to size • Machine wash • 100% Cotton"),
             Product(
-                id = "voyager",
-                name = "Voyager Rattan",
-                brand = "PushMart Goods",
-                category = "Bags",
-                priceCents = 15900,
+                id = "dress_03",
+                name = "Strappy Tiered Maxi Dress",
+                brand = "PushMart",
+                category = "Dresses",
+                priceCents = 5999,
+                tintArgb = 0xFFFF5A5F.toInt(),
+                blurb =
+                    "• Lightweight knitted fabric • V-neckline • Tiered design • Slim straps • Cross-over back • Ruffled trims • Self-tie waist belt • Machine wash • 52% Polyester, 48% Cotton"),
+            Product(
+                id = "dress_04",
+                name = "Plait Halter Sundress",
+                brand = "PushMart",
+                category = "Dresses",
+                priceCents = 3999,
+                tintArgb = 0xFFFF5A5F.toInt(),
+                blurb =
+                    "• Woven cotton • Halter neckline • Triangle cups • Plait-style straps • Stretch waist • Regular fit - true to size • Machine wash • 100% Cotton"),
+            Product(
+                id = "dress_05",
+                name = "Premium Embroidered Sundress",
+                brand = "PushMart",
+                category = "Dresses",
+                priceCents = 6999,
+                tintArgb = 0xFFFF5A5F.toInt(),
+                blurb =
+                    "• Crinkled woven fabric • Floral embroidery • Square neckline • Crochet straps • Lace-up back • Regular fit - true to size • Machine wash • 100% Viscose"),
+            Product(
+                id = "skirt_01",
+                name = "Mesh Midi Skirt",
+                brand = "PushMart",
+                category = "Skirts",
+                priceCents = 3999,
                 tintArgb = 0xFFAF7BFF.toInt(),
-                blurb = "Hand-woven rattan crossbody bag with a vegan-leather strap."),
+                blurb =
+                    "• Lightweight woven • High waist • Mesh panel • Stretch waistband • Regular fit- true to size • Machine wash • 100% Polyester"),
             Product(
-                id = "beacon",
-                name = "Beacon Speaker",
-                brand = "PushMart Audio",
-                category = "Audio",
-                priceCents = 9900,
-                tintArgb = 0xFF2BD98A.toInt(),
-                blurb = "Room-filling 360° sound in a rugged, splash-proof body."),
+                id = "skirt_02",
+                name = "High Waisted Denim Skirt",
+                brand = "PushMart",
+                category = "Skirts",
+                priceCents = 4499,
+                tintArgb = 0xFFAF7BFF.toInt(),
+                blurb =
+                    "• Pure-cotton denim • High-rise waistline • Button placket • Two pockets • Kick split • Regular fit - true to size • Machine wash • 100% Cotton"),
             Product(
-                id = "glide",
-                name = "Glide Low",
-                brand = "PushMart Sport",
-                category = "Sneakers",
-                priceCents = 10900,
-                tintArgb = 0xFFFFC24B.toInt(),
-                blurb = "Minimal court-inspired silhouette in a clean monochrome leather."),
+                id = "skirt_03",
+                name = "Tulle Prom Skirt with Multi Layers",
+                brand = "PushMart",
+                category = "Skirts",
+                priceCents = 6499,
+                tintArgb = 0xFFAF7BFF.toInt(),
+                blurb =
+                    "• Soft-touch woven fabric • Mesh overlay • Layered design for extreme volume • High fitted waistband • Zip back fastening • Hook and eye closure • Regular fit - true to size • Machine wash/Hand wash/Dry clean • 100% Polyester"),
             Product(
-                id = "orbit",
-                name = "Orbit Cable",
-                brand = "PushMart Tech",
-                category = "Tech",
-                priceCents = 4900,
-                tintArgb = 0xFFFF4D5E.toInt(),
-                blurb = "Braided fast-charge USB cable that coils away neatly in your bag.",
-                badge = "Deal"),
+                id = "skirt_04",
+                name = "Midi Pencil Skirt in Jersey",
+                brand = "PushMart",
+                category = "Skirts",
+                priceCents = 3599,
+                tintArgb = 0xFFAF7BFF.toInt(),
+                blurb =
+                    "• Soft-touch stretch jersey • Stretch waistband • Flattering high rise • Kick split • Close cut bodycon fit • Machine wash • 95% Cotton, 5% Elastane"),
             Product(
-                id = "lumen",
-                name = "Lumen Frames",
-                brand = "PushMart Tech",
-                category = "Tech",
-                priceCents = 21900,
-                tintArgb = 0xFF64D2FF.toInt(),
-                blurb = "Lightweight tortoiseshell frames with blue-light filtering lenses."),
-            Product(
-                id = "trail",
-                name = "Trail Pack 24L",
-                brand = "PushMart Goods",
-                category = "Bags",
-                priceCents = 13900,
-                tintArgb = 0xFF30D158.toInt(),
-                blurb = "Weatherproof daypack with a ventilated back panel and rain cover."),
-            Product(
-                id = "solo",
-                name = "Solo Field Watch",
-                brand = "PushMart Time",
-                category = "Watches",
-                priceCents = 17900,
-                tintArgb = 0xFFFF9F0A.toInt(),
-                blurb = "Analog field watch with a sapphire crystal and 100m water resistance."),
+                id = "skirt_05",
+                name = "Midi Skater Skirt in Jersey",
+                brand = "PushMart",
+                category = "Skirts",
+                priceCents = 3799,
+                tintArgb = 0xFFAF7BFF.toInt(),
+                blurb =
+                    "• Lightweight soft-touch jersey • Elasticated waistband • High-rise waist • Soft pleating • Regular fit - true to size • Machine wash • 95% Viscose, 5% Elastane"),
         )
 
     val featured: List<Product>
-        get() = all.take(6)
+        get() =
+            listOf("dress_04", "outwear_02", "tops_02", "jeans_01", "skirt_03", "dress_01")
+                .mapNotNull { byId(it) }
 
     private val index: Map<String, Product> = all.associateBy { it.id }
 

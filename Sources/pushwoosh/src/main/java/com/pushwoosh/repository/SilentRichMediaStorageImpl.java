@@ -18,7 +18,7 @@ import com.pushwoosh.notification.PushMessage;
  * Content is retrieved and shown when app moves to foreground.
  */
 public class SilentRichMediaStorageImpl extends SQLiteOpenHelper implements SilentRichMediaStorage {
-    private static final String TAG = SilentRichMediaStorageImpl.class.getSimpleName();
+    private static final String TAG = "SilentRichMediaStorageImpl";
     private static final String DB_NAME = "silentRichMediaStorage.db";
     private static final int VERSION = 2;
 

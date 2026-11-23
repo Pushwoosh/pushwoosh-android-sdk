@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LockScreenMediaStorageImpl extends SQLiteOpenHelper implements LockScreenMediaStorage {
-    private static final String TAG = DbLocalNotification.class.getSimpleName();
+    private static final String TAG = "LockScreenMediaStorageImpl";
     private static final String DB_NAME = "lockScreenRichMediaResources.db";
     private static final int VERSION = 2;
 

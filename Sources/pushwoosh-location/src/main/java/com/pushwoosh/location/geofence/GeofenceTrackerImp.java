@@ -221,36 +221,38 @@ final class GeofenceTrackerImp implements GeofenceTracker {
     }
 
     private void enterToGeofence(final List<GeoZone> pushZones, Callback<Boolean, PushwooshException> callback) {
+        if (pushZones.isEmpty()) {
+            return;
+        }
+
+        if (locationTracker == null) {
+            callback.process(Result.fromData(false));
+            return;
+        }
+
         // if user enter to geofence zone and distance to this geozone less than needed range
         // Start updating location more intensive to getting location which require to this zone
-        if (!pushZones.isEmpty()) {
-            if (locationTracker == null) {
-                callback.process(Result.fromData(false));
-                return;
+        locationTracker.getLocation(location -> {
+            boolean needUpdateLocationFaster = false;
+            boolean requestUpdates = false;
+            for (GeoZone geoZone : pushZones) {
+                if (geoZone.distanceTo(location) > geoZone.getRange()) {
+                    needUpdateLocationFaster = true;
+
+                    if (!geoZone.equals(mRadiusZone)) {
+                        pushGeoZones.add(geoZone);
+                    }
+                } else {
+                    requestUpdates = true;
+                }
             }
 
-            locationTracker.getLocation(location -> {
-                boolean needUpdateLocationFaster = false;
-                boolean requestUpdates = false;
-                for (GeoZone geoZone : pushZones) {
-                    if (geoZone.distanceTo(location) > geoZone.getRange()) {
-                        needUpdateLocationFaster = true;
+            if (needUpdateLocationFaster && fineLocationPermissionChecker.check()) {
+                locationTracker.requestLocationUpdates(true);
+            }
 
-                        if (!geoZone.equals(mRadiusZone)) {
-                            pushGeoZones.add(geoZone);
-                        }
-                    } else {
-                        requestUpdates = true;
-                    }
-                }
-
-                if (needUpdateLocationFaster && fineLocationPermissionChecker.check()) {
-                    locationTracker.requestLocationUpdates(true);
-                }
-
-                callback.process(Result.fromData(requestUpdates));
-            });
-        }
+            callback.process(Result.fromData(requestUpdates));
+        });
     }
 
     @Nullable private GeoZone getGeoZoneById(final String zoneId) {

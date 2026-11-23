@@ -205,18 +205,19 @@ public class LocalNotificationRequest implements Serializable {
             return;
         }
         DbLocalNotification dbLocalNotification = storage.getLocalNotificationShown(requestId);
-        if (dbLocalNotification != null) {
-            int notificationId = dbLocalNotification.getNotificationId();
-            String notificationTag = dbLocalNotification.getNotificationTag();
-            android.app.NotificationManager manager =
-                    AndroidPlatformModule.getManagerProvider().getNotificationManager();
-
-            if (manager == null) {
-                return;
-            }
-
-            manager.cancel(notificationTag, notificationId);
+        if (dbLocalNotification == null) {
+            return;
         }
+        int notificationId = dbLocalNotification.getNotificationId();
+        String notificationTag = dbLocalNotification.getNotificationTag();
+        android.app.NotificationManager manager =
+                AndroidPlatformModule.getManagerProvider().getNotificationManager();
+
+        if (manager == null) {
+            return;
+        }
+
+        manager.cancel(notificationTag, notificationId);
     }
 
     /**

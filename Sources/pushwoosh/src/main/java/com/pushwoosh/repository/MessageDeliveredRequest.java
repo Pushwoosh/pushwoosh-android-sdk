@@ -26,6 +26,7 @@
 
 package com.pushwoosh.repository;
 
+import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.network.PushRequest;
 
@@ -33,33 +34,47 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MessageDeliveredRequest extends PushRequest<Void> {
-	private final String hash;
-	private final String metaData;
+    private final String hash;
+    private final String metaData;
 
-	public MessageDeliveredRequest(String hash, String metaData) {
-		this.hash = hash;
-		this.metaData = metaData;
-	}
+    @Nullable private final Long timestampUtcSeconds;
 
-	public String getMethod() {
-		return "messageDeliveryEvent";
-	}
+    public MessageDeliveredRequest(String hash, String metaData) {
+        this(hash, metaData, null);
+    }
 
-	public String getHash() {
-		return hash;
-	}
+    public MessageDeliveredRequest(String hash, String metaData, @Nullable Long timestampUtcSeconds) {
+        this.hash = hash;
+        this.metaData = metaData;
+        this.timestampUtcSeconds = timestampUtcSeconds;
+    }
 
-	public String getMetaData() {
-		return metaData;
-	}
+    public String getMethod() {
+        return "messageDeliveryEvent";
+    }
 
-	@Override
-	protected void buildParams(JSONObject params) throws JSONException {
-		if (hash != null) {
-			params.put("hash", hash);
-		}
-		if (metaData != null) {
-			params.put("metaData", metaData);
-		}
-	}
+    public String getHash() {
+        return hash;
+    }
+
+    public String getMetaData() {
+        return metaData;
+    }
+
+    @Nullable public Long getTimestampUtcSeconds() {
+        return timestampUtcSeconds;
+    }
+
+    @Override
+    protected void buildParams(JSONObject params) throws JSONException {
+        if (hash != null) {
+            params.put("hash", hash);
+        }
+        if (metaData != null) {
+            params.put("metaData", metaData);
+        }
+        if (timestampUtcSeconds != null) {
+            params.put("timestampUTC", timestampUtcSeconds.longValue());
+        }
+    }
 }

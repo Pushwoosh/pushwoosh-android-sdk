@@ -1,15 +1,19 @@
 package com.pushwoosh.pushmart.ui.inapp
 
+import androidx.annotation.StringRes
+import com.pushwoosh.pushmart.R
+
 /**
  * Local native in-app configs for the showcase, in the exact shape
  * [com.pushwoosh.inapp.ui.parser.InAppConfigParser] accepts (see demoapp's `InAppPresets` for the
  * reference form). Images are module drawables addressed as
  * `android.resource://<package>/drawable/<name>`, so every preset renders offline; only the video
  * clip is fetched over https. The parser is fail-closed — `InAppPresetsTest` feeds every preset
- * through it in both color schemes.
+ * through it in both color schemes. The copy is PushMart fashion copy: product links and photos
+ * point at `Catalog` products, as iOS `InAppDemoConfigs` links do.
  */
 class InAppPresets(private val packageName: String) {
-    data class Preset(val id: String, val label: String, val config: Map<String, Any?>)
+    data class Preset(val id: String, @StringRes val label: Int, val config: Map<String, Any?>)
 
     private fun drawable(name: String): String = "android.resource://$packageName/drawable/$name"
 
@@ -39,7 +43,7 @@ class InAppPresets(private val packageName: String) {
     val modal =
         Preset(
             "pushmart-modal",
-            "Modal",
+            R.string.inapp_preset_modal,
             mapOf(
                 "displayType" to "modal",
                 "inAppId" to "pushmart-modal",
@@ -48,11 +52,11 @@ class InAppPresets(private val packageName: String) {
                         "showClose" to true,
                         "dimBackground" to true,
                         "background" to SURFACE,
-                        "image" to drawable("product_lumen_square"),
+                        "image" to drawable("product_outwear_02"),
                         "title" to text("Members save 20% today", INK),
                         "message" to
                             text(
-                                "Lumen Frames and the whole catalog. The discount lands at checkout.",
+                                "Trenchcoats and the whole catalog. The discount lands at checkout.",
                                 SECONDARY),
                         "buttons" to
                             listOf(
@@ -68,7 +72,7 @@ class InAppPresets(private val packageName: String) {
                         "dark" to
                             mapOf(
                                 "background" to "#16161AFF",
-                                "image" to drawable("product_beacon"),
+                                "image" to drawable("product_outwear_03"),
                                 "title" to mapOf("color" to "#F2F2F7FF"),
                                 "message" to mapOf("color" to "#B8B8C0FF"),
                                 "buttons" to
@@ -92,7 +96,7 @@ class InAppPresets(private val packageName: String) {
     val modalFloating =
         Preset(
             "pushmart-modal-floating",
-            "Modal floating",
+            R.string.inapp_preset_modal_floating,
             mapOf(
                 "displayType" to "modal",
                 "inAppId" to "pushmart-modal-floating",
@@ -101,20 +105,21 @@ class InAppPresets(private val packageName: String) {
                         "showClose" to true,
                         "dimBackground" to false,
                         "background" to INK,
+                        "image" to drawable("product_dress_04"),
                         "title" to text("Price drop on your wishlist", SURFACE),
                         "message" to
                             text(
-                                "Chrono S3 just dropped 15%. This card floats, the shop stays tappable.",
+                                "Plait Halter Sundress just dropped 15%. This card floats, the shop stays tappable.",
                                 "#FFFFFFA6"),
                         "buttons" to
                             listOf(
                                 button(
-                                    "View Chrono S3",
+                                    "View the sundress",
                                     INK,
                                     TANGERINE,
                                     TANGERINE,
                                     20,
-                                    url("pushwoosh://product/chrono"))),
+                                    url("pushwoosh://product/dress_04"))),
                     ),
             ))
 
@@ -122,7 +127,7 @@ class InAppPresets(private val packageName: String) {
     val sheet =
         Preset(
             "pushmart-sheet",
-            "Sheet",
+            R.string.inapp_preset_sheet,
             mapOf(
                 "displayType" to "sheet",
                 "inAppId" to "pushmart-sheet",
@@ -131,21 +136,21 @@ class InAppPresets(private val packageName: String) {
                         "showClose" to true,
                         "dimBackground" to true,
                         "background" to SURFACE,
-                        "image" to drawable("product_aeroknit"),
+                        "image" to drawable("product_jeans_01"),
                         "title" to text("Your size is back", INK),
                         "message" to
                             text(
-                                "AeroKnit Runner in 42 is in stock again. It will not last.",
+                                "Skinny Low Ankle Jeans are in stock again in your size. They will not last.",
                                 SECONDARY),
                         "buttons" to
                             listOf(
                                 button(
-                                    "See the runner",
+                                    "See the jeans",
                                     INK,
                                     CORAL,
                                     CORAL,
                                     12,
-                                    url("pushwoosh://product/aeroknit")),
+                                    url("pushwoosh://product/jeans_01")),
                                 button("Not now", CORAL, SURFACE, CORAL, 12, close),
                             ),
                     ),
@@ -155,7 +160,7 @@ class InAppPresets(private val packageName: String) {
     val sheetFloating =
         Preset(
             "pushmart-sheet-floating",
-            "Sheet floating",
+            R.string.inapp_preset_sheet_floating,
             mapOf(
                 "displayType" to "sheet",
                 "inAppId" to "pushmart-sheet-floating",
@@ -164,20 +169,20 @@ class InAppPresets(private val packageName: String) {
                         "showClose" to false,
                         "dimBackground" to false,
                         "background" to INK,
-                        "title" to text("Free shipping unlocked", SURFACE),
+                        "title" to text("New arrivals are in", SURFACE),
                         "message" to
                             text(
-                                "Orders over \$50 ship free this week. Swipe down to dismiss.",
+                                "Fresh picks landed in the shop this week. Swipe down to dismiss.",
                                 "#FFFFFFA6"),
                         "buttons" to listOf(button("Got it", INK, TANGERINE, TANGERINE, 20, close)),
                     ),
             ))
 
-    /** Carousel mixing square, landscape and portrait covers; the last slide is image-only. */
+    /** Carousel of drop photos linking catalog products; the last slide is image-only. */
     val carousel =
         Preset(
             "pushmart-carousel",
-            "Carousel",
+            R.string.inapp_preset_carousel,
             mapOf(
                 "displayType" to "carousel",
                 "inAppId" to "pushmart-carousel",
@@ -187,33 +192,33 @@ class InAppPresets(private val packageName: String) {
                         "items" to
                             listOf(
                                 mapOf(
-                                    "image" to drawable("product_lumen_square"),
-                                    "title" to text("New: Lumen Frames", SURFACE),
-                                    "message" to text("Titanium, three tints", SURFACE),
-                                    "action" to url("pushwoosh://product/lumen"),
+                                    "image" to drawable("drop_trench"),
+                                    "title" to text("Linen Trenchcoat", SURFACE),
+                                    "message" to text("Just landed in Outerwear", SURFACE),
+                                    "action" to url("pushwoosh://product/outwear_02"),
                                 ),
                                 mapOf(
-                                    "image" to drawable("product_trail"),
-                                    "title" to text("Trail Pack 24L", SURFACE),
-                                    "message" to text("Built for weekend routes", SURFACE),
-                                    "action" to url("pushwoosh://product/trail"),
+                                    "image" to drawable("drop_sundress"),
+                                    "title" to text("Plait Halter Sundress", SURFACE),
+                                    "message" to text("Made for warm afternoons", SURFACE),
+                                    "action" to url("pushwoosh://product/dress_04"),
                                 ),
                                 mapOf(
-                                    "image" to drawable("product_orbit_portrait"),
-                                    "title" to text("Orbit Cable", SURFACE),
-                                    "message" to text("Braided, 2 m, any port", SURFACE),
-                                    "action" to url("pushwoosh://product/orbit"),
+                                    "image" to drawable("drop_jeans"),
+                                    "title" to text("Skinny Low Ankle Jeans", SURFACE),
+                                    "message" to text("Your everyday denim", SURFACE),
+                                    "action" to url("pushwoosh://product/jeans_01"),
                                 ),
-                                mapOf("image" to drawable("product_voyager")),
+                                mapOf("image" to drawable("product_tops_02")),
                             ),
                     ),
             ))
 
-    /** Stories on portrait covers, per-frame duration, one frame without buttons. */
+    /** Stories on portrait drop photos with a per-frame duration and one button per frame. */
     val stories =
         Preset(
             "pushmart-stories",
-            "Stories",
+            R.string.inapp_preset_stories,
             mapOf(
                 "displayType" to "stories",
                 "inAppId" to "pushmart-stories",
@@ -224,44 +229,60 @@ class InAppPresets(private val packageName: String) {
                         "items" to
                             listOf(
                                 mapOf(
-                                    "image" to drawable("product_orbit_portrait"),
+                                    "image" to drawable("drop_tee"),
                                     "title" to text("Drop 01", SURFACE),
                                     "message" to text("Three new arrivals this week", SURFACE),
                                     "duration" to 4,
                                     "buttons" to
-                                        listOf(button("Next", SURFACE, INK, INK, 26, close)),
+                                        listOf(
+                                            button(
+                                                "See the Linen Trenchcoat",
+                                                SURFACE,
+                                                INK,
+                                                INK,
+                                                26,
+                                                url("pushwoosh://product/outwear_02"))),
                                 ),
                                 mapOf(
-                                    "image" to drawable("product_lumen_square"),
-                                    "title" to text("Lumen Frames", SURFACE),
-                                    "message" to text("Lightweight titanium", SURFACE),
-                                    "duration" to 4,
-                                    "buttons" to emptyList<Any>(),
-                                ),
-                                mapOf(
-                                    "image" to drawable("product_orbit_portrait"),
-                                    "title" to text("Orbit Cable", SURFACE),
-                                    "message" to text("Braided, 2 m, any port", SURFACE),
+                                    "image" to drawable("drop_sundress"),
+                                    "title" to text("The summer sale", SURFACE),
+                                    "message" to text("Sundresses and more, marked down", SURFACE),
                                     "duration" to 4,
                                     "buttons" to
                                         listOf(
                                             button(
-                                                "Shop the drop",
+                                                "Shop the sale",
                                                 SURFACE,
                                                 INK,
                                                 INK,
                                                 26,
                                                 url("pushwoosh://sale"))),
                                 ),
+                                mapOf(
+                                    "image" to drawable("drop_trench"),
+                                    "title" to text("The denim edit", SURFACE),
+                                    "message" to
+                                        text("Skinny Low Ankle Jeans, back in stock", SURFACE),
+                                    "duration" to 4,
+                                    "buttons" to
+                                        listOf(
+                                            button(
+                                                "See the jeans",
+                                                SURFACE,
+                                                INK,
+                                                INK,
+                                                26,
+                                                url("pushwoosh://product/jeans_01"))),
+                                ),
                             ),
                     ),
             ))
 
-    /** Top banner with a landscape thumbnail, tap-through to the sale, auto-dismiss after 6 s. */
+    /** Top banner with a product thumbnail, tap-through to the product, auto-dismiss after 6 s. */
     val banner =
         Preset(
             "pushmart-banner",
-            "Banner",
+            R.string.inapp_preset_banner,
             mapOf(
                 "displayType" to "banner",
                 "inAppId" to "pushmart-banner",
@@ -270,32 +291,28 @@ class InAppPresets(private val packageName: String) {
                         "showClose" to true,
                         "position" to "top",
                         "background" to CORAL,
-                        "image" to drawable("product_glide"),
-                        "title" to text("Flash sale is live", INK),
-                        "message" to text("Up to 40% off for the next 3 hours", "#0B0B10D9"),
-                        "action" to url("pushwoosh://sale"),
+                        "image" to drawable("product_outwear_02"),
+                        "title" to text("Back in stock: Linen Trenchcoat", INK),
+                        "message" to text("Tap to see it before it sells out", "#0B0B10D9"),
+                        "action" to url("pushwoosh://product/outwear_02"),
                         "autoDismiss" to 6,
                     ),
             ))
 
-    /** Fullscreen with a portrait cover over an ink background. */
+    /** Fullscreen with a portrait drop photo over an ink background. */
     val fullscreen =
         Preset(
             "pushmart-fullscreen",
-            "Fullscreen",
+            R.string.inapp_preset_fullscreen,
             mapOf(
                 "displayType" to "fullscreen",
                 "inAppId" to "pushmart-fullscreen",
                 "fullscreen" to
                     mapOf(
                         "showClose" to true,
-                        "cover" to
-                            mapOf(
-                                "image" to drawable("product_orbit_portrait"), "background" to INK),
+                        "cover" to mapOf("image" to drawable("drop_trench"), "background" to INK),
                         "title" to text("PushMart Plus", SURFACE),
-                        "message" to
-                            text(
-                                "Early access to drops, free returns, member prices.", "#FFFFFFD9"),
+                        "message" to text("Early access to drops and member prices.", "#FFFFFFD9"),
                         "buttons" to
                             listOf(
                                 button(
@@ -314,7 +331,7 @@ class InAppPresets(private val packageName: String) {
     val video =
         Preset(
             "pushmart-video",
-            "Video",
+            R.string.inapp_preset_video,
             mapOf(
                 "displayType" to "video",
                 "inAppId" to "pushmart-video",
@@ -325,19 +342,19 @@ class InAppPresets(private val packageName: String) {
                         "muted" to true,
                         "url" to
                             "https://videos.pexels.com/video-files/854745/854745-hd_1280_720_50fps.mp4",
-                        "poster" to drawable("product_voyager"),
-                        "fallback" to drawable("product_voyager"),
-                        "title" to text("Voyager Rattan, in motion", SURFACE),
-                        "message" to text("See the weave before you buy.", "#FFFFFFD9"),
+                        "poster" to drawable("drop_trench"),
+                        "fallback" to drawable("drop_trench"),
+                        "title" to text("The new season, in motion", SURFACE),
+                        "message" to text("Watch the edit move before anyone else.", "#FFFFFFD9"),
                         "buttons" to
                             listOf(
                                 button(
-                                    "Shop Voyager",
+                                    "Shop the sale",
                                     INK,
                                     CORAL,
                                     CORAL,
                                     14,
-                                    url("pushwoosh://product/voyager"))),
+                                    url("pushwoosh://sale"))),
                     ),
             ))
 

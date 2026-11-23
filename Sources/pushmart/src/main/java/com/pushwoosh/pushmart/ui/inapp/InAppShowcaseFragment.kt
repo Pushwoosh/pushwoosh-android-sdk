@@ -10,6 +10,10 @@ import com.pushwoosh.pushmart.R
 import com.pushwoosh.pushmart.databinding.FragmentInappShowcaseBinding
 import com.pushwoosh.pushmart.databinding.ViewShowcaseButtonBinding
 
+/**
+ * Profile > Native in-apps, as iOS `InAppMessagesView`: one button per local preset, presented
+ * straight over this screen.
+ */
 class InAppShowcaseFragment : Fragment(R.layout.fragment_inapp_showcase) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val binding = FragmentInappShowcaseBinding.bind(view)
@@ -18,8 +22,7 @@ class InAppShowcaseFragment : Fragment(R.layout.fragment_inapp_showcase) {
         val presets = InAppPresets(requireContext().packageName)
         for (preset in presets.all) {
             val button = ViewShowcaseButtonBinding.inflate(inflater, binding.buttons, false).root
-            button.text = preset.label
-            button.contentDescription = "Show ${preset.label}"
+            button.setText(preset.label)
             button.setOnClickListener { PushwooshInAppUi.present(preset.config) }
             binding.buttons.addView(button)
         }

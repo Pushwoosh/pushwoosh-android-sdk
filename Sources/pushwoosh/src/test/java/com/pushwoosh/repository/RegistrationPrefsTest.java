@@ -313,15 +313,152 @@ public class RegistrationPrefsTest {
         assertEquals(12345L, (long) prefs.lastPushRegistration().get());
     }
 
-    // setLanguage(null) is a no-op.
+    // setLanguage(null) reverts to the device locale, as the public Javadoc promises.
     @Test
-    public void setLanguage_null_isNoOp() {
+    public void setLanguage_null_revertsToDeviceLocale() {
+        Locale.setDefault(Locale.FRENCH);
+        Config config = MockConfig.createMock("APP");
+        when(config.isCollectingDeviceLocaleAllowed()).thenReturn(true);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
+        registrationPrefs.language().set("de");
+
+        registrationPrefs.setLanguage(null);
+
+        assertThat(registrationPrefs.language().get(), is(equalTo("fr")));
+    }
+
+    // setLanguage(null) must not store a snapshot of the locale: a later device-language change,
+    // seen by re-created prefs over the same storage, wins again.
+    @Test
+    public void setLanguage_null_thenLocaleChange_recreatedPrefsFollowDevice() {
+        Locale.setDefault(Locale.FRENCH);
+        Config config = MockConfig.createMock("APP");
+        when(config.isCollectingDeviceLocaleAllowed()).thenReturn(true);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
+        registrationPrefs.setLanguage("es");
+        registrationPrefs.setLanguage(null);
+
+        Locale.setDefault(Locale.GERMAN);
+        RegistrationPrefs recreated = new RegistrationPrefs(config);
+
+        assertThat(recreated.language().get(), is(equalTo("de")));
+    }
+
+    // setLanguage(null) with locale collection disabled falls back to "en", not the device locale.
+    @Test
+    public void setLanguage_null_localeCollectionDisabled_fallsBackToEnglish() {
+        Locale.setDefault(Locale.FRENCH);
+        Config config = MockConfig.createMock("APP");
+        when(config.isCollectingDeviceLocaleAllowed()).thenReturn(false);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
+        registrationPrefs.language().set("de");
+
+        registrationPrefs.setLanguage(null);
+
+        assertThat(registrationPrefs.language().get(), is(equalTo("en")));
+    }
+
+    @Test
+    public void setLocale_trimsWhitespaceAndReportsChange() {
         RegistrationPrefs prefs = createWithAppId("APP");
-        prefs.language().set("fr");
 
-        prefs.setLanguage(null);
+        assertThat(prefs.setLocale("  es-419  "), is(true));
+        assertThat(prefs.localeForRequest(), is(equalTo("es-419")));
+    }
 
-        assertThat(prefs.language().get(), is(equalTo("fr")));
+    @Test
+    public void setLocale_sameValueAfterTrim_reportsNoChange() {
+        RegistrationPrefs prefs = createWithAppId("APP");
+        prefs.setLocale("es-419");
+
+        assertThat(prefs.setLocale("  es-419  "), is(false));
+    }
+
+    @Test
+    public void setLocale_blankString_behavesAsNull() {
+        Locale.setDefault(new Locale.Builder().setLanguage("pt").setRegion("BR").build());
+        RegistrationPrefs prefs = createWithAppId("APP");
+        prefs.setLocale("es-419");
+
+        assertThat(prefs.setLocale("   "), is(true));
+        assertThat(prefs.localeForRequest(), is(equalTo("pt-BR")));
+    }
+
+    @Test
+    public void setLocale_null_clearsStoredLocaleAndReportsChange() {
+        Locale.setDefault(new Locale.Builder().setLanguage("pt").setRegion("BR").build());
+        RegistrationPrefs prefs = createWithAppId("APP");
+        prefs.setLocale("es-419");
+
+        assertThat(prefs.setLocale(null), is(true));
+        assertThat(prefs.localeForRequest(), is(equalTo("pt-BR")));
+    }
+
+    @Test
+    public void setLocale_nullWithoutStoredLocale_reportsNoChange() {
+        RegistrationPrefs prefs = createWithAppId("APP");
+
+        assertThat(prefs.setLocale(null), is(false));
+    }
+
+    @Test
+    public void localeForRequest_noManualLocale_returnsFullDeviceTag() {
+        Locale.setDefault(new Locale.Builder().setLanguage("pt").setRegion("BR").build());
+        RegistrationPrefs prefs = createWithAppId("APP");
+
+        assertThat(prefs.localeForRequest(), is(equalTo("pt-BR")));
+    }
+
+    @Test
+    public void localeForRequest_deviceLocaleWithUnicodeExtensions_stripsThemKeepingScriptAndRegion() {
+        Locale.setDefault(Locale.forLanguageTag("zh-Hant-TW-u-fw-mon-mu-celsius"));
+        RegistrationPrefs prefs = createWithAppId("APP");
+
+        assertThat(prefs.localeForRequest(), is(equalTo("zh-Hant-TW")));
+    }
+
+    // A region-less device locale must still yield a usable tag.
+    @Test
+    public void localeForRequest_deviceLocaleWithoutRegion_returnsLanguageOnly() {
+        Locale.setDefault(Locale.ENGLISH);
+        RegistrationPrefs prefs = createWithAppId("APP");
+
+        assertThat(prefs.localeForRequest(), is(equalTo("en")));
+    }
+
+    @Test
+    public void localeForRequest_noManualLocale_followsDeviceLocaleChange() {
+        Locale.setDefault(new Locale.Builder().setLanguage("pt").setRegion("BR").build());
+        RegistrationPrefs prefs = createWithAppId("APP");
+
+        Locale.setDefault(
+                new Locale.Builder().setLanguage("es").setRegion("419").build());
+
+        assertThat(prefs.localeForRequest(), is(equalTo("es-419")));
+    }
+
+    // The manual locale must survive a process restart.
+    @Test
+    public void setLocale_survivesRegistrationPrefsRecreation() {
+        RegistrationPrefs prefs = createWithAppId("APP");
+        prefs.setLocale("es-419");
+        RepositoryModule.setRegistrationPreferences(null);
+
+        registrationPrefs = new RegistrationPrefs(MockConfig.createMock("APP"));
+
+        assertThat(registrationPrefs.localeForRequest(), is(equalTo("es-419")));
+    }
+
+    @Test
+    public void setLocale_doesNotTouchLanguage() {
+        Locale.setDefault(new Locale.Builder().setLanguage("pt").setRegion("BR").build());
+        Config config = MockConfig.createMock("APP");
+        when(config.isCollectingDeviceLocaleAllowed()).thenReturn(true);
+        registrationPrefs = RepositoryTestManager.createRegistrationPrefs(config);
+
+        registrationPrefs.setLocale("es-419");
+
+        assertThat(registrationPrefs.language().get(), is(equalTo("pt")));
     }
 
     // setApiToken with non-null value overwrites stored apiToken.

@@ -2,8 +2,11 @@ package com.pushwoosh.pushmart.ui.inapp
 
 import com.pushwoosh.inapp.ui.model.InAppLayout
 import com.pushwoosh.inapp.ui.parser.InAppConfigParser
+import com.pushwoosh.pushmart.BuildConfig
+import com.pushwoosh.pushmart.catalog.Catalog
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -14,7 +17,7 @@ import org.robolectric.RuntimeEnvironment
 
 @RunWith(RobolectricTestRunner::class)
 class InAppPresetsTest {
-    private val packageName = "com.pushwoosh.pushmart"
+    private val packageName = BuildConfig.APPLICATION_ID
     private val presets = InAppPresets(packageName)
     private val localPrefix = "android.resource://$packageName/drawable/"
 
@@ -69,16 +72,41 @@ class InAppPresetsTest {
     }
 
     @Test
-    fun aspectRatiosAreSpread() {
-        assertTrue(mediaUrls(presets.modal.config).any { it.endsWith("product_lumen_square") })
-        assertTrue(mediaUrls(presets.stories.config).any { it.endsWith("product_orbit_portrait") })
-        assertTrue(
-            mediaUrls(presets.fullscreen.config).any { it.endsWith("product_orbit_portrait") })
-        val carousel = mediaUrls(presets.carousel.config)
-        assertTrue(carousel.any { it.endsWith("_square") })
-        assertTrue(carousel.any { it.endsWith("_portrait") })
-        assertTrue(carousel.any { !it.endsWith("_square") && !it.endsWith("_portrait") })
+    fun presetsUseCatalogPhotos() {
+        val local = { config: Map<String, Any?> ->
+            mediaUrls(config)
+                .filter { it.startsWith(localPrefix) }
+                .map { it.removePrefix(localPrefix) }
+        }
+        for (name in presets.all.flatMap { local(it.config) }) {
+            val catalogPhoto =
+                name.startsWith("product_") && Catalog.byId(name.removePrefix("product_")) != null
+            assertTrue(name, catalogPhoto || name.startsWith("drop_"))
+        }
+        val carousel = local(presets.carousel.config)
+        assertTrue(carousel.any { it.startsWith("product_") })
+        assertTrue(carousel.any { it.startsWith("drop_") })
+
+        val texts = presets.all.flatMap { strings(it.config) }
+        val productLinks = texts.filter { it.startsWith(PRODUCT_LINK) }
+        assertTrue(productLinks.isNotEmpty())
+        for (link in productLinks) {
+            assertNotNull(link, Catalog.byId(link.removePrefix(PRODUCT_LINK)))
+        }
+        for (text in texts) {
+            for (gadget in REMOVED_GADGETS) {
+                assertFalse(text, text.contains(gadget, ignoreCase = true))
+            }
+        }
     }
+
+    private fun strings(node: Any?): List<String> =
+        when (node) {
+            is String -> listOf(node)
+            is Map<*, *> -> node.values.flatMap { strings(it) }
+            is List<*> -> node.flatMap { strings(it) }
+            else -> emptyList()
+        }
 
     /**
      * Collects image/poster/fallback/video urls; action objects also carry a `url` key (deep links)
@@ -99,5 +127,8 @@ class InAppPresetsTest {
 
     companion object {
         private val MEDIA_KEYS = setOf("image", "poster", "fallback", "url")
+        private const val PRODUCT_LINK = "pushwoosh://product/"
+        private val REMOVED_GADGETS =
+            listOf("Lumen", "Chrono", "AeroKnit", "Orbit", "Trail", "Voyager", "Beacon", "Glide")
     }
 }

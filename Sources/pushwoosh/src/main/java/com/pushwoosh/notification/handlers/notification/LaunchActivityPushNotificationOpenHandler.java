@@ -55,20 +55,24 @@ class LaunchActivityPushNotificationOpenHandler implements PushNotificationOpenH
         }
 
         String packageName = (String) pushBundle.get("launch");
-        if (packageName != null) {
-            Intent launchIntent = null;
-            try {
-                PackageManager packageManager =
-                        AndroidPlatformModule.getManagerProvider().getPackageManager();
-                launchIntent = packageManager == null ? null : packageManager.getLaunchIntentForPackage(packageName);
-            } catch (Exception e) {
-                PWLog.error("Application not found", e);
-            }
-
-            if (launchIntent != null) {
-                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                applicationContext.startActivity(launchIntent);
-            }
+        if (packageName == null) {
+            return;
         }
+
+        Intent launchIntent = null;
+        try {
+            PackageManager packageManager =
+                    AndroidPlatformModule.getManagerProvider().getPackageManager();
+            launchIntent = packageManager == null ? null : packageManager.getLaunchIntentForPackage(packageName);
+        } catch (Exception e) {
+            PWLog.error("Application not found", e);
+        }
+
+        if (launchIntent == null) {
+            return;
+        }
+
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        applicationContext.startActivity(launchIntent);
     }
 }

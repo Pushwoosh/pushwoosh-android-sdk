@@ -41,6 +41,7 @@ import com.bumptech.glide.Glide
 import com.pushwoosh.inbox.PushwooshInbox
 import com.pushwoosh.inbox.data.InboxMessage
 import com.pushwoosh.inbox.ui.InboxCarouselSlide
+import com.pushwoosh.inbox.ui.PushwooshInboxUi
 import com.pushwoosh.inbox.ui.R
 import com.pushwoosh.inbox.ui.presentation.view.style.ColorSchemeProvider
 import kotlin.math.abs
@@ -48,7 +49,8 @@ import kotlin.math.abs
 /**
  * Carousel rich card: a swipeable gallery of slides with page dots, over the
  * message title / body. Mirrors the iOS PushwooshInboxKit carousel cell —
- * tapping a slide opens the slide's own url, and a slide without one falls
+ * tapping a slide opens the slide's own url even when the message carries an
+ * action, and a slide without one, or with one that cannot be opened, falls
  * through to the message's default row action. The text block collapses when
  * the message carries neither title nor body (pure gallery).
  */
@@ -253,12 +255,11 @@ class CarouselInboxViewHolder(adapter: InboxAdapter,
             itemView.setOnClickListener {
                 val model = message ?: return@setOnClickListener
                 val url = slide.url
-                if (url != null && !model.carriesMessageAction()) {
-                    // Not performAction: the slide has its own URL and the message carries no l/rm.
+                if (url != null && openCardUrl(url)) {
+                    // Not performAction: the slide's own URL wins over the message l/rm, which stays the fallback.
                     PushwooshInbox.markMessageOpened(model.code)
-                    openCardUrl(url)
+                    PushwooshInboxUi.onMessageClickListener?.onInboxMessageClick(model)
                 } else {
-                    // No destination of its own, or the message's l/rm wins — behave like a tap on the card.
                     this@CarouselInboxViewHolder.itemView.performClick()
                 }
             }

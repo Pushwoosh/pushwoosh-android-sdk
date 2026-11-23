@@ -99,23 +99,25 @@ public class GeofenceReceiver extends BroadcastReceiver {
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
 
         // Test that the reported transition was of interest.
-        if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER
-                || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-            List<String> ids = new ArrayList<>();
-
-            //noinspection Convert2streamapi
-            if (geofencingEvent.getTriggeringGeofences() != null) {
-                for (Geofence geofence : geofencingEvent.getTriggeringGeofences()) {
-                    ids.add(geofence.getRequestId());
-                }
-            }
-
-            PWLog.noise(
-                    LocationConfig.TAG,
-                    SUB_TAG + (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ? "Enter to " : "Exit from ")
-                            + " geoZones with ids " + Arrays.toString(ids.toArray()));
-
-            geofenceStateChangedCallback.onGeofenceStateChanged(ids, geofenceTransition);
+        if (geofenceTransition != Geofence.GEOFENCE_TRANSITION_ENTER
+                && geofenceTransition != Geofence.GEOFENCE_TRANSITION_EXIT) {
+            return;
         }
+
+        List<String> ids = new ArrayList<>();
+
+        //noinspection Convert2streamapi
+        if (geofencingEvent.getTriggeringGeofences() != null) {
+            for (Geofence geofence : geofencingEvent.getTriggeringGeofences()) {
+                ids.add(geofence.getRequestId());
+            }
+        }
+
+        PWLog.noise(
+                LocationConfig.TAG,
+                SUB_TAG + (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ? "Enter to " : "Exit from ")
+                        + " geoZones with ids " + Arrays.toString(ids.toArray()));
+
+        geofenceStateChangedCallback.onGeofenceStateChanged(ids, geofenceTransition);
     }
 }

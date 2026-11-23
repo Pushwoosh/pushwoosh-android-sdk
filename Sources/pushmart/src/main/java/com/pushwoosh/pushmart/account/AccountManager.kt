@@ -1,6 +1,8 @@
 package com.pushwoosh.pushmart.account
 
-import com.pushwoosh.pushmart.sdk.GatewayResult
+import com.pushwoosh.pushmart.core.PrimerOutcome
+import com.pushwoosh.pushmart.core.PushPermission
+import com.pushwoosh.pushmart.sdk.InboxGateway
 import com.pushwoosh.pushmart.sdk.PushwooshGateway
 
 sealed class AccountOutcome {
@@ -9,151 +11,179 @@ sealed class AccountOutcome {
     data class Failure(val title: String, val message: String) : AccountOutcome()
 }
 
-class AccountManager(private val store: AccountStore, private val gateway: PushwooshGateway) {
-    fun connect(rawCode: String): String? {
-        val code = AppCode.mask(rawCode.trim())
-        if (!AppCode.isValid(code)) return "Enter your access code in the format XXXXX-XXXXX."
-        gateway.setAppId(code)
-        store.appCode = code
-        return null
+sealed class CodeSwitch {
+    data class Applied(val code: String) : CodeSwitch()
+
+    object Removed : CodeSwitch()
+
+    object Invalid : CodeSwitch()
+
+    object Unchanged : CodeSwitch()
+
+    object NoConnection : CodeSwitch()
+
+    object Busy : CodeSwitch()
+}
+
+class AccountManager(
+    private val store: AccountStore,
+    private val gateway: PushwooshGateway,
+    private val inbox: InboxGateway,
+    private val permission: PushPermission,
+    private val isOnline: () -> Boolean
+) {
+    private val switchListeners = mutableListOf<() -> Unit>()
+
+    var isSwitching = false
+        private set(value) {
+            field = value
+            switchListeners.toList().forEach { it() }
+        }
+
+    fun addSwitchListener(listener: () -> Unit) {
+        switchListeners.add(listener)
     }
 
-    fun signIn(name: String, email: String, onError: (String) -> Unit) {
-        val cleanName = name.trim()
-        val cleanEmail = email.trim()
-        store.userName = cleanName
-        store.userEmail = cleanEmail
-        if (cleanEmail.isNotEmpty()) applyIdentity(cleanEmail, onError)
+    fun removeSwitchListener(listener: () -> Unit) {
+        switchListeners.remove(listener)
+    }
+
+    fun applyOnLaunch() {
+        gateway.setAppId(store.personalCode ?: AppCode.DEMO)
+        gateway.resetUserId()
+    }
+
+    fun skipOnboarding(rawCode: String?) {
         store.onboarded = true
+        store.personalCode =
+            rawCode?.let { AppCode.mask(it) }?.takeIf { AppCode.isValid(it) && it != AppCode.DEMO }
+        applyOnLaunch()
     }
 
-    fun continueAsGuest() {
-        store.clearIdentity()
-        store.onboarded = true
-    }
-
-    /** Debug entry for e2e runs: connect and continue as guest without the onboarding screens. */
-    fun enterWithoutOnboarding(appCode: String?): Boolean {
-        if (store.onboarded) return false
-        val masked = appCode?.let { AppCode.mask(it.trim()) }
-        val code = if (masked != null && AppCode.isValid(masked)) masked else AppCode.DEMO
-        connect(code)
-        continueAsGuest()
-        return true
-    }
-
-    fun switchAccount(
-        rawCode: String,
-        name: String,
-        email: String,
-        onResult: (AccountOutcome) -> Unit,
-    ) {
+    fun applyCode(rawCode: String, onResult: (CodeSwitch) -> Unit) {
         val code = AppCode.mask(rawCode.trim())
-        if (!AppCode.isValid(code)) {
-            onResult(AccountOutcome.Failure("Invalid app code", "Use the format XXXXX-XXXXX."))
+        when {
+            !AppCode.isValid(code) -> onResult(CodeSwitch.Invalid)
+            code == (store.personalCode ?: AppCode.DEMO) -> onResult(CodeSwitch.Unchanged)
+            code == AppCode.DEMO -> removeCode(onResult)
+            else -> switchTo(code, CodeSwitch.Applied(code), onResult)
+        }
+    }
+
+    fun removeCode(onResult: (CodeSwitch) -> Unit) {
+        if (store.isGuest) {
+            onResult(CodeSwitch.Unchanged)
+        } else {
+            switchTo(null, CodeSwitch.Removed, onResult)
+        }
+    }
+
+    private fun switchTo(code: String?, success: CodeSwitch, onResult: (CodeSwitch) -> Unit) {
+        if (isSwitching) {
+            onResult(CodeSwitch.Busy)
             return
         }
-        val cleanName = name.trim()
-        val cleanEmail = email.trim()
-        gateway.unregisterForPushNotifications()
-        gateway.setAppId(code)
-        store.appCode = code
-        store.userName = cleanName
-        store.userEmail = cleanEmail
-
-        fun finishSwitch(identityError: String?) {
-            gateway.registerForPushNotifications { result ->
-                store.pushNotificationEnabled = result.isSuccess
-                val error = identityError ?: result.error.takeIf { !result.isSuccess }
-                if (error == null) {
-                    onResult(AccountOutcome.Success("Account switched", "Connected to app $code."))
-                } else {
-                    onResult(
-                        AccountOutcome.Failure(
-                            "Switch incomplete", "Connected to app $code, but $error."))
-                }
-            }
-        }
-
-        if (cleanEmail.isEmpty()) {
-            finishSwitch(null)
+        if (!isOnline()) {
+            onResult(CodeSwitch.NoConnection)
             return
         }
-        gateway.setEmail(cleanEmail) { emailResult ->
-            val emailError = emailResult.error.takeIf { !emailResult.isSuccess }
-            gateway.setUserId(cleanEmail) { userIdResult ->
-                val identityError =
-                    emailError ?: userIdResult.error.takeIf { !userIdResult.isSuccess }
-                finishSwitch(identityError)
+        isSwitching = true
+        // The SDK unregister worker reads the app id when it runs: switch only after its callback.
+        gateway.unregisterForPushNotifications { result ->
+            if (!result.isSuccess) {
+                // The SDK drops its registered state before sending, so the device is off anyway.
+                store.pushNotificationEnabled = false
+                isSwitching = false
+                onResult(CodeSwitch.NoConnection)
+                return@unregisterForPushNotifications
+            }
+            store.personalCode = code
+            gateway.setAppId(code ?: AppCode.DEMO)
+            inbox.resync()
+            isSwitching = false
+            onResult(success)
+            if (!permission.isUndetermined) {
+                register()
+                return@unregisterForPushNotifications
+            }
+            permission.enable { outcome ->
+                if (outcome == PrimerOutcome.DECLINED) store.pushNotificationEnabled = false
+                else register()
             }
         }
     }
 
-    fun signOut() {
-        gateway.unregisterForPushNotifications()
-        store.clearIdentity()
-        store.pushNotificationEnabled = false
-        store.onboarded = false
+    private fun register() {
+        gateway.registerForPushNotifications { registered ->
+            store.pushNotificationEnabled = registered.isSuccess
+        }
     }
 
+    /**
+     * Profile > Your details > Save, as iOS `UserView.save`: sets a non-empty email, registers each
+     * number that is new or changed, and stores both numbers (a cleared one as empty, with no SDK
+     * call). [onResult] comes after the `setEmail` callback, or at once without an email.
+     */
     fun saveDetails(
-        name: String,
-        memberId: String,
         email: String,
-        onResult: (AccountOutcome) -> Unit,
+        sms: String,
+        whatsapp: String,
+        onResult: (AccountOutcome) -> Unit
     ) {
-        val cleanId = memberId.trim()
         val cleanEmail = email.trim()
-        store.userName = name.trim()
-        if (cleanId.isEmpty() && cleanEmail.isEmpty()) {
-            onResult(AccountOutcome.Failure("Nothing to save", "Add a member ID or email first."))
+        val cleanSms = sms.trim()
+        val cleanWhatsapp = whatsapp.trim()
+        if (cleanEmail.isEmpty() && cleanSms.isEmpty() && cleanWhatsapp.isEmpty()) {
+            onResult(
+                AccountOutcome.Failure(
+                    "Nothing to save", "Add your email or a phone number first."))
             return
         }
-        var pending = 0
-        if (cleanId.isNotEmpty()) pending++
-        if (cleanEmail.isNotEmpty()) pending++
-        var firstError: String? = null
-        fun onCallbackReturned(result: GatewayResult<Unit>) {
-            if (!result.isSuccess && firstError == null) firstError = result.error.orEmpty()
-            pending--
-            if (pending == 0) {
-                val error = firstError
-                if (error == null) {
-                    onResult(AccountOutcome.Success("Saved", "Your details are up to date."))
-                } else {
-                    onResult(AccountOutcome.Failure("Save failed", error))
-                }
-            }
-        }
-        if (cleanId.isNotEmpty()) {
-            gateway.setUserId(cleanId) { onCallbackReturned(it) }
-        }
+        val registerSms = cleanSms.isNotEmpty() && cleanSms != store.smsNumber
+        val registerWhatsapp = cleanWhatsapp.isNotEmpty() && cleanWhatsapp != store.whatsappNumber
+        store.smsNumber = cleanSms
+        store.whatsappNumber = cleanWhatsapp
+        val saved = AccountOutcome.Success("Saved", "Your details are up to date.")
         if (cleanEmail.isNotEmpty()) {
             store.userEmail = cleanEmail
-            gateway.setEmail(cleanEmail) { onCallbackReturned(it) }
+            gateway.setEmail(cleanEmail) { result ->
+                if (result.isSuccess) {
+                    onResult(saved)
+                } else {
+                    onResult(AccountOutcome.Failure("Save failed", result.error.orEmpty()))
+                }
+            }
         }
+        if (registerSms) gateway.registerSmsNumber(cleanSms)
+        if (registerWhatsapp) gateway.registerWhatsappNumber(cleanWhatsapp)
+        if (cleanEmail.isEmpty()) onResult(saved)
     }
 
-    fun setPushEnabled(on: Boolean, onResult: (AccountOutcome) -> Unit) {
+    /**
+     * Turns push on through the Push Primer, or off. [onResult] gets whether push is on now: the
+     * SDK registered and the system allows notifications. On Android 13+ the register callback
+     * comes after the shopper answers the system dialog. While a code switch runs nothing changes.
+     */
+    fun setPushEnabled(on: Boolean, onResult: (pushOn: Boolean) -> Unit) {
+        if (isSwitching) {
+            onResult(store.pushNotificationEnabled)
+            return
+        }
         if (!on) {
             gateway.unregisterForPushNotifications()
             store.pushNotificationEnabled = false
-            onResult(AccountOutcome.Success("Notifications off", ""))
+            onResult(false)
             return
         }
-        gateway.registerForPushNotifications { result ->
-            if (result.isSuccess) {
-                store.pushNotificationEnabled = true
-                onResult(AccountOutcome.Success("Registered", result.data.orEmpty()))
-            } else {
-                store.pushNotificationEnabled = false
-                onResult(AccountOutcome.Failure("Register failed", result.error.orEmpty()))
+        permission.enable { outcome ->
+            if (outcome == PrimerOutcome.DECLINED) {
+                onResult(false)
+                return@enable
+            }
+            gateway.registerForPushNotifications { result ->
+                store.pushNotificationEnabled = result.isSuccess
+                onResult(result.isSuccess && permission.isAllowed)
             }
         }
-    }
-
-    private fun applyIdentity(email: String, onError: (String) -> Unit) {
-        gateway.setEmail(email) { if (!it.isSuccess) onError(it.error.orEmpty()) }
-        gateway.setUserId(email) { if (!it.isSuccess) onError(it.error.orEmpty()) }
     }
 }

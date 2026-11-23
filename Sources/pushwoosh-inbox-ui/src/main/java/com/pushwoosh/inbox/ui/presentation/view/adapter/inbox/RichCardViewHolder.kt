@@ -140,19 +140,22 @@ abstract class RichCardViewHolder(adapter: InboxAdapter,
     /**
      * Opens a destination carried by card content — an inline button or a
      * carousel slide. The open is reported by the tap handler that got here,
-     * so an unsafe scheme still counts as an interaction.
+     * so an unsafe scheme still counts as an interaction. Returns whether an
+     * activity was started, so a caller can fall back when the URL went nowhere.
      */
-    protected fun openCardUrl(url: String) {
+    protected fun openCardUrl(url: String): Boolean {
         if (!InboxCardButton.isSafeUrl(url)) {
             PWLog.warn(TAG, "Refusing to open inbox card URL with unsafe scheme: $url")
-            return
+            return false
         }
-        try {
+        return try {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
+            true
         } catch (e: Exception) {
             PWLog.warn(TAG, "No activity to handle inbox card URL: $url")
+            false
         }
     }
 

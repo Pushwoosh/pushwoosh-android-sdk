@@ -23,6 +23,7 @@ import com.pushwoosh.inapp.network.InAppRepository;
 import com.pushwoosh.internal.SdkStateProvider;
 import com.pushwoosh.internal.event.EventBus;
 import com.pushwoosh.internal.event.ReverseProxyReadyEvent;
+import com.pushwoosh.internal.event.UserIdChangeRefusedEvent;
 import com.pushwoosh.internal.network.NetworkModule;
 import com.pushwoosh.internal.network.ServerCommunicationManager;
 import com.pushwoosh.internal.utils.NotificationUtils;
@@ -205,6 +206,7 @@ public class Pushwoosh {
         return result -> {
             if (!result.isSuccess()) {
                 registrationPrefs.userId().set(oldUserId);
+                EventBus.sendEvent(new UserIdChangeRefusedEvent());
             }
             safeProcessCallback(callback, result);
         };
@@ -543,6 +545,7 @@ public class Pushwoosh {
      * <p>
      * By default, the SDK uses the device language. This method allows you to override the language
      * for targeting localized push notifications. Set to null to revert to device language.
+     * When collecting the device locale is disabled in the manifest, the value is stored but not sent.
      * <br><br>
      * Example:
      * <pre>
@@ -560,10 +563,18 @@ public class Pushwoosh {
     public void setLanguage(@Nullable String language) {
         PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setLanguage()");
         try {
-            if (!ensureInitialized() || language == null) {
+            if (!ensureInitialized()) {
                 return;
             }
             registrationPrefs.setLanguage(language);
+            if (!RepositoryModule.getNotificationPreferences()
+                    .isCollectingDeviceLocaleAllowed()
+                    .get()) {
+                PWLog.warn(
+                        "Pushwoosh",
+                        "setLanguage(): language is stored but not sent, collecting device locale is disabled in the manifest");
+                return;
+            }
 
             PushwooshPlatform platform = PushwooshPlatform.getInstance();
             if (platform == null) {
@@ -572,6 +583,56 @@ public class Pushwoosh {
             platform.deviceRegistrar().onLanguageChanged();
         } catch (Exception e) {
             PWLog.error("Pushwoosh", "can't set language", e);
+        }
+    }
+
+    /**
+     * Sets a custom device locale for push notification localization and server-side targeting.
+     * <p>
+     * By default, the SDK reports the device's current locale. This method allows you to override
+     * the reported locale with a BCP 47 language tag. Set to null to revert to the device locale.
+     * The value is sent to the server as given and normalized there.
+     * When collecting the device locale is disabled in the manifest, the value is stored but not sent.
+     * <br><br>
+     * Example:
+     * <pre>
+     * {@code
+     *   // Set custom locale
+     *   Pushwoosh.getInstance().setLocale("pt-BR");
+     *
+     *   // Revert to device locale
+     *   Pushwoosh.getInstance().setLocale(null);
+     * }
+     * </pre>
+     *
+     * @param locale BCP 47 language tag ("pt-BR", "es-419", "zh-Hant-TW", etc.) or null to fall back
+     *               to the device locale.
+     */
+    public void setLocale(@Nullable String locale) {
+        PWLog.noise("Pushwoosh", "Pushwoosh.getInstance().setLocale()");
+        try {
+            if (!ensureInitialized()) {
+                return;
+            }
+            if (!registrationPrefs.setLocale(locale)) {
+                return;
+            }
+            if (!RepositoryModule.getNotificationPreferences()
+                    .isCollectingDeviceLocaleAllowed()
+                    .get()) {
+                PWLog.warn(
+                        "Pushwoosh",
+                        "setLocale(): locale is stored but not sent, collecting device locale is disabled in the manifest");
+                return;
+            }
+
+            PushwooshPlatform platform = PushwooshPlatform.getInstance();
+            if (platform == null) {
+                return;
+            }
+            platform.deviceRegistrar().onLanguageChanged();
+        } catch (Exception e) {
+            PWLog.error("Pushwoosh", "can't set locale", e);
         }
     }
 
@@ -2502,8 +2563,10 @@ public class Pushwoosh {
             }
 
             if (pushBundle.containsKey("pw_msg")) {
+                // before the SDK-ready queue, which may delay the task
+                long receivedAtMillis = System.currentTimeMillis();
                 SdkStateProvider.getInstance().executeOrQueue(() -> {
-                    PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(pushBundle);
+                    PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(pushBundle, receivedAtMillis);
                 });
             } else {
                 PWLog.warn("/messageDeliveryEvent request was not sent, as the push was not received from Pushwoosh");

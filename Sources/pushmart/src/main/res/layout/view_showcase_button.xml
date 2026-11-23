@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.appcompat.widget.AppCompatButton xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/Widget.PushMart.Button.Secondary"
+    style="@style/Widget.PushMart.Button.Primary"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="10dp"
-    android:drawableStart="@drawable/ic_sparkles" />
+    android:layout_height="52dp"
+    android:layout_marginTop="14dp"
+    android:paddingTop="0dp"
+    android:paddingBottom="0dp"
+    android:textAppearance="@style/TextAppearance.PushMart.Headline"
+    android:textColor="@color/pm_on_brand"
+    android:textSize="16sp" />

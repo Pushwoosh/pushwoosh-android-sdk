@@ -26,6 +26,7 @@
 
 package com.pushwoosh.repository;
 
+import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -491,6 +492,20 @@ public class PushwooshRepositoryTest {
         assertFalse(result.isSuccess());
         assertTrue(result.getException() instanceof NetworkException);
         assertEquals("oops", result.getException().getMessage());
+    }
+
+    @Test
+    public void sendPushDeliveredSync_passesTimestampToRequest() {
+        ArgumentCaptor<MessageDeliveredRequest> captor = ArgumentCaptor.forClass(MessageDeliveredRequest.class);
+        when(requestManager.sendRequestSync(any(MessageDeliveredRequest.class))).thenReturn(Result.fromData(null));
+
+        pushwooshRepository.sendPushDeliveredSync("hash-1", "meta", RECEIVED_AT_SECONDS);
+        pushwooshRepository.sendPushDeliveredSync("hash-1", "meta");
+
+        verify(requestManager, times(2)).sendRequestSync(captor.capture());
+        assertEquals(
+                Long.valueOf(RECEIVED_AT_SECONDS), captor.getAllValues().get(0).getTimestampUtcSeconds());
+        assertNull(captor.getAllValues().get(1).getTimestampUtcSeconds());
     }
 
     // ---------- sendInappPurchase ----------

@@ -1,72 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="@dimen/pm_screen_padding">
+        android:paddingStart="@dimen/pm_screen_padding"
+        android:paddingTop="@dimen/pm_screen_padding"
+        android:paddingEnd="@dimen/pm_screen_padding"
+        android:paddingBottom="40dp">
 
         <include
             android:id="@+id/back_button"
-            layout="@layout/view_back_button" />
+            layout="@layout/view_back_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="start" />
+
+        <ImageView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_circle_brand"
+            android:importantForAccessibility="no"
+            android:padding="30dp"
+            android:src="@drawable/ic_forum"
+            app:tint="@color/pm_white" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="In-app showcase"
+            android:layout_marginTop="22dp"
+            android:text="@string/inapp_title"
             android:textAppearance="@style/TextAppearance.PushMart.Display"
-            android:textSize="32sp" />
+            android:textSize="30sp" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Native in-app layouts rendered offline from local presets"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:text="@string/inapp_description"
             android:textAppearance="@style/TextAppearance.PushMart.Body"
             android:textColor="@color/pm_text_secondary"
             android:textSize="14sp" />
 
         <LinearLayout
+            android:id="@+id/buttons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="@dimen/pm_card_padding">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Layouts"
-                android:textAppearance="@style/TextAppearance.PushMart.Headline" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Every type the Android SDK renders, plus the floating variants of Modal and Sheet. Nothing here needs a campaign or a network."
-                android:textAppearance="@style/TextAppearance.PushMart.Body"
-                android:textColor="@color/pm_text_secondary"
-                android:textSize="13sp" />
-
-            <LinearLayout
-                android:id="@+id/buttons"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="vertical" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
             android:layout_marginTop="14dp"
-            android:text="Color scheme is set on the Rich media screen and applies here too: Modal carries a dark variant. Delegate callbacks are logged under PushMartInApp."
-            android:textAppearance="@style/TextAppearance.PushMart.Body"
-            android:textColor="@color/pm_text_tertiary"
-            android:textSize="12sp" />
+            android:layout_marginEnd="20dp"
+            android:orientation="vertical" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

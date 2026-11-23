@@ -3,6 +3,7 @@
     <color name="pm_ink2">#14141C</color>
     <color name="pm_surface">#1B1B25</color>
     <color name="pm_surface_hi">#24242F</color>
+    <color name="pm_panel">#272728</color>
     <color name="pm_stroke">#14FFFFFF</color>
     <color name="pm_stroke_strong">#29FFFFFF</color>
     <color name="pm_text_primary">#FFFFFF</color>
@@ -12,6 +13,8 @@
     <color name="pm_warning">#FFC24B</color>
     <color name="pm_danger">#FF4D5E</color>
     <color name="pm_info">#64D2FF</color>
+    <color name="pm_tab_bar">#EB1B1B25</color>
+    <color name="pm_tab_lens">#14FFFFFF</color>
     <color name="pm_success_16">#292BD98A</color>
     <color name="pm_danger_16">#29FF4D5E</color>
 </resources>

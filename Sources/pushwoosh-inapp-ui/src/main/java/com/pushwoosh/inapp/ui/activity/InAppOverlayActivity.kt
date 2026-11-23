@@ -143,13 +143,12 @@ class InAppOverlayActivity : Activity() {
         super.onDestroy()
         if (isChangingConfigurations) return
         if (current === this) current = null
-        if (!notifiedDismiss) {
-            notifiedDismiss = true
-            InAppModule.queueManager(applicationContext).onDismissed(messageId)
-            // Send the close event only if the view was actually shown; a launch whose view
-            // never built (parse / view-build fail) must not fire an unpaired onClosed.
-            if (templateView != null) NativeInAppAnalytics.onClosed(rawJson)
-        }
+        if (notifiedDismiss) return
+        notifiedDismiss = true
+        InAppModule.queueManager(applicationContext).onDismissed(messageId)
+        // Send the close event only if the view was actually shown; a launch whose view
+        // never built (parse / view-build fail) must not fire an unpaired onClosed.
+        if (templateView != null) NativeInAppAnalytics.onClosed(rawJson)
     }
 
     companion object {

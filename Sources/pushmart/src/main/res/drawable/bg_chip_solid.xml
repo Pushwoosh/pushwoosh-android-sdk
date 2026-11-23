@@ -1,0 +1,9 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/bg_pill_text_primary" android:state_selected="true" />
+    <item>
+        <shape>
+            <solid android:color="@color/pm_surface_hi" />
+            <corners android:radius="@dimen/pm_radius_pill" />
+        </shape>
+    </item>
+</selector>

@@ -122,13 +122,17 @@ class GoogleLocationProvider
             return;
         }
 
-        if (isConnected()) {
-            this.googleLocationListener.onConnected();
-
-            if (location != null) {
-                googleLocationListener.locationUpdated(location);
-            }
+        if (!isConnected()) {
+            return;
         }
+
+        this.googleLocationListener.onConnected();
+
+        if (location == null) {
+            return;
+        }
+
+        googleLocationListener.locationUpdated(location);
     }
 
     void setRequestLocationListener(@Nullable final RequestLocationListener requestLocationListener) {

@@ -2,7 +2,17 @@
     <dimen name="pm_radius_card">22dp</dimen>
     <dimen name="pm_radius_field">14dp</dimen>
     <dimen name="pm_radius_pill">100dp</dimen>
+    <dimen name="pm_radius_sheet">22dp</dimen>
+    <dimen name="pm_radius_note">16dp</dimen>
+    <dimen name="pm_radius_order_card">28dp</dimen>
+    <dimen name="pm_radius_code">18dp</dimen>
+    <dimen name="pm_radius_pick">20dp</dimen>
+    <dimen name="pm_radius_panel">24dp</dimen>
+    <dimen name="pm_radius_app_icon">10dp</dimen>
     <dimen name="pm_screen_padding">20dp</dimen>
     <dimen name="pm_card_padding">18dp</dimen>
     <dimen name="pm_tab_clearance">88dp</dimen>
+    <dimen name="pm_grid_clearance">64dp</dimen>
+    <dimen name="pm_season_photo_height">168dp</dimen>
+    <dimen name="pw_rich_card_button_radius">@dimen/pm_radius_pill</dimen>
 </resources>

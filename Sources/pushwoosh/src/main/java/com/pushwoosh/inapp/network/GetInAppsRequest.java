@@ -26,47 +26,53 @@
 
 package com.pushwoosh.inapp.network;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-
 import androidx.annotation.NonNull;
 
 import com.pushwoosh.inapp.network.model.Resource;
 import com.pushwoosh.internal.network.PushRequest;
+import com.pushwoosh.repository.RepositoryModule;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 class GetInAppsRequest extends PushRequest<List<Resource>> {
 
-	private static final String IN_APPS = "inApps";
+    private static final String IN_APPS = "inApps";
 
-	@Override
-	public String getMethod() {
-		return "getInApps";
-	}
+    @Override
+    public String getMethod() {
+        return "getInApps";
+    }
 
-	@Override
-	protected void buildParams(JSONObject params) throws JSONException {
-		params.put("language", Locale.getDefault().getLanguage());
-	}
+    @Override
+    protected void buildParams(JSONObject params) throws JSONException {
+        if (!RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceLocaleAllowed()
+                .get()) {
+            return;
+        }
+        params.put(
+                "language",
+                RepositoryModule.getRegistrationPreferences().language().get());
+    }
 
-	@Override
-	public List<Resource> parseResponse(@NonNull JSONObject response) throws JSONException {
-		List<Resource> result = Collections.emptyList();
+    @Override
+    public List<Resource> parseResponse(@NonNull JSONObject response) throws JSONException {
+        List<Resource> result = Collections.emptyList();
 
-		if (response.has(IN_APPS)) {
-			JSONArray array = response.getJSONArray(IN_APPS);
-			result = new ArrayList<>(array.length());
-			for (int i = 0; i < array.length(); i++) {
-				result.add(new Resource(array.getJSONObject(i)));
-			}
-		}
+        if (response.has(IN_APPS)) {
+            JSONArray array = response.getJSONArray(IN_APPS);
+            result = new ArrayList<>(array.length());
+            for (int i = 0; i < array.length(); i++) {
+                result.add(new Resource(array.getJSONObject(i)));
+            }
+        }
 
-		return result;
-	}
-
+        return result;
+    }
 }

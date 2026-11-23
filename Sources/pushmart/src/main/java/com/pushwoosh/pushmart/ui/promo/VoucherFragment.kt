@@ -21,7 +21,7 @@ class VoucherFragment : FullBleedFragment(R.layout.fragment_voucher) {
             val clipboard =
                 requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboard.setPrimaryClip(ClipData.newPlainText("Voucher", code))
-            binding.copy.text = "COPIED"
+            binding.copy.setText(R.string.voucher_copied)
         }
     }
 

@@ -28,10 +28,6 @@ class WishlistStore(private val prefs: KeyValueStore, private val gateway: Pushw
             if (adding) TagOp.AppendList(TAG, listOf(product.id))
             else TagOp.RemoveFromList(TAG, listOf(product.id))
         gateway.setTags(listOf(op))
-        if (adding) {
-            gateway.postEvent(
-                "wishlist_add", mapOf("productId" to product.id, "price" to product.priceDollars))
-        }
         listeners.forEach { it() }
     }
 

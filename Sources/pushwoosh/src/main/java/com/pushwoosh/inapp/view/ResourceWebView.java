@@ -295,21 +295,22 @@ public class ResourceWebView extends FrameLayout {
     }
 
     protected void clear() {
-        if (webView != null) {
-            // Layer 2: release() first (queued lifecycle callbacks become no-ops), then destroy() — never leave a live
-            // WebView with a null client that lets Chromium run target=_blank itself.
-            releaseWebClient();
-            webView.stopLoading();
-            // A pending close animation makes removeView() defer the detach, and destroy() must see a detached view.
-            webView.clearAnimation();
-            ViewGroup parent = (ViewGroup) webView.getParent();
-            if (parent != null) {
-                parent.removeView(webView);
-            }
-            webView.destroy();
-            webView = null;
-            webClient = null;
+        if (webView == null) {
+            return;
         }
+        // Layer 2: release() first (queued lifecycle callbacks become no-ops), then destroy() — never leave a live
+        // WebView with a null client that lets Chromium run target=_blank itself.
+        releaseWebClient();
+        webView.stopLoading();
+        // A pending close animation makes removeView() defer the detach, and destroy() must see a detached view.
+        webView.clearAnimation();
+        ViewGroup parent = (ViewGroup) webView.getParent();
+        if (parent != null) {
+            parent.removeView(webView);
+        }
+        webView.destroy();
+        webView = null;
+        webClient = null;
     }
 
     private View createDefaultLoadingView(Context context) {

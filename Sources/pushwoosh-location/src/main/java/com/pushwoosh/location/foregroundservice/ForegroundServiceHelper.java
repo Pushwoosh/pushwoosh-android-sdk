@@ -26,7 +26,7 @@ import java.util.Locale;
 
 public class ForegroundServiceHelper {
 
-    public static final String TAG = ForegroundServiceHelper.class.getSimpleName();
+    public static final String TAG = "ForegroundServiceHelper";
     public static final int FOREGROUND_SERVICE_ID = 101;
 
     private AndroidManifestLocationConfig config;
@@ -45,17 +45,19 @@ public class ForegroundServiceHelper {
             PWLog.error(TAG, "Context equals is null");
             return;
         }
-        if (config.isStartForegroundService()) {
-            Intent intent = new Intent(context, ForegroundService.class);
-            // Android 12 does not allow starting service in background and crashes app
-            if (Build.VERSION.SDK_INT >= 31) {
-                return;
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent);
-            } else {
-                context.startService(intent);
-            }
+        if (!config.isStartForegroundService()) {
+            return;
+        }
+
+        Intent intent = new Intent(context, ForegroundService.class);
+        // Android 12 does not allow starting service in background and crashes app
+        if (Build.VERSION.SDK_INT >= 31) {
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
         }
     }
 

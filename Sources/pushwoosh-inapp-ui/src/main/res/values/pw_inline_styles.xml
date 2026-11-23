@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Theme overlays of an inline HTML banner's WebView: the page sees the slot's color scheme. -->
+    <style name="PwInlineWeb" />
+
+    <style name="PwInlineWeb.Light" />
+
+    <style name="PwInlineWeb.Dark" />
+
+</resources>

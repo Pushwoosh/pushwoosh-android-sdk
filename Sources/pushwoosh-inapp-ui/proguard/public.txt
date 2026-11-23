@@ -3,3 +3,17 @@
 -keep public class com.pushwoosh.inapp.ui.InAppUiPlugin { *; }
 -keep public interface com.pushwoosh.inapp.ui.InAppMessageDelegate { *; }
 -keep class * implements com.pushwoosh.inapp.ui.InAppMessageDelegate { *; }
+
+# Inline slots — public API.
+# PushwooshInline* also covers PushwooshInlineView (constructors used from XML layouts) and its
+# nested OnHeightChangeListener, which arrive with the slot view.
+-keep public class com.pushwoosh.inline.PushwooshInline* { public *; }
+-keep public class com.pushwoosh.inline.PushwooshInlineView {
+    public <init>(...);
+}
+-keep public interface com.pushwoosh.inline.PushwooshInlineListener { *; }
+-keep public interface com.pushwoosh.inline.PushwooshInlineRequestCallback { *; }
+-keep public interface com.pushwoosh.inline.PushwooshInlineView$OnHeightChangeListener { *; }
+-keep class * implements com.pushwoosh.inline.PushwooshInlineListener { *; }
+-keep class * implements com.pushwoosh.inline.PushwooshInlineRequestCallback { *; }
+-keep class * implements com.pushwoosh.inline.PushwooshInlineView$OnHeightChangeListener { *; }

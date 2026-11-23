@@ -1,23 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/nav_graph"
-    app:startDestination="@id/homeFragment">
+    android:id="@+id/nav_graph">
 
     <fragment
-        android:id="@+id/welcomeFragment"
-        android:name="com.pushwoosh.pushmart.ui.onboarding.WelcomeFragment"
-        android:label="Welcome" />
-
-    <fragment
-        android:id="@+id/connectFragment"
-        android:name="com.pushwoosh.pushmart.ui.onboarding.ConnectFragment"
-        android:label="Connect" />
-
-    <fragment
-        android:id="@+id/accountFragment"
-        android:name="com.pushwoosh.pushmart.ui.onboarding.AccountFragment"
-        android:label="Account" />
+        android:id="@+id/onboardingFragment"
+        android:name="com.pushwoosh.pushmart.ui.onboarding.OnboardingFragment"
+        android:label="Onboarding" />
 
     <fragment
         android:id="@+id/homeFragment"
@@ -28,6 +17,16 @@
         android:id="@+id/shopFragment"
         android:name="com.pushwoosh.pushmart.ui.shop.ShopFragment"
         android:label="Shop" />
+
+    <fragment
+        android:id="@+id/ordersFragment"
+        android:name="com.pushwoosh.pushmart.ui.orders.OrdersFragment"
+        android:label="@string/tab_orders" />
+
+    <fragment
+        android:id="@+id/dropsFragment"
+        android:name="com.pushwoosh.pushmart.ui.orders.DropsFragment"
+        android:label="@string/drops_title" />
 
     <fragment
         android:id="@+id/offersFragment"
@@ -59,11 +58,6 @@
         android:label="Your details" />
 
     <fragment
-        android:id="@+id/wishlistFragment"
-        android:name="com.pushwoosh.pushmart.ui.profile.WishlistFragment"
-        android:label="Wishlist" />
-
-    <fragment
         android:id="@+id/preferencesFragment"
         android:name="com.pushwoosh.pushmart.ui.profile.PreferencesFragment"
         android:label="Preferences" />
@@ -74,17 +68,27 @@
         android:label="Notifications" />
 
     <fragment
-        android:id="@+id/playgroundFragment"
-        android:name="com.pushwoosh.pushmart.ui.playground.PlaygroundFragment"
-        android:label="Playground" />
+        android:id="@+id/remindersFragment"
+        android:name="com.pushwoosh.pushmart.ui.profile.RemindersFragment"
+        android:label="@string/reminders_title" />
+
+    <fragment
+        android:id="@+id/appSettingsFragment"
+        android:name="com.pushwoosh.pushmart.ui.profile.AppSettingsFragment"
+        android:label="@string/settings_title" />
+
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="com.pushwoosh.pushmart.ui.profile.AboutFragment"
+        android:label="@string/about_pushmart" />
 
     <fragment
         android:id="@+id/inAppShowcaseFragment"
         android:name="com.pushwoosh.pushmart.ui.inapp.InAppShowcaseFragment"
-        android:label="In-app showcase" />
+        android:label="@string/native_inapps" />
 
     <fragment
-        android:id="@+id/richMediaFragment"
-        android:name="com.pushwoosh.pushmart.ui.richmedia.RichMediaFragment"
-        android:label="Rich media" />
+        android:id="@+id/developerToolsFragment"
+        android:name="com.pushwoosh.pushmart.ui.developer.DeveloperToolsFragment"
+        android:label="@string/developer_tools" />
 </navigation>

@@ -1,12 +1,18 @@
 package com.pushwoosh;
 
+import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_MILLIS;
+import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_SECONDS;
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
 import android.os.Bundle;
 
 import androidx.work.Configuration;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.testing.SynchronousExecutor;
@@ -29,7 +35,11 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -154,7 +164,7 @@ public class MessageDeliveryEventTest {
 
         // trigger MessageDeliveryEvent
         Bundle bundle = createTestPushBundle();
-        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(bundle);
+        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(bundle, System.currentTimeMillis());
 
         // wait work manager schedule and complete tasks
         waitForTasks();
@@ -181,7 +191,7 @@ public class MessageDeliveryEventTest {
 
         // trigger MessageDeliveryEvent
         Bundle bundle = createTestPushBundle();
-        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(bundle);
+        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(bundle, RECEIVED_AT_MILLIS);
 
         // wait work manager schedule and complete tasks
         waitForTasks();
@@ -201,6 +211,8 @@ public class MessageDeliveryEventTest {
             MessageDeliveredRequest r = (MessageDeliveredRequest) s.request;
             assertEquals(TEST_HASH, r.getHash());
             assertEquals(TEST_METADATA, r.getMetaData());
+            assertEquals(Long.valueOf(RECEIVED_AT_SECONDS), r.getTimestampUtcSeconds());
+            assertEquals(RECEIVED_AT_SECONDS, s.params.getLong("timestampUTC"));
         }
         fake.assertAllScripted();
     }
@@ -217,7 +229,7 @@ public class MessageDeliveryEventTest {
 
         // trigger MessageDeliveryEvent
         Bundle pushBundle = createTestPushBundle();
-        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(pushBundle);
+        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(pushBundle, System.currentTimeMillis());
 
         // wait work manager schedule and complete tasks
         waitForTasks();
@@ -235,5 +247,61 @@ public class MessageDeliveryEventTest {
         // Verify no additional attempts were made (should still be exactly 1)
         assertEquals(1, fake.count("messageDeliveryEvent"));
         fake.assertAllScripted();
+    }
+
+    @Test
+    public void deliveryEventCarriesReceiptTime() throws Exception {
+        fake.alwaysRespondWith("messageDeliveryEvent", new JSONObject());
+
+        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(createTestPushBundle(), RECEIVED_AT_MILLIS);
+        waitForTasks();
+
+        assertEquals(1, fake.count("messageDeliveryEvent"));
+        JSONObject params = fake.last("messageDeliveryEvent").params;
+        assertEquals(RECEIVED_AT_SECONDS, params.getLong("timestampUTC"));
+        assertEquals(TEST_HASH, params.getString("hash"));
+        assertEquals(TEST_METADATA, params.getString("metaData"));
+
+        Set<String> allowed = new HashSet<>(
+                Arrays.asList("application", "hwid", "v", "device_type", "userId", "hash", "metaData", "timestampUTC"));
+        Iterator<String> keys = params.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            assertTrue("unexpected key " + key, allowed.contains(key));
+        }
+    }
+
+    @Test
+    public void duplicateHashKeepsFirstReceiptTime() throws Exception {
+        fake.alwaysRespondWith("messageDeliveryEvent", new JSONObject());
+
+        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(createTestPushBundle(), RECEIVED_AT_MILLIS);
+        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(createTestPushBundle(), RECEIVED_AT_MILLIS + 60000);
+        waitForTasks();
+
+        assertEquals(1, fake.count("messageDeliveryEvent"));
+        assertEquals(
+                RECEIVED_AT_SECONDS, fake.last("messageDeliveryEvent").params.getLong("timestampUTC"));
+    }
+
+    @Test
+    public void legacyQueuedWork_sendsWithoutTimestamp() throws Exception {
+        fake.alwaysRespondWith("messageDeliveryEvent", new JSONObject());
+
+        OneTimeWorkRequest legacy = new OneTimeWorkRequest.Builder(PushStatisticsWorker.class)
+                .setInputData(new Data.Builder()
+                        .putString(PushStatisticsWorker.DATA_EVENT_TYPE, PushStatisticsWorker.EVENT_DELIVERY)
+                        .putString(PushStatisticsWorker.DATA_PUSH_HASH, TEST_HASH)
+                        .putString(PushStatisticsWorker.DATA_METADATA, TEST_METADATA)
+                        .build())
+                .build();
+        workManager.enqueue(legacy);
+        waitForTasks();
+
+        assertEquals(1, fake.count("messageDeliveryEvent"));
+        JSONObject params = fake.last("messageDeliveryEvent").params;
+        assertFalse(params.has("timestampUTC"));
+        assertEquals(TEST_HASH, params.getString("hash"));
+        assertEquals(TEST_METADATA, params.getString("metaData"));
     }
 }

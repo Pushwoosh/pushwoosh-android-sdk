@@ -276,39 +276,40 @@ public class ModalRichMediaWindow extends PopupWindow
 
     @Override
     public void onPageLoaded() {
-        if (resourceWebView != null) {
-            resourceWebView.hideProgress();
+        if (resourceWebView == null) {
+            return;
+        }
+        resourceWebView.hideProgress();
 
-            // One read per show: coordinates and animator must agree on whether animations are off.
-            boolean reduceMotion = ReduceMotionUtil.isReduceMotionEnabled();
-            int xCoordinate = ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionX(config, reduceMotion);
-            int yCoordinate = ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, reduceMotion);
-            int gravity = ModalRichMediaWindowUtils.getModalRichMediaWindowGravity(config);
+        // One read per show: coordinates and animator must agree on whether animations are off.
+        boolean reduceMotion = ReduceMotionUtil.isReduceMotionEnabled();
+        int xCoordinate = ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionX(config, reduceMotion);
+        int yCoordinate = ModalRichMediaWindowUtils.getModalRichMediaWindowShowPositionY(config, reduceMotion);
+        int gravity = ModalRichMediaWindowUtils.getModalRichMediaWindowGravity(config);
 
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    ModalRichMediaWindowUtils.getParentViewAsync(view -> {
-                        showAtLocationOrSubscribeToActivityBroughtOnTop(view, gravity, xCoordinate, yCoordinate);
-                    });
-                } else {
-                    if (ModalRichMediaWindowUtils.getParentView() != null) {
-                        showAtLocationOrSubscribeToActivityBroughtOnTop(
-                                ModalRichMediaWindowUtils.getParentView(), gravity, xCoordinate, yCoordinate);
-                    }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                ModalRichMediaWindowUtils.getParentViewAsync(view -> {
+                    showAtLocationOrSubscribeToActivityBroughtOnTop(view, gravity, xCoordinate, yCoordinate);
+                });
+            } else {
+                if (ModalRichMediaWindowUtils.getParentView() != null) {
+                    showAtLocationOrSubscribeToActivityBroughtOnTop(
+                            ModalRichMediaWindowUtils.getParentView(), gravity, xCoordinate, yCoordinate);
                 }
-
-                ValueAnimator animator =
-                        ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(this, config, reduceMotion);
-                if (animator != null) {
-                    Integer duration = config.getAnimationDuration();
-                    animator.setDuration(duration != null ? duration.longValue() : DEFAULT_ANIMATION_DURATION_MS);
-                    animator.start();
-                }
-                EventBus.sendEvent(new InAppViewEvent(resource));
-
-            } catch (Exception e) {
-                PWLog.error(TAG, "Failed to show modal rich media", e);
             }
+
+            ValueAnimator animator =
+                    ModalRichMediaWindowUtils.getPresentValueAnimatorForWindow(this, config, reduceMotion);
+            if (animator != null) {
+                Integer duration = config.getAnimationDuration();
+                animator.setDuration(duration != null ? duration.longValue() : DEFAULT_ANIMATION_DURATION_MS);
+                animator.start();
+            }
+            EventBus.sendEvent(new InAppViewEvent(resource));
+
+        } catch (Exception e) {
+            PWLog.error(TAG, "Failed to show modal rich media", e);
         }
     }
 

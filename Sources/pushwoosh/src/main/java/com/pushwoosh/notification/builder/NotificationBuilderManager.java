@@ -289,25 +289,29 @@ public class NotificationBuilderManager {
             for (StatusBarNotification notification : activeNotifications) {
                 Bundle bundle = notification.getNotification().extras;
 
-                if (bundle != null) {
-                    String pushInboxId = bundle.getString("pw_inbox");
-
-                    if (pushInboxId != null && TextUtils.equals(inboxMessageId, pushInboxId)) {
-                        if (TextUtils.isEmpty(notification.getTag())) {
-                            notificationManager.cancel(notification.getId()); // remove from status bar
-                        } else {
-                            notificationManager.cancel(notification.getTag(), notification.getId());
-                        }
-
-                        PendingIntent deleteIntent = notification.getNotification().deleteIntent;
-
-                        if (deleteIntent != null) {
-                            notification.getNotification().deleteIntent.send(); // remove from db
-                        }
-
-                        break;
-                    }
+                if (bundle == null) {
+                    continue;
                 }
+
+                String pushInboxId = bundle.getString("pw_inbox");
+
+                if (pushInboxId == null || !TextUtils.equals(inboxMessageId, pushInboxId)) {
+                    continue;
+                }
+
+                if (TextUtils.isEmpty(notification.getTag())) {
+                    notificationManager.cancel(notification.getId()); // remove from status bar
+                } else {
+                    notificationManager.cancel(notification.getTag(), notification.getId());
+                }
+
+                PendingIntent deleteIntent = notification.getNotification().deleteIntent;
+
+                if (deleteIntent != null) {
+                    notification.getNotification().deleteIntent.send(); // remove from db
+                }
+
+                break;
             }
 
             // remove summary notification
@@ -376,13 +380,14 @@ public class NotificationBuilderManager {
 
     public static void cancelGroupSummary(String groupId) {
         int notificationId = SummaryNotificationUtils.getNotificationIdForGroup(groupId);
-        if (notificationId != -1) {
-            getNotificationManager().cancel(notificationId);
-            try {
-                RepositoryModule.getSummaryNotificationStorage().remove(groupId);
-            } catch (GroupIdNotFoundException e) {
-                PWLog.error("Failed to remove entry for group id " + groupId + " from summaryNotificationStorage");
-            }
+        if (notificationId == -1) {
+            return;
+        }
+        getNotificationManager().cancel(notificationId);
+        try {
+            RepositoryModule.getSummaryNotificationStorage().remove(groupId);
+        } catch (GroupIdNotFoundException e) {
+            PWLog.error("Failed to remove entry for group id " + groupId + " from summaryNotificationStorage");
         }
     }
 

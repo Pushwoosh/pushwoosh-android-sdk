@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="128dp"
+    android:layout_width="120dp"
     android:layout_height="wrap_content"
     android:layout_marginEnd="12dp"
     android:orientation="vertical">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/image"
-        android:layout_width="128dp"
-        android:layout_height="96dp"
+        android:layout_width="120dp"
+        android:layout_height="150dp"
+        android:importantForAccessibility="no"
         android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.PushMart.Rounded16" />
 
@@ -20,13 +21,16 @@
         android:layout_marginTop="8dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textAppearance="@style/TextAppearance.PushMart.Headline"
+        android:textAppearance="@style/TextAppearance.PushMart.Body"
+        android:textColor="@color/pm_text_secondary"
         android:textSize="13sp" />
 
     <TextView
         android:id="@+id/price"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="@style/TextAppearance.PushMart.Label"
-        android:textColor="@color/pm_coral" />
+        android:layout_marginTop="4dp"
+        android:textAppearance="@style/TextAppearance.PushMart.Headline"
+        android:textColor="@color/pm_text_primary"
+        android:textSize="14sp" />
 </LinearLayout>

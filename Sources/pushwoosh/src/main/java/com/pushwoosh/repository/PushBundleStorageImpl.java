@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PushBundleStorageImpl extends SQLiteOpenHelper implements PushBundleStorage {
-    private static final String TAG = PushBundleStorageImpl.class.getSimpleName();
+    private static final String TAG = "PushBundleStorageImpl";
     private static final String DB_NAME = "pushBundleDb.db";
     private static final int VERSION = 6;
 

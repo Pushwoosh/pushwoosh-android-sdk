@@ -1,6 +1,9 @@
 package com.pushwoosh;
 
+import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_MILLIS;
+import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_SECONDS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -27,6 +30,12 @@ import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLog;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.function.Consumer;
 
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -579,5 +588,276 @@ public class PushStatisticsSchedulerTest {
             // But names should be different due to timestamp
             assertTrue("Work names should be the same", firstName.equals(secondName));
         }
+    }
+
+    private Bundle bundleWithDelay(String value) {
+        Bundle bundle = createValidPushBundle();
+        bundle.putString("pw_delivery_delay", value);
+        return bundle;
+    }
+
+    @Test
+    public void deliveryDelayWindow_noKey_isDefaultJitter() {
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(createValidPushBundle()));
+    }
+
+    @Test
+    public void deliveryDelayWindow_stringSeconds_isWindowFromPush() {
+        assertEquals(60000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("60")));
+    }
+
+    @Test
+    public void deliveryDelayWindow_numericSeconds_isWindowFromPush() {
+        Bundle bundle = createValidPushBundle();
+        bundle.putInt("pw_delivery_delay", 60);
+        assertEquals(60000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundle));
+    }
+
+    @Test
+    public void deliveryDelayWindow_aboveCap_isCappedAtFiveMinutes() {
+        assertEquals(300000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("1000")));
+    }
+
+    @Test
+    public void deliveryDelayWindow_fractionalSeconds_isTruncatedToWholeSeconds() {
+        assertEquals(30000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("30.5")));
+        assertEquals(60000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("60.")));
+        assertEquals(
+                30000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("30.99999999999999999")));
+
+        Bundle numeric = createValidPushBundle();
+        numeric.putDouble("pw_delivery_delay", 30.9);
+        assertEquals(30000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(numeric));
+    }
+
+    @Test
+    public void deliveryDelayWindow_belowDefaultJitter_isHonouredWithoutFloor() {
+        assertEquals(2000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("2")));
+    }
+
+    @Test
+    public void deliveryDelayWindow_oneSecondIsTheSmallestWindow() {
+        assertEquals(1000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("1")));
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("0.5")));
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay(".5")));
+    }
+
+    @Test
+    public void deliveryDelayWindow_zeroNegativeOrNotANumber_isDefaultJitter() {
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("0")));
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("-5")));
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("abc")));
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("")));
+    }
+
+    @Test
+    public void deliveryDelayWindow_notPlainDecimalDigits_isDefaultJitter() {
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("60d")));
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("6e1")));
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("+60")));
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("0x1p8")));
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay("Infinity")));
+    }
+
+    @Test
+    public void deliveryDelayWindow_digitsBeyondLongRange_isCappedAtFiveMinutes() {
+        String fourHundredNines = new String(new char[400]).replace('\0', '9');
+        assertEquals(300000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay(fourHundredNines)));
+    }
+
+    @Test
+    public void deliveryDelayWindow_paddedWithWhitespace_isWindowFromPush() {
+        assertEquals(60000L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundleWithDelay(" 60 ")));
+    }
+
+    @Test
+    public void deliveryDelayWindow_unsupportedValueType_isDefaultJitter() {
+        Bundle bundle = createValidPushBundle();
+        bundle.putBoolean("pw_delivery_delay", true);
+        assertEquals(2500L, PushStatisticsScheduler.getDeliveryDelayWindowMillis(bundle));
+    }
+
+    @Test
+    public void scheduleDeliveryEvent_withDelayWindowInPush_staysInsideWindowAndExceedsDefaultJitter() {
+        List<Long> delays = captureScheduledWork(
+                        bundleWithDelay("60"), PushStatisticsScheduler::scheduleDeliveryEvent, 200)
+                .initialDelays();
+
+        assertTrue("initialDelay should stay within the push window", Collections.max(delays) <= 60000L);
+        assertTrue("at least one delay should exceed the default jitter window", Collections.max(delays) > 2500L);
+        assertTrue("delays should not all be the same constant value", new HashSet<>(delays).size() > 1);
+    }
+
+    @Test
+    public void scheduleDeliveryEvent_withoutDelayWindow_keepsDefaultJitter() {
+        List<Long> delays = captureScheduledWork(
+                        createValidPushBundle(), PushStatisticsScheduler::scheduleDeliveryEvent, 200)
+                .initialDelays();
+
+        assertTrue("initialDelay should stay within the default jitter window", Collections.max(delays) <= 2500L);
+        assertTrue("delays should not all be the same constant value", new HashSet<>(delays).size() > 1);
+    }
+
+    @Test
+    public void scheduleOpenEvent_withDeliveryDelayInPush_keepsDefaultJitter() {
+        List<Long> delays = captureScheduledWork(bundleWithDelay("60"), PushStatisticsScheduler::scheduleOpenEvent, 200)
+                .initialDelays();
+
+        assertTrue("open event initialDelay should ignore the push delay window", Collections.max(delays) <= 2500L);
+        assertTrue("delays should not all be the same constant value", new HashSet<>(delays).size() > 1);
+    }
+
+    @Test
+    public void scheduleDeliveryEvent_withDelayWindowInPush_keepsWorkNameAndKeepPolicy() {
+        ScheduledWork work =
+                captureScheduledWork(bundleWithDelay("60"), PushStatisticsScheduler::scheduleDeliveryEvent, 1);
+
+        assertEquals(PushStatisticsWorker.EVENT_DELIVERY + "_" + TEST_HASH, work.names.get(0));
+        assertEquals(ExistingWorkPolicy.KEEP, work.policies.get(0));
+    }
+
+    /** Everything the scheduler handed to {@code enqueueOneTimeUniqueWork}, one entry per call. */
+    private static final class ScheduledWork {
+        final List<OneTimeWorkRequest> requests;
+        final List<String> names;
+        final List<ExistingWorkPolicy> policies;
+
+        ScheduledWork(List<OneTimeWorkRequest> requests, List<String> names, List<ExistingWorkPolicy> policies) {
+            this.requests = requests;
+            this.names = names;
+            this.policies = policies;
+        }
+
+        List<Long> initialDelays() {
+            List<Long> delays = new ArrayList<>(requests.size());
+            for (OneTimeWorkRequest request : requests) {
+                delays.add(request.getWorkSpec().initialDelay);
+            }
+            return delays;
+        }
+    }
+
+    /**
+     * Runs {@code schedule} against {@code pushBundle} {@code draws} times with the bundle provider
+     * and WorkManager helper mocked, and returns what reached {@code enqueueOneTimeUniqueWork}.
+     * The hash and metadata are stubbed; the delay window is read from the real bundle.
+     */
+    private ScheduledWork captureScheduledWork(Bundle pushBundle, Consumer<Bundle> schedule, int draws) {
+        try (MockedStatic<PushBundleDataProvider> bundleProviderMock =
+                        Mockito.mockStatic(PushBundleDataProvider.class);
+                MockedStatic<PushwooshWorkManagerHelper> workManagerHelperMock =
+                        Mockito.mockStatic(PushwooshWorkManagerHelper.class)) {
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushHash(pushBundle))
+                    .thenReturn(TEST_HASH);
+            bundleProviderMock
+                    .when(() -> PushBundleDataProvider.getPushMetadata(pushBundle))
+                    .thenReturn(TEST_METADATA);
+            workManagerHelperMock
+                    .when(PushwooshWorkManagerHelper::getStatisticsConstraints)
+                    .thenReturn(mock(Constraints.class));
+
+            for (int i = 0; i < draws; i++) {
+                schedule.accept(pushBundle);
+            }
+
+            ArgumentCaptor<OneTimeWorkRequest> requestCaptor = ArgumentCaptor.forClass(OneTimeWorkRequest.class);
+            ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
+            ArgumentCaptor<ExistingWorkPolicy> policyCaptor = ArgumentCaptor.forClass(ExistingWorkPolicy.class);
+            workManagerHelperMock.verify(
+                    () -> PushwooshWorkManagerHelper.enqueueOneTimeUniqueWork(
+                            requestCaptor.capture(), nameCaptor.capture(), policyCaptor.capture()),
+                    times(draws));
+            return new ScheduledWork(
+                    requestCaptor.getAllValues(), nameCaptor.getAllValues(), policyCaptor.getAllValues());
+        }
+    }
+
+    private static long storedReceiptSeconds(OneTimeWorkRequest request) {
+        return request.getWorkSpec().input.getLong(PushStatisticsWorker.DATA_RECEIVED_AT_UTC_SECONDS, -1L);
+    }
+
+    @Test
+    public void scheduleDelivery_storesReceiptSecondsFloored() {
+        ScheduledWork work = captureScheduledWork(
+                createValidPushBundle(),
+                bundle -> PushStatisticsScheduler.scheduleDeliveryEvent(bundle, RECEIVED_AT_MILLIS + 999L),
+                1);
+
+        assertEquals(RECEIVED_AT_SECONDS, storedReceiptSeconds(work.requests.get(0)));
+    }
+
+    @Test
+    public void scheduleDelivery_withDelayWindow_keepsReceiptTime() {
+        ScheduledWork work = captureScheduledWork(
+                bundleWithDelay("60"),
+                bundle -> PushStatisticsScheduler.scheduleDeliveryEvent(bundle, RECEIVED_AT_MILLIS),
+                1);
+
+        OneTimeWorkRequest request = work.requests.get(0);
+        assertTrue("delay within window", request.getWorkSpec().initialDelay <= 60000L);
+        assertEquals(RECEIVED_AT_SECONDS, storedReceiptSeconds(request));
+    }
+
+    @Test
+    public void scheduleDelivery_twoPushes_ownTimes() {
+        long[] times = {RECEIVED_AT_MILLIS, RECEIVED_AT_MILLIS + 60000L};
+        int[] call = {0};
+        ScheduledWork work = captureScheduledWork(
+                createValidPushBundle(),
+                bundle -> PushStatisticsScheduler.scheduleDeliveryEvent(bundle, times[call[0]++]),
+                2);
+
+        assertEquals(60L, storedReceiptSeconds(work.requests.get(1)) - storedReceiptSeconds(work.requests.get(0)));
+    }
+
+    @Test
+    public void scheduleDelivery_independentOfTimeZone() {
+        java.util.TimeZone original = java.util.TimeZone.getDefault();
+        try {
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Tokyo"));
+            ScheduledWork work = captureScheduledWork(
+                    createValidPushBundle(),
+                    bundle -> PushStatisticsScheduler.scheduleDeliveryEvent(bundle, RECEIVED_AT_MILLIS),
+                    1);
+
+            assertEquals(RECEIVED_AT_SECONDS, storedReceiptSeconds(work.requests.get(0)));
+        } finally {
+            java.util.TimeZone.setDefault(original);
+        }
+    }
+
+    @Test
+    public void scheduleDelivery_legacyOverloadOrNonPositive_omitsKey() {
+        ScheduledWork legacy =
+                captureScheduledWork(createValidPushBundle(), PushStatisticsScheduler::scheduleDeliveryEvent, 1);
+        ScheduledWork zero = captureScheduledWork(
+                createValidPushBundle(), bundle -> PushStatisticsScheduler.scheduleDeliveryEvent(bundle, 0L), 1);
+
+        for (ScheduledWork work : java.util.Arrays.asList(legacy, zero)) {
+            assertFalse(
+                    "no receipt key",
+                    work.requests
+                            .get(0)
+                            .getWorkSpec()
+                            .input
+                            .getKeyValueMap()
+                            .containsKey(PushStatisticsWorker.DATA_RECEIVED_AT_UTC_SECONDS));
+        }
+    }
+
+    @Test
+    public void scheduleOpen_hasNoReceiptKey() {
+        ScheduledWork work =
+                captureScheduledWork(createValidPushBundle(), PushStatisticsScheduler::scheduleOpenEvent, 1);
+
+        assertFalse(
+                "no receipt key",
+                work.requests
+                        .get(0)
+                        .getWorkSpec()
+                        .input
+                        .getKeyValueMap()
+                        .containsKey(PushStatisticsWorker.DATA_RECEIVED_AT_UTC_SECONDS));
     }
 }

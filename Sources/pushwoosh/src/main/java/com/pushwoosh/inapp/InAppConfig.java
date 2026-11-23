@@ -44,62 +44,66 @@ public class InAppConfig {
     }
 
     private void parseModalPosition(JSONObject json, ModalRichmediaConfig config) {
-        if (json.has(Column.KEY_MODAL_POSITION)) {
-            try {
-                String position = json.getString(Column.KEY_MODAL_POSITION);
-                ModalRichMediaViewPosition pos = ModalRichMediaViewPosition.fromString(position);
-                if (pos != null) {
-                    config.setViewPosition(pos);
-                }
-            } catch (JSONException e) {
-                PWLog.warn(TAG, "Failed to parse " + Column.KEY_MODAL_POSITION + ": " + e.getMessage());
+        if (!json.has(Column.KEY_MODAL_POSITION)) {
+            return;
+        }
+        try {
+            String position = json.getString(Column.KEY_MODAL_POSITION);
+            ModalRichMediaViewPosition pos = ModalRichMediaViewPosition.fromString(position);
+            if (pos != null) {
+                config.setViewPosition(pos);
             }
+        } catch (JSONException e) {
+            PWLog.warn(TAG, "Failed to parse " + Column.KEY_MODAL_POSITION + ": " + e.getMessage());
         }
     }
 
     private void parsePresentAnimation(JSONObject json, ModalRichmediaConfig config) {
-        if (json.has(Column.KEY_PRESENT_ANIMATION)) {
-            try {
-                String animation = json.getString(Column.KEY_PRESENT_ANIMATION);
-                ModalRichMediaPresentAnimationType anim = ModalRichMediaPresentAnimationType.fromString(animation);
-                if (anim != null) {
-                    config.setPresentAnimationType(anim);
-                }
-            } catch (JSONException e) {
-                PWLog.warn(TAG, "Failed to parse " + Column.KEY_PRESENT_ANIMATION + ": " + e.getMessage());
+        if (!json.has(Column.KEY_PRESENT_ANIMATION)) {
+            return;
+        }
+        try {
+            String animation = json.getString(Column.KEY_PRESENT_ANIMATION);
+            ModalRichMediaPresentAnimationType anim = ModalRichMediaPresentAnimationType.fromString(animation);
+            if (anim != null) {
+                config.setPresentAnimationType(anim);
             }
+        } catch (JSONException e) {
+            PWLog.warn(TAG, "Failed to parse " + Column.KEY_PRESENT_ANIMATION + ": " + e.getMessage());
         }
     }
 
     private void parseDismissAnimation(JSONObject json, ModalRichmediaConfig config) {
-        if (json.has(Column.KEY_DISMISS_ANIMATION)) {
-            try {
-                String animation = json.getString(Column.KEY_DISMISS_ANIMATION);
-                ModalRichMediaDismissAnimationType anim = ModalRichMediaDismissAnimationType.fromString(animation);
-                if (anim != null) {
-                    config.setDismissAnimationType(anim);
-                }
-            } catch (JSONException e) {
-                PWLog.warn(TAG, "Failed to parse " + Column.KEY_DISMISS_ANIMATION + ": " + e.getMessage());
+        if (!json.has(Column.KEY_DISMISS_ANIMATION)) {
+            return;
+        }
+        try {
+            String animation = json.getString(Column.KEY_DISMISS_ANIMATION);
+            ModalRichMediaDismissAnimationType anim = ModalRichMediaDismissAnimationType.fromString(animation);
+            if (anim != null) {
+                config.setDismissAnimationType(anim);
             }
+        } catch (JSONException e) {
+            PWLog.warn(TAG, "Failed to parse " + Column.KEY_DISMISS_ANIMATION + ": " + e.getMessage());
         }
     }
 
     private void parseSwipeGestures(JSONObject json, ModalRichmediaConfig config) {
-        if (json.has(Column.KEY_SWIPE_TO_DISMISS)) {
-            try {
-                JSONArray swipeArray = json.getJSONArray(Column.KEY_SWIPE_TO_DISMISS);
-                Set<ModalRichMediaSwipeGesture> swipes = new HashSet<>();
-                for (int i = 0; i < swipeArray.length(); i++) {
-                    ModalRichMediaSwipeGesture gesture = ModalRichMediaSwipeGesture.fromString(swipeArray.getString(i));
-                    if (gesture != null && gesture != ModalRichMediaSwipeGesture.NONE) {
-                        swipes.add(gesture);
-                    }
+        if (!json.has(Column.KEY_SWIPE_TO_DISMISS)) {
+            return;
+        }
+        try {
+            JSONArray swipeArray = json.getJSONArray(Column.KEY_SWIPE_TO_DISMISS);
+            Set<ModalRichMediaSwipeGesture> swipes = new HashSet<>();
+            for (int i = 0; i < swipeArray.length(); i++) {
+                ModalRichMediaSwipeGesture gesture = ModalRichMediaSwipeGesture.fromString(swipeArray.getString(i));
+                if (gesture != null && gesture != ModalRichMediaSwipeGesture.NONE) {
+                    swipes.add(gesture);
                 }
-                config.setSwipeGestures(swipes);
-            } catch (JSONException e) {
-                PWLog.warn(TAG, "Failed to parse " + Column.KEY_SWIPE_TO_DISMISS + ": " + e.getMessage());
             }
+            config.setSwipeGestures(swipes);
+        } catch (JSONException e) {
+            PWLog.warn(TAG, "Failed to parse " + Column.KEY_SWIPE_TO_DISMISS + ": " + e.getMessage());
         }
     }
 

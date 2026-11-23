@@ -7,45 +7,37 @@ class AccountStore(private val prefs: KeyValueStore) {
         get() = prefs.getBoolean(KEY_ONBOARDED)
         set(value) = prefs.putBoolean(KEY_ONBOARDED, value)
 
-    var appCode: String
-        get() = prefs.getString(KEY_APP_CODE)
-        set(value) = prefs.putString(KEY_APP_CODE, value)
-
-    var userName: String
-        get() = prefs.getString(KEY_USER_NAME)
-        set(value) = prefs.putString(KEY_USER_NAME, value)
+    var personalCode: String?
+        get() = prefs.getString(KEY_APP_CODE).takeIf { AppCode.isValid(it) && it != AppCode.DEMO }
+        set(value) {
+            if (value == null) prefs.remove(KEY_APP_CODE) else prefs.putString(KEY_APP_CODE, value)
+        }
 
     var userEmail: String
         get() = prefs.getString(KEY_USER_EMAIL)
         set(value) = prefs.putString(KEY_USER_EMAIL, value)
+
+    var smsNumber: String
+        get() = prefs.getString(KEY_SMS_NUMBER)
+        set(value) = prefs.putString(KEY_SMS_NUMBER, value)
+
+    var whatsappNumber: String
+        get() = prefs.getString(KEY_WHATSAPP_NUMBER)
+        set(value) = prefs.putString(KEY_WHATSAPP_NUMBER, value)
 
     var pushNotificationEnabled: Boolean
         get() = prefs.getBoolean(KEY_PUSH_ENABLED)
         set(value) = prefs.putBoolean(KEY_PUSH_ENABLED, value)
 
     val isGuest: Boolean
-        get() = userName.isEmpty() && userEmail.isEmpty()
-
-    val firstName: String
-        get() = userName.trim().split(Regex("\\s+")).firstOrNull().orEmpty()
-
-    val initials: String
-        get() {
-            val words = userName.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
-            if (words.isEmpty()) return "G"
-            return words.take(2).joinToString("") { it.first().uppercase() }
-        }
-
-    fun clearIdentity() {
-        prefs.remove(KEY_USER_NAME)
-        prefs.remove(KEY_USER_EMAIL)
-    }
+        get() = personalCode == null
 
     companion object {
         const val KEY_ONBOARDED = "nuvo.onboarded"
         const val KEY_APP_CODE = "nuvo.appCode"
-        const val KEY_USER_NAME = "nuvo.userName"
         const val KEY_USER_EMAIL = "nuvo.userEmail"
+        const val KEY_SMS_NUMBER = "pushmart.smsNumber"
+        const val KEY_WHATSAPP_NUMBER = "pushmart.whatsappNumber"
         const val KEY_PUSH_ENABLED = "pushNotificationEnabled"
     }
 }

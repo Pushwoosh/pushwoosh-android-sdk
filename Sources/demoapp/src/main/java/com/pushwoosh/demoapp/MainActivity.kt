@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity() {
         // recreation.
         if (savedInstanceState == null) {
             handleDeepLink(intent, "onCreate")
+            handleOpenExtra(intent)
         }
     }
 
@@ -71,6 +72,14 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleDeepLink(intent, "onNewIntent")
+        handleOpenExtra(intent)
+    }
+
+    // `--es open inline` is the adb entry point to the Inline test screen.
+    private fun handleOpenExtra(intent: Intent?) {
+        if (intent?.getStringExtra(EXTRA_OPEN) != "inline") return
+        findNavController(this, R.id.nav_host_fragment_activity_main)
+            .navigate(R.id.navigation_inline)
     }
 
     private fun handleDeepLink(intent: Intent?, source: String) {
@@ -112,6 +121,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+        private const val EXTRA_OPEN = "open"
         private const val DEEP_LINK_SCHEME = "pwdemo"
     }
 }

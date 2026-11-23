@@ -13,34 +13,31 @@ class PriceAlertStoreTest {
     private val prefs = InMemoryKeyValueStore()
     private val gateway = FakePushwooshGateway()
     private val alerts = PriceAlertStore(prefs, gateway)
-    private val chrono = Catalog.byId("chrono")!!
+    private val sundress = Catalog.byId("dress_04")!!
 
     @Test
-    fun turningOnAppendsTagAndPostsEvent() {
-        alerts.set(true, chrono)
-        assertTrue(alerts.isOn("chrono"))
-        assertEquals(listOf("chrono"), prefs.getStringList("pushmart.priceAlerts"))
-        assertEquals(listOf(TagOp.AppendList("price_alerts", listOf("chrono"))), gateway.tags)
-        assertEquals(
-            listOf("price_alert_on" to mapOf<String, Any>("productId" to "chrono", "price" to 249)),
-            gateway.events)
+    fun turningOnAppendsPriceAlertsTag() {
+        alerts.set(true, sundress)
+        assertTrue(alerts.isOn("dress_04"))
+        assertEquals(listOf("dress_04"), prefs.getStringList("pushmart.priceAlerts"))
+        assertEquals(listOf(TagOp.AppendList("price_alerts", listOf("dress_04"))), gateway.tags)
+        assertTrue(gateway.events.isEmpty())
     }
 
     @Test
-    fun turningOffRemovesTagWithoutEvent() {
-        alerts.set(true, chrono)
-        alerts.set(false, chrono)
-        assertFalse(alerts.isOn("chrono"))
-        assertEquals(TagOp.RemoveFromList("price_alerts", listOf("chrono")), gateway.tags.last())
-        assertEquals(1, gateway.events.size)
+    fun turningOffRemovesPriceAlertsTag() {
+        alerts.set(true, sundress)
+        alerts.set(false, sundress)
+        assertFalse(alerts.isOn("dress_04"))
+        assertEquals(TagOp.RemoveFromList("price_alerts", listOf("dress_04")), gateway.tags.last())
+        assertTrue(gateway.events.isEmpty())
     }
 
     @Test
     fun settingSameStateTwiceIsIdempotent() {
-        alerts.set(true, chrono)
-        alerts.set(true, chrono)
-        assertEquals(listOf("chrono"), prefs.getStringList("pushmart.priceAlerts"))
+        alerts.set(true, sundress)
+        alerts.set(true, sundress)
+        assertEquals(listOf("dress_04"), prefs.getStringList("pushmart.priceAlerts"))
         assertEquals(1, gateway.tags.size)
-        assertEquals(1, gateway.events.size)
     }
 }

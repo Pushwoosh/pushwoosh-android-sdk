@@ -6,4 +6,8 @@ sealed class Route {
     object Sale : Route()
 
     data class Voucher(val code: String) : Route()
+
+    object Cart : Route()
+
+    data class AddToBag(val id: String) : Route()
 }

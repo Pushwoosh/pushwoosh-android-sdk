@@ -3,12 +3,13 @@ package com.pushwoosh.location.foregroundservice;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+
 import androidx.annotation.Nullable;
 
 import com.pushwoosh.internal.utils.PWLog;
 
 public class ForegroundService extends Service {
-    private final String TAG = ForegroundService.class.getSimpleName();
+    private final String TAG = "ForegroundService";
 
     @Override
     public void onCreate() {
@@ -25,8 +26,7 @@ public class ForegroundService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    @Nullable
-    @Override
+    @Nullable @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
