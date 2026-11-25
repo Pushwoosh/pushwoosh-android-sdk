@@ -26,47 +26,96 @@
 
 package com.pushwoosh.repository;
 
+import static com.pushwoosh.testutil.ReceiptTime.ON_MINUTE_RFC3339;
+import static com.pushwoosh.testutil.ReceiptTime.ON_MINUTE_SECONDS;
+import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_RFC3339;
 import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import org.json.JSONObject;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.LooperMode;
 
+import java.util.Locale;
+import java.util.TimeZone;
+
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LooperMode.Mode.LEGACY)
 @org.robolectric.annotation.Config(manifest = "AndroidManifest.xml")
 public class MessageDeliveredRequestTest {
+    private Locale savedLocale;
+    private TimeZone savedTimeZone;
+
+    @Before
+    public void saveDefaults() {
+        savedLocale = Locale.getDefault();
+        savedTimeZone = TimeZone.getDefault();
+    }
+
+    @After
+    public void restoreDefaults() {
+        Locale.setDefault(savedLocale);
+        TimeZone.setDefault(savedTimeZone);
+    }
 
     @Test
-    public void buildParams_withTimestamp_putsIntegerSeconds() throws Exception {
-        MessageDeliveredRequest request = new MessageDeliveredRequest("h", "md", RECEIVED_AT_SECONDS);
+    public void buildParams_withReceivedAt_putsRfc3339String() throws Exception {
         JSONObject params = new JSONObject();
 
-        request.buildParams(params);
+        new MessageDeliveredRequest("h", "md", RECEIVED_AT_SECONDS).buildParams(params);
 
-        assertTrue(params.get("timestampUTC") instanceof Long);
-        assertEquals(RECEIVED_AT_SECONDS, params.getLong("timestampUTC"));
+        assertEquals(RECEIVED_AT_RFC3339, params.get("receivedAt"));
+        assertFalse(params.has("timestampUTC"));
         assertEquals("h", params.getString("hash"));
         assertEquals("md", params.getString("metaData"));
         assertEquals(3, params.length());
     }
 
     @Test
-    public void buildParams_withoutTimestamp_omitsField() throws Exception {
-        JSONObject withNull = new JSONObject();
-        JSONObject twoArg = new JSONObject();
+    public void buildParams_withoutReceivedAt_omitsField() throws Exception {
+        MessageDeliveredRequest[] requests = {
+            new MessageDeliveredRequest("h", "md", null),
+            new MessageDeliveredRequest("h", "md", 0L),
+            new MessageDeliveredRequest("h", "md", -5L),
+            new MessageDeliveredRequest("h", "md"),
+        };
 
-        new MessageDeliveredRequest("h", "md", null).buildParams(withNull);
-        new MessageDeliveredRequest("h", "md").buildParams(twoArg);
+        for (MessageDeliveredRequest request : requests) {
+            JSONObject params = new JSONObject();
+            request.buildParams(params);
 
-        assertFalse(withNull.has("timestampUTC"));
-        assertEquals(2, withNull.length());
-        assertFalse(twoArg.has("timestampUTC"));
-        assertEquals(2, twoArg.length());
+            assertFalse(params.has("receivedAt"));
+            assertFalse(params.has("timestampUTC"));
+            assertEquals(2, params.length());
+        }
+    }
+
+    @Test
+    public void receivedAt_keepsZeroSeconds() {
+        assertEquals(ON_MINUTE_RFC3339, MessageDeliveredRequest.formatReceivedAt(ON_MINUTE_SECONDS));
+    }
+
+    @Test
+    public void receivedAt_ignoresDeviceLocaleAndTimeZone() {
+        Object[][] environments = {
+            {Locale.forLanguageTag("ar-EG"), "Asia/Kathmandu"},
+            {Locale.forLanguageTag("th-TH"), "America/St_Johns"},
+            {Locale.forLanguageTag("ja-JP-u-ca-japanese"), "Pacific/Kiritimati"},
+        };
+
+        for (Object[] environment : environments) {
+            Locale.setDefault((Locale) environment[0]);
+            TimeZone.setDefault(TimeZone.getTimeZone((String) environment[1]));
+
+            assertEquals(
+                    environment[0] + " / " + environment[1],
+                    RECEIVED_AT_RFC3339,
+                    MessageDeliveredRequest.formatReceivedAt(RECEIVED_AT_SECONDS));
+        }
     }
 }

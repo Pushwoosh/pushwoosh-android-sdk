@@ -26,38 +26,38 @@
 
 package com.pushwoosh.inapp.network;
 
-import java.util.Calendar;
-
 import com.pushwoosh.internal.network.PushRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.TimeZone;
+
 class MergeUserRequest extends PushRequest<Void> {
-	private String oldUserId;
-	private String newUserId;
-	private boolean merge;
+    private String oldUserId;
+    private String newUserId;
+    private boolean merge;
 
-	MergeUserRequest(String oldUserId, String newUserId, boolean merge) {
-		this.oldUserId = oldUserId;
-		this.newUserId = newUserId;
-		this.merge = merge;
-	}
+    MergeUserRequest(String oldUserId, String newUserId, boolean merge) {
+        this.oldUserId = oldUserId;
+        this.newUserId = newUserId;
+        this.merge = merge;
+    }
 
-	@Override
-	public String getMethod() {
-		return "mergeUser";
-	}
+    @Override
+    public String getMethod() {
+        return "mergeUser";
+    }
 
-	@Override
-	protected void buildParams(JSONObject params) throws JSONException {
-		params.put("oldUserId", oldUserId);
-		params.put("newUserId", newUserId);
-		params.put("merge", merge);
+    @Override
+    protected void buildParams(JSONObject params) throws JSONException {
+        params.put("oldUserId", oldUserId);
+        params.put("newUserId", newUserId);
+        params.put("merge", merge);
 
-		int timezone = Calendar.getInstance().getTimeZone().getRawOffset() / 1000;
-		long unixTime = System.currentTimeMillis() / 1000L;
-		long localTime = unixTime + timezone;
-		params.put("ts", localTime);
-	}
+        long nowMillis = System.currentTimeMillis();
+        long unixTime = nowMillis / 1000L;
+        long localTime = unixTime + TimeZone.getDefault().getOffset(nowMillis) / 1000;
+        params.put("ts", localTime);
+    }
 }

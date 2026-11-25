@@ -154,27 +154,33 @@ public class DeviceRegistrar {
             return Result.fromException(new NetworkException("SDK is not initialized"));
         }
 
-        String token = prefs.pushToken().get();
-        if (TextUtils.isEmpty(token)) {
+        // checked before the transport: with no token there is nothing to deliver, and that is not an error
+        if (TextUtils.isEmpty(prefs.pushToken().get())) {
             return Result.fromException(new NothingToDeliverException());
         }
 
-        DeviceSpecificProvider provider = DeviceSpecificProvider.getInstance();
-        if (provider == null) {
+        RegistrationSnapshot snapshot = RegistrationSnapshot.current();
+        if (snapshot == null) {
             String errorDescription = "can't register device: no push transport module";
             PWLog.error(TAG, errorDescription);
             EventBus.sendEvent(new RegistrationErrorEvent(errorDescription));
             return Result.fromException(new NetworkException(errorDescription));
         }
 
-        String appCode = prefs.applicationId().get();
-        RegisterDeviceRequest request = new RegisterDeviceRequest(token, tagsJson, provider.deviceType());
+        // the snapshot re-reads the token, which may have been cleared since the guard above
+        if (TextUtils.isEmpty(snapshot.pushToken())) {
+            return Result.fromException(new NothingToDeliverException());
+        }
+
+        RegisterDeviceRequest request = new RegisterDeviceRequest(snapshot, tagsJson);
         Result<Void, NetworkException> result =
                 NetworkModule.getRequestManager().sendRequestSync(request);
 
-        boolean appCodeChanged = !TextUtils.isEmpty(appCode)
-                && !appCode.equals(prefs.applicationId().get());
-        if (!token.equals(prefs.pushToken().get()) || appCodeChanged) {
+        String sentToken = snapshot.pushToken();
+        String sentAppCode = snapshot.applicationCode();
+        boolean appCodeChanged = !TextUtils.isEmpty(sentAppCode)
+                && !sentAppCode.equals(prefs.applicationId().get());
+        if (!sentToken.equals(prefs.pushToken().get()) || appCodeChanged) {
             // the newer delivery owns the outcome: stamping it here would hide the new code behind the cooldown;
             // a first app code is not a change — nothing re-delivers after it
             return Result.fromData(null);
@@ -183,11 +189,11 @@ public class DeviceRegistrar {
         if (result.isSuccess()) {
             PushPermissionStatusTracker.onStatusDelivered(request.getSentPushPermissionStatus());
             prefs.registeredOnServer().set(true);
-            prefs.deliveredPushToken().set(token);
+            prefs.deliveredPushToken().set(sentToken);
             prefs.lastPushRegistration().set(new Date().getTime());
             EventBus.sendEvent(new RegistrationSuccessEvent(
-                    new RegisterForPushNotificationsResultData(token, areNotificationsEnabled())));
-            PWLog.info(TAG, "Registered for push notifications: " + token);
+                    new RegisterForPushNotificationsResultData(sentToken, areNotificationsEnabled())));
+            PWLog.info(TAG, "Registered for push notifications: " + sentToken);
         } else {
             PWLog.error(TAG, "can't register device", result.getException());
             EventBus.sendEvent(new RegistrationErrorEvent("can't register device"));

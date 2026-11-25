@@ -300,10 +300,10 @@ public class PushwooshRepository {
     }
 
     public Result<Void, NetworkException> sendPushDeliveredSync(
-            String hash, String metaData, @Nullable Long timestampUtcSeconds) {
+            String hash, String metaData, @Nullable Long receivedAtUtcSeconds) {
         PWLog.info(TAG, "Sending MessageDeliveredRequest sync, hash: " + hash);
 
-        MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData, timestampUtcSeconds);
+        MessageDeliveredRequest request = new MessageDeliveredRequest(hash, metaData, receivedAtUtcSeconds);
 
         try {
             return requestManager.sendRequestSync(request);

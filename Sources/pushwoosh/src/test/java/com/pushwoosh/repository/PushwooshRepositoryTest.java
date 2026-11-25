@@ -504,8 +504,8 @@ public class PushwooshRepositoryTest {
 
         verify(requestManager, times(2)).sendRequestSync(captor.capture());
         assertEquals(
-                Long.valueOf(RECEIVED_AT_SECONDS), captor.getAllValues().get(0).getTimestampUtcSeconds());
-        assertNull(captor.getAllValues().get(1).getTimestampUtcSeconds());
+                Long.valueOf(RECEIVED_AT_SECONDS), captor.getAllValues().get(0).getReceivedAtUtcSeconds());
+        assertNull(captor.getAllValues().get(1).getReceivedAtUtcSeconds());
     }
 
     // ---------- sendInappPurchase ----------

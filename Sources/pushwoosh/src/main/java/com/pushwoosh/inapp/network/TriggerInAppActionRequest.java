@@ -31,12 +31,11 @@ import com.pushwoosh.internal.network.PushRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Calendar;
+import java.util.TimeZone;
 
 /**
  * Created by kai on 27.02.2018.
  */
-
 public class TriggerInAppActionRequest extends PushRequest<Void> {
     private String inAppCode;
     private String messageHash;
@@ -63,9 +62,9 @@ public class TriggerInAppActionRequest extends PushRequest<Void> {
             params.put("richMediaCode", richMediaCode.substring(2));
         }
 
-        int timezone = Calendar.getInstance().getTimeZone().getRawOffset() / 1000;
-        long unixTime = System.currentTimeMillis() / 1000L;
-        long localTime = unixTime + timezone;
+        long nowMillis = System.currentTimeMillis();
+        long unixTime = nowMillis / 1000L;
+        long localTime = unixTime + TimeZone.getDefault().getOffset(nowMillis) / 1000;
 
         params.put("timestampUTC", unixTime);
         params.put("timestampCurrent", localTime);

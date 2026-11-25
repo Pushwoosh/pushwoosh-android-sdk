@@ -32,9 +32,24 @@ import static org.junit.Assert.assertTrue;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.TimeZone;
+
 public class TriggerInAppActionRequestTest {
+    private TimeZone originalZone;
+
+    @Before
+    public void setUp() {
+        originalZone = TimeZone.getDefault();
+    }
+
+    @After
+    public void tearDown() {
+        TimeZone.setDefault(originalZone);
+    }
 
     // Restored from cross-check: pins the wire-level endpoint name. Consistent with sibling PushRequest
     // tests (RegisterDeviceRequestTest, RegisterEmailUserRequestTest, RichMediaActionRequestTest).
@@ -86,5 +101,16 @@ public class TriggerInAppActionRequestTest {
         request.buildParams(params);
 
         assertEquals("richcode", params.getString("richMediaCode"));
+    }
+
+    @Test
+    public void buildParams_zoneInDaylightTime_localTimestampIncludesDaylightOffset() throws JSONException {
+        TimeZone.setDefault(new DaylightAlwaysTimeZone());
+        TriggerInAppActionRequest request = new TriggerInAppActionRequest("inapp-1", "h", "media");
+
+        JSONObject params = new JSONObject();
+        request.buildParams(params);
+
+        assertEquals(3600L, params.getLong("timestampCurrent") - params.getLong("timestampUTC"));
     }
 }

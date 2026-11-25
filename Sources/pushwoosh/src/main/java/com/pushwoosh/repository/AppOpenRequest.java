@@ -38,11 +38,13 @@ import com.pushwoosh.notification.PushPermissionStatusTracker;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 class AppOpenRequest extends PushRequest<Void> {
+    private static final Pattern CUSTOM_GMT_OFFSET_ID = Pattern.compile("^GMT[+-]\\d{2}:\\d{2}$");
+
     @Nullable private String sentPushPermissionStatus;
 
     public String getMethod() {
@@ -51,17 +53,15 @@ class AppOpenRequest extends PushRequest<Void> {
 
     @Override
     protected void buildParams(JSONObject params) throws JSONException {
-        if (RepositoryModule.getNotificationPreferences()
-                .isCollectingDeviceLocaleAllowed()
-                .get()) {
-            params.put(
-                    "language",
-                    RepositoryModule.getRegistrationPreferences().language().get());
-            params.put("locale", RepositoryModule.getRegistrationPreferences().localeForRequest());
+        String language = getLanguage();
+        if (language != null) {
+            params.put("language", language);
         }
-        params.put(
-                "timezone",
-                TimeUnit.SECONDS.convert(TimeZone.getDefault().getOffset(new Date().getTime()), TimeUnit.MILLISECONDS));
+        String locale = getLocale();
+        if (locale != null) {
+            params.put("locale", locale);
+        }
+        params.put("timezone", timezoneParam());
 
         String packageName = AndroidPlatformModule.getAppInfoProvider().getPackageName();
         params.put("android_package", packageName);
@@ -94,6 +94,46 @@ class AppOpenRequest extends PushRequest<Void> {
         if (sentPushPermissionStatus != null) {
             params.put("push_permission_status", sentPushPermissionStatus);
         }
+    }
+
+    /** Whether {@code language} and {@code locale} may be collected and sent at the moment of the call. */
+    static boolean isLocaleCollectionAllowed() {
+        return RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceLocaleAllowed()
+                .get();
+    }
+
+    /**
+     * Value sent as {@code language}.
+     *
+     * @return the language to send, or {@code null} to omit the key
+     */
+    @Nullable protected String getLanguage() {
+        if (!isLocaleCollectionAllowed()) {
+            return null;
+        }
+        return RepositoryModule.getRegistrationPreferences().language().get();
+    }
+
+    /**
+     * Value sent as {@code locale}.
+     *
+     * @return the locale to send, or {@code null} to omit the key
+     */
+    @Nullable protected String getLocale() {
+        if (!isLocaleCollectionAllowed()) {
+            return null;
+        }
+        return RepositoryModule.getRegistrationPreferences().localeForRequest();
+    }
+
+    private static Object timezoneParam() {
+        TimeZone zone = TimeZone.getDefault();
+        if (CUSTOM_GMT_OFFSET_ID.matcher(zone.getID()).matches()) {
+            // Server drops custom GMT+-hh:mm ids and stores 0, so send the offset instead.
+            return TimeUnit.SECONDS.convert(zone.getOffset(System.currentTimeMillis()), TimeUnit.MILLISECONDS);
+        }
+        return zone.getID();
     }
 
     protected boolean reportsPushPermissionStatus() {

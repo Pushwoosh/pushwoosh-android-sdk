@@ -28,6 +28,9 @@ package com.pushwoosh.repository;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.pushwoosh.internal.platform.utils.GeneralUtils;
 
 import org.json.JSONArray;
@@ -41,15 +44,57 @@ public class RegisterDeviceRequest extends AppOpenRequest {
     private final String tagsJson;
     private final int platform;
 
+    @Nullable private final RegistrationSnapshot snapshot;
+
+    /**
+     * SMS / WhatsApp registration path. The fields not passed here are read live when the request is serialized.
+     */
     public RegisterDeviceRequest(String deviceId, String tagsJson, int platform) {
         this.deviceId = deviceId;
         this.tagsJson = tagsJson;
         this.platform = platform;
+        this.snapshot = null;
+    }
+
+    /**
+     * Push registration that sends the values captured in {@code snapshot}, whatever the registration state is when
+     * the request is serialized.
+     */
+    RegisterDeviceRequest(@NonNull RegistrationSnapshot snapshot, @Nullable String tagsJson) {
+        this.deviceId = snapshot.pushToken();
+        this.tagsJson = tagsJson;
+        this.platform = snapshot.deviceType();
+        this.snapshot = snapshot;
     }
 
     @Override
     public String getMethod() {
         return "registerDevice";
+    }
+
+    @Override
+    protected String getApplicationId() {
+        return snapshot != null ? snapshot.applicationCode() : super.getApplicationId();
+    }
+
+    @NonNull @Override
+    protected String getHwid() throws InterruptedException {
+        return snapshot != null ? snapshot.hwid() : super.getHwid();
+    }
+
+    @Override
+    protected int getDeviceType() {
+        return platform;
+    }
+
+    @Nullable @Override
+    protected String getLanguage() {
+        return snapshot != null ? snapshot.language() : super.getLanguage();
+    }
+
+    @Nullable @Override
+    protected String getLocale() {
+        return snapshot != null ? snapshot.locale() : super.getLocale();
     }
 
     @Override
@@ -61,10 +106,6 @@ public class RegisterDeviceRequest extends AppOpenRequest {
     protected void buildParams(JSONObject params) throws JSONException {
         super.buildParams(params);
 
-        params.put("device_type", platform);
-        params.put(
-                "application",
-                RepositoryModule.getRegistrationPreferences().applicationId().get());
         if (platform == DeviceRegistrar.PLATFORM_SMS) {
             params.put("hwid", deviceId);
         } else if (platform == DeviceRegistrar.PLATFORM_WHATSAPP) {

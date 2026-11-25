@@ -54,9 +54,7 @@ public abstract class PushRequest<S> {
         String hwid = getHwid();
         baseParams.put("hwid", hwid);
         baseParams.put("v", GeneralUtils.SDK_VERSION);
-
-        // check for Amazon (Kindle) or Google device
-        baseParams.put("device_type", DeviceSpecificProvider.getInstance().deviceType());
+        baseParams.put("device_type", getDeviceType());
 
         String currentUserId = getUserId();
         if (!TextUtils.isEmpty(currentUserId)) {
@@ -70,6 +68,17 @@ public abstract class PushRequest<S> {
 
     @NonNull protected String getHwid() throws InterruptedException {
         return PushwooshPlatform.getInstance().pushwooshRepository().getHwid();
+    }
+
+    /**
+     * Device type sent as {@code device_type}.
+     * <p>
+     * Overridden by requests whose device type is fixed earlier than send time.
+     *
+     * @return the device type of the active push transport
+     */
+    protected int getDeviceType() {
+        return DeviceSpecificProvider.getInstance().deviceType();
     }
 
     protected String getUserId() {

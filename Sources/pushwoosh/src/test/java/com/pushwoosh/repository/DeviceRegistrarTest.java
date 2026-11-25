@@ -59,6 +59,7 @@ import com.pushwoosh.internal.network.PushRequest;
 import com.pushwoosh.internal.network.PushRequestHelper;
 import com.pushwoosh.internal.network.RequestManager;
 import com.pushwoosh.internal.platform.AndroidPlatformModule;
+import com.pushwoosh.internal.preference.PreferenceStringValue;
 import com.pushwoosh.internal.registrar.RegisterDeviceWorker;
 import com.pushwoosh.internal.specific.DeviceSpecificProvider;
 import com.pushwoosh.internal.utils.BackgroundExecutor;
@@ -1064,6 +1065,83 @@ public class DeviceRegistrarTest {
         List<WorkInfo> infos =
                 workManager.getWorkInfosForUniqueWork(RegisterDeviceWorker.TAG).get();
         Assert.assertTrue(infos.isEmpty());
+    }
+
+    // Verifies that registerDevice carries the values read when the request was created, not the ones
+    // found in prefs and in the transport at serialization time.
+    @Test
+    public void registerDeviceCarriesValuesCapturedWhenRequestWasCreated() throws Exception {
+        RepositoryModule.getNotificationPreferences()
+                .isCollectingDeviceLocaleAllowed()
+                .set(true);
+        registrationPrefs.pushToken().set(TEST_ID);
+        registrationPrefs.applicationId().set("APP-1");
+        registrationPrefs.hwid().set("HW-1");
+        registrationPrefs.setLanguage("es");
+        registrationPrefs.setLocale("es-MX");
+        int deviceType = DeviceSpecificProvider.getInstance().deviceType();
+        JSONObject[] sent = new JSONObject[1];
+        when(requestManager.sendRequestSync(any(PushRequest.class))).thenAnswer(invocation -> {
+            registrationPrefs.pushToken().set(NEW_TOKEN);
+            registrationPrefs.applicationId().set("APP-2");
+            registrationPrefs.hwid().set("HW-2");
+            registrationPrefs.setLanguage("fr");
+            registrationPrefs.setLocale("fr-CA");
+            DeviceSpecificProvider otherTransport = Mockito.mock(DeviceSpecificProvider.class);
+            when(otherTransport.deviceType()).thenReturn(deviceType + 1);
+            try (MockedStatic<DeviceSpecificProvider> provider =
+                    Mockito.mockStatic(DeviceSpecificProvider.class, Mockito.CALLS_REAL_METHODS)) {
+                provider.when(DeviceSpecificProvider::getInstance).thenReturn(otherTransport);
+                sent[0] = PushRequestHelper.getParams(invocation.getArgument(0));
+            }
+            return Result.fromData(null);
+        });
+
+        deviceRegistrar.deliverFromWorker(null);
+
+        Assert.assertEquals("APP-1", sent[0].getString("application"));
+        Assert.assertEquals("HW-1", sent[0].getString("hwid"));
+        Assert.assertEquals("es", sent[0].getString("language"));
+        Assert.assertEquals("es-MX", sent[0].getString("locale"));
+        Assert.assertEquals(TEST_ID, sent[0].getString("push_token"));
+        Assert.assertEquals(deviceType, sent[0].getInt("device_type"));
+    }
+
+    // Verifies that a token cleared between the empty-token guard and the snapshot is not sent as an empty one.
+    @Test
+    public void registerDeviceIsNotSentWhenTokenIsClearedBeforeSnapshotIsTaken() {
+        PreferenceStringValue clearedAfterFirstRead = Mockito.mock(PreferenceStringValue.class);
+        when(clearedAfterFirstRead.get()).thenReturn(TEST_ID, "");
+        RegistrationPrefs prefs = Mockito.spy(registrationPrefs);
+        when(prefs.pushToken()).thenReturn(clearedAfterFirstRead);
+        RepositoryModule.setRegistrationPreferences(prefs);
+        try {
+            deviceRegistrar.deliverFromWorker(null);
+        } finally {
+            RepositoryModule.setRegistrationPreferences(registrationPrefs);
+        }
+
+        verify(requestManager, never()).sendRequestSync(any());
+        Assert.assertFalse(registrationPrefs.registeredOnServer().get());
+    }
+
+    // Verifies that an empty HWID does not stop the delivery: the snapshot stores values as read, unvalidated.
+    @Test
+    public void registerDeviceIsSentWhenHwidIsEmpty() throws Exception {
+        registrationPrefs.pushToken().set(TEST_ID);
+        registrationPrefs.hwid().set("");
+        stubSyncSuccess();
+
+        deviceRegistrar.deliverFromWorker(null);
+
+        verify(requestManager).sendRequestSync(pushRequestArgumentCaptor.capture());
+        Assert.assertEquals(
+                "registerDevice", pushRequestArgumentCaptor.getValue().getMethod());
+        Assert.assertEquals(
+                "",
+                PushRequestHelper.getParams(pushRequestArgumentCaptor.getValue())
+                        .getString("hwid"));
+        Assert.assertTrue(registrationPrefs.registeredOnServer().get());
     }
 
     private static String repeat(String value, int count) {

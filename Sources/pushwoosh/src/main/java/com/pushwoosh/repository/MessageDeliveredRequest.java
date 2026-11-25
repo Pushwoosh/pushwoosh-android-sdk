@@ -33,20 +33,36 @@ import com.pushwoosh.internal.network.PushRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
+/**
+ * {@code /messageDeliveryEvent} request. When the push receipt moment is known, it is sent as
+ * {@code receivedAt}: an RFC 3339 UTC string with seconds and no fractional part, e.g.
+ * {@code 2026-11-23T16:56:00Z}. Without a known receipt moment the field is omitted.
+ */
 public class MessageDeliveredRequest extends PushRequest<Void> {
+    private static final String RECEIVED_AT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+
     private final String hash;
     private final String metaData;
 
-    @Nullable private final Long timestampUtcSeconds;
+    @Nullable private final Long receivedAtUtcSeconds;
 
     public MessageDeliveredRequest(String hash, String metaData) {
         this(hash, metaData, null);
     }
 
-    public MessageDeliveredRequest(String hash, String metaData, @Nullable Long timestampUtcSeconds) {
+    /**
+     * @param receivedAtUtcSeconds push receipt moment in unix seconds; {@code null} or non-positive
+     *     means unknown and omits {@code receivedAt}
+     */
+    public MessageDeliveredRequest(String hash, String metaData, @Nullable Long receivedAtUtcSeconds) {
         this.hash = hash;
         this.metaData = metaData;
-        this.timestampUtcSeconds = timestampUtcSeconds;
+        this.receivedAtUtcSeconds = receivedAtUtcSeconds;
     }
 
     public String getMethod() {
@@ -61,8 +77,8 @@ public class MessageDeliveredRequest extends PushRequest<Void> {
         return metaData;
     }
 
-    @Nullable public Long getTimestampUtcSeconds() {
-        return timestampUtcSeconds;
+    @Nullable public Long getReceivedAtUtcSeconds() {
+        return receivedAtUtcSeconds;
     }
 
     @Override
@@ -73,8 +89,15 @@ public class MessageDeliveredRequest extends PushRequest<Void> {
         if (metaData != null) {
             params.put("metaData", metaData);
         }
-        if (timestampUtcSeconds != null) {
-            params.put("timestampUTC", timestampUtcSeconds.longValue());
+        if (receivedAtUtcSeconds != null && receivedAtUtcSeconds > 0) {
+            params.put("receivedAt", formatReceivedAt(receivedAtUtcSeconds));
         }
+    }
+
+    static String formatReceivedAt(long utcSeconds) {
+        // Locale.US pins ASCII digits and the Gregorian calendar regardless of the device locale.
+        SimpleDateFormat format = new SimpleDateFormat(RECEIVED_AT_PATTERN, Locale.US);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return format.format(new Date(utcSeconds * 1000L));
     }
 }

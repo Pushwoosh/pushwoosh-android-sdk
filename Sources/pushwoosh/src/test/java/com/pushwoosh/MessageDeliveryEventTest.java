@@ -1,6 +1,9 @@
 package com.pushwoosh;
 
+import static com.pushwoosh.testutil.ReceiptTime.MINUTE_LATER_MILLIS;
+import static com.pushwoosh.testutil.ReceiptTime.MINUTE_LATER_RFC3339;
 import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_MILLIS;
+import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_RFC3339;
 import static com.pushwoosh.testutil.ReceiptTime.RECEIVED_AT_SECONDS;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -37,8 +40,10 @@ import org.robolectric.annotation.LooperMode;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 @RunWith(RobolectricTestRunner.class)
@@ -211,8 +216,9 @@ public class MessageDeliveryEventTest {
             MessageDeliveredRequest r = (MessageDeliveredRequest) s.request;
             assertEquals(TEST_HASH, r.getHash());
             assertEquals(TEST_METADATA, r.getMetaData());
-            assertEquals(Long.valueOf(RECEIVED_AT_SECONDS), r.getTimestampUtcSeconds());
-            assertEquals(RECEIVED_AT_SECONDS, s.params.getLong("timestampUTC"));
+            assertEquals(Long.valueOf(RECEIVED_AT_SECONDS), r.getReceivedAtUtcSeconds());
+            assertEquals(RECEIVED_AT_RFC3339, s.params.getString("receivedAt"));
+            assertFalse(s.params.has("timestampUTC"));
         }
         fake.assertAllScripted();
     }
@@ -258,12 +264,12 @@ public class MessageDeliveryEventTest {
 
         assertEquals(1, fake.count("messageDeliveryEvent"));
         JSONObject params = fake.last("messageDeliveryEvent").params;
-        assertEquals(RECEIVED_AT_SECONDS, params.getLong("timestampUTC"));
+        assertEquals(RECEIVED_AT_RFC3339, params.getString("receivedAt"));
         assertEquals(TEST_HASH, params.getString("hash"));
         assertEquals(TEST_METADATA, params.getString("metaData"));
 
         Set<String> allowed = new HashSet<>(
-                Arrays.asList("application", "hwid", "v", "device_type", "userId", "hash", "metaData", "timestampUTC"));
+                Arrays.asList("application", "hwid", "v", "device_type", "userId", "hash", "metaData", "receivedAt"));
         Iterator<String> keys = params.keys();
         while (keys.hasNext()) {
             String key = keys.next();
@@ -281,11 +287,11 @@ public class MessageDeliveryEventTest {
 
         assertEquals(1, fake.count("messageDeliveryEvent"));
         assertEquals(
-                RECEIVED_AT_SECONDS, fake.last("messageDeliveryEvent").params.getLong("timestampUTC"));
+                RECEIVED_AT_RFC3339, fake.last("messageDeliveryEvent").params.getString("receivedAt"));
     }
 
     @Test
-    public void legacyQueuedWork_sendsWithoutTimestamp() throws Exception {
+    public void legacyQueuedWork_sendsWithoutReceivedAt() throws Exception {
         fake.alwaysRespondWith("messageDeliveryEvent", new JSONObject());
 
         OneTimeWorkRequest legacy = new OneTimeWorkRequest.Builder(PushStatisticsWorker.class)
@@ -300,8 +306,28 @@ public class MessageDeliveryEventTest {
 
         assertEquals(1, fake.count("messageDeliveryEvent"));
         JSONObject params = fake.last("messageDeliveryEvent").params;
+        assertFalse(params.has("receivedAt"));
         assertFalse(params.has("timestampUTC"));
         assertEquals(TEST_HASH, params.getString("hash"));
         assertEquals(TEST_METADATA, params.getString("metaData"));
+    }
+
+    @Test
+    public void twoPushesAMinuteApart_eachCarriesOwnReceiptTime() throws Exception {
+        fake.alwaysRespondWith("messageDeliveryEvent", new JSONObject());
+        Bundle second = createTestPushBundle();
+        second.putString("p", "test_hash_789");
+
+        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(createTestPushBundle(), RECEIVED_AT_MILLIS);
+        PushwooshMessagingServiceHelper.sendMessageDeliveryEvent(second, MINUTE_LATER_MILLIS);
+        waitForTasks();
+
+        assertEquals(2, fake.count("messageDeliveryEvent"));
+        Map<String, String> receivedAtByHash = new HashMap<>();
+        for (FakeRequestManager.Sent s : fake.all("messageDeliveryEvent")) {
+            receivedAtByHash.put(s.params.getString("hash"), s.params.getString("receivedAt"));
+        }
+        assertEquals(RECEIVED_AT_RFC3339, receivedAtByHash.get(TEST_HASH));
+        assertEquals(MINUTE_LATER_RFC3339, receivedAtByHash.get("test_hash_789"));
     }
 }
